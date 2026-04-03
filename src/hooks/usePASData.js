@@ -14,16 +14,26 @@ export function usePASData() {
   const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Contactos
-      const { data: contactosData } = await supabase
-        .from("pas_contactos")
-        .select("*");
+      // 1. Contactos — traer todos (Supabase pagina de a 1000)
+      let contactosTodos = [];
+      let from = 0;
+      const CHUNK = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from("pas_contactos")
+          .select("*")
+          .range(from, from + CHUNK - 1);
+        if (error) { console.error("[usePASData] contactos error:", error); break; }
+        if (!data?.length) break;
+        contactosTodos = [...contactosTodos, ...data];
+        if (data.length < CHUNK) break;
+        from += CHUNK;
+      }
 
-      if (contactosData?.length) {
-        const lista = contactosData.map(p => ({
+      if (contactosTodos.length) {
+        const lista = contactosTodos.map(p => ({
           ...p,
           id: p.id,
-          // telefonos puede venir como string "123,456" o ya como array
           telefonos: Array.isArray(p.telefonos)
             ? p.telefonos
             : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
