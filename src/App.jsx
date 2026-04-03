@@ -26,6 +26,7 @@ import PASCard from './components/PASCard.jsx'
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const {
+    pas, setPas,
     historial, setHistorial,
     casos, setCasos,
     derivadores, setDerivadores,
@@ -37,7 +38,6 @@ export default function App() {
   } = usePASData();
 
   // ── STATE GLOBAL
-  const [pas, setPas] = useState([]);
   const [mainTab, setMainTab] = useState("dashboard");
   const [darkMode, setDarkMode] = useState(true);
   const [modalPas, setModalPas] = useState(null);
@@ -96,16 +96,41 @@ export default function App() {
     setAppLoading(true);
     const reader = new FileReader();
     reader.onload = async ev => {
-      const wb = XLSX.read(ev.target.result, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }).slice(1);
-      const lista = parsePAS(rows);
-      setPas(lista);
-      await saveStorage("pas_lista", lista);
-      setAppLoading(false);
+      try {
+        const wb = XLSX.read(ev.target.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }).slice(1);
+        const lista = parsePAS(rows);
+        
+        // Guardar en Supabase
+        const inserts = lista.map(p => ({
+          id: p.id.toString(),
+          nombre: p.nombre,
+          mail: p.mail,
+          telefonos: p.telefonos.join(","),
+          contacto: p.contacto,
+          respuesta: p.respuesta,
+          seguimiento: p.seguimiento,
+          prioridad: p.prioridad,
+        }));
+        
+        const { error } = await supabase
+          .from("pas_contactos")
+          .upsert(inserts, { onConflict: "id" });
+        
+        if (error) console.error("[Excel] Error en Supabase:", error);
+        
+        // Recargar todos los datos
+        await reloadAllData();
+        
+        setAppLoading(false);
+      } catch (err) {
+        console.error("[Excel] Error:", err);
+        setAppLoading(false);
+      }
     };
     reader.readAsArrayBuffer(file);
-  }, []);
+  }, [reloadAllData]);
 
   const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, recordatorio }) => {
     const entry = { fecha, resultados, nota, ts: Date.now() };

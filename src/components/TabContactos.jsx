@@ -39,7 +39,7 @@ export default function TabContactos({
     return byVista.filter(p => !descartados[p.id] && (
       p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.mail?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cleanPhones(p.tel).includes(cleanPhones(busqueda))
+      p.telefonos?.join(" ").includes(busqueda)
     ));
   }, [vista, busqueda, pas, descartados]);
 

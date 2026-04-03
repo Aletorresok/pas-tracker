@@ -1,190 +1,156 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../supabase.js";
+import { useState, useMemo } from "react";
+import { VISTAS_C } from "../constants.js";
+import { cleanPhones } from "../utils/formatters.js";
+import PASCard from "./PASCard.jsx";
 
-// ── HOOK: CARGAR Y GUARDAR DATOS PAS ──────────────────────────────────────────────
-export function usePASData() {
-  const [historial, setHistorial] = useState({});
-  const [casos, setCasos] = useState({});
-  const [derivadores, setDerivadores] = useState({});
-  const [recordatorios, setRecordatorios] = useState({});
-  const [descartados, setDescartados] = useState({});
-  const [pasManuales, setPasManuales] = useState({});
-  const [loading, setLoading] = useState(true);
+export default function TabContactos({
+  pas,
+  historial,
+  derivadores,
+  recordatorios,
+  descartados,
+  darkMode,
+  onContactar,
+  onToggleDerivador,
+  onToggleDescartado,
+}) {
+  const [vista, setVista] = useState("agendado");
+  const [busqueda, setBusqueda] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
+  const [page, setPage] = useState(0);
+  const PER_PAGE = 40;
 
-  // ── CARGAR TODOS LOS DATOS ────────────────────────────────────────────────────
-  const loadAllData = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Historial
-      const historialData = await loadStorage("pas_historial");
-      if (historialData) setHistorial(historialData);
-
-      // Casos
-      const casosData = await loadStorage("pas_casos");
-      if (casosData) setCasos(casosData);
-
-      // Derivadores
-      const derivadoresData = await loadStorage("pas_derivadores");
-      if (derivadoresData) setDerivadores(derivadoresData);
-
-      // Recordatorios
-      const recordatoriosData = await loadStorage("pas_recordatorios");
-      if (recordatoriosData) setRecordatorios(recordatoriosData);
-
-      // Descartados
-      const descartadosData = await loadStorage("pas_descartados");
-      if (descartadosData) setDescartados(descartadosData);
-
-      // Manuales
-      const manualesData = await loadStorage("pas_manuales");
-      if (manualesData) setPasManuales(manualesData);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
-
-  return {
-    historial,
-    setHistorial,
-    casos,
-    setCasos,
-    derivadores,
-    setDerivadores,
-    recordatorios,
-    setRecordatorios,
-    descartados,
-    setDescartados,
-    pasManuales,
-    setPasManuales,
-    loading,
-    reloadAllData: loadAllData,
+  const subColor = darkMode ? "#94a3b8" : "#475569";
+  const iStyle = {
+    background: darkMode ? "#1e293b" : "#f1f5f9",
+    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    borderRadius: 8,
+    color: darkMode ? "#f1f5f9" : "#0f172a",
+    padding: "9px 12px",
+    fontSize: 14,
+    width: "100%",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
   };
-}
 
-// ── CARGAR DATOS DESDE SUPABASE ───────────────────────────────────────────────────
-async function loadStorage(key) {
-  try {
-    if (key === "pas_historial") {
-      const { data } = await supabase.from("pas_historial").select("*");
-      if (!data) return null;
-      const result = {};
-      data.forEach(row => {
-        if (!result[row.pas_id]) result[row.pas_id] = [];
-        result[row.pas_id].push({
-          fecha: row.fecha,
-          resultados: row.resultados,
-          nota: row.nota,
-          ts: row.ts,
-        });
-      });
-      return result;
-    }
+  const filtered = useMemo(() => {
+    const byVista = vista === "todos" ? pas : pas.filter(p => p.prioridad === vista);
+    return byVista.filter(p => !descartados[p.id] && (
+      p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.mail?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.telefonos?.join(" ").includes(busqueda)
+    ));
+  }, [vista, busqueda, pas, descartados]);
 
-    if (key === "pas_casos") {
-      const { data } = await supabase.from("pas_casos").select("*");
-      if (!data || data.length === 0) return null;
-      const result = {};
-      data.forEach(row => {
-        if (!result[row.pas_id]) result[row.pas_id] = [];
-        result[row.pas_id].push({
-          id: row.caso_id,
-          asegurado: row.asegurado,
-          estado: row.estado,
-          nota: row.nota,
-          fecha_derivacion: row.fecha_derivacion || null,
-          fecha_contacto_asegurado: row.fecha_contacto_asegurado || null,
-          fecha_inicio_reclamo: row.fecha_inicio_reclamo || null,
-          fecha_ultimo_movimiento: row.fecha_ultimo_movimiento || null,
-          monto_ofrecimiento: row.monto_ofrecimiento,
-          monto_cobro_asegurado: row.monto_cobro_asegurado,
-          monto_cobro_yo: row.monto_cobro_yo,
-          monto_comision_pas: row.monto_comision_pas,
-          recordatorio: row.recordatorio || null,
-          notas_log: row.notas_log || [],
-          carpeta_path: row.carpeta_path || null,
-          compania: row.compania || null,
-          fecha_siniestro: row.fecha_siniestro || null,
-          presupuesto: row.presupuesto || null,
-          primer_ofrecimiento: row.primer_ofrecimiento || null,
-          segundo_ofrecimiento: row.segundo_ofrecimiento || null,
-          fecha_carga: row.fecha_carga || null,
-          fecha_reclamo: row.fecha_reclamo || null,
-          fecha_ultimo_reclamo: row.fecha_ultimo_reclamo || null,
-          fecha_ofrecimiento: row.fecha_ofrecimiento || null,
-          fecha_reconsideracion: row.fecha_reconsideracion || null,
-          fecha_aceptacion: row.fecha_aceptacion || null,
-          fecha_firma: row.fecha_firma || null,
-          fecha_pago: row.fecha_pago || null,
-          fecha_cobro: row.fecha_cobro || null,
-          fecha_mediacion: row.fecha_mediacion || null,
-          fecha_inicio_juicio: row.fecha_inicio_juicio || null,
-          monto_acordado: row.monto_acordado || null,
-          plazo_pago: row.plazo_pago || null,
-          porcentaje_honorarios: row.porcentaje_honorarios || null,
-          monto_honorarios: row.monto_honorarios || null,
-          estado_honorarios: row.estado_honorarios || "NO_FACTURADO",
-          fecha_factura: row.fecha_factura || null,
-          fecha_cobro_honorarios: row.fecha_cobro_honorarios || null,
-        });
-      });
-      return result;
-    }
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const paginated = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
 
-    if (key === "pas_derivadores") {
-      const { data } = await supabase.from("pas_derivadores").select("*");
-      if (!data) return null;
-      const result = {};
-      data.forEach(row => {
-        result[row.pas_id] = row.activo;
-      });
-      return result;
-    }
+  return (
+    <>
+      <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+        {VISTAS_C.map(v => (
+          <button
+            key={v.key}
+            onClick={() => {
+              setVista(v.key);
+              setPage(0);
+              setBusqueda("");
+            }}
+            style={{
+              flex: 1,
+              padding: "6px 4px",
+              borderRadius: 8,
+              border: "1px solid",
+              borderColor: vista === v.key ? v.color : darkMode ? "#1e293b" : "#e2e8f0",
+              background: vista === v.key ? v.color + "22" : darkMode ? "#0a0f1e" : "#f8fafc",
+              color: vista === v.key ? v.color : subColor,
+              fontSize: 10,
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all .15s",
+            }}
+          >
+            {v.label}
+            <br />
+            <span style={{ fontSize: 13, fontWeight: 800 }}>
+              {pas.filter(p => v.key === "todos" || p.prioridad === v.key).length.toLocaleString("es-AR")}
+            </span>
+          </button>
+        ))}
+      </div>
 
-    if (key === "pas_recordatorios") {
-      const { data } = await supabase.from("pas_recordatorios").select("*");
-      if (!data) return null;
-      const result = {};
-      data.forEach(row => {
-        result[row.pas_id] = row.fecha_recordatorio;
-      });
-      return result;
-    }
+      <input
+        value={busqueda}
+        onChange={e => {
+          setBusqueda(e.target.value);
+          setPage(0);
+        }}
+        placeholder="🔍  Buscar por nombre, mail o teléfono..."
+        style={{ ...iStyle, marginBottom: 8 }}
+      />
 
-    if (key === "pas_descartados") {
-      const { data } = await supabase.from("pas_descartados").select("*");
-      if (!data) return null;
-      const result = {};
-      data.forEach(row => {
-        result[row.pas_id] = row.activo;
-      });
-      return result;
-    }
+      <div style={{ fontSize: 12, color: subColor, marginBottom: 12, display: "flex", justifyContent: "space-between" }}>
+        <span>{filtered.length.toLocaleString("es-AR")} resultados</span>
+        {totalPages > 1 && <span>Pág {page + 1} / {totalPages}</span>}
+      </div>
 
-    if (key === "pas_manuales") {
-      const { data } = await supabase.from("pas_manuales").select("*");
-      if (!data) return null;
-      const result = {};
-      data.forEach(row => {
-        result[row.id] = {
-          id: row.id,
-          nombre: row.nombre,
-          mail: row.mail,
-          telefonos: row.telefonos || [],
-          contacto: row.contacto || "",
-          respuesta: row.respuesta || "",
-          seguimiento: row.seguimiento || "",
-        };
-      });
-      return result;
-    }
+      {paginated.length === 0 && (
+        <div style={{ textAlign: "center", padding: 48, color: subColor }}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>🔍</div>
+          <div style={{ fontSize: 14 }}>No hay contactos disponibles</div>
+        </div>
+      )}
 
-    return null;
-  } catch (err) {
-    console.error(`[loadStorage] Error loading ${key}:`, err);
-    return null;
-  }
+      {paginated.map(p => (
+        <PASCard
+          key={p.id}
+          pas={p}
+          historial={historial}
+          derivadores={derivadores}
+          recordatorios={recordatorios}
+          onContactar={onContactar}
+          onToggleDerivador={onToggleDerivador}
+          onToggleDescartado={onToggleDescartado}
+          descartados={descartados}
+          expanded={expandedId === p.id}
+          onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
+          darkMode={darkMode}
+        />
+      ))}
+
+      {totalPages > 1 && (
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 20 }}>
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+              background: darkMode ? "#0a0f1e" : "#f8fafc",
+              color: page === 0 ? "#1e293b" : "#94a3b8",
+              cursor: page === 0 ? "default" : "pointer",
+            }}
+          >
+            ← Anterior
+          </button>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+              background: darkMode ? "#0a0f1e" : "#f8fafc",
+              color: page >= totalPages - 1 ? "#1e293b" : "#94a3b8",
+              cursor: page >= totalPages - 1 ? "default" : "pointer",
+            }}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
+    </>
+  );
 }
