@@ -175,7 +175,11 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     const soloDerivs = derivs.filter(p => !manualesIds.has(p.id));
     return [...soloDerivs, ...pasManuales];
   }, [pas, derivadores, pasManuales]);
+ console.log("derivadores keys:", Object.keys(derivadores).slice(0,5));
+  console.log("pas ids sample:", pas.slice(0,3).map(p => ({id: p.id, tipo: typeof p.id})));
+  console.log("clientes:", clientes.map(p => p.nombre));
 
+  const filtered = useMemo(() => {
   const filtered = useMemo(() => {
     if (!busqueda.trim()) return clientes;
     const q = busqueda.toLowerCase();
