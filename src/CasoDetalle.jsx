@@ -1,27 +1,20 @@
 // CasoDetalle.jsx
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./supabase.js";
-import { createClient } from '@supabase/supabase-js';
-import { TIPOS_DOC, EXTENSIONES_VALIDAS, ESTADOS_HONORARIOS, sanitizarNombre, formatoFecha, formatoFechaCarpeta, fmtMoney, diasDesde, sumarDias, getExtension, verificarPermiso, THEME } from "./utils/casoDetalleUtils.js";
+import { TIPOS_DOC, ESTADOS_HONORARIOS, formatoFecha, diasDesde, getExtension, THEME } from "./utils/casoDetalleUtils.js";
 import { Toast, PreviewModal, ArchivoRow } from "./components/casoDetalleComponents.jsx";
-
-const supabaseAgenda = createClient(
-  'https://ecefqwbqunqzbpwgsnmb.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZWZxd2JxdW5xemJwd2dzbm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMzY4OTMsImV4cCI6MjA4NzYxMjg5M30.Z02Jk-z_CyDceMz0LYl8eMVCj4KhXwW55UcxtEifbpo'
-);
-
-const _dirHandleCache = {};
+import { cargarArchivos } from "./utils/carpeta.js";
+import { categorizarArchivo } from "./utils/categorizarArchivo.js";
+import { generarEscrito } from "./utils/generarEscrito.js";
 
 export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }) {
   const Th = THEME(darkMode);
 
-  const [dirHandle, setDirHandle] = useState(null);
   const [archivos, setArchivos] = useState([]);
-  const [archivosAcualizando, setArchivosAcualizando] = useState(false);
+  const [archivosActualizando, setArchivosActualizando] = useState(false);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [toast, setToast] = useState(null);
 
-  // Formularios
   const [montoReclamado, setMontoReclamado] = useState(caso.monto_reclamado || "");
   const [estado_honorarios, setEstado_honorarios] = useState(caso.estado_honorarios || "NO_FACTURADO");
   const [monto_honorarios, setMonto_honorarios] = useState(caso.monto_honorarios || "");
@@ -50,45 +43,70 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
   const honorariosVencidos = estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
 
   useEffect(() => {
-    cargarArchivos();
+    recargarArchivos();
     cargarAcciones();
   }, [caso.id]);
 
-  const cargarArchivos = async () => {
-    if (!caso.id) return;
-    setArchivosAcualizando(true);
-    try {
-      const { data, error } = await supabase.storage.from("casos").list(`${pasId}/${caso.id}`);
-      if (!error && data) {
-        const archivosLocal = await Promise.all(
-          data.map(async (f) => {
-            try {
-              const { data: blob } = await supabase.storage.from("casos").download(`${pasId}/${caso.id}/${f.name}`);
-              return { nombre: f.name, ext: getExtension(f.name), tipo: f.metadata?.tipo || "", tamaño: f.metadata?.size || blob?.size || 0, blob };
-            } catch {
-              return null;
-            }
-          })
-        );
-        setArchivos(archivosLocal.filter(Boolean));
-      }
-    } catch (e) {
-      console.error("Error cargando archivos:", e);
-    }
-    setArchivosAcualizando(false);
+  const recargarArchivos = async () => {
+    setArchivosActualizando(true);
+    await cargarArchivos({
+      pasId,
+      casoId: caso.id,
+      getExtension,
+      onSuccess: (lista) => setArchivos(lista),
+      onError: (msg) => setToast({ msg, type: "error" }),
+    });
+    setArchivosActualizando(false);
   };
 
   const cargarAcciones = async () => {
     if (!caso.id) return;
     setLoadingAcciones(true);
     try {
-      const { data, error } = await supabase.from("caso_acciones").select("*").eq("caso_id", caso.id).order("fecha", { ascending: false });
+      const { data, error } = await supabase
+        .from("caso_acciones")
+        .select("*")
+        .eq("caso_id", caso.id)
+        .order("fecha", { ascending: false });
       if (!error) setAcciones(data || []);
     } catch (e) {
       console.error("Error cargando acciones:", e);
     }
     setLoadingAcciones(false);
   };
+
+  const handleCategorizarArchivo = async (archivo, tipo) => {
+    await categorizarArchivo({
+      pasId,
+      casoId: caso.id,
+      archivo,
+      tipo,
+      archivos,
+      onSuccess: ({ nuevoNombre }) => {
+        setToast({ msg: `✅ Renombrado como ${nuevoNombre}`, type: "success" });
+        recargarArchivos();
+      },
+      onError: (msg) => setToast({ msg, type: "error" }),
+    });
+  };
+
+  const handleGenerarEscrito = useCallback(async () => {
+    setGenerandoEscrito(true);
+    await generarEscrito({
+      caso,
+      pasId,
+      dni: dniEscrito,
+      onSuccess: ({ nombreArchivo, guardadoEn }) => {
+        const donde = guardadoEn === "storage" ? "carpeta del caso" : "Descargas";
+        setToast({ msg: `✓ PDF guardado en ${donde}`, type: "success" });
+        setModalEscrito(false);
+        setDniEscrito("");
+        if (guardadoEn === "storage") recargarArchivos();
+      },
+      onError: (msg) => setToast({ msg, type: "error" }),
+    });
+    setGenerandoEscrito(false);
+  }, [caso, pasId, dniEscrito]);
 
   const guardarHonorarios = useCallback(async () => {
     try {
@@ -126,45 +144,6 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
     }
   }, [caso, fechas, onUpdate]);
 
-  const generarEscrito = useCallback(async () => {
-    if (!dniEscrito.trim()) {
-      setToast({ msg: "DNI requerido", type: "warn" });
-      return;
-    }
-    setGenerandoEscrito(true);
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
-          messages: [{
-            role: "user",
-            content: `Genera un escrito de representación legal para un asegurado con DNI ${dniEscrito} en un caso de seguros. Incluye encabezado formal, datos del asegurado, representación letrada y firma.`
-          }]
-        })
-      });
-      const data = await response.json();
-      const contenido = data.content?.[0]?.text || "";
-      const { jsPDF } = await import("jspdf");
-      const doc = new jsPDF();
-      doc.setFontSize(12);
-      doc.text(contenido, 10, 10, { maxWidth: 190 });
-      doc.save(`escrito_${dniEscrito}.pdf`);
-      setToast({ msg: "✓ PDF generado", type: "success" });
-      setModalEscrito(false);
-      setDniEscrito("");
-    } catch (e) {
-      setToast({ msg: "Error generando PDF: " + e.message, type: "error" });
-    }
-    setGenerandoEscrito(false);
-  }, [dniEscrito]);
-
-  const handleCategorizarArchivo = async (tipo) => {
-    // Implementar si es necesario
-  };
-
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
   const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
@@ -172,12 +151,65 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 400, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16, overflow: "auto" }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, width: "100%", maxWidth: 620, maxHeight: "90vh", overflow: "auto", padding: 0 }}>
+
+        {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: `1px solid ${Th.border}`, position: "sticky", top: 0, background: Th.card, zIndex: 10 }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: Th.text }}>📋 {caso.numero_caso || "Sin número"}</div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: Th.sub, cursor: "pointer", fontSize: 20 }}>×</button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => setModalEscrito(true)}
+              style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 8, color: "#f97316", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
+            >
+              📝 Generar escrito
+            </button>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: Th.sub, cursor: "pointer", fontSize: 20 }}>×</button>
+          </div>
         </div>
 
         <div style={{ padding: "20px" }}>
+
+          {/* Archivos */}
+          <div style={sectionStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: Th.text }}>📂 Documentos del caso</div>
+              <button
+                onClick={recargarArchivos}
+                disabled={archivosActualizando}
+                style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 6, color: Th.sub, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}
+              >
+                {archivosActualizando ? "Cargando..." : "🔄 Actualizar"}
+              </button>
+            </div>
+
+            {/* Checklist */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 14 }}>
+              {TIPOS_DOC.map(tipo => {
+                const tiene = tipo === "FOTO"
+                  ? archivos.some(a => /^FOTO_\d+\.(jpg|jpeg|png)$/i.test(a.nombre))
+                  : archivos.some(a => a.nombre.toLowerCase() === `${tipo.toLowerCase()}.pdf`);
+                return (
+                  <div key={tipo} style={{ background: tiene ? "#22c55e14" : "#ef444410", border: `1px solid ${tiene ? "#22c55e44" : "#ef444430"}`, borderRadius: 8, padding: "7px 6px", textAlign: "center" }}>
+                    <div style={{ fontSize: 16 }}>{tiene ? "✅" : "❌"}</div>
+                    <div style={{ fontSize: 9, color: tiene ? "#22c55e" : "#ef4444", fontWeight: 700, marginTop: 2 }}>{tipo}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {archivos.length === 0 && !archivosActualizando && (
+              <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>Sin archivos en este caso</div>
+            )}
+            {archivos.map(arch => (
+              <ArchivoRow
+                key={arch.nombre}
+                archivo={arch}
+                onPreview={() => setPreviewArchivo(arch)}
+                onCategorizar={tipo => handleCategorizarArchivo(arch, tipo)}
+                Th={Th}
+              />
+            ))}
+          </div>
+
           {/* Monto reclamado */}
           <div style={sectionStyle}>
             <label>
@@ -189,7 +221,7 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
                 setToast({ msg: "✓ Monto guardado", type: "success" });
                 onUpdate?.({ ...caso, monto_reclamado: montoReclamado });
               });
-            }} style={{ background: "#10b981", border: "none", borderRadius: 8, color: "white", padding: "9px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>Guardar monto</button>
+            }} style={{ background: "#10b981", border: "none", borderRadius: 8, color: "white", padding: "9px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700, marginTop: 10 }}>Guardar monto</button>
           </div>
 
           {/* Honorarios */}
@@ -230,7 +262,7 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
             <button onClick={guardarHonorarios} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "white", padding: "9px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>Guardar honorarios</button>
           </div>
 
-          {/* Fechas del expediente */}
+          {/* Fechas */}
           <div style={sectionStyle}>
             <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📅 Fechas del expediente</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
@@ -281,13 +313,14 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
               ))}
             </div>
           </div>
+
         </div>
       </div>
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
       {modalEscrito && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 380, width: "100%" }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>📝 Generar escrito de representación</div>
             <label style={{ display: "block", marginBottom: 16 }}>
@@ -296,7 +329,7 @@ export default function CasoDetalle({ caso, pasId, darkMode, onUpdate, onClose }
             </label>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => { setModalEscrito(false); setDniEscrito(""); }} style={{ flex: 1, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-              <button onClick={generarEscrito} disabled={generandoEscrito || !dniEscrito.trim()} style={{ flex: 2, background: generandoEscrito || !dniEscrito.trim() ? Th.card2 : "#f97316", border: "none", borderRadius: 8, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
+              <button onClick={handleGenerarEscrito} disabled={generandoEscrito || !dniEscrito.trim()} style={{ flex: 2, background: generandoEscrito || !dniEscrito.trim() ? Th.card2 : "#f97316", border: "none", borderRadius: 8, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
                 {generandoEscrito ? "Generando..." : "Generar PDF"}
               </button>
             </div>
