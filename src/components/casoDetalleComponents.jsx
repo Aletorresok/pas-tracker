@@ -1,7 +1,11 @@
 // casoDetalleComponents.jsx
 import { useState, useEffect } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
+import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../utils/categorizarArchivo.js";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────────────────────────────────────
 export function Toast({ msg, type, onDismiss }) {
   useEffect(() => {
     const t = setTimeout(onDismiss, 3500);
@@ -18,6 +22,9 @@ export function Toast({ msg, type, onDismiss }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PREVIEW MODAL
+// ─────────────────────────────────────────────────────────────────────────────
 export function PreviewModal({ archivo, onClose }) {
   const [url, setUrl] = useState(null);
   useEffect(() => {
@@ -48,31 +55,223 @@ export function PreviewModal({ archivo, onClose }) {
   );
 }
 
-export function ArchivoRow({ archivo, onPreview, onCategorizar, dark, Th, TIPOS_DOC }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+// ─────────────────────────────────────────────────────────────────────────────
+// ARCHIVO ROW
+// ─────────────────────────────────────────────────────────────────────────────
+export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th }) {
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const [renombrando, setRenombrando]   = useState(false);
+  const [nuevoNombre, setNuevoNombre]   = useState("");
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
+
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
 
+  const iniciarRenombrar = () => {
+    // Pre-cargar el nombre actual sin extensión como punto de partida
+    const sinExt = archivo.nombre.replace(/\.[^.]+$/, "");
+    setNuevoNombre(sinExt);
+    setRenombrando(true);
+    setMenuOpen(false);
+  };
+
+  const confirmarRenombrar = async () => {
+    if (!nuevoNombre.trim()) return;
+    setGuardandoNombre(true);
+    await onRenombrar(nuevoNombre.trim());
+    setGuardandoNombre(false);
+    setRenombrando(false);
+    setNuevoNombre("");
+  };
+
+  const cancelarRenombrar = () => {
+    setRenombrando(false);
+    setNuevoNombre("");
+  };
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, background: Th.card2, borderRadius: 8, padding: "9px 12px", marginBottom: 6, border: `1px solid ${Th.border}` }}>
-      <div style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, color: Th.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{archivo.nombre}</div>
-        <div style={{ fontSize: 11, color: Th.muted }}>{kb} KB · {archivo.tipo || archivo.ext}</div>
-      </div>
-      <button onClick={onPreview} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 6, color: "#818cf8", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Ver</button>
-      <div style={{ position: "relative" }}>
-        <button onClick={() => setMenuOpen(m => !m)} style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Categorizar ▾</button>
-        {menuOpen && (
-          <div style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 50, minWidth: 160, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}>
-            {TIPOS_DOC.map(tipo => (
-              <button key={tipo} onClick={() => { onCategorizar(tipo); setMenuOpen(false); }} style={{ display: "block", width: "100%", background: "none", border: "none", padding: "9px 14px", color: Th.text, fontSize: 13, cursor: "pointer", textAlign: "left" }}
-                onMouseEnter={e => e.target.style.background = Th.card2}
-                onMouseLeave={e => e.target.style.background = "none"}
-              >{tipo}</button>
-            ))}
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "hidden" }}>
+      {/* Fila principal */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
+        <div style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, color: Th.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {archivo.nombre}
           </div>
-        )}
+          <div style={{ fontSize: 11, color: Th.muted }}>{kb} KB · {archivo.tipo || archivo.ext}</div>
+        </div>
+
+        {/* Botón Ver */}
+        <button
+          onClick={onPreview}
+          style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 6, color: "#818cf8", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+        >
+          Ver
+        </button>
+
+        {/* Menú Categorizar / Renombrar */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen(m => !m)}
+            style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+          >
+            Categorizar ▾
+          </button>
+
+          {menuOpen && (
+            <div
+              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 50, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              // Cerrar si se hace click fuera
+              onMouseLeave={() => setMenuOpen(false)}
+            >
+              {/* Tipos de documento con numeración implícita */}
+              {TIPOS_DOC.map((tipo, idx) => (
+                <button
+                  key={tipo}
+                  onClick={() => { onCategorizar(tipo); setMenuOpen(false); }}
+                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", padding: "8px 14px", color: Th.text, fontSize: 13, cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={e => e.currentTarget.style.background = Th.card2}
+                  onMouseLeave={e => e.currentTarget.style.background = "none"}
+                >
+                  <span style={{ fontSize: 11, color: Th.muted, minWidth: 16, textAlign: "right" }}>{idx + 1}</span>
+                  <span>{tipo}</span>
+                </button>
+              ))}
+
+              {/* Separador */}
+              <div style={{ borderTop: `1px solid ${Th.border}`, margin: "4px 0" }} />
+
+              {/* Renombrar libre */}
+              <button
+                onClick={iniciarRenombrar}
+                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", padding: "8px 14px", color: "#818cf8", fontSize: 13, cursor: "pointer", textAlign: "left", fontWeight: 600 }}
+                onMouseEnter={e => e.currentTarget.style.background = Th.card2}
+                onMouseLeave={e => e.currentTarget.style.background = "none"}
+              >
+                ✏️ Renombrar…
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Panel de renombrado (se expande inline) */}
+      {renombrando && (
+        <div style={{ borderTop: `1px solid ${Th.border}`, padding: "10px 12px", display: "flex", gap: 8, alignItems: "center", background: Th.card }}>
+          <span style={{ fontSize: 12, color: Th.muted, whiteSpace: "nowrap" }}>Nuevo nombre:</span>
+          <input
+            autoFocus
+            value={nuevoNombre}
+            onChange={e => setNuevoNombre(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") confirmarRenombrar(); if (e.key === "Escape") cancelarRenombrar(); }}
+            placeholder="nombre sin extensión"
+            style={{ ...Th.input, flex: 1, fontSize: 13, padding: "6px 10px" }}
+          />
+          <span style={{ fontSize: 12, color: Th.muted }}>{archivo.ext}</span>
+          <button
+            onClick={confirmarRenombrar}
+            disabled={guardandoNombre || !nuevoNombre.trim()}
+            style={{ background: "#22c55e", border: "none", borderRadius: 6, color: "white", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: guardandoNombre ? 0.5 : 1, whiteSpace: "nowrap" }}
+          >
+            {guardandoNombre ? "..." : "✓"}
+          </button>
+          <button
+            onClick={cancelarRenombrar}
+            style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 6, color: Th.muted, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHECKLIST DE DOCUMENTACIÓN
+// Usá este componente en CasoUnificado en lugar del grid inline que tenías
+// ─────────────────────────────────────────────────────────────────────────────
+export function ChecklistDocumental({ archivos, Th }) {
+  // Para cada tipo, contamos cuántos archivos hay
+  const conteo = {};
+  TIPOS_DOC.forEach(t => { conteo[t] = 0; });
+  archivos.forEach(a => {
+    // El nombre tiene formato TIPO_N.ext — extraemos el tipo
+    const match = a.nombre.match(/^([^_]+(?:_[^_\d][^_]*)*)_\d+\.[a-z0-9]+$/i);
+    const tipo = match ? match[1].toUpperCase() : null;
+    if (tipo && conteo[tipo] !== undefined) conteo[tipo]++;
+    // También chequeamos el campo tipo por si ya fue categorizado antes
+    if (a.tipo && conteo[a.tipo] !== undefined) conteo[a.tipo] = Math.max(conteo[a.tipo], 1);
+  });
+
+  const faltanRequeridos = DOCS_REQUERIDOS_RECLAMO.filter(t => conteo[t] === 0);
+  const listoParaReclamo = faltanRequeridos.length === 0;
+
+  return (
+    <div>
+      {/* Banner de estado de reclamo */}
+      <div style={{
+        borderRadius: 8,
+        padding: "10px 14px",
+        marginBottom: 14,
+        background: listoParaReclamo ? "#22c55e15" : "#ef444415",
+        border: `1px solid ${listoParaReclamo ? "#22c55e44" : "#ef444444"}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}>
+        <span style={{ fontSize: 18 }}>{listoParaReclamo ? "✅" : "⚠️"}</span>
+        <div style={{ flex: 1 }}>
+          {listoParaReclamo ? (
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#22c55e" }}>
+              Listo para iniciar reclamo
+            </span>
+          ) : (
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>
+              Faltan para el reclamo:{" "}
+              <span style={{ fontWeight: 400 }}>{faltanRequeridos.join(", ")}</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Grid de todos los tipos */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 14 }}>
+        {TIPOS_DOC.map((tipo, idx) => {
+          const cantidad = conteo[tipo];
+          const tiene = cantidad > 0;
+          const esRequerido = DOCS_REQUERIDOS_RECLAMO.includes(tipo);
+          return (
+            <div
+              key={tipo}
+              style={{
+                border: `1px solid ${tiene ? "#22c55e66" : esRequerido ? "#ef444444" : Th.border}`,
+                borderRadius: 8,
+                padding: "8px 10px",
+                background: tiene ? "#22c55e0d" : esRequerido ? "#ef44440d" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 11, color: Th.muted, minWidth: 14, textAlign: "right", flexShrink: 0 }}>
+                {idx + 1}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tiene ? "#22c55e" : esRequerido ? "#ef4444" : Th.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {tipo}
+                </div>
+                {tiene && cantidad > 1 && (
+                  <div style={{ fontSize: 10, color: Th.muted }}>{cantidad} archivos</div>
+                )}
+              </div>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>
+                {tiene ? "✅" : esRequerido ? "❌" : "○"}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

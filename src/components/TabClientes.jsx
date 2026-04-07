@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { fmtMoney, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
-import CasoDetalle from "../CasoDetalle.jsx";
+import CasoDetalle from "../CasoUnificado.jsx";
 import { deleteCasoFromAgenda } from "../utils/sync.js";
 
 const IS = {

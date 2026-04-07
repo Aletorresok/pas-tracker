@@ -375,7 +375,7 @@ function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </div>
         )}
 
-        {/* Filtros — compactos */}
+        {/* Filtros */}
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 6, marginBottom: 18, scrollbarWidth: "none" }}>
           {[{ key: "todos", label: "Todos", emoji: "📂", color: "#64748b" }, ...ESTADOS_CASO].map(e => {
             const cnt = e.key === "todos" ? casos.length : casos.filter(c => c.estado === e.key).length;

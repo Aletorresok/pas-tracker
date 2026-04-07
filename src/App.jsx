@@ -14,7 +14,7 @@ import { saveStorage, loadStorage, upsertPasManual, deletePasManual } from "./ut
 import { usePASData } from "./hooks/usePASData.js";
 
 // ── IMPORTS: COMPONENTES
-import CasoDetalle from './CasoDetalle.jsx'
+import CasoDetalle from './CasoUnificado.jsx'
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
 import TabClientes from './components/TabClientes.jsx'
