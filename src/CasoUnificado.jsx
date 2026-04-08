@@ -142,31 +142,32 @@ const cargarAcciones = async () => {
     setGenerandoEscrito(false);
   }, [caso, pasId, dniEscrito]);
 
-  const guardarCaso = useCallback(async () => {
-    setGuardando(true);
-    try {
-      const updated = {
-        ...caso,
-        ...formData,
-      };
+const guardarCaso = useCallback(async () => {
+  setGuardando(true);
+  try {
+    const updated = {
+      ...caso,
+      ...formData,
+      id: String(caso.id)
+    };
 
-      const { error } = await supabase
-        .from("casos")
-        .update(updated)
-        .eq("id", caso.id);
+    const { error } = await supabase
+      .from("casos")
+      .update(updated)
+      .eq("id", String(caso.id));
 
-      if (!error) {
-        setCaso(updated);
-        setToast({ msg: "✓ Caso guardado", type: "success" });
-        onUpdate?.(updated);
-      } else {
-        setToast({ msg: "Error guardando caso", type: "error" });
-      }
-    } catch (e) {
-      setToast({ msg: "Error: " + e.message, type: "error" });
+    if (!error) {
+      setCaso(updated);
+      setToast({ msg: "✓ Caso guardado", type: "success" });
+      onUpdate?.(updated);
+    } else {
+      setToast({ msg: "Error guardando caso", type: "error" });
     }
-    setGuardando(false);
-  }, [caso, formData, onUpdate]);
+  } catch (e) {
+    setToast({ msg: "Error: " + e.message, type: "error" });
+  }
+  setGuardando(false);
+}, [caso, formData, onUpdate]);
 
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
