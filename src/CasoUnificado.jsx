@@ -167,8 +167,8 @@ const guardarCaso = useCallback(async () => {
     setToast({ msg: "Error: " + e.message, type: "error" });
   }
   setGuardando(false);
+  
 }, [caso, formData, onUpdate]);
-
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
