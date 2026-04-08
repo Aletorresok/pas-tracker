@@ -107,7 +107,7 @@ function CasoModal({ pasNombre, casoEdit, darkMode, onClose, onSave }) {
         </label>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: casoEdit?.id || Date.now(), asegurado, estado, monto_cobro_yo: Number(monto) })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
+          <button onClick={() => onSave({ id: casoEdit?.id || `caso-${Date.now()}`, asegurado, estado, monto_cobro_yo: Number(monto) })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
         </div>
       </div>
     </div>
@@ -184,6 +184,11 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     setModalPas(null);
     setCasoEdit(null);
   };
+
+  const casoParaGuardar = {
+  ...casoData,
+  id: String(casoData.id) // Asegúrate que sea texto
+};
 
   const exportarExcel = () => {
     const rows = [];
