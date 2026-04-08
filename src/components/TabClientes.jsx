@@ -185,11 +185,6 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     setCasoEdit(null);
   };
 
-  const casoParaGuardar = {
-  ...casoData,
-  id: String(casoData.id) // Asegúrate que sea texto
-};
-
   const exportarExcel = () => {
     const rows = [];
     clientes.forEach(p => {
