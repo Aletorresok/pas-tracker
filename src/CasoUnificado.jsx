@@ -290,36 +290,36 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
 {/* SECCIÓN 2: DOCUMENTOS */}
 <div style={sectionStyle}>
   <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
- 
-  {/* Checklist con banner de estado */}
-  <ChecklistDocumental archivos={archivos} Th={Th} />
- 
-  {archivos.length === 0 && !archivosActualizando && (
-    <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>
-      Sin archivos en este caso
-    </div>
-  )}
- 
-  {/* Archivos de Supabase */}
-  {archivos.map(arch => (
-    <ArchivoRow
-      key={arch.nombre}
-      archivo={arch}
-      onPreview={() => setPreviewArchivo(arch)}
-      onCategorizar={tipo => handleCategorizarArchivo(arch, tipo)}
-      onRenombrar={nuevoNombre => handleRenombrarArchivo(arch, nuevoNombre)}
-      Th={Th}
-    />
-  ))}
- 
-  {/* Carpeta local — archivos del disco, solo lectura + renombrado */}
+
+  {/* Carpeta local PRIMERO — siempre visible */}
   <CarpetaLocal
     Th={Th}
     onToast={setToast}
     onPreview={(arch) => setPreviewArchivo(arch)}
   />
+
+  {/* Separador */}
+  <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>
+    <ChecklistDocumental archivos={archivos} Th={Th} />
+
+    {archivos.length === 0 && !archivosActualizando && (
+      <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>
+        Sin archivos en este caso
+      </div>
+    )}
+
+    {archivos.map(arch => (
+      <ArchivoRow
+        key={arch.nombre}
+        archivo={arch}
+        onPreview={() => setPreviewArchivo(arch)}
+        onCategorizar={tipo => handleCategorizarArchivo(arch, tipo)}
+        onRenombrar={nuevoNombre => handleRenombrarArchivo(arch, nuevoNombre)}
+        Th={Th}
+      />
+    ))}
+  </div>
 </div>
- 
           {/* SECCIÓN 3: MONTOS PRINCIPALES */}
           <div style={sectionStyle}>
             <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>💰 Montos</div>

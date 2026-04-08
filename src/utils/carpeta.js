@@ -141,3 +141,23 @@ export async function renombrarArchivoLocal(dirHandle, archivo, nuevoNombre) {
 
   await dirHandle.removeEntry(archivo.nombre);
 }
+
+export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) {
+  // Formatear fecha: "2026-03-23" → "23-03-2026"
+  const fechaFormateada = fechaSiniestro
+    ? fechaSiniestro.split("-").reverse().join("-")
+    : "sin-fecha";
+
+  const nombreCarpeta = [asegurado, compania, fechaFormateada]
+    .map(s => (s || "").trim())
+    .filter(Boolean)
+    .join(" - ");
+
+  // El usuario elige dónde crear la carpeta (carpeta padre)
+  const padreHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+  if (!padreHandle) return null;
+
+  // Crear subcarpeta con el nombre del caso
+  const nuevaHandle = await padreHandle.getDirectoryHandle(nombreCarpeta, { create: true });
+  return { handle: nuevaHandle, nombre: nombreCarpeta };
+}

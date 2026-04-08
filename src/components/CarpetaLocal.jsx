@@ -1,8 +1,4 @@
 // CarpetaLocal.jsx
-// Vincula una carpeta local al caso. Muestra sus archivos junto a los de Supabase
-// y permite renombrar/categorizar directamente en disco.
-// No sube nada a Supabase — los archivos locales se arrastran manualmente a la web.
-
 import { useState } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import {
@@ -10,6 +6,7 @@ import {
   verificarPermisoCarpeta,
   leerArchivosCarpeta,
   renombrarArchivoLocal,
+  crearCarpetaCaso,
 } from "../utils/carpeta.js";
 import { TIPOS_DOC } from "../utils/categorizarArchivo.js";
 
@@ -25,7 +22,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
 
-  // Renombrado libre
   const iniciarRenombrar = () => {
     setNuevoNombre(archivo.nombre.replace(/\.[^.]+$/, ""));
     setRenombrando(true);
@@ -50,8 +46,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
     setNuevoNombre("");
   };
 
-  // Categorizar = renombrar con nombre estándar tipo_N
-  // El padre (CarpetaLocal) calcula el número correcto con el contexto de todos los archivos
   const handleCategorizar = (tipo) => {
     setMenuOpen(false);
     onCategorizar(archivo, tipo);
@@ -61,7 +55,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
     <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "hidden" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
 
-        {/* Ícono con badge LOCAL */}
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</span>
           <span style={{
@@ -80,7 +73,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
           <div style={{ fontSize: 11, color: Th.muted }}>{kb} KB · disco local</div>
         </div>
 
-        {/* Ver (preview del blob) */}
         <button
           onClick={() => onPreview(archivo)}
           style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 6, color: "#818cf8", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
@@ -88,7 +80,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
           Ver
         </button>
 
-        {/* Menú Categorizar / Renombrar */}
         <div style={{ position: "relative" }}>
           <button
             onClick={() => setMenuOpen(m => !m)}
@@ -128,7 +119,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
         </div>
       </div>
 
-      {/* Panel de renombrado inline */}
       {renombrando && (
         <div style={{ borderTop: `1px solid ${Th.border}`, padding: "10px 12px", display: "flex", gap: 8, alignItems: "center", background: Th.card }}>
           <span style={{ fontSize: 12, color: Th.muted, whiteSpace: "nowrap" }}>Nuevo nombre:</span>
@@ -166,7 +156,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANEL PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
-export function CarpetaLocal({ Th, onToast, onPreview }) {
+export function CarpetaLocal({ Th, onToast, onPreview, caso }) {
   const [dirHandle, setDirHandle]         = useState(null);
   const [archivos, setArchivos]           = useState([]);
   const [cargando, setCargando]           = useState(false);
@@ -191,6 +181,28 @@ export function CarpetaLocal({ Th, onToast, onPreview }) {
       setNombreCarpeta(handle.name);
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
+    } catch (e) {
+      onToast({ msg: `Error: ${e.message}`, type: "error" });
+    }
+    setCargando(false);
+  };
+
+  const crearYVincular = async () => {
+    setCargando(true);
+    try {
+      const result = await crearCarpetaCaso({
+        asegurado: caso?.asegurado,
+        compania: caso?.compania_aseguradora,
+        fechaSiniestro: caso?.fecha_siniestro,
+      });
+      if (!result) { setCargando(false); return; }
+
+      const { handle, nombre } = result;
+      setDirHandle(handle);
+      setNombreCarpeta(nombre);
+      const lista = await leerArchivosCarpeta(handle, getExtension);
+      setArchivos(lista);
+      onToast({ msg: `📁 Carpeta "${nombre}" creada y vinculada`, type: "success" });
     } catch (e) {
       onToast({ msg: `Error: ${e.message}`, type: "error" });
     }
@@ -224,7 +236,6 @@ export function CarpetaLocal({ Th, onToast, onPreview }) {
     setNombreCarpeta("");
   };
 
-  // Actualiza el nombre en la lista local cuando se renombra en disco
   const handleRenombrado = (nombreAnterior, nuevoNombre, blob) => {
     setArchivos(prev => prev.map(a =>
       a.nombre === nombreAnterior
@@ -233,9 +244,7 @@ export function CarpetaLocal({ Th, onToast, onPreview }) {
     ));
   };
 
-  // Categorizar: genera nombre estándar TIPO_N usando los archivos locales actuales
   const handleCategorizar = async (archivo, tipo) => {
-    // Calcular el siguiente número para este tipo en la lista local
     const pattern = new RegExp(`^${tipo.replace(" ", "\\ ")}_?(\\d+)?\\.[a-z0-9]+$`, "i");
     const nums = archivos
       .map(a => { const m = a.nombre.match(pattern); return m && m[1] ? parseInt(m[1], 10) : null; })
@@ -273,13 +282,22 @@ export function CarpetaLocal({ Th, onToast, onPreview }) {
         </div>
 
         {!dirHandle ? (
-          <button
-            onClick={vincularCarpeta}
-            disabled={cargando}
-            style={{ background: "#6366f1", border: "none", borderRadius: 7, color: "white", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
-          >
-            {cargando ? "Abriendo..." : "🔗 Vincular carpeta"}
-          </button>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={crearYVincular}
+              disabled={cargando}
+              style={{ background: "#10b981", border: "none", borderRadius: 7, color: "white", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+            >
+              {cargando ? "Creando..." : "📁 Crear carpeta"}
+            </button>
+            <button
+              onClick={vincularCarpeta}
+              disabled={cargando}
+              style={{ background: "#6366f1", border: "none", borderRadius: 7, color: "white", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+            >
+              {cargando ? "Abriendo..." : "🔗 Vincular carpeta"}
+            </button>
+          </div>
         ) : (
           <div style={{ display: "flex", gap: 6 }}>
             <button
@@ -303,7 +321,7 @@ export function CarpetaLocal({ Th, onToast, onPreview }) {
       {/* Sin carpeta */}
       {!dirHandle && (
         <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 12, background: Th.card2, borderRadius: 8, border: `1px dashed ${Th.border}` }}>
-          Vinculá la carpeta del caso para ver sus archivos aquí
+          Vinculá una carpeta existente o creá una nueva para este caso
         </div>
       )}
 
