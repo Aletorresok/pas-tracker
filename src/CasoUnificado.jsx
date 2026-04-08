@@ -79,16 +79,21 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
     setArchivosActualizando(false);
   };
 
- const cargarAcciones = async () => {
+const cargarAcciones = async () => {
   if (!caso.id) return;
   setLoadingAcciones(true);
   try {
     const { data, error } = await supabase
-      .from("acciones")  // ✅ CORRECTO
+      .from("acciones")
       .select("*")
       .eq("caso_id", caso.id)
       .order("fecha", { ascending: false });
-  };
+    if (!error) setAcciones(data || []);
+  } catch (e) {
+    console.error("Error cargando acciones:", e);
+  }
+  setLoadingAcciones(false);
+};
 
   const handleCategorizarArchivo = async (archivo, tipo) => {
     await categorizarArchivo({
