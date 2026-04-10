@@ -142,33 +142,49 @@ const cargarAcciones = async () => {
     setGenerandoEscrito(false);
   }, [caso, pasId, dniEscrito]);
 
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 const guardarCaso = useCallback(async () => {
   setGuardando(true);
   try {
     const updated = {
       ...caso,
       ...formData,
-      id: String(caso.id)
+      // Campos obligatorios
+      id: caso.id || generateUUID(),
+      caso_id: caso.caso_id || Date.now(),
+      pas_id: parseInt(pasId, 10),
+      estado_honorarios: formData.estado_honorarios || "NO_FACTURADO",
     };
 
     const { error } = await supabase
-      .from("casos")
-      .update(updated)
-      .eq("id", String(caso.id));
+      .from("pas_casos")
+      .upsert(updated, { onConflict: "id" });
 
     if (!error) {
       setCaso(updated);
       setToast({ msg: "✓ Caso guardado", type: "success" });
       onUpdate?.(updated);
     } else {
-      setToast({ msg: "Error guardando caso", type: "error" });
+      console.error("Error guardando caso:", error);
+      setToast({ msg: "Error guardando caso: " + (error.message || "desconocido"), type: "error" });
     }
   } catch (e) {
+    console.error("Error en guardarCaso:", e);
     setToast({ msg: "Error: " + e.message, type: "error" });
   }
   setGuardando(false);
   
-}, [caso, formData, onUpdate]);
+}, [caso, formData, onUpdate, pasId]);
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };

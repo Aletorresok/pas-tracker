@@ -1,304 +1,667 @@
-import { useState, useMemo } from "react";
-import * as XLSX from "xlsx";
-import { fmtMoney, diasDesde } from "../utils/formatters.js";
-import { ESTADOS_CASO } from "../constants.js";
-import CasoDetalle from "../CasoUnificado.jsx";
-import { deleteCasoFromAgenda } from "../utils/sync.js";
+// CasoUnificado.jsx
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "./supabase.js";
+import { ESTADOS_HONORARIOS, formatoFecha, diasDesde, getExtension, THEME } from "./utils/casoDetalleUtils.js";
+import { Toast, PreviewModal, ArchivoRow, ChecklistDocumental } from "./components/casoDetalleComponents.jsx";
+import { cargarArchivos } from "./utils/carpeta.js";
+import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
+import { generarEscrito } from "./utils/generarEscrito.js";
+import { CarpetaLocal } from "./components/CarpetaLocal.jsx";
 
-const IS = {
-  background: "#1e293b",
-  border: "1px solid #2d3f55",
-  borderRadius: 8,
-  color: "#f1f5f9",
-  padding: "9px 12px",
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-  outline: "none",
-  fontFamily: "inherit",
-};
+export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdate, onClose }) {
+  const Th = THEME(darkMode);
 
-const IS_LIGHT = {
-  background: "#f8fafc",
-  border: "1px solid #e2e8f0",
-  borderRadius: 8,
-  color: "#0f172a",
-  padding: "9px 12px",
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-  outline: "none",
-  fontFamily: "inherit",
-};
+  // Estado local: siempre usamos una copia editable
+  const [caso, setCaso] = useState(casoProp);
+  const [archivos, setArchivos] = useState([]);
+  const [archivosActualizando, setArchivosActualizando] = useState(false);
+  const [previewArchivo, setPreviewArchivo] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [guardando, setGuardando] = useState(false);
 
-function StatCard({ label, value, color, sub, dark }) {
-  return (
-    <div style={{ background: dark ? "#0f172a" : "#f8fafc", border: `1px solid ${dark ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px" }}>
-      <div style={{ fontSize: 10, color: dark ? "#475569" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: dark ? "#64748b" : "#94a3b8", marginTop: 3 }}>{sub}</div>}
-    </div>
-  );
-}
+  // Formulario editable
+  const [formData, setFormData] = useState({
+    asegurado: casoProp.asegurado || "",
+    compania_aseguradora: casoProp.compania_aseguradora || "",
+    fecha_siniestro: casoProp.fecha_siniestro || "",
+    estado: casoProp.estado || "doc_pendiente",
+    monto_reclamado: casoProp.monto_reclamado || "",
+    monto_ofrecimiento: casoProp.monto_ofrecimiento || "",
+    estado_honorarios: casoProp.estado_honorarios || "NO_FACTURADO",
+    monto_honorarios: casoProp.monto_honorarios || "",
+    fecha_factura: casoProp.fecha_factura || "",
+    fecha_cobro_honorarios: casoProp.fecha_cobro_honorarios || "",
+    // Fechas
+    fecha_derivacion: casoProp.fecha_derivacion || "",
+    fecha_contacto_asegurado: casoProp.fecha_contacto_asegurado || "",
+    fecha_inicio_reclamo: casoProp.fecha_inicio_reclamo || "",
+    fecha_ultimo_movimiento: casoProp.fecha_ultimo_movimiento || "",
+    fecha_carga: casoProp.fecha_carga || "",
+    fecha_reclamo: casoProp.fecha_reclamo || "",
+    fecha_ultimo_reclamo: casoProp.fecha_ultimo_reclamo || "",
+    fecha_ofrecimiento: casoProp.fecha_ofrecimiento || "",
+    fecha_reconsideracion: casoProp.fecha_reconsideracion || "",
+    fecha_aceptacion: casoProp.fecha_aceptacion || "",
+    fecha_firma: casoProp.fecha_firma || "",
+    fecha_pago: casoProp.fecha_pago || "",
+    fecha_cobro: casoProp.fecha_cobro || "",
+    fecha_mediacion: casoProp.fecha_mediacion || "",
+    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "",
+    monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "",
+    monto_cobro_yo: casoProp.monto_cobro_yo || "",
+    monto_comision_pas: casoProp.monto_comision_pas || "",
+    notas_log: casoProp.notas_log || [],
+  });
 
-function ClienteCard({ pas, casos, onAddCaso, onEditCaso, onDeleteCaso, onDetalleCaso, expanded, onToggle, darkMode, filtroEstado, onEditPasManual, onDeletePasManual }) {
-  const filtered = filtroEstado === "todos" ? casos : casos.filter(c => c.estado === filtroEstado);
-  return (
-    <div style={{ background: darkMode ? "#1e293b" : "#f8fafc", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer" }} onClick={onToggle}>
-        <div>
-          <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a" }}>{pas.nombre}</div>
-          <div style={{ fontSize: 12, color: darkMode ? "#64748b" : "#94a3b8", marginTop: 4 }}>{filtered.length} caso{filtered.length !== 1 ? "s" : ""}</div>
-        </div>
-        <button onClick={(e) => { e.stopPropagation(); onAddCaso(); }} style={{ background: "#6366f1", border: "none", borderRadius: 6, color: "#fff", padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>
-          + Caso
-        </button>
-      </div>
-      {expanded && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
-          {filtered.length === 0 ? (
-            <div style={{ color: darkMode ? "#64748b" : "#94a3b8", fontSize: 12, textAlign: "center", padding: 16 }}>Sin casos registrados</div>
-          ) : (
-            filtered.map(c => (
-              <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: 10, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 13 }}>{c.asegurado}</div>
-                  <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", marginTop: 2 }}>{c.estado} • {fmtMoney(c.monto_cobro_yo)}</div>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => onDetalleCaso(c)} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 4, color: "#818cf8", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>Ver</button>
-                  <button onClick={() => onEditCaso(c)} style={{ background: "#eab30822", border: "1px solid #eab30844", borderRadius: 4, color: "#eab308", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>Editar</button>
-                  <button onClick={() => onDeleteCaso(c.id)} style={{ background: "#ef444422", border: "1px solid #ef444444", borderRadius: 4, color: "#ef4444", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>×</button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+  const [acciones, setAcciones] = useState([]);
+  const [loadingAcciones, setLoadingAcciones] = useState(false);
+  const [modalEscrito, setModalEscrito] = useState(false);
+  const [dniEscrito, setDniEscrito] = useState("");
+  const [generandoEscrito, setGenerandoEscrito] = useState(false);
 
-function CasoModal({ pasNombre, casoEdit, darkMode, onClose, onSave }) {
-  const [asegurado, setAsegurado] = useState(casoEdit?.asegurado || "");
-  const [estado, setEstado] = useState(casoEdit?.estado || "derivado");
-  const [monto, setMonto] = useState(casoEdit?.monto_cobro_yo || "");
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 16, width: "100%", maxWidth: 420, padding: 28 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: darkMode ? "#f1f5f9" : "#1e293b" }}>
-          {casoEdit ? "Editar caso" : "Nuevo caso"} - {pasNombre}
-        </div>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Asegurado</div>
-          <input type="text" value={asegurado} onChange={e => setAsegurado(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Estado</div>
-          <select value={estado} onChange={e => setEstado(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }}>
-            <option value="derivado">Derivado</option>
-            <option value="esperando_pago">Esperando pago</option>
-            <option value="cobrado">Cobrado</option>
-          </select>
-        </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Monto cobrado</div>
-          <input type="number" value={monto} onChange={e => setMonto(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: casoEdit?.id || `caso-${Date.now()}`, asegurado, estado, monto_cobro_yo: Number(monto) })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+  const diasDesdeFactura = formData.fecha_factura ? diasDesde(formData.fecha_factura) : null;
+  const honorariosVencidos = formData.estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
 
-function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
-  const [nombre, setNombre] = useState(pasEdit?.nombre || "");
-  const [mail, setMail] = useState(pasEdit?.mail || "");
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 16, width: "100%", maxWidth: 420, padding: 28 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: darkMode ? "#f1f5f9" : "#1e293b" }}>
-          {pasEdit ? "Editar PAS" : "Nuevo PAS manual"}
-        </div>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Nombre</div>
-          <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Mail</div>
-          <input type="email" value={mail} onChange={e => setMail(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: pasEdit?.id || Date.now(), nombre, mail, manual: true })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+  useEffect(() => {
+    recargarArchivos();
+    cargarAcciones();
+  }, [caso.id]);
 
-export default function TabClientes({ pas, casos, derivadores, onSaveCasos, darkMode, pasManuales, onAddPasManual, onEditPasManual, onDeletePasManual }) {
-  const [modalPas, setModalPas] = useState(null);
-  const [casoEdit, setCasoEdit] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
-  const [busqueda, setBusqueda] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
-  const [casoDetalle, setCasoDetalle] = useState(null);
-  const [pasIdDetalle, setPasIdDetalle] = useState(null);
-  const [modalNuevoPAS, setModalNuevoPAS] = useState(false);
-  const [pasManualEdit, setPasManualEdit] = useState(null);
-
-  const clientes = useMemo(() => {
-    const derivs = pas.filter(p => derivadores[String(p.id)]);
-    const manualesIds = new Set(pasManuales.map(p => String(p.id)));
-    const soloDerivs = derivs.filter(p => !manualesIds.has(String(p.id)));
-    return [...soloDerivs, ...pasManuales];
-  }, [pas, derivadores, pasManuales]);
-
-  // DEBUG - borrar después de verificar
-  console.log("derivadores keys:", Object.keys(derivadores).slice(0, 5));
-  console.log("pas ids sample:", pas.slice(0, 3).map(p => ({ id: p.id, tipo: typeof p.id })));
-  console.log("clientes:", clientes.map(p => p.nombre));
-
-  const filtered = useMemo(() => {
-    if (!busqueda.trim()) return clientes;
-    const q = busqueda.toLowerCase();
-    return clientes.filter(p => p.nombre.toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q));
-  }, [clientes, busqueda]);
-
-  const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
-  const totalCobradoYo = allCasos.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const totalComisionesPAS = allCasos.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
-  const totalPendiente = allCasos.filter(c => c.estado === "esperando_pago").reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const enGestion = allCasos.filter(c => c.estado !== "cobrado").length;
-  const cobradosCasos = allCasos.filter(c => c.estado === "cobrado" && c.fecha_derivacion);
-  const promCierre = cobradosCasos.length ? Math.round(cobradosCasos.reduce((s, c) => s + diasDesde(c.fecha_derivacion), 0) / cobradosCasos.length) : null;
-
-  const handleSave = (pasId, casoData, pasNombre) => {
-    const cur = casos[pasId] || [];
-    const idx = cur.findIndex(c => c.id === casoData.id);
-    onSaveCasos(pasId, idx >= 0 ? cur.map(c => c.id === casoData.id ? casoData : c) : [...cur, casoData], pasNombre);
-    setModalPas(null);
-    setCasoEdit(null);
-  };
-
-  const exportarExcel = () => {
-    const rows = [];
-    clientes.forEach(p => {
-      const casosPas = casos[p.id] || [];
-      if (casosPas.length === 0) {
-        rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", "Fecha derivación": "", "Monto ofrecimiento": "", "Cobré yo": "", "Cobró asegurado": "", "Comisión PAS": "", Nota: "" });
-      } else {
-        casosPas.forEach(c => {
-          rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: c.asegurado, Estado: c.estado, "Fecha derivación": c.fecha_derivacion || "", "Monto ofrecimiento": c.monto_ofrecimiento || "", "Cobré yo": c.monto_cobro_yo || "", "Cobró asegurado": c.monto_cobro_asegurado || "", "Comisión PAS": c.monto_comision_pas || "", Nota: c.nota || "" });
-        });
-      }
+  const recargarArchivos = async () => {
+    setArchivosActualizando(true);
+    await cargarArchivos({
+      pasId,
+      casoId: caso.id,
+      getExtension,
+      onSuccess: (lista) => setArchivos(lista),
+      onError: (msg) => setToast({ msg, type: "error" }),
     });
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Casos");
-    XLSX.writeFile(wb, `pastracker_casos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    setArchivosActualizando(false);
   };
 
-  const iStyle = darkMode ? { ...IS, background: "#0f172a", border: "1px solid #1e293b" } : { ...IS_LIGHT };
+const cargarAcciones = async () => {
+  if (!caso.id) return;
+  setLoadingAcciones(true);
+  try {
+    const { data, error } = await supabase
+      .from("acciones")
+      .select("*")
+      .eq("caso_id", caso.id)
+      .order("fecha", { ascending: false });
+    if (!error) setAcciones(data || []);
+  } catch (e) {
+    console.error("Error cargando acciones:", e);
+  }
+  setLoadingAcciones(false);
+};
+
+  const handleCategorizarArchivo = async (archivo, tipo) => {
+    await categorizarArchivo({
+      pasId,
+      casoId: caso.id,
+      archivo,
+      tipo,
+      archivos,
+      onSuccess: ({ nuevoNombre }) => {
+        setToast({ msg: `✅ Renombrado como ${nuevoNombre}`, type: "success" });
+        recargarArchivos();
+      },
+      onError: (msg) => setToast({ msg, type: "error" }),
+    });
+  };
+
+  const handleRenombrarArchivo = async (archivo, nuevoNombre) => {
+  await renombrarArchivo({
+    pasId,
+    casoId: caso.id,
+    archivo,
+    nuevoNombre,
+    onSuccess: ({ nuevoNombre: n }) => {
+      setToast({ msg: `✅ Renombrado como ${n}`, type: "success" });
+      recargarArchivos();
+    },
+    onError: (msg) => setToast({ msg, type: "error" }),
+  });
+};
+
+  const handleGenerarEscrito = useCallback(async () => {
+    setGenerandoEscrito(true);
+    await generarEscrito({
+      caso,
+      pasId,
+      dni: dniEscrito,
+      onSuccess: ({ nombreArchivo, guardadoEn }) => {
+        const donde = guardadoEn === "storage" ? "carpeta del caso" : "Descargas";
+        setToast({ msg: `✓ PDF guardado en ${donde}`, type: "success" });
+        setModalEscrito(false);
+        setDniEscrito("");
+        if (guardadoEn === "storage") recargarArchivos();
+      },
+      onError: (msg) => setToast({ msg, type: "error" }),
+    });
+    setGenerandoEscrito(false);
+  }, [caso, pasId, dniEscrito]);
+
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const guardarCaso = useCallback(async () => {
+  setGuardando(true);
+  try {
+    const updated = {
+      ...caso,
+      ...formData,
+      // Campos obligatorios
+      id: caso.id || generateUUID(),
+      caso_id: caso.caso_id || Date.now(),
+      pas_id: parseInt(pasId, 10),
+      estado_honorarios: formData.estado_honorarios || "NO_FACTURADO",
+    };
+
+    const { error } = await supabase
+      .from("pas_casos")
+      .upsert(updated, { onConflict: "id" });
+
+    if (!error) {
+      setCaso(updated);
+      setToast({ msg: "✓ Caso guardado", type: "success" });
+      onUpdate?.(updated);
+    } else {
+      console.error("Error guardando caso:", error);
+      setToast({ msg: "Error guardando caso: " + (error.message || "desconocido"), type: "error" });
+    }
+  } catch (e) {
+    console.error("Error en guardarCaso:", e);
+    setToast({ msg: "Error: " + e.message, type: "error" });
+  }
+  setGuardando(false);
+  
+}, [caso, formData, onUpdate, pasId]);
+  const handleFormChange = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
+  const inputStyle = Th.input;
+  const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
 
   return (
-    <div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-        <StatCard label="Cobré yo (total)" value={fmtMoney(totalCobradoYo)} color="#6366f1" dark={darkMode} />
-        <StatCard label="Esperando cobro" value={fmtMoney(totalPendiente)} color="#06b6d4" dark={darkMode} />
-        <StatCard label="Comisiones PAS" value={fmtMoney(totalComisionesPAS)} color="#eab308" dark={darkMode} />
-        <StatCard label="Casos activos" value={enGestion} color="#f97316" sub={promCierre ? `Prom. cierre: ${promCierre}d` : "Sin cobros aún"} dark={darkMode} />
-      </div>
-
-      <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Pipeline total</div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {ESTADOS_CASO.map(e => {
-            const cnt = allCasos.filter(c => c.estado === e.key).length;
-            return (
-              <div key={e.key} style={{ flex: 1, minWidth: 58, background: cnt > 0 ? e.color + "18" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${cnt > 0 ? e.color + "44" : darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-                <div style={{ fontSize: 16 }}>{e.emoji}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div>
-                <div style={{ fontSize: 9, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,.5)",
+        zIndex: 400,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+        overflow: "auto",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: Th.bg,
+          border: `1px solid ${Th.border}`,
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 900,
+          maxHeight: "90vh",
+          overflow: "auto",
+          boxShadow: "0 20px 60px rgba(0,0,0,.4)",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header sticky */}
+        <div style={{ position: "sticky", top: 0, background: Th.card, borderBottom: `1px solid ${Th.border}`, padding: "18px 24px", zIndex: 50 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: Th.text }}>{formData.asegurado}</div>
+              <div style={{ fontSize: 13, color: Th.muted, marginTop: 4 }}>
+                {formData.compania_aseguradora && `${formData.compania_aseguradora} • `}
+                {caso.fecha_derivacion && `Derivado ${formatoFecha(caso.fecha_derivacion)}`}
               </div>
-            );
-          })}
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                background: Th.card2,
+                border: `1px solid ${Th.border}`,
+                borderRadius: 8,
+                color: Th.sub,
+                padding: "8px 12px",
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div style={{ padding: "24px" }}>
+          {/* SECCIÓN 1: INFORMACIÓN BÁSICA */}
+          <div style={sectionStyle}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📋 Información del caso</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <label>
+                <span style={labelStyle}>Asegurado *</span>
+                <input
+                  type="text"
+                  value={formData.asegurado}
+                  onChange={e => handleFormChange("asegurado", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Compañía aseguradora</span>
+                <input
+                  type="text"
+                  value={formData.compania_aseguradora}
+                  onChange={e => handleFormChange("compania_aseguradora", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <label>
+                <span style={labelStyle}>Fecha del siniestro</span>
+                <input
+                  type="date"
+                  value={formData.fecha_siniestro}
+                  onChange={e => handleFormChange("fecha_siniestro", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Estado del caso</span>
+                <select
+                  value={formData.estado}
+                  onChange={e => handleFormChange("estado", e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="doc_pendiente">📎 Doc. pendiente</option>
+                  <option value="iniciado">📋 Iniciado</option>
+                  <option value="reclamado">📨 Reclamado</option>
+                  <option value="con_ofrecimiento">💬 Ofrecimiento</option>
+                  <option value="en_mediacion">🤝 Mediación</option>
+                  <option value="en_juicio">⚖️ En juicio</option>
+                  <option value="esperando_pago">💳 Esperando pago</option>
+                  <option value="cobrado">✅ Cobrado</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+{/* SECCIÓN 2: DOCUMENTOS */}
+<div style={sectionStyle}>
+  <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
+
+  {/* Carpeta local PRIMERO — siempre visible */}
+  <CarpetaLocal
+    Th={Th}
+    onToast={setToast}
+    onPreview={(arch) => setPreviewArchivo(arch)}
+  />
+
+  {/* Separador */}
+  <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>
+    <ChecklistDocumental archivos={archivos} Th={Th} />
+
+    {archivos.length === 0 && !archivosActualizando && (
+      <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>
+        Sin archivos en este caso
+      </div>
+    )}
+
+    {archivos.map(arch => (
+      <ArchivoRow
+        key={arch.nombre}
+        archivo={arch}
+        onPreview={() => setPreviewArchivo(arch)}
+        onCategorizar={tipo => handleCategorizarArchivo(arch, tipo)}
+        onRenombrar={nuevoNombre => handleRenombrarArchivo(arch, nuevoNombre)}
+        Th={Th}
+      />
+    ))}
+  </div>
+</div>
+          {/* SECCIÓN 3: MONTOS PRINCIPALES */}
+          <div style={sectionStyle}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>💰 Montos</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label>
+                <span style={labelStyle}>Monto reclamado ($)</span>
+                <input
+                  type="number"
+                  value={formData.monto_reclamado}
+                  onChange={e => handleFormChange("monto_reclamado", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Monto ofrecimiento ($)</span>
+                <input
+                  type="number"
+                  value={formData.monto_ofrecimiento}
+                  onChange={e => handleFormChange("monto_ofrecimiento", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Lo que cobró el asegurado ($)</span>
+                <input
+                  type="number"
+                  value={formData.monto_cobro_asegurado}
+                  onChange={e => handleFormChange("monto_cobro_asegurado", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Mis honorarios ($)</span>
+                <input
+                  type="number"
+                  value={formData.monto_cobro_yo}
+                  onChange={e => handleFormChange("monto_cobro_yo", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Comisión PAS ($)</span>
+                <input
+                  type="number"
+                  value={formData.monto_comision_pas}
+                  onChange={e => handleFormChange("monto_comision_pas", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* SECCIÓN 4: HONORARIOS */}
+          <div style={sectionStyle}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>🏦 Honorarios (facturación)</div>
+            <label style={{ marginBottom: 12 }}>
+              <span style={labelStyle}>Monto de honorarios ($)</span>
+              <input
+                type="number"
+                value={formData.monto_honorarios}
+                onChange={e => handleFormChange("monto_honorarios", e.target.value)}
+                style={inputStyle}
+              />
+            </label>
+            <div style={{ marginBottom: 12 }}>
+              <span style={labelStyle}>Estado</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {ESTADOS_HONORARIOS.map(e => (
+                  <button
+                    key={e}
+                    onClick={() => handleFormChange("estado_honorarios", e)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 6px",
+                      borderRadius: 6,
+                      border: `1px solid ${formData.estado_honorarios === e ? "#818cf8" : Th.border}`,
+                      background: formData.estado_honorarios === e ? "#6366f122" : "transparent",
+                      color: formData.estado_honorarios === e ? "#818cf8" : Th.sub,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: formData.estado_honorarios === e ? 700 : 400,
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <label>
+                <span style={labelStyle}>Fecha de factura</span>
+                <input
+                  type="date"
+                  value={formData.fecha_factura}
+                  onChange={e => handleFormChange("fecha_factura", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+              <label>
+                <span style={labelStyle}>Fecha cobro honorarios</span>
+                <input
+                  type="date"
+                  value={formData.fecha_cobro_honorarios}
+                  onChange={e => handleFormChange("fecha_cobro_honorarios", e.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+            {formData.estado_honorarios === "FACTURADO" && diasDesdeFactura !== null && (
+              <div style={{ fontSize: 12, color: "#f97316", background: "#f9731612", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+                ⏱ Facturado hace {diasDesdeFactura} días
+              </div>
+            )}
+            {honorariosVencidos && (
+              <div style={{ fontSize: 12, color: "#ef4444", background: "#ef444412", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+                ⚠️ Cobro de honorarios vencido
+              </div>
+            )}
+          </div>
+
+          {/* SECCIÓN 5: FECHAS DEL EXPEDIENTE */}
+          <div style={sectionStyle}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📅 Fechas del expediente</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+              {[
+                { k: "fecha_derivacion", l: "Derivación" },
+                { k: "fecha_contacto_asegurado", l: "Contacto asegurado" },
+                { k: "fecha_inicio_reclamo", l: "Inicio reclamo" },
+                { k: "fecha_ultimo_movimiento", l: "Último movimiento" },
+                { k: "fecha_carga", l: "Carga del caso" },
+                { k: "fecha_reclamo", l: "Reclamo" },
+                { k: "fecha_ultimo_reclamo", l: "Último reclamo" },
+                { k: "fecha_ofrecimiento", l: "Ofrecimiento (auto)" },
+                { k: "fecha_reconsideracion", l: "Reconsideración" },
+                { k: "fecha_aceptacion", l: "Aceptación" },
+                { k: "fecha_firma", l: "Firma acuerdo" },
+                { k: "fecha_pago", l: "Pago" },
+                { k: "fecha_cobro", l: "Cobro" },
+                { k: "fecha_mediacion", l: "Mediación" },
+                { k: "fecha_inicio_juicio", l: "Inicio de juicio" },
+              ].map(f => (
+                <label key={f.k}>
+                  <span style={labelStyle}>{f.l}</span>
+                  <input
+                    type="date"
+                    value={formData[f.k] || ""}
+                    onChange={e => handleFormChange(f.k, e.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* SECCIÓN 6: TIMELINE */}
+          <div style={sectionStyle}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>⏳ Historial de acciones</div>
+            {loadingAcciones && <div style={{ color: Th.muted, fontSize: 13 }}>Cargando...</div>}
+            {!loadingAcciones && acciones.length === 0 && (
+              <div style={{ color: Th.muted, fontSize: 13, textAlign: "center", padding: "12px 0" }}>Sin acciones registradas aún</div>
+            )}
+            <div style={{ paddingLeft: 4 }}>
+              {acciones.map((a, i) => (
+                <div key={a.id || i} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: "50%",
+                        background: i === 0 ? "#6366f1" : Th.border,
+                        marginTop: 3,
+                        flexShrink: 0,
+                        border: i === 0 ? "2px solid #6366f144" : "none",
+                      }}
+                    />
+                    {i < acciones.length - 1 && <div style={{ width: 1, flex: 1, background: Th.border, marginTop: 4, minHeight: 18 }} />}
+                  </div>
+                  <div style={{ flex: 1, paddingBottom: 6 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: i === 0 ? "#6366f1" : Th.muted,
+                        fontWeight: i === 0 ? 700 : 500,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {formatoFecha(a.fecha?.slice(0, 10))}{i === 0 ? " · más reciente" : ""}
+                      <span style={{ marginLeft: 6, background: Th.card2, borderRadius: 4, padding: "1px 6px", fontSize: 10, color: Th.muted }}>
+                        {a.tipo}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5 }}>{a.descripcion}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECCIÓN 7: ACCIONES */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+            <button
+              onClick={() => setModalEscrito(true)}
+              style={{
+                background: "#f97316",
+                border: "none",
+                borderRadius: 8,
+                color: "white",
+                padding: "12px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              📝 Generar escrito
+            </button>
+            <button
+              onClick={() => recargarArchivos()}
+              disabled={archivosActualizando}
+              style={{
+                background: archivosActualizando ? Th.card2 : "#3b82f6",
+                border: "none",
+                borderRadius: 8,
+                color: "white",
+                padding: "12px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 700,
+                opacity: archivosActualizando ? 0.5 : 1,
+              }}
+            >
+              {archivosActualizando ? "Cargando..." : "🔄 Recargar archivos"}
+            </button>
+          </div>
+
+          {/* BOTONES FINALES */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 10, borderTop: `1px solid ${Th.border}` }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: Th.card2,
+                border: `1px solid ${Th.border}`,
+                borderRadius: 8,
+                color: Th.sub,
+                padding: "12px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={guardarCaso}
+              disabled={guardando}
+              style={{
+                background: guardando ? Th.card2 : "#10b981",
+                border: "none",
+                borderRadius: 8,
+                color: "white",
+                padding: "12px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 700,
+                opacity: guardando ? 0.5 : 1,
+              }}
+            >
+              {guardando ? "Guardando..." : "✓ Guardar caso"}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍  Buscar entre tus clientes PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
-        <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 8, color: "#818cf8", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
-        <button onClick={exportarExcel} style={{ background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 8, color: "#22c55e", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>⬇ Exportar Excel</button>
-      </div>
+      {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
-      <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4, marginBottom: 14 }}>
-        {[{ key: "todos", label: "Todos", color: "#64748b" }, ...ESTADOS_CASO].map(e => (
-          <button key={e.key} onClick={() => setFiltroEstado(e.key)} style={{ flexShrink: 0, padding: "5px 11px", borderRadius: 20, border: "1px solid", borderColor: filtroEstado === e.key ? e.color : darkMode ? "#1e293b" : "#e2e8f0", background: filtroEstado === e.key ? e.color + "22" : darkMode ? "#0a0f1e" : "#f8fafc", color: filtroEstado === e.key ? e.color : "#475569", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
-            {e.emoji ? `${e.emoji} ` : ""}{e.label}
-          </button>
-        ))}
-      </div>
-
-      {clientes.length === 0 && (
-        <div style={{ textAlign: "center", padding: "44px 16px", background: darkMode ? "#0f172a" : "#f8fafc", borderRadius: 12, border: `1px dashed ${darkMode ? "#1e293b" : "#e2e8f0"}` }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>☑️</div>
-          <div style={{ fontSize: 15, color: "#475569", fontWeight: 600 }}>Todavía no tenés clientes PAS</div>
-          <div style={{ fontSize: 13, color: "#334155", marginTop: 8, lineHeight: 1.6 }}>
-            Podés marcar un PAS del Excel como derivador en <strong style={{ color: "#818cf8" }}>Contactos</strong>,<br />
-            o usar el botón <strong style={{ color: "#818cf8" }}>+ PAS manual</strong> de arriba para agregar uno directamente.
+      {modalEscrito && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 380, width: "100%" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>📝 Generar escrito</div>
+            <label style={{ display: "block", marginBottom: 16 }}>
+              <span style={labelStyle}>DNI del asegurado *</span>
+              <input value={dniEscrito} onChange={e => setDniEscrito(e.target.value)} placeholder="Ej: 25123456" style={inputStyle} />
+            </label>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => {
+                  setModalEscrito(false);
+                  setDniEscrito("");
+                }}
+                style={{
+                  flex: 1,
+                  background: Th.card2,
+                  border: `1px solid ${Th.border}`,
+                  borderRadius: 8,
+                  color: Th.sub,
+                  padding: "10px",
+                  cursor: "pointer",
+                  fontSize: 14,
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGenerarEscrito}
+                disabled={generandoEscrito || !dniEscrito.trim()}
+                style={{
+                  flex: 2,
+                  background: generandoEscrito || !dniEscrito.trim() ? Th.card2 : "#f97316",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "white",
+                  padding: "10px",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                {generandoEscrito ? "Generando..." : "Generar PDF"}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {filtered.map(p => (
-        <ClienteCard key={p.id} pas={p} casos={casos[String(p.id)] || []}
-          onAddCaso={() => { setModalPas(p); setCasoEdit(null); }}
-          onEditCaso={c => { setModalPas(p); setCasoEdit(c); }}
-          onDeleteCaso={cid => { deleteCasoFromAgenda(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
-          onDetalleCaso={c => { setCasoDetalle(c); setPasIdDetalle(p.id); }}
-          expanded={expandedId === p.id}
-          onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
-          darkMode={darkMode}
-          filtroEstado={filtroEstado}
-          onEditPasManual={p.manual ? pManual => { setPasManualEdit(pManual); setModalNuevoPAS(true); } : undefined}
-          onDeletePasManual={p.manual ? id => { onDeletePasManual(id); } : undefined} />
-      ))}
-
-      {modalPas && (
-        <CasoModal pasNombre={modalPas.nombre} casoEdit={casoEdit} darkMode={darkMode}
-          onClose={() => { setModalPas(null); setCasoEdit(null); }}
-          onSave={data => handleSave(modalPas.id, data, modalPas.nombre)} />
-      )}
-
-      {modalNuevoPAS && (
-        <NuevoPASModal
-          pasEdit={pasManualEdit}
-          darkMode={darkMode}
-          onClose={() => { setModalNuevoPAS(false); setPasManualEdit(null); }}
-          onSave={data => { onAddPasManual(data); setModalNuevoPAS(false); setPasManualEdit(null); }} />
-      )}
-
-      {casoDetalle && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: darkMode ? "#111827" : "#f8fafc" }}>
-          <CasoDetalle
-            caso={casoDetalle}
-            pasId={pasIdDetalle}
-            darkMode={darkMode}
-            onUpdate={updated => {
-              const cur = casos[String(pasIdDetalle)] || [];
-              const pasNom = [...pas, ...pasManuales].find(p => p.id === pasIdDetalle)?.nombre || "";
-              onSaveCasos(pasIdDetalle, cur.map(c => c.id === updated.id ? updated : c), pasNom);
-              setCasoDetalle(updated);
-            }}
-            onClose={() => { setCasoDetalle(null); setPasIdDetalle(null); }}
-          />
-        </div>
-      )}
+      {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>
   );
 }
