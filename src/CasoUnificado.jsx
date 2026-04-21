@@ -59,6 +59,13 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
   const [dniEscrito, setDniEscrito] = useState("");
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
 
+  // Estado para modal de acción
+  const [modalAccion, setModalAccion] = useState(false);
+  const [fechaAccion, setFechaAccion] = useState(new Date().toISOString().slice(0, 10));
+  const [tipoAccion, setTipoAccion] = useState("contacto");
+  const [descripcionAccion, setDescripcionAccion] = useState("");
+  const [guardandoAccion, setGuardandoAccion] = useState(false);
+
   const diasDesdeFactura = formData.fecha_factura ? diasDesde(formData.fecha_factura) : null;
   const honorariosVencidos = formData.estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
 
@@ -141,6 +148,74 @@ const cargarAcciones = async () => {
     });
     setGenerandoEscrito(false);
   }, [caso, pasId, dniEscrito]);
+
+  const handleAgregarAccion = async () => {
+    if (!descripcionAccion.trim()) {
+      setToast({ msg: "La descripción no puede estar vacía", type: "error" });
+      return;
+    }
+
+    setGuardandoAccion(true);
+    try {
+      // 1. Insertar en tabla acciones
+      const nuevaAccion = {
+        caso_id: caso.id,
+        tipo: tipoAccion,
+        descripcion: descripcionAccion.trim(),
+        fecha: fechaAccion,
+      };
+
+      const { data: accionInsertada, error: errorAccion } = await supabase
+        .from("acciones")
+        .insert(nuevaAccion)
+        .select()
+        .single();
+
+      if (errorAccion) {
+        console.error("Error insertando acción:", errorAccion);
+        setToast({ msg: "Error al guardar la acción: " + errorAccion.message, type: "error" });
+        setGuardandoAccion(false);
+        return;
+      }
+
+      // 2. Sincronizar a notas_log[] del caso
+      const logEntry = {
+        fecha: fechaAccion,
+        texto: descripcionAccion.trim(),
+        ts: Date.now(),
+      };
+
+      const notasActualizadas = [...(caso.notas_log || []), logEntry];
+
+      const { error: errorCaso } = await supabase
+        .from("pas_casos")
+        .update({ notas_log: notasActualizadas })
+        .eq("id", caso.id);
+
+      if (errorCaso) {
+        console.error("Error actualizando notas_log:", errorCaso);
+        // La acción ya se guardó, solo advertimos
+        setToast({ msg: "⚠️ Acción guardada pero no sincronizada al portal", type: "warn" });
+      } else {
+        // Actualizar estado local del caso
+        setCaso(prev => ({ ...prev, notas_log: notasActualizadas }));
+        setFormData(prev => ({ ...prev, notas_log: notasActualizadas }));
+      }
+
+      // 3. Recargar timeline y cerrar modal
+      await cargarAcciones();
+      setToast({ msg: "✅ Acción registrada", type: "success" });
+      setModalAccion(false);
+      setDescripcionAccion("");
+      setFechaAccion(new Date().toISOString().slice(0, 10));
+      setTipoAccion("contacto");
+
+    } catch (e) {
+      console.error("Error en handleAgregarAccion:", e);
+      setToast({ msg: "Error inesperado: " + e.message, type: "error" });
+    }
+    setGuardandoAccion(false);
+  };
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -313,6 +388,7 @@ const guardarCaso = useCallback(async () => {
     Th={Th}
     onToast={setToast}
     onPreview={(arch) => setPreviewArchivo(arch)}
+    caso={caso}
   />
 
   {/* Separador */}
@@ -493,7 +569,24 @@ const guardarCaso = useCallback(async () => {
 
           {/* SECCIÓN 6: TIMELINE */}
           <div style={sectionStyle}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>⏳ Historial de acciones</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: Th.text }}>⏳ Historial de acciones</div>
+              <button
+                onClick={() => setModalAccion(true)}
+                style={{
+                  background: "#6366f1",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "white",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                ➕ Agregar acción
+              </button>
+            </div>
             {loadingAcciones && <div style={{ color: Th.muted, fontSize: 13 }}>Cargando...</div>}
             {!loadingAcciones && acciones.length === 0 && (
               <div style={{ color: Th.muted, fontSize: 13, textAlign: "center", padding: "12px 0" }}>Sin acciones registradas aún</div>
@@ -612,6 +705,7 @@ const guardarCaso = useCallback(async () => {
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
+      {/* MODAL GENERAR ESCRITO */}
       {modalEscrito && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 380, width: "100%" }}>
@@ -655,6 +749,95 @@ const guardarCaso = useCallback(async () => {
                 }}
               >
                 {generandoEscrito ? "Generando..." : "Generar PDF"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL AGREGAR ACCIÓN */}
+      {modalAccion && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 440, width: "100%" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>➕ Registrar acción</div>
+            
+            <label style={{ display: "block", marginBottom: 14 }}>
+              <span style={labelStyle}>Fecha</span>
+              <input 
+                type="date" 
+                value={fechaAccion} 
+                onChange={e => setFechaAccion(e.target.value)} 
+                style={inputStyle} 
+              />
+            </label>
+
+            <label style={{ display: "block", marginBottom: 14 }}>
+              <span style={labelStyle}>Tipo de acción</span>
+              <select 
+                value={tipoAccion} 
+                onChange={e => setTipoAccion(e.target.value)} 
+                style={inputStyle}
+              >
+                <option value="contacto">Contacto</option>
+                <option value="reclamo">Reclamo</option>
+                <option value="ofrecimiento">Ofrecimiento</option>
+                <option value="documentacion">Documentación</option>
+                <option value="pago">Pago</option>
+                <option value="mediacion">Mediación</option>
+                <option value="juicio">Juicio</option>
+                <option value="otro">Otro</option>
+              </select>
+            </label>
+
+            <label style={{ display: "block", marginBottom: 20 }}>
+              <span style={labelStyle}>Descripción *</span>
+              <textarea 
+                value={descripcionAccion} 
+                onChange={e => setDescripcionAccion(e.target.value)} 
+                placeholder="Ej: Natalia aceptó el ofrecimiento y lo remití a la compañía. Pago a 30 días."
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} 
+              />
+            </label>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => {
+                  setModalAccion(false);
+                  setDescripcionAccion("");
+                  setFechaAccion(new Date().toISOString().slice(0, 10));
+                  setTipoAccion("contacto");
+                }}
+                style={{
+                  flex: 1,
+                  background: Th.card2,
+                  border: `1px solid ${Th.border}`,
+                  borderRadius: 8,
+                  color: Th.sub,
+                  padding: "10px",
+                  cursor: "pointer",
+                  fontSize: 14,
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAgregarAccion}
+                disabled={guardandoAccion || !descripcionAccion.trim()}
+                style={{
+                  flex: 2,
+                  background: guardandoAccion || !descripcionAccion.trim() ? Th.card2 : "#6366f1",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "white",
+                  padding: "10px",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  opacity: guardandoAccion || !descripcionAccion.trim() ? 0.5 : 1,
+                }}
+              >
+                {guardandoAccion ? "Guardando..." : "✓ Guardar acción"}
               </button>
             </div>
           </div>
