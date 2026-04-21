@@ -164,6 +164,7 @@ const cargarAcciones = async () => {
           .update({
             descripcion: descripcionAccion.trim(),
             fecha: fechaAccion,
+            tipo: "nota",
           })
           .eq("id", accionEditando.id);
 
@@ -181,6 +182,7 @@ const cargarAcciones = async () => {
           caso_id: caso.id,
           descripcion: descripcionAccion.trim(),
           fecha: fechaAccion,
+          tipo: "nota",
         };
 
         const { error: errorInsert } = await supabase
