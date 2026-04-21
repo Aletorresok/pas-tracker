@@ -241,9 +241,20 @@ const guardarCaso = useCallback(async () => {
       estado_honorarios: formData.estado_honorarios || "NO_FACTURADO",
     };
 
+const guardarCaso = useCallback(async () => {
+  setGuardando(true);
+  try {
+    const updated = {
+      id: caso.id || generateUUID(),
+      caso_id: caso.caso_id || Date.now(),
+      pas_id: parseInt(pasId, 10),
+      ...formData,
+    };
+
+    // Opción 1: Upsert simple sin columns
     const { error } = await supabase
       .from("pas_casos")
-      .upsert(updated, { onConflict: "id" });
+      .upsert([updated]); // Envía array, no objeto
 
     if (!error) {
       setCaso(updated);
@@ -251,14 +262,13 @@ const guardarCaso = useCallback(async () => {
       onUpdate?.(updated);
     } else {
       console.error("Error guardando caso:", error);
-      setToast({ msg: "Error guardando caso: " + (error.message || "desconocido"), type: "error" });
+      setToast({ msg: "Error: " + error.message, type: "error" });
     }
   } catch (e) {
     console.error("Error en guardarCaso:", e);
     setToast({ msg: "Error: " + e.message, type: "error" });
   }
   setGuardando(false);
-  
 }, [caso, formData, onUpdate, pasId]);
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
