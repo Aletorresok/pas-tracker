@@ -62,9 +62,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
   // Estado para modal de acción
   const [modalAccion, setModalAccion] = useState(false);
   const [fechaAccion, setFechaAccion] = useState(new Date().toISOString().slice(0, 10));
-  const [tipoAccion, setTipoAccion] = useState("contacto");
   const [descripcionAccion, setDescripcionAccion] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
+  const [accionEditando, setAccionEditando] = useState(null);
 
   const diasDesdeFactura = formData.fecha_factura ? diasDesde(formData.fecha_factura) : null;
   const honorariosVencidos = formData.estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
@@ -149,7 +149,7 @@ const cargarAcciones = async () => {
     setGenerandoEscrito(false);
   }, [caso, pasId, dniEscrito]);
 
-  const handleAgregarAccion = async () => {
+  const handleGuardarAccion = async () => {
     if (!descripcionAccion.trim()) {
       setToast({ msg: "La descripción no puede estar vacía", type: "error" });
       return;
@@ -157,64 +157,94 @@ const cargarAcciones = async () => {
 
     setGuardandoAccion(true);
     try {
-      // 1. Insertar en tabla acciones
-      const nuevaAccion = {
-        caso_id: caso.id,
-        tipo: tipoAccion,
-        descripcion: descripcionAccion.trim(),
-        fecha: fechaAccion,
-      };
+      if (accionEditando) {
+        // Editar acción existente
+        const { error: errorUpdate } = await supabase
+          .from("acciones")
+          .update({
+            descripcion: descripcionAccion.trim(),
+            fecha: fechaAccion,
+          })
+          .eq("id", accionEditando.id);
 
-      const { data: accionInsertada, error: errorAccion } = await supabase
-        .from("acciones")
-        .insert(nuevaAccion)
-        .select()
-        .single();
+        if (errorUpdate) {
+          console.error("Error actualizando acción:", errorUpdate);
+          setToast({ msg: "Error al actualizar la acción: " + errorUpdate.message, type: "error" });
+          setGuardandoAccion(false);
+          return;
+        }
 
-      if (errorAccion) {
-        console.error("Error insertando acción:", errorAccion);
-        setToast({ msg: "Error al guardar la acción: " + errorAccion.message, type: "error" });
-        setGuardandoAccion(false);
-        return;
-      }
-
-      // 2. Sincronizar a notas_log[] del caso
-      const logEntry = {
-        fecha: fechaAccion,
-        texto: descripcionAccion.trim(),
-        ts: Date.now(),
-      };
-
-      const notasActualizadas = [...(caso.notas_log || []), logEntry];
-
-      const { error: errorCaso } = await supabase
-        .from("pas_casos")
-        .update({ notas_log: notasActualizadas })
-        .eq("id", caso.id);
-
-      if (errorCaso) {
-        console.error("Error actualizando notas_log:", errorCaso);
-        // La acción ya se guardó, solo advertimos
-        setToast({ msg: "⚠️ Acción guardada pero no sincronizada al portal", type: "warn" });
+        setToast({ msg: "✅ Acción actualizada", type: "success" });
       } else {
-        // Actualizar estado local del caso
-        setCaso(prev => ({ ...prev, notas_log: notasActualizadas }));
-        setFormData(prev => ({ ...prev, notas_log: notasActualizadas }));
+        // Crear nueva acción
+        const nuevaAccion = {
+          caso_id: caso.id,
+          descripcion: descripcionAccion.trim(),
+          fecha: fechaAccion,
+        };
+
+        const { error: errorInsert } = await supabase
+          .from("acciones")
+          .insert(nuevaAccion);
+
+        if (errorInsert) {
+          console.error("Error insertando acción:", errorInsert);
+          setToast({ msg: "Error al guardar la acción: " + errorInsert.message, type: "error" });
+          setGuardandoAccion(false);
+          return;
+        }
+
+        setToast({ msg: "✅ Acción registrada", type: "success" });
       }
 
-      // 3. Recargar timeline y cerrar modal
+      // Recargar timeline y cerrar modal
       await cargarAcciones();
-      setToast({ msg: "✅ Acción registrada", type: "success" });
-      setModalAccion(false);
-      setDescripcionAccion("");
-      setFechaAccion(new Date().toISOString().slice(0, 10));
-      setTipoAccion("contacto");
+      cerrarModalAccion();
 
     } catch (e) {
-      console.error("Error en handleAgregarAccion:", e);
+      console.error("Error en handleGuardarAccion:", e);
       setToast({ msg: "Error inesperado: " + e.message, type: "error" });
     }
     setGuardandoAccion(false);
+  };
+
+  const handleEditarAccion = (accion) => {
+    setAccionEditando(accion);
+    setFechaAccion(accion.fecha?.slice(0, 10) || "");
+    setDescripcionAccion(accion.descripcion || "");
+    setModalAccion(true);
+  };
+
+  const handleEliminarAccion = async (accionId) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta acción?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("acciones")
+        .delete()
+        .eq("id", accionId);
+
+      if (error) {
+        console.error("Error eliminando acción:", error);
+        setToast({ msg: "Error al eliminar: " + error.message, type: "error" });
+        return;
+      }
+
+      setToast({ msg: "✅ Acción eliminada", type: "success" });
+      await cargarAcciones();
+    } catch (e) {
+      console.error("Error en handleEliminarAccion:", e);
+      setToast({ msg: "Error inesperado: " + e.message, type: "error" });
+    }
+  };
+
+  const cerrarModalAccion = () => {
+    setModalAccion(false);
+    setDescripcionAccion("");
+    setFechaAccion(new Date().toISOString().slice(0, 10));
+    setAccionEditando(null);
   };
 
 const generateUUID = () => {
@@ -600,7 +630,7 @@ const guardarCaso = useCallback(async () => {
               {!loadingAcciones && acciones.length === 0 && (
                 <div style={{ color: Th.muted, fontSize: 13, textAlign: "center", padding: "12px 0" }}>Sin acciones registradas aún</div>
               )}
-              <div style={{ paddingLeft: 4 }}>
+              <div style={{ paddingLeft: 4, marginTop: 12 }}>
                 {acciones.map((a, i) => (
                   <div key={a.id || i} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
@@ -627,15 +657,45 @@ const guardarCaso = useCallback(async () => {
                         }}
                       >
                         {formatoFecha(a.fecha?.slice(0, 10))}{i === 0 ? " · más reciente" : ""}
-                        <span style={{ marginLeft: 6, background: Th.card2, borderRadius: 4, padding: "1px 6px", fontSize: 10, color: Th.muted }}>
-                          {a.tipo}
-                        </span>
                       </div>
-                      <div style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5 }}>{a.descripcion}</div>
+                      <div style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8 }}>{a.descripcion}</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          onClick={() => handleEditarAccion(a)}
+                          style={{
+                            background: "#3b82f6",
+                            border: "none",
+                            borderRadius: 4,
+                            color: "white",
+                            padding: "4px 8px",
+                            cursor: "pointer",
+                            fontSize: 11,
+                            fontWeight: 600,
+                          }}
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => handleEliminarAccion(a.id)}
+                          style={{
+                            background: "#ef4444",
+                            border: "none",
+                            borderRadius: 4,
+                            color: "white",
+                            padding: "4px 8px",
+                            cursor: "pointer",
+                            fontSize: 11,
+                            fontWeight: 600,
+                          }}
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+
             </div>
 
             {/* SECCIÓN 7: ACCIONES */}
@@ -768,13 +828,15 @@ const guardarCaso = useCallback(async () => {
         </>
       )}
 
-      {/* MODAL AGREGAR ACCIÓN */}
+      {/* MODAL AGREGAR/EDITAR ACCIÓN */}
       {modalAccion && (
         <>
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 499 }} onClick={() => setModalAccion(false)} />
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 499 }} onClick={cerrarModalAccion} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 500 }}>
             <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 440, width: "100%" }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>➕ Registrar acción</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>
+                {accionEditando ? "✏️ Editar acción" : "➕ Registrar acción"}
+              </div>
               
               <label style={{ display: "block", marginBottom: 14 }}>
                 <span style={labelStyle}>Fecha</span>
@@ -784,24 +846,6 @@ const guardarCaso = useCallback(async () => {
                   onChange={e => setFechaAccion(e.target.value)} 
                   style={inputStyle} 
                 />
-              </label>
-
-              <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={labelStyle}>Tipo de acción</span>
-                <select 
-                  value={tipoAccion} 
-                  onChange={e => setTipoAccion(e.target.value)} 
-                  style={inputStyle}
-                >
-                  <option value="contacto">Contacto</option>
-                  <option value="reclamo">Reclamo</option>
-                  <option value="ofrecimiento">Ofrecimiento</option>
-                  <option value="documentacion">Documentación</option>
-                  <option value="pago">Pago</option>
-                  <option value="mediacion">Mediación</option>
-                  <option value="juicio">Juicio</option>
-                  <option value="otro">Otro</option>
-                </select>
               </label>
 
               <label style={{ display: "block", marginBottom: 20 }}>
@@ -817,12 +861,7 @@ const guardarCaso = useCallback(async () => {
 
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => {
-                    setModalAccion(false);
-                    setDescripcionAccion("");
-                    setFechaAccion(new Date().toISOString().slice(0, 10));
-                    setTipoAccion("contacto");
-                  }}
+                  onClick={cerrarModalAccion}
                   style={{
                     flex: 1,
                     background: Th.card2,
@@ -837,7 +876,7 @@ const guardarCaso = useCallback(async () => {
                   Cancelar
                 </button>
                 <button
-                  onClick={handleAgregarAccion}
+                  onClick={handleGuardarAccion}
                   disabled={guardandoAccion || !descripcionAccion.trim()}
                   style={{
                     flex: 2,
@@ -852,7 +891,7 @@ const guardarCaso = useCallback(async () => {
                     opacity: guardandoAccion || !descripcionAccion.trim() ? 0.5 : 1,
                   }}
                 >
-                  {guardandoAccion ? "Guardando..." : "✓ Guardar acción"}
+                  {guardandoAccion ? "Guardando..." : accionEditando ? "✓ Actualizar" : "✓ Guardar acción"}
                 </button>
               </div>
             </div>
