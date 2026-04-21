@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase.js";
+import { useRealtimeCasos } from "./hooks/useRealtimeSync.js";
 
 const ESTADOS_CASO = [
   { key: "doc_pendiente",    label: "Doc. pendiente",   emoji: "📎", color: "#a855f7" },
@@ -270,12 +271,14 @@ function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [error,   setError]   = useState("");
   const [cambPwd, setCambPwd] = useState(false);
   const [filtro,  setFiltro]  = useState("todos");
+  const [pasId,   setPasId]   = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).single();
       if (linkErr || !link) { setError("Tu usuario no está vinculado a ningún PAS. Contactá al administrador."); setLoading(false); return; }
+      setPasId(link.pas_id);
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
       setPasInfo(pas);
       const { data: casosData } = await supabase.from("pas_casos").select("*").eq("pas_id", link.pas_id);
@@ -307,6 +310,23 @@ function PortalHome({ session, onLogout, dark, onToggleDark }) {
     };
     loadData();
   }, [session]);
+
+  // Sincronizar casos en tiempo real
+  useRealtimeCasos(pasId, (casoActualizado) => {
+    setCasos(prev => {
+      const index = prev.findIndex(c => c.id === casoActualizado.id);
+      if (index !== -1) {
+        // Actualizar caso existente
+        const nuevo = [...prev];
+        nuevo[index] = casoActualizado;
+        return nuevo;
+      } else {
+        // Nuevo caso
+        return [...prev, casoActualizado];
+      }
+    });
+    console.log("[Portal] Caso actualizado en tiempo real:", casoActualizado.asegurado);
+  });
 
   const casosFiltrados = casos.filter(c => filtro === "todos" || c.estado === filtro);
   const comisionTotal  = casos.filter(c => c.estado === "cobrado").reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);

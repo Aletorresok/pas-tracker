@@ -7,6 +7,7 @@ import { cargarArchivos } from "./utils/carpeta.js";
 import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
 import { generarEscrito } from "./utils/generarEscrito.js";
 import { CarpetaLocal } from "./components/CarpetaLocal.jsx";
+import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
 
 export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdate, onClose }) {
   const Th = THEME(darkMode);
@@ -73,6 +74,22 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
     recargarArchivos();
     cargarAcciones();
   }, [caso.id]);
+
+  // Sincronizar caso en tiempo real
+  useRealtimeSync("pas_casos", "id", caso.id, (datoActualizado) => {
+    setCaso(datoActualizado);
+    setFormData(prev => ({
+      ...prev,
+      ...datoActualizado,
+    }));
+    console.log("[Sync] Caso actualizado desde otro dispositivo");
+  });
+
+  // Sincronizar acciones en tiempo real
+  useRealtimeAcciones(caso.id, (payload) => {
+    console.log("[Sync] Acción cambió (INSERT/UPDATE/DELETE)");
+    cargarAcciones();
+  });
 
   const recargarArchivos = async () => {
     setArchivosActualizando(true);
