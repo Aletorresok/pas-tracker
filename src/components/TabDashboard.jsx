@@ -40,22 +40,15 @@ function GraficoBarras({ datos, darkMode }) {
   );
 }
 
-export default function TabDashboard({ pas, historial, casos, derivadores, recordatorios, darkMode, pasManuales = [], onGoToClientes }) {
+export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onGoToClientes }) {
   const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
   const totalCobradoYo     = allCasos.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
   const totalComisionesPAS = allCasos.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalPendiente     = allCasos.filter(c => c.estado === "esperando_pago").reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const totalAcordado      = allCasos.reduce((s, c) => s + (Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0), 0);
   const enGestion          = allCasos.filter(c => c.estado !== "cobrado").length;
   const cobrados           = allCasos.filter(c => c.estado === "cobrado").length;
   const nDerivadores       = Object.values(derivadores).filter(Boolean).length;
-  const contactados        = pas.filter(p => (historial[p.id] || []).length > 0).length;
-  const positivos          = pas.filter(p => (historial[p.id] || []).some(c => (c.resultados || [c.resultado]).includes("respondio_positivo"))).length;
-  const negativos          = pas.filter(p => (historial[p.id] || []).some(c => (c.resultados || [c.resultado]).includes("respondio_negativo"))).length;
-  const neutros            = pas.filter(p => (historial[p.id] || []).some(c => (c.resultados || [c.resultado]).includes("respondio_neutro"))).length;
-  const noRespondieron     = pas.filter(p => (historial[p.id] || []).length > 0 && (historial[p.id] || []).every(c => (c.resultados || [c.resultado]).includes("no_respondio") || (c.resultados || [c.resultado]).includes("numero_incorrecto"))).length;
-  const volverContactar    = pas.filter(p => (historial[p.id] || []).some(c => (c.resultados || [c.resultado]).includes("volver_contactar"))).length;
-  const tasaRespuesta      = contactados > 0 ? Math.round(((positivos + negativos + neutros) / contactados) * 100) : 0;
-  const tasaPositiva       = contactados > 0 ? Math.round((positivos / contactados) * 100) : 0;
 
   const honorariosPendientes = allCasos
     .filter(c => c.estado_honorarios !== "COBRADO" && (Number(c.monto_honorarios) > 0 || Number(c.monto_cobro_yo) > 0))
@@ -63,6 +56,15 @@ export default function TabDashboard({ pas, historial, casos, derivadores, recor
   const cobroAseguradoPendiente = allCasos
     .filter(c => c.estado === "esperando_pago" && Number(c.monto_cobro_asegurado) > 0)
     .reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
+
+  const diasSinMov = (c) => {
+    const ult = c.fecha_ultimo_movimiento || c.fecha_derivacion;
+    if (!ult) return 999;
+    return Math.floor((Date.now() - new Date(ult).getTime()) / 86400000);
+  };
+  const casosInactivos = allCasos
+    .filter(c => !["cobrado", "doc_pendiente"].includes(c.estado) && diasSinMov(c) >= 7)
+    .sort((a, b) => diasSinMov(b) - diasSinMov(a));
 
   const hoyStr = new Date().toISOString().slice(0, 10);
   const hoy = new Date();
@@ -113,10 +115,10 @@ export default function TabDashboard({ pas, historial, casos, derivadores, recor
 
   const maxCobrado = rankingPAS.length ? Math.max(...rankingPAS.map(p => p.cobrado), 1) : 1;
 
-  const recsPAS = pas.filter(p => { const r = recordatorios?.[p.id]; return r && r <= hoyStr; });
+  const todosLosPasMemo = [...pas, ...pasManuales];
   const recsCasos = [];
   Object.entries(casos).forEach(([pasId, casosList]) => {
-    const pasObj = pas.find(p => p.id === Number(pasId));
+    const pasObj = todosLosPasMemo.find(p => String(p.id) === String(pasId));
     casosList.forEach(c => { if (c.recordatorio && c.recordatorio <= hoyStr) recsCasos.push({ ...c, pasNombre: pasObj?.nombre || "PAS desconocido" }); });
   });
 
@@ -153,46 +155,30 @@ export default function TabDashboard({ pas, historial, casos, derivadores, recor
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
-        <StatCard label="Contactados" value={contactados} color="#6366f1" sub={`de ${pas.length}`} dark={darkMode} />
-        <StatCard label="Positivos" value={positivos} color="#22c55e" dark={darkMode} />
-        <StatCard label="Derivadores" value={nDerivadores} color="#eab308" dark={darkMode} />
+        <StatCard label="Total casos" value={allCasos.length} color="#6366f1" sub={`${enGestion} en gestión`} dark={darkMode} />
+        <StatCard label="Derivadores" value={nDerivadores} color="#eab308" sub={`${Object.keys(casos).length} con casos`} dark={darkMode} />
+        <StatCard label="Monto total" value={fmtMoney(totalAcordado)} color="#22c55e" dark={darkMode} />
       </div>
 
-      {contactados > 0 && (
-        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "14px", marginBottom: 18 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Tasa de respuesta</div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" }}>
-            <div>
-              <div style={{ fontSize: 32, fontWeight: 800, color: tasaRespuesta >= 50 ? "#22c55e" : tasaRespuesta >= 25 ? "#eab308" : "#ef4444", lineHeight: 1 }}>{tasaRespuesta}%</div>
-              <div style={{ fontSize: 11, color: subColor, marginTop: 4 }}>respondieron ({positivos + negativos + neutros} de {contactados})</div>
-            </div>
-            <div style={{ flex: 1 }} />
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#22c55e", lineHeight: 1 }}>{tasaPositiva}%</div>
-              <div style={{ fontSize: 11, color: subColor, marginTop: 4 }}>tasa positiva</div>
-            </div>
-          </div>
-          <div style={{ height: 8, borderRadius: 6, overflow: "hidden", display: "flex", marginBottom: 10 }}>
-            {positivos > 0  && <div style={{ flex: positivos,  background: "#22c55e" }} title={`Positivos: ${positivos}`} />}
-            {neutros > 0    && <div style={{ flex: neutros,    background: "#eab308" }} title={`Neutros: ${neutros}`} />}
-            {negativos > 0  && <div style={{ flex: negativos,  background: "#ef4444" }} title={`Negativos: ${negativos}`} />}
-            {volverContactar > 0 && <div style={{ flex: volverContactar, background: "#6366f1" }} title={`Volver: ${volverContactar}`} />}
-            {noRespondieron > 0  && <div style={{ flex: noRespondieron,  background: darkMode ? "#1e293b" : "#e2e8f0" }} title={`Sin respuesta: ${noRespondieron}`} />}
-          </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {[
-              { l: "Positivos",    v: positivos,     c: "#22c55e" },
-              { l: "Neutros",      v: neutros,       c: "#eab308" },
-              { l: "Negativos",    v: negativos,     c: "#ef4444" },
-              { l: "Volver",       v: volverContactar, c: "#6366f1" },
-              { l: "Sin respuesta",v: noRespondieron,  c: darkMode ? "#334155" : "#94a3b8" },
-            ].map(s => s.v > 0 && (
-              <div key={s.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: s.c, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: subColor }}>{s.l}: <strong style={{ color: darkMode ? "#cbd5e1" : "#334155" }}>{s.v}</strong></span>
+      {casosInactivos.length > 0 && (
+        <div style={{ background: "#ef444411", border: "1px solid #ef444444", borderRadius: 12, padding: "14px", marginBottom: 18 }}>
+          <div style={{ fontSize: 11, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⚠️ Casos sin movimiento (+7 días)</div>
+          {casosInactivos.slice(0, 8).map(c => {
+            const d = diasSinMov(c);
+            const todosLosPas = [...pas, ...pasManuales];
+            const pasObj = todosLosPas.find(p => Object.entries(casos).some(([pid, list]) => String(p.id) === String(pid) && list.some(cc => cc.id === c.id)));
+            const ei = ESTADOS_CASO.find(e => e.key === c.estado) || {};
+            return (
+              <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #ef444433", borderRadius: 8, padding: "10px 12px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
+                  <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{ei.emoji} {ei.label} · {c.compania || "sin compañía"}</div>
+                </div>
+                <Badge color={d >= 30 ? "#ef4444" : "#f97316"}>{d} días</Badge>
               </div>
-            ))}
-          </div>
+            );
+          })}
+          {casosInactivos.length > 8 && <div style={{ fontSize: 11, color: "#ef4444", textAlign: "center", marginTop: 6 }}>+{casosInactivos.length - 8} más</div>}
         </div>
       )}
 
@@ -255,33 +241,18 @@ export default function TabDashboard({ pas, historial, casos, derivadores, recor
         </div>
       </div>
 
-      {(recsPAS.length > 0 || recsCasos.length > 0) && (
+      {recsCasos.length > 0 && (
         <div style={{ background: "#f9741611", border: "1px solid #f9741644", borderRadius: 12, padding: "14px", marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "#f97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⏰ Recordatorios pendientes</div>
-          {recsPAS.map(p => (
-            <div key={p.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #f9741633", borderRadius: 8, padding: "10px 12px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: textColor }}>{p.nombre}</div>
-                <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>Contacto PAS · {fmtDate(recordatorios[p.id])}</div>
-              </div>
-              <Badge color="#f97316">{recordatorios[p.id] === hoyStr ? "Hoy" : "Vencido"}</Badge>
-            </div>
-          ))}
+          <div style={{ fontSize: 11, color: "#f97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⏰ Recordatorios de casos</div>
           {recsCasos.map(c => (
-            <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #f9741633", borderRadius: 8, padding: "10px 12px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
+            <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #f9731633", borderRadius: 8, padding: "10px 12px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: textColor }}>{c.asegurado}</div>
-                <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>Caso de {c.pasNombre} · {fmtDate(c.recordatorio)}</div>
+                <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{c.pasNombre} · {fmtDate(c.recordatorio)}</div>
               </div>
               <Badge color="#f97316">{c.recordatorio === hoyStr ? "Hoy" : "Vencido"}</Badge>
             </div>
           ))}
-        </div>
-      )}
-      {recsPAS.length === 0 && recsCasos.length === 0 && (
-        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "16px 14px", textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-          <div style={{ fontSize: 14, color: subColor }}>Sin recordatorios pendientes por hoy</div>
         </div>
       )}
     </div>

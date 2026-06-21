@@ -304,7 +304,7 @@ export default function App() {
 
         {/* TABS CONTENT */}
         {!appLoading && pas.length > 0 && mainTab === "dashboard" && (
-          <TabDashboard pas={pas} historial={historial} casos={casos} derivadores={derivadores} recordatorios={recordatorios} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />
+          <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />
         )}
 
         {!appLoading && pas.length > 0 && mainTab === "contactos" && (
