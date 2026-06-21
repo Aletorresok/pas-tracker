@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { fmtMoney, fmtDate } from "../utils/formatters.js";
+import { fmtMoney } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 
 // Meses para el gráfico
@@ -66,7 +66,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
     .filter(c => !["cobrado", "doc_pendiente"].includes(c.estado) && diasSinMov(c) >= 7)
     .sort((a, b) => diasSinMov(b) - diasSinMov(a));
 
-  const hoyStr = new Date().toISOString().slice(0, 10);
   const hoy = new Date();
 
   const facturacionMensual = useMemo(() => {
@@ -115,12 +114,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const maxCobrado = rankingPAS.length ? Math.max(...rankingPAS.map(p => p.cobrado), 1) : 1;
 
-  const todosLosPasMemo = [...pas, ...pasManuales];
-  const recsCasos = [];
-  Object.entries(casos).forEach(([pasId, casosList]) => {
-    const pasObj = todosLosPasMemo.find(p => String(p.id) === String(pasId));
-    casosList.forEach(c => { if (c.recordatorio && c.recordatorio <= hoyStr) recsCasos.push({ ...c, pasNombre: pasObj?.nombre || "PAS desconocido" }); });
-  });
 
   const cardBg = darkMode ? "#0f172a" : "#f8fafc";
   const cardBorder = darkMode ? "#1e293b" : "#e2e8f0";
@@ -162,23 +155,22 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       {casosInactivos.length > 0 && (
         <div style={{ background: "#ef444411", border: "1px solid #ef444444", borderRadius: 12, padding: "14px", marginBottom: 18 }}>
-          <div style={{ fontSize: 11, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⚠️ Casos sin movimiento (+7 días)</div>
-          {casosInactivos.slice(0, 8).map(c => {
-            const d = diasSinMov(c);
-            const todosLosPas = [...pas, ...pasManuales];
-            const pasObj = todosLosPas.find(p => Object.entries(casos).some(([pid, list]) => String(p.id) === String(pid) && list.some(cc => cc.id === c.id)));
-            const ei = ESTADOS_CASO.find(e => e.key === c.estado) || {};
-            return (
-              <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #ef444433", borderRadius: 8, padding: "10px 12px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
-                  <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{ei.emoji} {ei.label} · {c.compania || "sin compañía"}</div>
+          <div style={{ fontSize: 11, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⚠️ Casos sin movimiento (+7 días) · {casosInactivos.length}</div>
+          <div style={{ maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
+            {casosInactivos.map(c => {
+              const d = diasSinMov(c);
+              const ei = ESTADOS_CASO.find(e => e.key === c.estado) || {};
+              return (
+                <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #ef444433", borderRadius: 8, padding: "10px 12px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
+                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{ei.emoji} {ei.label} · {c.compania || "sin compañía"}</div>
+                  </div>
+                  <Badge color={d >= 30 ? "#ef4444" : "#f97316"}>{d} días</Badge>
                 </div>
-                <Badge color={d >= 30 ? "#ef4444" : "#f97316"}>{d} días</Badge>
-              </div>
-            );
-          })}
-          {casosInactivos.length > 8 && <div style={{ fontSize: 11, color: "#ef4444", textAlign: "center", marginTop: 6 }}>+{casosInactivos.length - 8} más</div>}
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -234,27 +226,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         </>
       )}
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Pipeline</div>
-      <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "14px", marginBottom: 18 }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {ESTADOS_CASO.map(e => { const cnt = allCasos.filter(c => c.estado === e.key).length; return <div key={e.key} style={{ flex: 1, minWidth: 70, background: cnt > 0 ? e.color + "18" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${cnt > 0 ? e.color + "44" : cardBorder}`, borderRadius: 10, padding: "10px 6px", textAlign: "center" }}><div style={{ fontSize: 20, marginBottom: 4 }}>{e.emoji}</div><div style={{ fontSize: 22, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div><div style={{ fontSize: 10, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 2, lineHeight: 1.2 }}>{e.label}</div></div>; })}
-        </div>
-      </div>
-
-      {recsCasos.length > 0 && (
-        <div style={{ background: "#f9741611", border: "1px solid #f9741644", borderRadius: 12, padding: "14px", marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "#f97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, fontWeight: 700 }}>⏰ Recordatorios de casos</div>
-          {recsCasos.map(c => (
-            <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: "1px solid #f9731633", borderRadius: 8, padding: "10px 12px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: textColor }}>{c.asegurado}</div>
-                <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{c.pasNombre} · {fmtDate(c.recordatorio)}</div>
-              </div>
-              <Badge color="#f97316">{c.recordatorio === hoyStr ? "Hoy" : "Vencido"}</Badge>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
