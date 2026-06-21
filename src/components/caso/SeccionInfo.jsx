@@ -1,6 +1,7 @@
 import EstadoSelector from "./EstadoSelector.jsx";
+import CompaniaSelector from "./CompaniaSelector.jsx";
 
-export default function SeccionInfo({ formData, onChange, darkMode, Th }) {
+export default function SeccionInfo({ formData, onChange, darkMode, Th, companias, onAgregarCompania }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
 
@@ -12,10 +13,10 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th }) {
           <span style={labelStyle}>Asegurado *</span>
           <input type="text" value={formData.asegurado} onChange={e => onChange("asegurado", e.target.value)} style={inputStyle} />
         </label>
-        <label>
+        <div>
           <span style={labelStyle}>Compañía aseguradora</span>
-          <input type="text" value={formData.compania_aseguradora} onChange={e => onChange("compania_aseguradora", e.target.value)} style={inputStyle} />
-        </label>
+          <CompaniaSelector value={formData.compania_aseguradora || formData.compania || ""} onChange={v => { onChange("compania_aseguradora", v); onChange("compania", v); }} companias={companias || []} onAgregar={onAgregarCompania || (() => {})} darkMode={darkMode} />
+        </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <label>

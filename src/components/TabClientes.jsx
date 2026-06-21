@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { fmtMoney, fmtDate, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import EstadoSelector from "./caso/EstadoSelector.jsx";
+import CompaniaSelector, { useCompanias } from "./caso/CompaniaSelector.jsx";
 import CasoDetalle from "../CasoUnificado.jsx";
 import { deleteCasoFromAgenda } from "../utils/sync.js";
 
@@ -127,7 +128,7 @@ function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDetalleCaso, expan
   );
 }
 
-function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
+function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias, onAgregarCompania }) {
   const [asegurado, setAsegurado] = useState("");
   const [compania, setCompania] = useState("");
   const [fechaSiniestro, setFechaSiniestro] = useState("");
@@ -172,10 +173,10 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
           <input type="text" value={asegurado} onChange={e => setAsegurado(e.target.value)} placeholder="Nombre del asegurado" style={iStyle} autoFocus />
         </label>
 
-        <label style={{ display: "block", marginBottom: 16 }}>
+        <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Compañía aseguradora</div>
-          <input type="text" value={compania} onChange={e => setCompania(e.target.value)} placeholder="Ej: Federación Patronal" style={iStyle} />
-        </label>
+          <CompaniaSelector value={compania} onChange={setCompania} companias={companias || []} onAgregar={onAgregarCompania || (() => {})} darkMode={darkMode} />
+        </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <label>
@@ -242,6 +243,7 @@ function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
 }
 
 export default function TabClientes({ pas, casos, derivadores, onSaveCasos, darkMode, pasManuales, onAddPasManual, onEditPasManual, onDeletePasManual }) {
+  const { companias, agregarCompania } = useCompanias(casos);
   const [modalPas, setModalPas] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [busqueda, setBusqueda] = useState("");
@@ -367,7 +369,8 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
       {modalPas && (
         <NuevoCasoModal pasNombre={modalPas.nombre} darkMode={darkMode}
           onClose={() => setModalPas(null)}
-          onSave={data => handleSave(modalPas.id, data, modalPas.nombre)} />
+          onSave={data => handleSave(modalPas.id, data, modalPas.nombre)}
+          companias={companias} onAgregarCompania={agregarCompania} />
       )}
 
       {modalNuevoPAS && (
@@ -384,6 +387,8 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
             caso={casoDetalle}
             pasId={pasIdDetalle}
             darkMode={darkMode}
+            companias={companias}
+            onAgregarCompania={agregarCompania}
             onUpdate={updated => {
               const cur = casos[String(pasIdDetalle)] || [];
               const pasNom = [...pas, ...pasManuales].find(p => p.id === pasIdDetalle)?.nombre || "";

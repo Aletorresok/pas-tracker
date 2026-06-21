@@ -21,7 +21,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdate, onClose }) {
+export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -164,7 +164,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
           </div>
 
           <div style={{ padding: 24 }}>
-            <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} />
+            <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
 
             {/* Documentos */}
             <div style={sectionStyle}>
