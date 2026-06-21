@@ -67,6 +67,37 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
     .sort((a, b) => diasSinMov(b) - diasSinMov(a));
 
   const hoy = new Date();
+  const hoyMs = hoy.getTime();
+
+  const proximosPagos = useMemo(() => {
+    return allCasos
+      .filter(c => c.fecha_firma && c.plazo_pago && ["esperando_pago", "cobrado"].indexOf(c.estado) === -1 ? false : c.fecha_firma && c.plazo_pago)
+      .map(c => {
+        const firmaMs = new Date(c.fecha_firma).getTime();
+        const venceMs = firmaMs + Number(c.plazo_pago) * 86400000;
+        const diasRestantes = Math.ceil((venceMs - hoyMs) / 86400000);
+        return { ...c, fechaVence: new Date(venceMs).toISOString().slice(0, 10), diasRestantes };
+      })
+      .filter(c => c.diasRestantes <= 15 && c.estado !== "cobrado")
+      .sort((a, b) => a.diasRestantes - b.diasRestantes);
+  }, [allCasos]);
+
+  const metricas = useMemo(() => {
+    const diff = (a, b) => {
+      if (!a || !b) return null;
+      return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+    };
+    const promediar = (vals) => {
+      const valid = vals.filter(v => v !== null && v >= 0);
+      return valid.length > 0 ? Math.round(valid.reduce((s, v) => s + v, 0) / valid.length) : null;
+    };
+    const derivAContacto = promediar(allCasos.map(c => diff(c.fecha_derivacion, c.fecha_contacto_asegurado)));
+    const contactoAInicio = promediar(allCasos.map(c => diff(c.fecha_contacto_asegurado, c.fecha_inicio_reclamo)));
+    const inicioAOfrec = promediar(allCasos.filter(c => c.fecha_ofrecimiento).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento)));
+    const ofrecACobro = promediar(allCasos.filter(c => c.estado === "cobrado" && c.fecha_firma).map(c => diff(c.fecha_ofrecimiento, c.fecha_firma)));
+    const totalDerAFirma = promediar(allCasos.filter(c => c.estado === "cobrado" && c.fecha_firma).map(c => diff(c.fecha_derivacion, c.fecha_firma)));
+    return { derivAContacto, contactoAInicio, inicioAOfrec, ofrecACobro, totalDerAFirma };
+  }, [allCasos]);
 
   const facturacionMensual = useMemo(() => {
     const mapa = {};
@@ -222,6 +253,64 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                 </div>
               </div>
             ))}
+          </div>
+        </>
+      )}
+
+      {proximosPagos.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Próximos pagos (15 días)</div>
+          <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "14px", marginBottom: 18 }}>
+            {proximosPagos.map(c => {
+              const vencido = c.diasRestantes <= 0;
+              const urgente = c.diasRestantes <= 3;
+              const badgeColor = vencido ? "#ef4444" : urgente ? "#f97316" : "#22c55e";
+              const badgeText = vencido ? `Vencido (${Math.abs(c.diasRestantes)}d)` : c.diasRestantes === 0 ? "Hoy" : `${c.diasRestantes} días`;
+              return (
+                <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", marginBottom: 6, background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${badgeColor}33`, borderRadius: 8 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
+                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{c.compania || "—"} · {fmtMoney(Number(c.monto_acordado) || Number(c.monto_ofrecimiento))}</div>
+                  </div>
+                  <Badge color={badgeColor}>{badgeText}</Badge>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {metricas.totalDerAFirma !== null && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Tiempos promedio</div>
+          <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "14px", marginBottom: 18 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#6366f1", lineHeight: 1 }}>{metricas.totalDerAFirma}d</div>
+              <div style={{ fontSize: 12, color: subColor }}>promedio derivación → firma</div>
+            </div>
+            <div style={{ display: "flex", gap: 4, alignItems: "center", marginBottom: 10 }}>
+              {[
+                { label: "Contacto", val: metricas.derivAContacto, color: "#22c55e" },
+                { label: "Inicio", val: metricas.contactoAInicio, color: "#3b82f6" },
+                { label: "Ofrecim.", val: metricas.inicioAOfrec, color: "#f97316" },
+                { label: "Firma", val: metricas.ofrecACobro, color: "#a855f7" },
+              ].filter(s => s.val !== null).map(s => (
+                <div key={s.label} style={{ flex: s.val || 1, background: s.color, borderRadius: 4, height: 8, minWidth: 8 }} title={`${s.label}: ${s.val} días`} />
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {[
+                { label: "Derivación → Contacto", val: metricas.derivAContacto, color: "#22c55e" },
+                { label: "Contacto → Inicio reclamo", val: metricas.contactoAInicio, color: "#3b82f6" },
+                { label: "Inicio → Ofrecimiento", val: metricas.inicioAOfrec, color: "#f97316" },
+                { label: "Ofrecimiento → Firma", val: metricas.ofrecACobro, color: "#a855f7" },
+              ].filter(s => s.val !== null).map(s => (
+                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: subColor }}>{s.label}: <strong style={{ color: s.color }}>{s.val}d</strong></span>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}
