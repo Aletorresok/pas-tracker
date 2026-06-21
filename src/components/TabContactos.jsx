@@ -34,14 +34,16 @@ export default function TabContactos({
     fontFamily: "inherit",
   };
 
+  const noContactados = useMemo(() => pas.filter(p => !(historial[p.id]?.length > 0)), [pas, historial]);
+
   const filtered = useMemo(() => {
-    const byVista = vista === "todos" ? pas : pas.filter(p => p.prioridad === vista);
+    const byVista = vista === "todos" ? noContactados : noContactados.filter(p => p.prioridad === vista);
     return byVista.filter(p => !descartados[p.id] && (
       p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.mail?.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.telefonos?.join(" ").includes(busqueda)
     ));
-  }, [vista, busqueda, pas, descartados]);
+  }, [vista, busqueda, noContactados, descartados]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
@@ -74,7 +76,7 @@ export default function TabContactos({
             {v.label}
             <br />
             <span style={{ fontSize: 13, fontWeight: 800 }}>
-              {pas.filter(p => v.key === "todos" || p.prioridad === v.key).length.toLocaleString("es-AR")}
+              {noContactados.filter(p => v.key === "todos" || p.prioridad === v.key).length.toLocaleString("es-AR")}
             </span>
           </button>
         ))}
