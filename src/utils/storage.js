@@ -51,12 +51,12 @@ export async function saveStorage(tabla, data) {
       const rows = [];
       Object.entries(data).forEach(([pas_id, casosList]) => {
         casosList.forEach(caso => {
-          // Asegurar que tiene id, caso_id y estado_honorarios
+          const isUUID = typeof caso.id === 'string' && caso.id.includes('-');
           const row = {
-            id: caso.id || generateUUID(),
-            caso_id: caso.caso_id || generateCasoId(),
+            id: isUUID ? caso.id : generateUUID(),
+            caso_id: caso.caso_id || caso.id || generateCasoId(),
             pas_id: parseInt(pas_id, 10),
-            estado_honorarios: caso.estado_honorarios || "pendiente",
+            estado_honorarios: caso.estado_honorarios || "NO_FACTURADO",
             // Resto de campos
             asegurado: caso.asegurado || null,
             dni_asegurado: caso.dni_asegurado || null,
