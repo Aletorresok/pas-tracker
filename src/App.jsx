@@ -61,12 +61,13 @@ export default function App() {
   };
 
   const TABS = [
-    { k: "dashboard", l: "📊 Dashboard" },
-    { k: "contactos", l: "📞 Contactos" },
-    { k: "contactados", l: "✓ Contactados" },
-    { k: "clientes", l: "🔐 Clientes" },
-    { k: "portal", l: "🌐 Portal" },
+    { k: "dashboard", l: "Dashboard", icon: "📊" },
+    { k: "contactos", l: "Contactos", icon: "📞" },
+    { k: "contactados", l: "Contactados", icon: "✓" },
+    { k: "clientes", l: "Clientes", icon: "🏠" },
+    { k: "portal", l: "Portal", icon: "🌐" },
   ];
+  const [showBackupMenu, setShowBackupMenu] = useState(false);
 
   // ── HANDLERS
 
@@ -226,67 +227,86 @@ export default function App() {
 
   // ── RENDER
   return (
-    <div style={{ background: darkMode ? "#111827" : "#f8fafc", color: darkMode ? "#f1f5f9" : "#0f172a", minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
-      {/* NAVBAR */}
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "16px 14px 0", borderBottom: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, position: "sticky", top: 0, background: darkMode ? "#111827" : "#f8fafc", zIndex: 100 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontSize: 20, fontWeight: 900 }}>🏢 PAS Tracker</div>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <button onClick={() => setDarkMode(m => !m)} style={{ background: "transparent", border: "1px solid", borderColor: darkMode ? "#2d3f55" : "#e2e8f0", borderRadius: 8, color: subColor, padding: "6px 10px", cursor: "pointer", fontSize: 13 }}>{darkMode ? "☀️" : "🌙"}</button>
-            <div style={{ position: "relative" }}>
-              <button onClick={() => { }} style={{ background: "transparent", border: "1px solid", borderColor: darkMode ? "#2d3f55" : "#e2e8f0", borderRadius: 8, color: subColor, padding: "6px 10px", cursor: "pointer", fontSize: 13 }}>⚙️</button>
+    <div style={{ background: darkMode ? "#0b1121" : "#f0f4f8", color: darkMode ? "#f1f5f9" : "#0f172a", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* HEADER */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 100,
+        background: darkMode ? "rgba(11,17,33,.92)" : "rgba(240,244,248,.92)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        borderBottom: `1px solid ${darkMode ? "#1e293b44" : "#e2e8f044"}`,
+      }}>
+        <div style={{ maxWidth: 820, margin: "0 auto", padding: "12px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📋</div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.3 }}>PAS Tracker</div>
+                {pas.length > 0 && <div style={{ fontSize: 10, color: darkMode ? "#475569" : "#94a3b8", marginTop: -1 }}>{pas.length.toLocaleString()} contactos</div>}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setShowBackupMenu(v => !v)} style={{ background: darkMode ? "#1e293b" : "#e2e8f0", border: "none", borderRadius: 8, color: subColor, padding: "7px 10px", cursor: "pointer", fontSize: 13 }}>💾</button>
+                {showBackupMenu && (
+                  <>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setShowBackupMenu(false)} />
+                    <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 6, background: darkMode ? "#1e293b" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, padding: 6, zIndex: 99, boxShadow: "0 8px 24px #0003", minWidth: 160 }}>
+                      <button onClick={() => { handleBackup(); setShowBackupMenu(false); }} style={{ width: "100%", background: "none", border: "none", color: darkMode ? "#f1f5f9" : "#0f172a", padding: "8px 12px", cursor: "pointer", fontSize: 12, textAlign: "left", borderRadius: 6 }}>💾 Descargar backup</button>
+                      <label style={{ display: "block" }}>
+                        <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleRestore(f); e.target.value = ""; setShowBackupMenu(false); }} style={{ display: "none" }} />
+                        <div style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, color: darkMode ? "#f1f5f9" : "#0f172a", borderRadius: 6 }} onMouseEnter={e => e.currentTarget.style.background = darkMode ? "#334155" : "#f1f5f9"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>📥 Restaurar backup</div>
+                      </label>
+                      {autobackupFecha && <div style={{ fontSize: 10, color: "#64748b", padding: "4px 12px", borderTop: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, marginTop: 4, paddingTop: 8 }}>Auto: {new Date(autobackupFecha).toLocaleDateString("es-AR")}</div>}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button onClick={() => setDarkMode(m => !m)} style={{ background: darkMode ? "#1e293b" : "#e2e8f0", border: "none", borderRadius: 8, color: subColor, padding: "7px 10px", cursor: "pointer", fontSize: 13 }}>{darkMode ? "☀️" : "🌙"}</button>
             </div>
           </div>
-        </div>
 
-        {/* BACKUP BUTTONS */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <label style={{ flex: 1, position: "relative" }}>
-            <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleRestore(f); e.target.value = ""; }} style={{ display: "none" }} />
-            <button onClick={(e) => e.currentTarget.previousElementSibling.click()} style={{ width: "100%", background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, borderRadius: 8, color: subColor, padding: "8px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>📥 Restaurar</button>
-          </label>
-          <button onClick={handleBackup} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, borderRadius: 8, color: subColor, padding: "8px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>💾 Backup</button>
-          {autobackupFecha && <div style={{ fontSize: 10, color: "#6b7280", padding: "8px 10px" }}>Auto: {new Date(autobackupFecha).toLocaleDateString("es-AR", { year: "2-digit", month: "2-digit", day: "2-digit" })}</div>}
+          {/* TABS */}
+          <div style={{ display: "flex", gap: 2, background: darkMode ? "#0f172a" : "#e2e8f0", borderRadius: 10, padding: 3 }}>
+            {TABS.map(t => {
+              const active = mainTab === t.k;
+              return (
+                <button
+                  key={t.k}
+                  onClick={() => setMainTab(t.k)}
+                  style={{
+                    flex: 1,
+                    padding: "8px 6px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: active ? (darkMode ? "#1e293b" : "#fff") : "transparent",
+                    color: active ? "#818cf8" : darkMode ? "#64748b" : "#94a3b8",
+                    fontSize: 11,
+                    fontWeight: active ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all .2s",
+                    boxShadow: active ? (darkMode ? "0 1px 4px #0004" : "0 1px 3px #0001") : "none",
+                  }}
+                >
+                  <span style={{ fontSize: 13, display: "block", marginBottom: 1 }}>{t.icon}</span>
+                  {t.l}
+                </button>
+              );
+            })}
+          </div>
         </div>
-
-        {/* TABS */}
-        <div style={{ display: "flex", gap: 4, marginBottom: pas.length > 0 ? 12 : 0 }}>
-          {TABS.map(t => (
-            <button
-              key={t.k}
-              onClick={() => setMainTab(t.k)}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: 8,
-                border: "1px solid",
-                borderColor: mainTab === t.k ? "#6366f1" : darkMode ? "#1e293b" : "#e2e8f0",
-                background: mainTab === t.k ? "#6366f133" : darkMode ? "#0a0f1e" : "#f8fafc",
-                color: mainTab === t.k ? "#818cf8" : subColor,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all .15s",
-              }}
-            >
-              {t.l}
-            </button>
-          ))}
-        </div>
-
-        {/* FILE UPLOAD */}
-        {pas.length === 0 && (
-          <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${darkMode ? "#1e3a5f" : "#cbd5e1"}`, borderRadius: 12, padding: "22px 16px", cursor: "pointer", gap: 8, marginTop: 12 }}>
-            <div style={{ fontSize: 28 }}>📂</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#94a3b8" }}>Cargar listado_productores.xlsx</div>
-            <div style={{ fontSize: 12, color: "#475569" }}>Hacé clic o arrastrá el archivo</div>
-            <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
-          </label>
-        )}
       </div>
 
       {/* CONTENT */}
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "16px 14px 48px" }}>
+      <div style={{ maxWidth: 820, margin: "0 auto", padding: "20px 20px 60px" }}>
+        {/* FILE UPLOAD */}
+        {pas.length === 0 && !appLoading && (
+          <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${darkMode ? "#1e3a5f" : "#cbd5e1"}`, borderRadius: 16, padding: "32px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: darkMode ? "#0f172a44" : "#fff", transition: "border-color .2s" }}>
+            <div style={{ fontSize: 32 }}>📂</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: darkMode ? "#94a3b8" : "#64748b" }}>Cargar listado_productores.xlsx</div>
+            <div style={{ fontSize: 12, color: darkMode ? "#475569" : "#94a3b8" }}>Hacé clic o arrastrá el archivo</div>
+            <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
+          </label>
+        )}
         {appLoading && (
           <div style={{ textAlign: "center", padding: 48, color: "#64748b" }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
