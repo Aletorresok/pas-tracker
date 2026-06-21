@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { fmtMoney, fmtDate, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
+import EstadoSelector from "./caso/EstadoSelector.jsx";
 import CasoDetalle from "../CasoUnificado.jsx";
 import { deleteCasoFromAgenda } from "../utils/sync.js";
 
@@ -189,25 +190,7 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
 
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, fontWeight: 600 }}>Estado del caso</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 6 }}>
-            {ESTADOS_CASO.map(e => {
-              const active = estado === e.key;
-              return (
-                <button key={e.key} onClick={() => setEstado(e.key)} style={{
-                  background: active ? e.color + "22" : darkMode ? "#1e293b" : "#f1f5f9",
-                  border: `2px solid ${active ? e.color : "transparent"}`,
-                  borderRadius: 10,
-                  padding: "10px 4px 8px",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  transition: "all .15s",
-                }}>
-                  <div style={{ fontSize: 20, marginBottom: 3 }}>{e.emoji}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: active ? e.color : darkMode ? "#94a3b8" : "#64748b", lineHeight: 1.2 }}>{e.label}</div>
-                </button>
-              );
-            })}
-          </div>
+          <EstadoSelector value={estado} onChange={setEstado} darkMode={darkMode} />
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
