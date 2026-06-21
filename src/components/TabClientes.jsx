@@ -1,88 +1,123 @@
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { fmtMoney, diasDesde } from "../utils/formatters.js";
+import { fmtMoney, fmtDate, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import CasoDetalle from "../CasoUnificado.jsx";
 import { deleteCasoFromAgenda } from "../utils/sync.js";
 
-// ── GENERADOR DE UUID
 const generateUUID = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 };
 
-const IS = {
-  background: "#1e293b",
-  border: "1px solid #2d3f55",
-  borderRadius: 8,
-  color: "#f1f5f9",
-  padding: "9px 12px",
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-  outline: "none",
-  fontFamily: "inherit",
-};
+const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { label: key || "—", emoji: "📄", color: "#64748b" };
 
-const IS_LIGHT = {
-  background: "#f8fafc",
-  border: "1px solid #e2e8f0",
-  borderRadius: 8,
-  color: "#0f172a",
-  padding: "9px 12px",
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-  outline: "none",
-  fontFamily: "inherit",
-};
+function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
+  const ei = estadoInfo(caso.estado);
+  const dias = caso.fecha_derivacion ? diasDesde(caso.fecha_derivacion) : null;
+  const logOrdenado = [...(caso.notas_log || [])].sort((a, b) => b.ts - a.ts);
+  const ultimaAccion = logOrdenado[0] || null;
 
-function StatCard({ label, value, color, sub, dark }) {
   return (
-    <div style={{ background: dark ? "#0f172a" : "#f8fafc", border: `1px solid ${dark ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px" }}>
-      <div style={{ fontSize: 10, color: dark ? "#475569" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: dark ? "#64748b" : "#94a3b8", marginTop: 3 }}>{sub}</div>}
+    <div
+      onClick={() => onDetalle(caso)}
+      style={{
+        background: darkMode ? "#0f172a" : "#fff",
+        border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+        borderLeft: `3px solid ${ei.color}`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8,
+        cursor: "pointer",
+        transition: "border-color .15s, box-shadow .15s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = ei.color + "88"; e.currentTarget.style.boxShadow = `0 2px 8px ${ei.color}22`; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? "#1e293b" : "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {caso.asegurado || "Sin nombre"}
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+            <span style={{ fontSize: 10, background: ei.color + "18", color: ei.color, border: `1px solid ${ei.color}33`, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
+              {ei.emoji} {ei.label}
+            </span>
+            {caso.compania && (
+              <span style={{ fontSize: 10, background: darkMode ? "#1e293b" : "#f1f5f9", color: darkMode ? "#94a3b8" : "#64748b", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
+                {caso.compania}
+              </span>
+            )}
+            {dias !== null && (
+              <span style={{ fontSize: 10, color: darkMode ? "#64748b" : "#94a3b8" }}>
+                {dias}d
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+          {caso.monto_acordado || caso.monto_ofrecimiento ? (
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#6366f1" }}>{fmtMoney(Number(caso.monto_acordado) || Number(caso.monto_ofrecimiento))}</span>
+          ) : null}
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(caso.id); }}
+            style={{ background: "none", border: "none", color: darkMode ? "#334155" : "#cbd5e1", fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1 }}
+            title="Eliminar caso"
+          >×</button>
+        </div>
+      </div>
+      {ultimaAccion && (
+        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#6366f1", flexShrink: 0 }} />
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {fmtDate(ultimaAccion.fecha)} — {ultimaAccion.texto}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function ClienteCard({ pas, casos, onAddCaso, onEditCaso, onDeleteCaso, onDetalleCaso, expanded, onToggle, darkMode, filtroEstado, onEditPasManual, onDeletePasManual }) {
+function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDetalleCaso, expanded, onToggle, darkMode, filtroEstado }) {
   const filtered = filtroEstado === "todos" ? casos : casos.filter(c => c.estado === filtroEstado);
+  const totalMonto = casos.reduce((s, c) => s + (Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0), 0);
+  const cobrados = casos.filter(c => c.estado === "cobrado").length;
+
   return (
-    <div style={{ background: darkMode ? "#1e293b" : "#f8fafc", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer" }} onClick={onToggle}>
-        <div>
-          <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a" }}>{pas.nombre}</div>
-          <div style={{ fontSize: 12, color: darkMode ? "#64748b" : "#94a3b8", marginTop: 4 }}>{filtered.length} caso{filtered.length !== 1 ? "s" : ""}</div>
+    <div style={{ background: darkMode ? "#1e293b" : "#f8fafc", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, borderRadius: 12, marginBottom: 10, overflow: "hidden" }}>
+      <div
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "14px 16px" }}
+        onClick={onToggle}
+      >
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 15 }}>{pas.nombre}</div>
+            {pas.manual && <span style={{ fontSize: 9, background: "#6366f122", color: "#818cf8", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>manual</span>}
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 4, fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8" }}>
+            <span>{filtered.length} caso{filtered.length !== 1 ? "s" : ""}</span>
+            {cobrados > 0 && <span style={{ color: "#22c55e" }}>✓ {cobrados} cobrado{cobrados !== 1 ? "s" : ""}</span>}
+            {totalMonto > 0 && <span style={{ color: "#6366f1" }}>{fmtMoney(totalMonto)}</span>}
+          </div>
         </div>
-        <button onClick={(e) => { e.stopPropagation(); onAddCaso(); }} style={{ background: "#6366f1", border: "none", borderRadius: 6, color: "#fff", padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>
-          + Caso
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            onClick={e => { e.stopPropagation(); onAddCaso(); }}
+            style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: 700 }}
+          >+ Caso</button>
+          <span style={{ fontSize: 16, color: darkMode ? "#475569" : "#94a3b8" }}>{expanded ? "▲" : "▼"}</span>
+        </div>
       </div>
       {expanded && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
+        <div style={{ padding: "0 16px 14px", borderTop: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`, paddingTop: 12 }}>
           {filtered.length === 0 ? (
-            <div style={{ color: darkMode ? "#64748b" : "#94a3b8", fontSize: 12, textAlign: "center", padding: 16 }}>Sin casos registrados</div>
+            <div style={{ color: darkMode ? "#475569" : "#94a3b8", fontSize: 12, textAlign: "center", padding: 20 }}>Sin casos{filtroEstado !== "todos" ? " con este filtro" : ""}</div>
           ) : (
             filtered.map(c => (
-              <div key={c.id} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: 10, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 13 }}>{c.asegurado}</div>
-                  <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", marginTop: 2 }}>{c.estado} • {fmtMoney(c.monto_cobro_yo)}</div>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => onDetalleCaso(c)} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 4, color: "#818cf8", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>Ver</button>
-                  <button onClick={() => onEditCaso(c)} style={{ background: "#eab30822", border: "1px solid #eab30844", borderRadius: 4, color: "#eab308", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>Editar</button>
-                  <button onClick={() => onDeleteCaso(c.id)} style={{ background: "#ef444422", border: "1px solid #ef444444", borderRadius: 4, color: "#ef4444", padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>×</button>
-                </div>
-              </div>
+              <CasoCard key={c.id} caso={c} onDetalle={onDetalleCaso} onDelete={onDeleteCaso} darkMode={darkMode} />
             ))
           )}
         </div>
@@ -91,35 +126,69 @@ function ClienteCard({ pas, casos, onAddCaso, onEditCaso, onDeleteCaso, onDetall
   );
 }
 
-function CasoModal({ pasNombre, casoEdit, darkMode, onClose, onSave }) {
-  const [asegurado, setAsegurado] = useState(casoEdit?.asegurado || "");
-  const [estado, setEstado] = useState(casoEdit?.estado || "derivado");
-  const [monto, setMonto] = useState(casoEdit?.monto_cobro_yo || "");
+function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
+  const [asegurado, setAsegurado] = useState("");
+  const [compania, setCompania] = useState("");
+  const [fechaSiniestro, setFechaSiniestro] = useState("");
+  const [fechaDerivacion, setFechaDerivacion] = useState(new Date().toISOString().slice(0, 10));
+
+  const iStyle = {
+    background: darkMode ? "#1e293b" : "#f8fafc",
+    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    borderRadius: 10,
+    color: darkMode ? "#f1f5f9" : "#0f172a",
+    padding: "10px 14px",
+    fontSize: 14,
+    width: "100%",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
+  };
+
+  const handleSave = () => {
+    if (!asegurado.trim()) return;
+    onSave({
+      id: generateUUID(),
+      caso_id: Date.now(),
+      asegurado: asegurado.trim(),
+      compania: compania.trim() || null,
+      fecha_siniestro: fechaSiniestro || null,
+      fecha_derivacion: fechaDerivacion || null,
+      estado: "doc_pendiente",
+      estado_honorarios: "NO_FACTURADO",
+    });
+  };
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 16, width: "100%", maxWidth: 420, padding: 28 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: darkMode ? "#f1f5f9" : "#1e293b" }}>
-          {casoEdit ? "Editar caso" : "Nuevo caso"} - {pasNombre}
+      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 18, width: "100%", maxWidth: 440, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: darkMode ? "#f1f5f9" : "#1e293b" }}>Nuevo caso</div>
+        <div style={{ fontSize: 13, color: darkMode ? "#64748b" : "#94a3b8", marginBottom: 24 }}>{pasNombre}</div>
+
+        <label style={{ display: "block", marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Asegurado *</div>
+          <input type="text" value={asegurado} onChange={e => setAsegurado(e.target.value)} placeholder="Nombre del asegurado" style={iStyle} autoFocus />
+        </label>
+
+        <label style={{ display: "block", marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Compañía aseguradora</div>
+          <input type="text" value={compania} onChange={e => setCompania(e.target.value)} placeholder="Ej: Federación Patronal" style={iStyle} />
+        </label>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+          <label>
+            <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Fecha siniestro</div>
+            <input type="date" value={fechaSiniestro} onChange={e => setFechaSiniestro(e.target.value)} style={iStyle} />
+          </label>
+          <label>
+            <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Fecha derivación</div>
+            <input type="date" value={fechaDerivacion} onChange={e => setFechaDerivacion(e.target.value)} style={iStyle} />
+          </label>
         </div>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Asegurado</div>
-          <input type="text" value={asegurado} onChange={e => setAsegurado(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Estado</div>
-          <select value={estado} onChange={e => setEstado(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }}>
-            <option value="derivado">Derivado</option>
-            <option value="esperando_pago">Esperando pago</option>
-            <option value="cobrado">Cobrado</option>
-          </select>
-        </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Monto cobrado</div>
-          <input type="number" value={monto} onChange={e => setMonto(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
-        </label>
+
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: casoEdit?.id || generateUUID(), caso_id: casoEdit?.caso_id || Date.now(), asegurado, estado, monto_cobro_yo: Number(monto), estado_honorarios: casoEdit?.estado_honorarios || "NO_FACTURADO" })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
+          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
+          <button onClick={handleSave} disabled={!asegurado.trim()} style={{ flex: 2, background: asegurado.trim() ? "#6366f1" : darkMode ? "#334155" : "#e2e8f0", border: "none", borderRadius: 10, color: asegurado.trim() ? "white" : darkMode ? "#64748b" : "#94a3b8", padding: "11px", cursor: asegurado.trim() ? "pointer" : "default", fontSize: 14, fontWeight: 700 }}>Crear caso</button>
         </div>
       </div>
     </div>
@@ -129,23 +198,36 @@ function CasoModal({ pasNombre, casoEdit, darkMode, onClose, onSave }) {
 function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
   const [nombre, setNombre] = useState(pasEdit?.nombre || "");
   const [mail, setMail] = useState(pasEdit?.mail || "");
+  const iStyle = {
+    background: darkMode ? "#1e293b" : "#f8fafc",
+    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    borderRadius: 10,
+    color: darkMode ? "#f1f5f9" : "#0f172a",
+    padding: "10px 14px",
+    fontSize: 14,
+    width: "100%",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
+  };
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 16, width: "100%", maxWidth: 420, padding: 28 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: darkMode ? "#f1f5f9" : "#1e293b" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 18, width: "100%", maxWidth: 420, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 24, color: darkMode ? "#f1f5f9" : "#1e293b" }}>
           {pasEdit ? "Editar PAS" : "Nuevo PAS manual"}
         </div>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Nombre</div>
-          <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
+        <label style={{ display: "block", marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Nombre</div>
+          <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} style={iStyle} />
         </label>
-        <label style={{ display: "block", marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>Mail</div>
-          <input type="email" value={mail} onChange={e => setMail(e.target.value)} style={{ ...IS, background: darkMode ? "#1e293b" : "#f8fafc" }} />
+        <label style={{ display: "block", marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Mail</div>
+          <input type="email" value={mail} onChange={e => setMail(e.target.value)} style={iStyle} />
         </label>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: pasEdit?.id || (100000 + Math.floor(Math.random() * 1900000)), nombre, mail, manual: true })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
+          <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
+          <button onClick={() => onSave({ id: pasEdit?.id || (100000 + Math.floor(Math.random() * 1900000)), nombre, mail, manual: true })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "11px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
         </div>
       </div>
     </div>
@@ -154,7 +236,6 @@ function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
 
 export default function TabClientes({ pas, casos, derivadores, onSaveCasos, darkMode, pasManuales, onAddPasManual, onEditPasManual, onDeletePasManual }) {
   const [modalPas, setModalPas] = useState(null);
-  const [casoEdit, setCasoEdit] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
@@ -170,31 +251,25 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     return [...soloDerivs, ...pasManuales];
   }, [pas, derivadores, pasManuales]);
 
-  // DEBUG - borrar después de verificar
-  console.log("derivadores keys:", Object.keys(derivadores).slice(0, 5));
-  console.log("pas ids sample:", pas.slice(0, 3).map(p => ({ id: p.id, tipo: typeof p.id })));
-  console.log("clientes:", clientes.map(p => p.nombre));
-
   const filtered = useMemo(() => {
-    if (!busqueda.trim()) return clientes;
-    const q = busqueda.toLowerCase();
-    return clientes.filter(p => p.nombre.toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q));
-  }, [clientes, busqueda]);
+    let list = clientes;
+    if (busqueda.trim()) {
+      const q = busqueda.toLowerCase();
+      list = list.filter(p => p.nombre.toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q));
+    }
+    if (filtroEstado !== "todos") {
+      list = list.filter(p => (casos[String(p.id)] || []).some(c => c.estado === filtroEstado));
+    }
+    return list;
+  }, [clientes, busqueda, filtroEstado, casos]);
 
   const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
-  const totalCobradoYo = allCasos.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const totalComisionesPAS = allCasos.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
-  const totalPendiente = allCasos.filter(c => c.estado === "esperando_pago").reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const enGestion = allCasos.filter(c => c.estado !== "cobrado").length;
-  const cobradosCasos = allCasos.filter(c => c.estado === "cobrado" && c.fecha_derivacion);
-  const promCierre = cobradosCasos.length ? Math.round(cobradosCasos.reduce((s, c) => s + diasDesde(c.fecha_derivacion), 0) / cobradosCasos.length) : null;
 
   const handleSave = (pasId, casoData, pasNombre) => {
     const cur = casos[pasId] || [];
     const idx = cur.findIndex(c => c.id === casoData.id);
     onSaveCasos(pasId, idx >= 0 ? cur.map(c => c.id === casoData.id ? casoData : c) : [...cur, casoData], pasNombre);
     setModalPas(null);
-    setCasoEdit(null);
   };
 
   const exportarExcel = () => {
@@ -202,10 +277,10 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     clientes.forEach(p => {
       const casosPas = casos[p.id] || [];
       if (casosPas.length === 0) {
-        rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", "Fecha derivación": "", "Monto ofrecimiento": "", "Cobré yo": "", "Cobró asegurado": "", "Comisión PAS": "", Nota: "" });
+        rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", Compañía: "", "Fecha derivación": "", "Monto acordado": "", "Cobré yo": "", "Comisión PAS": "", Nota: "" });
       } else {
         casosPas.forEach(c => {
-          rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: c.asegurado, Estado: c.estado, "Fecha derivación": c.fecha_derivacion || "", "Monto ofrecimiento": c.monto_ofrecimiento || "", "Cobré yo": c.monto_cobro_yo || "", "Cobró asegurado": c.monto_cobro_asegurado || "", "Comisión PAS": c.monto_comision_pas || "", Nota: c.nota || "" });
+          rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: c.asegurado, Estado: c.estado, Compañía: c.compania || "", "Fecha derivación": c.fecha_derivacion || "", "Monto acordado": c.monto_acordado || c.monto_ofrecimiento || "", "Cobré yo": c.monto_cobro_yo || "", "Comisión PAS": c.monto_comision_pas || "", Nota: c.nota || "" });
         });
       }
     });
@@ -215,75 +290,76 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     XLSX.writeFile(wb, `pastracker_casos_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const iStyle = darkMode ? { ...IS, background: "#0f172a", border: "1px solid #1e293b" } : { ...IS_LIGHT };
+  const iStyle = {
+    background: darkMode ? "#0f172a" : "#f8fafc",
+    border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+    borderRadius: 10,
+    color: darkMode ? "#f1f5f9" : "#0f172a",
+    padding: "10px 14px",
+    fontSize: 14,
+    width: "100%",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
+  };
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-        <StatCard label="Cobré yo (total)" value={fmtMoney(totalCobradoYo)} color="#6366f1" dark={darkMode} />
-        <StatCard label="Esperando cobro" value={fmtMoney(totalPendiente)} color="#06b6d4" dark={darkMode} />
-        <StatCard label="Comisiones PAS" value={fmtMoney(totalComisionesPAS)} color="#eab308" dark={darkMode} />
-        <StatCard label="Casos activos" value={enGestion} color="#f97316" sub={promCierre ? `Prom. cierre: ${promCierre}d` : "Sin cobros aún"} dark={darkMode} />
-      </div>
-
-      <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Pipeline total</div>
+      <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {ESTADOS_CASO.map(e => {
             const cnt = allCasos.filter(c => c.estado === e.key).length;
+            const active = filtroEstado === e.key;
             return (
-              <div key={e.key} style={{ flex: 1, minWidth: 58, background: cnt > 0 ? e.color + "18" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${cnt > 0 ? e.color + "44" : darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-                <div style={{ fontSize: 16 }}>{e.emoji}</div>
+              <button key={e.key} onClick={() => setFiltroEstado(active ? "todos" : e.key)} style={{ flex: 1, minWidth: 58, background: active ? e.color + "28" : cnt > 0 ? e.color + "10" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${active ? e.color : cnt > 0 ? e.color + "33" : darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center", cursor: "pointer", transition: "all .15s" }}>
+                <div style={{ fontSize: 14 }}>{e.emoji}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div>
-                <div style={{ fontSize: 9, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
-              </div>
+                <div style={{ fontSize: 8, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+              </button>
             );
           })}
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍  Buscar entre tus clientes PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
+        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍  Buscar PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
         <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 8, color: "#818cf8", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
-        <button onClick={exportarExcel} style={{ background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 8, color: "#22c55e", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>⬇ Exportar Excel</button>
+        <button onClick={exportarExcel} style={{ background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 8, color: "#22c55e", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>⬇ Excel</button>
       </div>
 
-      <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4, marginBottom: 14 }}>
-        {[{ key: "todos", label: "Todos", color: "#64748b" }, ...ESTADOS_CASO].map(e => (
-          <button key={e.key} onClick={() => setFiltroEstado(e.key)} style={{ flexShrink: 0, padding: "5px 11px", borderRadius: 20, border: "1px solid", borderColor: filtroEstado === e.key ? e.color : darkMode ? "#1e293b" : "#e2e8f0", background: filtroEstado === e.key ? e.color + "22" : darkMode ? "#0a0f1e" : "#f8fafc", color: filtroEstado === e.key ? e.color : "#475569", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
-            {e.emoji ? `${e.emoji} ` : ""}{e.label}
-          </button>
-        ))}
-      </div>
-
-      {clientes.length === 0 && (
+      {filtered.length === 0 && clientes.length === 0 && (
         <div style={{ textAlign: "center", padding: "44px 16px", background: darkMode ? "#0f172a" : "#f8fafc", borderRadius: 12, border: `1px dashed ${darkMode ? "#1e293b" : "#e2e8f0"}` }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>☑️</div>
           <div style={{ fontSize: 15, color: "#475569", fontWeight: 600 }}>Todavía no tenés clientes PAS</div>
           <div style={{ fontSize: 13, color: "#334155", marginTop: 8, lineHeight: 1.6 }}>
             Podés marcar un PAS del Excel como derivador en <strong style={{ color: "#818cf8" }}>Contactos</strong>,<br />
-            o usar el botón <strong style={{ color: "#818cf8" }}>+ PAS manual</strong> de arriba para agregar uno directamente.
+            o usar el botón <strong style={{ color: "#818cf8" }}>+ PAS manual</strong> de arriba.
           </div>
+        </div>
+      )}
+
+      {filtered.length === 0 && clientes.length > 0 && (
+        <div style={{ textAlign: "center", padding: "32px 16px", color: darkMode ? "#475569" : "#94a3b8" }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
+          <div style={{ fontSize: 14 }}>Sin resultados{filtroEstado !== "todos" ? " para ese estado" : ""}</div>
+          {filtroEstado !== "todos" && <button onClick={() => setFiltroEstado("todos")} style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 13, marginTop: 8 }}>Ver todos</button>}
         </div>
       )}
 
       {filtered.map(p => (
         <ClienteCard key={p.id} pas={p} casos={casos[String(p.id)] || []}
-          onAddCaso={() => { setModalPas(p); setCasoEdit(null); }}
-          onEditCaso={c => { setModalPas(p); setCasoEdit(c); }}
+          onAddCaso={() => setModalPas(p)}
           onDeleteCaso={cid => { deleteCasoFromAgenda(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
           onDetalleCaso={c => { setCasoDetalle(c); setPasIdDetalle(p.id); }}
           expanded={expandedId === p.id}
           onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
           darkMode={darkMode}
-          filtroEstado={filtroEstado}
-          onEditPasManual={p.manual ? pManual => { setPasManualEdit(pManual); setModalNuevoPAS(true); } : undefined}
-          onDeletePasManual={p.manual ? id => { onDeletePasManual(id); } : undefined} />
+          filtroEstado={filtroEstado} />
       ))}
 
       {modalPas && (
-        <CasoModal pasNombre={modalPas.nombre} casoEdit={casoEdit} darkMode={darkMode}
-          onClose={() => { setModalPas(null); setCasoEdit(null); }}
+        <NuevoCasoModal pasNombre={modalPas.nombre} darkMode={darkMode}
+          onClose={() => setModalPas(null)}
           onSave={data => handleSave(modalPas.id, data, modalPas.nombre)} />
       )}
 
