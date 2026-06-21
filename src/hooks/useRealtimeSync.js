@@ -1,6 +1,6 @@
 // useRealtimeSync.js
 import { useEffect, useCallback } from "react";
-import { supabase } from "./supabase.js";
+import { supabase } from "../supabase.js";
 
 /**
  * Hook que sincroniza datos en tiempo real desde Supabase
