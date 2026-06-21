@@ -50,12 +50,14 @@ export async function saveStorage(tabla, data) {
       // data = { [pas_id]: [{...caso}] }
       const rows = [];
       Object.entries(data).forEach(([pas_id, casosList]) => {
+        const numPasId = parseInt(pas_id, 10);
+        if (isNaN(numPasId)) { console.warn("[saveStorage] Skipping pas_id no numérico:", pas_id); return; }
         casosList.forEach(caso => {
           const isUUID = typeof caso.id === 'string' && caso.id.includes('-');
           const row = {
             id: isUUID ? caso.id : generateUUID(),
             caso_id: caso.caso_id || caso.id || generateCasoId(),
-            pas_id: parseInt(pas_id, 10),
+            pas_id: numPasId,
             estado_honorarios: caso.estado_honorarios || "NO_FACTURADO",
             // Resto de campos
             asegurado: caso.asegurado || null,

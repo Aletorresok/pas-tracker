@@ -145,7 +145,7 @@ function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
         </label>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={onClose} style={{ flex: 1, background: darkMode ? "#1e293b" : "#f1f5f9", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 10, color: darkMode ? "#94a3b8" : "#64748b", padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: pasEdit?.id || Date.now(), nombre, mail, manual: true })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
+          <button onClick={() => onSave({ id: pasEdit?.id || (100000 + Math.floor(Math.random() * 1900000)), nombre, mail, manual: true })} style={{ flex: 1, background: "#6366f1", border: "none", borderRadius: 10, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
         </div>
       </div>
     </div>
