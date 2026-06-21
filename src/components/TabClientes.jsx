@@ -131,6 +131,7 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
   const [compania, setCompania] = useState("");
   const [fechaSiniestro, setFechaSiniestro] = useState("");
   const [fechaDerivacion, setFechaDerivacion] = useState(new Date().toISOString().slice(0, 10));
+  const [estado, setEstado] = useState("doc_pendiente");
 
   const iStyle = {
     background: darkMode ? "#1e293b" : "#f8fafc",
@@ -154,14 +155,14 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
       compania: compania.trim() || null,
       fecha_siniestro: fechaSiniestro || null,
       fecha_derivacion: fechaDerivacion || null,
-      estado: "doc_pendiente",
+      estado,
       estado_honorarios: "NO_FACTURADO",
     });
   };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 18, width: "100%", maxWidth: 440, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: darkMode ? "#0f172a" : "#fff", border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, borderRadius: 18, width: "100%", maxWidth: 520, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: darkMode ? "#f1f5f9" : "#1e293b" }}>Nuevo caso</div>
         <div style={{ fontSize: 13, color: darkMode ? "#64748b" : "#94a3b8", marginBottom: 24 }}>{pasNombre}</div>
 
@@ -175,7 +176,7 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
           <input type="text" value={compania} onChange={e => setCompania(e.target.value)} placeholder="Ej: Federación Patronal" style={iStyle} />
         </label>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <label>
             <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Fecha siniestro</div>
             <input type="date" value={fechaSiniestro} onChange={e => setFechaSiniestro(e.target.value)} style={iStyle} />
@@ -184,6 +185,29 @@ function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave }) {
             <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Fecha derivación</div>
             <input type="date" value={fechaDerivacion} onChange={e => setFechaDerivacion(e.target.value)} style={iStyle} />
           </label>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, fontWeight: 600 }}>Estado del caso</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 6 }}>
+            {ESTADOS_CASO.map(e => {
+              const active = estado === e.key;
+              return (
+                <button key={e.key} onClick={() => setEstado(e.key)} style={{
+                  background: active ? e.color + "22" : darkMode ? "#1e293b" : "#f1f5f9",
+                  border: `2px solid ${active ? e.color : "transparent"}`,
+                  borderRadius: 10,
+                  padding: "10px 4px 8px",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "all .15s",
+                }}>
+                  <div style={{ fontSize: 20, marginBottom: 3 }}>{e.emoji}</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: active ? e.color : darkMode ? "#94a3b8" : "#64748b", lineHeight: 1.2 }}>{e.label}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>

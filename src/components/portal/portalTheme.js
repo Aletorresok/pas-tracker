@@ -7,6 +7,7 @@ export const ESTADOS_CASO = [
   { key: "en_juicio",        label: "En juicio",        emoji: "⚖️",  color: "#8b5cf6" },
   { key: "esperando_pago",   label: "Esperando pago",   emoji: "💳", color: "#06b6d4" },
   { key: "cobrado",          label: "Cobrado",          emoji: "✅", color: "#22c55e" },
+  { key: "desistido",        label: "Desistido",        emoji: "🚫", color: "#78716c" },
 ];
 
 export const estadoInfo = k => ESTADOS_CASO.find(e => e.key === k) || ESTADOS_CASO[0];

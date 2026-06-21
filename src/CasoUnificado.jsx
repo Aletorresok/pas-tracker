@@ -416,23 +416,38 @@ const guardarCaso = useCallback(async () => {
                     style={inputStyle}
                   />
                 </label>
-                <label>
+                <div>
                   <span style={labelStyle}>Estado del caso</span>
-                  <select
-                    value={formData.estado}
-                    onChange={e => handleFormChange("estado", e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="doc_pendiente">📎 Doc. pendiente</option>
-                    <option value="iniciado">📋 Iniciado</option>
-                    <option value="reclamado">📨 Reclamado</option>
-                    <option value="con_ofrecimiento">💬 Ofrecimiento</option>
-                    <option value="en_mediacion">🤝 Mediación</option>
-                    <option value="en_juicio">⚖️ En juicio</option>
-                    <option value="esperando_pago">💳 Esperando pago</option>
-                    <option value="cobrado">✅ Cobrado</option>
-                  </select>
-                </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 5, marginTop: 6 }}>
+                    {[
+                      { key: "doc_pendiente", label: "Doc. pendiente", emoji: "📎", color: "#a855f7" },
+                      { key: "iniciado", label: "Iniciado", emoji: "📋", color: "#64748b" },
+                      { key: "reclamado", label: "Reclamado", emoji: "📨", color: "#6366f1" },
+                      { key: "con_ofrecimiento", label: "Ofrecimiento", emoji: "💬", color: "#f97316" },
+                      { key: "en_mediacion", label: "Mediación", emoji: "⚖️", color: "#eab308" },
+                      { key: "en_juicio", label: "En juicio", emoji: "🏛️", color: "#ef4444" },
+                      { key: "esperando_pago", label: "Esperando pago", emoji: "🕐", color: "#06b6d4" },
+                      { key: "cobrado", label: "Cobrado", emoji: "✅", color: "#22c55e" },
+                      { key: "desistido", label: "Desistido", emoji: "🚫", color: "#78716c" },
+                    ].map(e => {
+                      const active = formData.estado === e.key;
+                      return (
+                        <button key={e.key} type="button" onClick={() => handleFormChange("estado", e.key)} style={{
+                          background: active ? e.color + "22" : darkMode ? "#1e293b" : "#f1f5f9",
+                          border: `2px solid ${active ? e.color : "transparent"}`,
+                          borderRadius: 8,
+                          padding: "8px 2px 6px",
+                          cursor: "pointer",
+                          textAlign: "center",
+                          transition: "all .15s",
+                        }}>
+                          <div style={{ fontSize: 18, marginBottom: 2 }}>{e.emoji}</div>
+                          <div style={{ fontSize: 8, fontWeight: 700, color: active ? e.color : darkMode ? "#94a3b8" : "#64748b", lineHeight: 1.2 }}>{e.label}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 

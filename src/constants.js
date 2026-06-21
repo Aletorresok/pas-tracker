@@ -18,6 +18,7 @@ export const ESTADOS_CASO = [
   { key: "en_juicio",         label: "En juicio",         color: "#ef4444", emoji: "🏛️"  },
   { key: "esperando_pago",    label: "Esperando pago",    color: "#06b6d4", emoji: "🕐" },
   { key: "cobrado",           label: "Cobrado",           color: "#22c55e", emoji: "✅" },
+  { key: "desistido",         label: "Desistido",         color: "#78716c", emoji: "🚫" },
 ];
 
 // ── TIPOS DE DOCUMENTOS (CasoDetalle) ─────────────────────────────────────────────
