@@ -52,7 +52,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "hidden" }}>
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "visible" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
 
         <div style={{ position: "relative", flexShrink: 0 }}>

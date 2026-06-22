@@ -90,7 +90,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "hidden" }}>
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible" }}>
       {/* Fila principal */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</div>
