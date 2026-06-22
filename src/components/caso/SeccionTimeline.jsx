@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { formatoFecha } from "../../utils/casoDetalleUtils.js";
 
 export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar, onEliminar, Th }) {
@@ -58,10 +59,10 @@ export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar
         ))}
       </div>
 
-      {modalOpen && (
+      {modalOpen && createPortal(
         <>
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 499 }} onClick={cerrar} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 500 }}>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 9998 }} onClick={cerrar} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9999 }}>
             <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 440, width: "100%" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>
                 {editando ? "✏️ Editar acción" : "➕ Registrar acción"}
@@ -82,7 +83,8 @@ export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
