@@ -1,5 +1,5 @@
 // CarpetaLocal.jsx
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import {
   elegirCarpeta,
@@ -18,7 +18,6 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [guardando, setGuardando]     = useState(false);
-  const btnRef = useRef(null);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -53,7 +52,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "visible" }}>
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
 
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -83,18 +82,15 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 
         <div style={{ position: "relative" }}>
           <button
-            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
 
-          {menuOpen && (() => {
-            const r = btnRef.current?.getBoundingClientRect() || { bottom: 0, right: 0 };
-            return (
+          {menuOpen && (
             <div
-              style={{ position: "fixed", top: r.bottom + 4, right: window.innerWidth - r.right, background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (
@@ -119,8 +115,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
                 ✏️ Renombrar…
               </button>
             </div>
-            );
-          })()}
+          )}
         </div>
       </div>
 

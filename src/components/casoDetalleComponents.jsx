@@ -1,5 +1,5 @@
 // casoDetalleComponents.jsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../utils/categorizarArchivo.js";
 
@@ -63,7 +63,6 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
   const [renombrando, setRenombrando]   = useState(false);
   const [nuevoNombre, setNuevoNombre]   = useState("");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
-  const btnRef = useRef(null);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -91,7 +90,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible" }}>
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
       {/* Fila principal */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</div>
@@ -114,18 +113,15 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
         {/* Menú Categorizar / Renombrar */}
         <div style={{ position: "relative" }}>
           <button
-            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
 
-          {menuOpen && (() => {
-            const r = btnRef.current?.getBoundingClientRect() || { bottom: 0, right: 0 };
-            return (
+          {menuOpen && (
             <div
-              style={{ position: "fixed", top: r.bottom + 4, right: window.innerWidth - r.right, background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (
@@ -150,8 +146,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
                 ✏️ Renombrar…
               </button>
             </div>
-            );
-          })()}
+          )}
         </div>
       </div>
 
