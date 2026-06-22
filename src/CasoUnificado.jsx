@@ -23,7 +23,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_reclamo","fecha_ultimo_reclamo","fecha_ofrecimiento","fecha_reconsideracion","fecha_aceptacion",
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
-  "fecha_cobro_honorarios","monto_reclamado","pas_id"
+  "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(Object.entries(obj).filter(([k]) => PAS_CASOS_COLS.has(k)));
