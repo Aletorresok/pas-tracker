@@ -13,6 +13,21 @@ import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 
+const PAS_CASOS_COLS = new Set([
+  "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
+  "fecha_siniestro","ubicacion","presupuesto","tercero_nombre","tercero_dni","tercero_contacto",
+  "vehiculo","dominio","motor","chasis","vehiculo_tercero","dominio_tercero","relato","comentarios",
+  "fecha_derivacion","fecha_contacto_asegurado","fecha_inicio_reclamo","fecha_ultimo_movimiento",
+  "monto_ofrecimiento","monto_cobro_asegurado","monto_cobro_yo","monto_comision_pas","recordatorio",
+  "notas_log","created_at","carpeta_path","primer_ofrecimiento","segundo_ofrecimiento","fecha_carga",
+  "fecha_reclamo","fecha_ultimo_reclamo","fecha_ofrecimiento","fecha_reconsideracion","fecha_aceptacion",
+  "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
+  "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
+  "fecha_cobro_honorarios","monto_reclamado","pas_id"
+]);
+
+const pickCols = (obj) => Object.fromEntries(Object.entries(obj).filter(([k]) => PAS_CASOS_COLS.has(k)));
+
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -130,7 +145,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
     setGuardando(true);
     try {
       const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: formData.estado_honorarios || "NO_FACTURADO" };
-      const { error } = await supabase.from("pas_casos").upsert([updated]);
+      const { error } = await supabase.from("pas_casos").upsert([pickCols(updated)]);
       if (!error) { setCaso(updated); setToast({ msg: "✓ Caso guardado", type: "success" }); onUpdate?.(updated); }
       else setToast({ msg: "Error: " + (error.message || "desconocido"), type: "error" });
     } catch (e) { setToast({ msg: "Error: " + e.message, type: "error" }); }
