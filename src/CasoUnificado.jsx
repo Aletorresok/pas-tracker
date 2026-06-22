@@ -26,7 +26,12 @@ const PAS_CASOS_COLS = new Set([
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id"
 ]);
 
-const pickCols = (obj) => Object.fromEntries(Object.entries(obj).filter(([k]) => PAS_CASOS_COLS.has(k)));
+const DATE_COLS = new Set([...PAS_CASOS_COLS].filter(c => c.startsWith("fecha_") || c === "created_at" || c === "recordatorio"));
+const pickCols = (obj) => Object.fromEntries(
+  Object.entries(obj)
+    .filter(([k]) => PAS_CASOS_COLS.has(k))
+    .map(([k, v]) => [k, (v === "" && DATE_COLS.has(k)) ? null : v])
+);
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
