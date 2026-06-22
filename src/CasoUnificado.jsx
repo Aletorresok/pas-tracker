@@ -26,11 +26,14 @@ const PAS_CASOS_COLS = new Set([
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id"
 ]);
 
-const DATE_COLS = new Set([...PAS_CASOS_COLS].filter(c => c.startsWith("fecha_") || c === "created_at" || c === "recordatorio"));
+const TEXT_COLS = new Set(["id","caso_id","asegurado","dni_asegurado","estado","nota","compania",
+  "nro_siniestro","ubicacion","tercero_nombre","tercero_dni","tercero_contacto","vehiculo","dominio",
+  "motor","chasis","vehiculo_tercero","dominio_tercero","relato","comentarios","notas_log",
+  "carpeta_path","estado_honorarios","compania_aseguradora","monto_reclamado","pas_id"]);
 const pickCols = (obj) => Object.fromEntries(
   Object.entries(obj)
     .filter(([k]) => PAS_CASOS_COLS.has(k))
-    .map(([k, v]) => [k, (v === "" && DATE_COLS.has(k)) ? null : v])
+    .map(([k, v]) => [k, (v === "" && !TEXT_COLS.has(k)) ? null : v])
 );
 
 const generateUUID = () => {
