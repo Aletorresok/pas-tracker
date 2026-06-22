@@ -37,6 +37,7 @@ export function primerNombre(nombre) {
 }
 
 export function waLink(phone, nombre) {
+  if (!phone) return "#";
   const clean = phone.replace(/\D/g, "");
   const intl = clean.startsWith("54") ? clean : `54${clean}`;
   const n = primerNombre(nombre);
