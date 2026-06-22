@@ -1,5 +1,5 @@
 // CarpetaLocal.jsx
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import {
   elegirCarpeta,
@@ -15,9 +15,20 @@ import { TIPOS_DOC } from "../utils/categorizarArchivo.js";
 // ─────────────────────────────────────────────────────────────────────────────
 function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, onToast, onPreview }) {
   const [menuOpen, setMenuOpen]       = useState(false);
+  const [dropUp, setDropUp]           = useState(false);
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [guardando, setGuardando]     = useState(false);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (menuOpen && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropUp(spaceBelow < 320);
+    }
+  }, [menuOpen]);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -82,6 +93,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 
         <div style={{ position: "relative" }}>
           <button
+            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
@@ -90,7 +102,8 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 
           {menuOpen && (
             <div
-              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              ref={menuRef}
+              style={{ position: "absolute", right: 0, ...(dropUp ? { bottom: "110%" } : { top: "110%" }), background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (

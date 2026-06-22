@@ -1,5 +1,5 @@
 // casoDetalleComponents.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../utils/categorizarArchivo.js";
 
@@ -60,9 +60,19 @@ export function PreviewModal({ archivo, onClose }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th }) {
   const [menuOpen, setMenuOpen]         = useState(false);
+  const [dropUp, setDropUp]             = useState(false);
   const [renombrando, setRenombrando]   = useState(false);
   const [nuevoNombre, setNuevoNombre]   = useState("");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
+  const btnRef = useRef(null);
+
+  useEffect(() => {
+    if (menuOpen && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropUp(spaceBelow < 320);
+    }
+  }, [menuOpen]);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -113,6 +123,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
         {/* Menú Categorizar / Renombrar */}
         <div style={{ position: "relative" }}>
           <button
+            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
@@ -121,7 +132,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
 
           {menuOpen && (
             <div
-              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              style={{ position: "absolute", right: 0, ...(dropUp ? { bottom: "110%" } : { top: "110%" }), background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (
