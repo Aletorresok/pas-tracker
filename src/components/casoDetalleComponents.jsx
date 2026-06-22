@@ -1,5 +1,5 @@
 // casoDetalleComponents.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../utils/categorizarArchivo.js";
 
@@ -63,6 +63,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
   const [renombrando, setRenombrando]   = useState(false);
   const [nuevoNombre, setNuevoNombre]   = useState("");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
+  const btnRef = useRef(null);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -113,19 +114,20 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
         {/* Menú Categorizar / Renombrar */}
         <div style={{ position: "relative" }}>
           <button
+            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
 
-          {menuOpen && (
+          {menuOpen && (() => {
+            const r = btnRef.current?.getBoundingClientRect() || { bottom: 0, right: 0 };
+            return (
             <div
-              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 50, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
-              // Cerrar si se hace click fuera
+              style={{ position: "fixed", top: r.bottom + 4, right: window.innerWidth - r.right, background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 180, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
-              {/* Tipos de documento con numeración implícita */}
               {TIPOS_DOC.map((tipo, idx) => (
                 <button
                   key={tipo}
@@ -138,11 +140,7 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
                   <span>{tipo}</span>
                 </button>
               ))}
-
-              {/* Separador */}
               <div style={{ borderTop: `1px solid ${Th.border}`, margin: "4px 0" }} />
-
-              {/* Renombrar libre */}
               <button
                 onClick={iniciarRenombrar}
                 style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", padding: "8px 14px", color: "#818cf8", fontSize: 13, cursor: "pointer", textAlign: "left", fontWeight: 600 }}
@@ -152,7 +150,8 @@ export function ArchivoRow({ archivo, onPreview, onCategorizar, onRenombrar, Th 
                 ✏️ Renombrar…
               </button>
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

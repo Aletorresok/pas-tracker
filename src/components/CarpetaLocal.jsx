@@ -1,5 +1,5 @@
 // CarpetaLocal.jsx
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getExtension } from "../utils/casoDetalleUtils.js";
 import {
   elegirCarpeta,
@@ -18,6 +18,7 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [guardando, setGuardando]     = useState(false);
+  const btnRef = useRef(null);
 
   const esImagen = [".jpg", ".jpeg", ".png"].includes(archivo.ext);
   const kb = (archivo.tamaño / 1024).toFixed(1);
@@ -82,15 +83,18 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 
         <div style={{ position: "relative" }}>
           <button
+            ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
             style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
 
-          {menuOpen && (
+          {menuOpen && (() => {
+            const r = btnRef.current?.getBoundingClientRect() || { bottom: 0, right: 0 };
+            return (
             <div
-              style={{ position: "absolute", right: 0, top: "110%", background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 50, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              style={{ position: "fixed", top: r.bottom + 4, right: window.innerWidth - r.right, background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (
@@ -115,7 +119,8 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
                 ✏️ Renombrar…
               </button>
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 
