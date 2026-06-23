@@ -1,5 +1,3 @@
-import { supabase } from "../supabase.js";
-
 function formatoFecha(iso) {
   if (!iso) return "—";
   const [y, m, d] = iso.slice(0, 10).split("-");
@@ -47,20 +45,8 @@ I. Acompaña:
     const pdfBytes = doc.output("arraybuffer");
     const nombreArchivo = `Reclamo_${nombreCompleto.replace(/\s+/g, "_")}.pdf`;
 
-    if (pasId && caso.id) {
-      const path = `${pasId}/${caso.id}/${nombreArchivo}`;
-      const { error } = await supabase.storage
-        .from("casos")
-        .upload(path, new Blob([pdfBytes], { type: "application/pdf" }), { upsert: true });
-
-      if (!error) {
-        onSuccess({ nombreArchivo, guardadoEn: "storage" });
-        return;
-      }
-    }
-
     doc.save(nombreArchivo);
-    onSuccess({ nombreArchivo, guardadoEn: "descargas" });
+    onSuccess({ nombreArchivo });
   } catch (e) {
     console.error(e);
     onError("Error al generar el PDF: " + e.message);

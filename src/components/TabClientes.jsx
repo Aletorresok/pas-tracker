@@ -83,8 +83,33 @@ function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
   );
 }
 
-function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDetalleCaso, expanded, onToggle, darkMode, filtroEstado }) {
-  const filtered = filtroEstado === "todos" ? casos : casos.filter(c => c.estado === filtroEstado);
+const ESTADO_ORDEN = Object.fromEntries(ESTADOS_CASO.map((e, i) => [e.key, i]));
+
+function sortCasos(list, orden) {
+  const sorted = [...list];
+  switch (orden) {
+    case "ultimo_mov": {
+      sorted.sort((a, b) => {
+        const lastA = (a.notas_log || []).reduce((m, n) => Math.max(m, n.ts || 0), a.caso_id || 0);
+        const lastB = (b.notas_log || []).reduce((m, n) => Math.max(m, n.ts || 0), b.caso_id || 0);
+        return lastB - lastA;
+      });
+      break;
+    }
+    case "alfabetico":
+      sorted.sort((a, b) => (a.asegurado || "").localeCompare(b.asegurado || ""));
+      break;
+    case "estado":
+      sorted.sort((a, b) => (ESTADO_ORDEN[a.estado] ?? 99) - (ESTADO_ORDEN[b.estado] ?? 99));
+      break;
+    default:
+      break;
+  }
+  return sorted;
+}
+
+function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDetalleCaso, expanded, onToggle, darkMode, filtroEstado, ordenCasos }) {
+  const filtered = sortCasos(filtroEstado === "todos" ? casos : casos.filter(c => c.estado === filtroEstado), ordenCasos);
   const totalMonto = casos.reduce((s, c) => s + (Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0), 0);
   const cobrados = casos.filter(c => c.estado === "cobrado").length;
 
@@ -253,6 +278,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
   const [pasIdDetalle, setPasIdDetalle] = useState(null);
   const [modalNuevoPAS, setModalNuevoPAS] = useState(false);
   const [pasManualEdit, setPasManualEdit] = useState(null);
+  const [ordenCasos, setOrdenCasos] = useState("creacion");
 
   const clientes = useMemo(() => {
     const derivs = pas.filter(p => derivadores[String(p.id)]);
@@ -333,6 +359,12 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
         <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍  Buscar PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
+        <select value={ordenCasos} onChange={e => setOrdenCasos(e.target.value)} style={{ ...iStyle, flex: "none", width: "auto", minWidth: 130, cursor: "pointer" }}>
+          <option value="creacion">Creación</option>
+          <option value="ultimo_mov">Último mov.</option>
+          <option value="alfabetico">A → Z</option>
+          <option value="estado">Estado</option>
+        </select>
         <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 8, color: "#818cf8", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
         <button onClick={exportarExcel} style={{ background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 8, color: "#22c55e", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>⬇ Excel</button>
       </div>
@@ -364,7 +396,8 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
           expanded={expandedId === p.id}
           onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
           darkMode={darkMode}
-          filtroEstado={filtroEstado} />
+          filtroEstado={filtroEstado}
+          ordenCasos={ordenCasos} />
       ))}
 
       {modalPas && (
