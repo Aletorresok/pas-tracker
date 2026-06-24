@@ -24,7 +24,73 @@ import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import PASCard from './components/PASCard.jsx'
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
+const APP_PIN = "3934";
+
+function LoginGate({ darkMode, onUnlock }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (pin === APP_PIN) {
+      sessionStorage.setItem("pas_unlocked", "1");
+      onUnlock();
+    } else {
+      setError(true);
+      setTimeout(() => setError(false), 1500);
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: darkMode ? "#0b1121" : "#f0f4f8",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      <form onSubmit={handleSubmit} style={{
+        background: darkMode ? "#1e293b" : "#fff",
+        border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`,
+        borderRadius: 16, padding: "40px 32px", textAlign: "center",
+        boxShadow: "0 8px 32px #0002", maxWidth: 340, width: "100%",
+      }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px" }}>📋</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: darkMode ? "#f1f5f9" : "#0f172a", marginBottom: 4 }}>PAS Tracker</div>
+        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 24 }}>Ingresá tu clave para continuar</div>
+        <input
+          type="password"
+          value={pin}
+          onChange={e => setPin(e.target.value)}
+          placeholder="Clave"
+          autoFocus
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: "12px 16px", fontSize: 16, textAlign: "center",
+            letterSpacing: 8,
+            background: darkMode ? "#0f172a" : "#f1f5f9",
+            border: `2px solid ${error ? "#ef4444" : darkMode ? "#334155" : "#e2e8f0"}`,
+            borderRadius: 10, color: darkMode ? "#f1f5f9" : "#0f172a",
+            outline: "none", fontFamily: "inherit",
+            transition: "border-color .2s",
+          }}
+        />
+        {error && <div style={{ color: "#ef4444", fontSize: 12, marginTop: 8 }}>Clave incorrecta</div>}
+        <button type="submit" style={{
+          marginTop: 16, width: "100%", padding: "12px",
+          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+          border: "none", borderRadius: 10, color: "#fff",
+          fontSize: 14, fontWeight: 700, cursor: "pointer",
+          transition: "opacity .2s",
+        }}>Ingresar →</button>
+      </form>
+    </div>
+  );
+}
+
 export default function App() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("pas_unlocked") === "1");
+  const [darkMode, setDarkMode] = useState(true);
+
   const {
     pas, setPas,
     historial, setHistorial,
@@ -39,7 +105,6 @@ export default function App() {
 
   // ── STATE GLOBAL
   const [mainTab, setMainTab] = useState("dashboard");
-  const [darkMode, setDarkMode] = useState(true);
   const [modalPas, setModalPas] = useState(null);
   const [casosDetalleModal, setCasosDetalleModal] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
@@ -226,6 +291,8 @@ export default function App() {
   }, []);
 
   // ── RENDER
+  if (!unlocked) return <LoginGate darkMode={darkMode} onUnlock={() => setUnlocked(true)} />;
+
   return (
     <div style={{ background: darkMode ? "#0b1121" : "#f0f4f8", color: darkMode ? "#f1f5f9" : "#0f172a", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* HEADER */}
