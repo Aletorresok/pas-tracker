@@ -44,7 +44,25 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
       setPasInfo(pas);
       const { data: casosData } = await supabase.from("pas_casos").select("*").eq("pas_id", link.pas_id);
-      setCasos(casosData?.length ? casosData : [DEMO_CASO]);
+      if (casosData?.length) {
+        const casoIds = casosData.map(c => c.id);
+        const { data: accionesData } = await supabase.from("acciones").select("*").in("caso_id", casoIds).order("fecha", { ascending: false });
+        const accionesPorCaso = {};
+        (accionesData || []).forEach(a => {
+          if (!accionesPorCaso[a.caso_id]) accionesPorCaso[a.caso_id] = [];
+          accionesPorCaso[a.caso_id].push({ texto: a.descripcion, fecha: a.fecha, ts: new Date(a.fecha).getTime() });
+        });
+        const casosConAcciones = casosData.map(c => {
+          const dbAcciones = accionesPorCaso[c.id] || [];
+          const oldLog = (c.notas_log || []).filter(n =>
+            !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha)
+          );
+          return { ...c, notas_log: [...dbAcciones, ...oldLog] };
+        });
+        setCasos(casosConAcciones);
+      } else {
+        setCasos([DEMO_CASO]);
+      }
       setLoading(false);
     };
     loadData();
