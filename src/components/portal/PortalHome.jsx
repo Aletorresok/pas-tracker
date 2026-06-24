@@ -126,7 +126,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           {[
             { label: "Casos totales",  value: casos.length, color: "#6366f1" },
             { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
-            { label: "En proceso",     value: casos.filter(c => !["cobrado","iniciado","doc_pendiente"].includes(c.estado)).length, color: "#f97316" },
+            { label: "En proceso",     value: casos.filter(c => !["cobrado","iniciado","doc_pendiente","desistido"].includes(c.estado)).length, color: "#f97316" },
           ].map(s => (
             <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
               <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
