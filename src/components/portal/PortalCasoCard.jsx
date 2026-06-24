@@ -31,6 +31,11 @@ export default function PortalCasoCard({ caso, dark }) {
     { k: "fecha_derivacion", l: "Derivación" },
     { k: "fecha_contacto_asegurado", l: "Contacto asegurado" },
     { k: "fecha_inicio_reclamo", l: "Inicio reclamo" },
+    { k: "fecha_ofrecimiento", l: "Ofrecimiento" },
+    { k: "fecha_firma", l: "Firma" },
+    { k: "fecha_mediacion", l: "Mediación" },
+    { k: "fecha_pago", l: "Pago" },
+    { k: "fecha_cobro", l: "Cobro" },
     { k: "fecha_ultimo_movimiento", l: "Último movimiento" },
   ];
 
