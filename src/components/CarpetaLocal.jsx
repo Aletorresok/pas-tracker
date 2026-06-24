@@ -169,11 +169,13 @@ function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANEL PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
-export function CarpetaLocal({ Th, onToast, onPreview, caso }) {
+export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }) {
   const [dirHandle, setDirHandle]         = useState(null);
   const [archivos, setArchivos]           = useState([]);
   const [cargando, setCargando]           = useState(false);
   const [nombreCarpeta, setNombreCarpeta] = useState("");
+
+  useEffect(() => { onDirHandleChange?.(dirHandle); }, [dirHandle, onDirHandleChange]);
 
   const soportado = !!window.showDirectoryPicker;
 

@@ -1,10 +1,12 @@
+import { jsPDF } from "jspdf";
+
 function formatoFecha(iso) {
   if (!iso) return "—";
   const [y, m, d] = iso.slice(0, 10).split("-");
   return `${d}/${m}/${String(y).slice(-2)}`;
 }
 
-export async function generarEscrito({ caso, pasId, dni, onSuccess, onError }) {
+export async function generarEscrito({ caso, pasId, dni, dirHandle, onSuccess, onError }) {
   if (!dni?.trim()) {
     onError("DNI requerido");
     return;
@@ -30,7 +32,6 @@ I. Acompaña:
 6. Licencia de Conducir
 7. Presupuesto`;
 
-    const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
     const margin = 20;
@@ -42,11 +43,24 @@ I. Acompaña:
     doc.setFont("helvetica", "normal");
     doc.text(lineas, margin, y);
 
-    const pdfBytes = doc.output("arraybuffer");
     const nombreArchivo = `Reclamo_${nombreCompleto.replace(/\s+/g, "_")}.pdf`;
 
+    if (dirHandle) {
+      try {
+        const pdfBytes = doc.output("arraybuffer");
+        const fileHandle = await dirHandle.getFileHandle(nombreArchivo, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(pdfBytes);
+        await writable.close();
+        onSuccess({ nombreArchivo, guardadoEn: "carpeta" });
+        return;
+      } catch (e) {
+        console.warn("[escrito] No se pudo guardar en carpeta, descargando:", e);
+      }
+    }
+
     doc.save(nombreArchivo);
-    onSuccess({ nombreArchivo });
+    onSuccess({ nombreArchivo, guardadoEn: "descargas" });
   } catch (e) {
     console.error(e);
     onError("Error al generar el PDF: " + e.message);

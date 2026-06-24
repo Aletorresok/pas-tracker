@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
 import { formatoFecha, getExtension, THEME } from "./utils/casoDetalleUtils.js";
 import { Toast, PreviewModal, ArchivoRow, ChecklistDocumental } from "./components/casoDetalleComponents.jsx";
@@ -54,6 +54,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
   const [modalEscrito, setModalEscrito] = useState(false);
   const [dniEscrito, setDniEscrito] = useState("");
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
+  const dirHandleRef = useRef(null);
 
   const [formData, setFormData] = useState({
     asegurado: casoProp.asegurado || "",
@@ -120,7 +121,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
 
   const handleGenerarEscrito = useCallback(async () => {
     setGenerandoEscrito(true);
-    await generarEscrito({ caso, pasId, dni: dniEscrito, onSuccess: ({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "storage" ? "carpeta del caso" : "Descargas"}`, type: "success" }); setModalEscrito(false); setDniEscrito(""); if (guardadoEn === "storage") recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
+    await generarEscrito({ caso, pasId, dni: dniEscrito, dirHandle: dirHandleRef.current, onSuccess: ({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); setModalEscrito(false); setDniEscrito(""); if (guardadoEn === "carpeta") recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
     setGenerandoEscrito(false);
   }, [caso, pasId, dniEscrito]);
 
@@ -188,7 +189,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
             {/* Documentos */}
             <div style={sectionStyle}>
               <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
-              <CarpetaLocal Th={Th} onToast={setToast} onPreview={arch => setPreviewArchivo(arch)} caso={caso} />
+              <CarpetaLocal Th={Th} onToast={setToast} onPreview={arch => setPreviewArchivo(arch)} caso={caso} onDirHandleChange={h => { dirHandleRef.current = h; }} />
               <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>
                 <ChecklistDocumental archivos={archivos} Th={Th} />
                 {archivos.length === 0 && !archivosActualizando && (
