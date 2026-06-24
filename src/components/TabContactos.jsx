@@ -18,6 +18,7 @@ export default function TabContactos({
   const [busqueda, setBusqueda] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [page, setPage] = useState(0);
+  const [orden, setOrden] = useState("nombre");
   const PER_PAGE = 40;
 
   const subColor = darkMode ? "#94a3b8" : "#475569";
@@ -38,12 +39,17 @@ export default function TabContactos({
 
   const filtered = useMemo(() => {
     const byVista = vista === "todos" ? noContactados : noContactados.filter(p => p.prioridad === vista);
-    return byVista.filter(p => !descartados[p.id] && (
+    const base = byVista.filter(p => !descartados[p.id] && (
       p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.mail?.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.telefonos?.join(" ").includes(busqueda)
     ));
-  }, [vista, busqueda, noContactados, descartados]);
+    return [...base].sort((a, b) => {
+      if (orden === "telefono") return (a.telefonos?.[0] || "").localeCompare(b.telefonos?.[0] || "");
+      if (orden === "mail") return (a.mail || "").localeCompare(b.mail || "");
+      return (a.nombre || "").localeCompare(b.nombre || "");
+    });
+  }, [vista, busqueda, noContactados, descartados, orden]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
@@ -91,6 +97,24 @@ export default function TabContactos({
         placeholder="🔍  Buscar por nombre, mail o teléfono..."
         style={{ ...iStyle, marginBottom: 8 }}
       />
+
+      <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+        {[
+          { key: "nombre", label: "Nombre" },
+          { key: "telefono", label: "Teléfono" },
+          { key: "mail", label: "Mail" },
+        ].map(o => (
+          <button key={o.key} onClick={() => { setOrden(o.key); setPage(0); }} style={{
+            flex: 1, padding: "5px 8px", borderRadius: 7, fontSize: 11, fontWeight: orden === o.key ? 700 : 500,
+            border: `1px solid ${orden === o.key ? "#6366f1" : darkMode ? "#1e293b" : "#e2e8f0"}`,
+            background: orden === o.key ? "#6366f118" : darkMode ? "#0a0f1e" : "#f8fafc",
+            color: orden === o.key ? "#6366f1" : subColor,
+            cursor: "pointer", transition: "all .15s",
+          }}>
+            {orden === o.key ? "↕ " : ""}{o.label}
+          </button>
+        ))}
+      </div>
 
       <div style={{ fontSize: 12, color: subColor, marginBottom: 12, display: "flex", justifyContent: "space-between" }}>
         <span>{filtered.length.toLocaleString("es-AR")} resultados</span>
