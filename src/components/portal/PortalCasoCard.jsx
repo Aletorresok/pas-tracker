@@ -27,15 +27,18 @@ export default function PortalCasoCard({ caso, dark }) {
   const logOrdenado = [...(caso.notas_log || [])].sort((a, b) => b.ts - a.ts);
   const ultimaAccion = logOrdenado[0] || null;
 
+  const FECHAS_PREVIEW = [
+    { k: "fecha_inicio_reclamo", l: "Inicio" },
+    { k: "fecha_ofrecimiento", l: "Ofrecimiento" },
+    { k: "fecha_mediacion", l: "Mediación" },
+    { k: "fecha_pago", l: "Pago" },
+    { k: "fecha_cobro", l: "Cobro" },
+  ];
+
   const FECHAS = [
     { k: "fecha_derivacion", l: "Derivación" },
     { k: "fecha_contacto_asegurado", l: "Contacto asegurado" },
     { k: "fecha_inicio_reclamo", l: "Inicio reclamo" },
-    { k: "fecha_ofrecimiento", l: "Ofrecimiento" },
-    { k: "fecha_firma", l: "Firma" },
-    { k: "fecha_mediacion", l: "Mediación" },
-    { k: "fecha_pago", l: "Pago" },
-    { k: "fecha_cobro", l: "Cobro" },
     { k: "fecha_ultimo_movimiento", l: "Último movimiento" },
   ];
 
@@ -64,17 +67,13 @@ export default function PortalCasoCard({ caso, dark }) {
 
         <PipelineBar estado={caso.estado} dark={dark} />
 
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-          {caso.fecha_derivacion && (
-            <span style={{ fontSize: 11, background: T.card2, color: T.sub, borderRadius: 6, padding: "3px 8px", border: `1px solid ${T.border}` }}>📅 {fmtDate(caso.fecha_derivacion)}</span>
-          )}
-          {caso.monto_ofrecimiento && (
-            <span style={{ fontSize: 11, background: "#f9731618", color: "#f97316", borderRadius: 6, padding: "3px 8px", border: "1px solid #f9731633", fontWeight: 600 }}>💬 Ofrecim. {fmtMoney(caso.monto_ofrecimiento)}</span>
-          )}
-          {caso.estado === "cobrado" && caso.monto_cobro_asegurado && (
-            <span style={{ fontSize: 11, background: "#22c55e18", color: "#22c55e", borderRadius: 6, padding: "3px 8px", border: "1px solid #22c55e33", fontWeight: 600 }}>✅ {fmtMoney(caso.monto_cobro_asegurado)}</span>
-          )}
-        </div>
+        {FECHAS_PREVIEW.filter(f => caso[f.k]).length > 0 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+            {FECHAS_PREVIEW.filter(f => caso[f.k]).map(f => (
+              <span key={f.k} style={{ fontSize: 11, background: T.card2, color: T.sub, borderRadius: 6, padding: "3px 8px", border: `1px solid ${T.border}` }}>📅 {f.l}: {fmtDate(caso[f.k])}</span>
+            ))}
+          </div>
+        )}
 
         {ultimaAccion && (
           <div style={{ marginTop: 10, display: "flex", alignItems: "flex-start", gap: 8, background: T.card2, borderRadius: 8, padding: "8px 11px", border: `1px solid ${T.border}` }}>
