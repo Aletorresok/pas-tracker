@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { fmtMoney } from "../utils/formatters.js";
+import { useMemo, useState } from "react";
+import { fmtMoney, fmtDate } from "../utils/formatters.js";
 import GraficoCompanias from "./GraficoCompanias.jsx";
 import { ESTADOS_CASO } from "../constants.js";
 
@@ -41,7 +41,7 @@ function Badge({ color, children }) {
   );
 }
 
-function GraficoBarras({ datos, darkMode }) {
+function GraficoBarras({ datos, darkMode, mesSeleccionado, onClickMes }) {
   const maxValor = Math.max(...datos.map(d => d.valor), 1);
   const mesActual = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
   return (
@@ -49,20 +49,22 @@ function GraficoBarras({ datos, darkMode }) {
       {datos.map(d => {
         const pct = Math.max((d.valor / maxValor) * 100, 3);
         const isActual = d.key === mesActual;
+        const isSelected = d.key === mesSeleccionado;
         return (
-          <div key={d.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            {d.valor > 0 && <div style={{ fontSize: 8, color: isActual ? "#818cf8" : darkMode ? "#475569" : "#94a3b8", fontWeight: 700, whiteSpace: "nowrap" }}>{(d.valor / 1000).toFixed(0)}k</div>}
+          <div key={d.key} onClick={() => onClickMes?.(isSelected ? null : d.key)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: d.valor > 0 ? "pointer" : "default" }}>
+            {d.valor > 0 && <div style={{ fontSize: 8, color: isSelected ? "#f1f5f9" : isActual ? "#818cf8" : darkMode ? "#475569" : "#94a3b8", fontWeight: 700, whiteSpace: "nowrap" }}>{(d.valor / 1000).toFixed(0)}k</div>}
             <div style={{
               width: "100%",
               height: `${pct}%`,
               background: d.valor > 0
-                ? isActual ? "linear-gradient(180deg, #818cf8, #6366f1)" : "linear-gradient(180deg, #6366f166, #6366f133)"
+                ? isSelected ? "linear-gradient(180deg, #a78bfa, #7c3aed)" : isActual ? "linear-gradient(180deg, #818cf8, #6366f1)" : "linear-gradient(180deg, #6366f166, #6366f133)"
                 : darkMode ? "#1e293b" : "#e2e8f0",
               borderRadius: "4px 4px 0 0",
-              transition: "all .4s ease",
+              transition: "all .3s ease",
               minHeight: 3,
+              boxShadow: isSelected ? "0 0 12px #7c3aed66" : "none",
             }} title={`${d.mes}: ${fmtMoney(d.valor)}`} />
-            <div style={{ fontSize: 9, color: isActual ? "#818cf8" : darkMode ? "#475569" : "#94a3b8", textAlign: "center", fontWeight: isActual ? 700 : 400 }}>{d.mes}</div>
+            <div style={{ fontSize: 9, color: isSelected ? "#a78bfa" : isActual ? "#818cf8" : darkMode ? "#475569" : "#94a3b8", textAlign: "center", fontWeight: isSelected || isActual ? 700 : 400 }}>{d.mes}</div>
           </div>
         );
       })}
@@ -86,15 +88,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const cobroAseguradoPendiente = allCasos
     .filter(c => c.estado === "esperando_pago" && Number(c.monto_cobro_asegurado) > 0)
     .reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
-
-  const diasSinMov = (c) => {
-    const ult = c.fecha_ultimo_movimiento || c.fecha_derivacion;
-    if (!ult) return 999;
-    return Math.floor((Date.now() - new Date(ult).getTime()) / 86400000);
-  };
-  const casosInactivos = allCasos
-    .filter(c => !["cobrado", "doc_pendiente", "desistido"].includes(c.estado) && diasSinMov(c) >= 7)
-    .sort((a, b) => diasSinMov(b) - diasSinMov(a));
 
   const hoy = new Date();
 
@@ -156,6 +149,34 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       .sort((a, b) => a.diasRestantes - b.diasRestantes);
   }, [allCasos]);
 
+  const cobrosPendientes = useMemo(() => {
+    const hoyMs = hoy.getTime();
+    return allCasos
+      .filter(c => c.estado === "esperando_pago")
+      .map(c => {
+        let fechaEstimada = null;
+        let diasRestantes = null;
+        if (c.fecha_firma && c.plazo_pago) {
+          const venceMs = new Date(c.fecha_firma).getTime() + Number(c.plazo_pago) * 86400000;
+          fechaEstimada = new Date(venceMs).toISOString().slice(0, 10);
+          diasRestantes = Math.ceil((venceMs - hoyMs) / 86400000);
+        } else if (c.fecha_pago) {
+          fechaEstimada = c.fecha_pago;
+          diasRestantes = Math.ceil((new Date(c.fecha_pago).getTime() - hoyMs) / 86400000);
+        }
+        const montoYo = Number(c.monto_cobro_yo) || 0;
+        const montoAsegurado = Number(c.monto_cobro_asegurado) || 0;
+        const montoComision = Number(c.monto_comision_pas) || 0;
+        return { ...c, fechaEstimada, diasRestantes, montoYo, montoAsegurado, montoComision };
+      })
+      .sort((a, b) => {
+        if (a.fechaEstimada && !b.fechaEstimada) return -1;
+        if (!a.fechaEstimada && b.fechaEstimada) return 1;
+        if (a.fechaEstimada && b.fechaEstimada) return a.fechaEstimada.localeCompare(b.fechaEstimada);
+        return 0;
+      });
+  }, [allCasos]);
+
   const metricas = useMemo(() => {
     const diff = (a, b) => { if (!a || !b) return null; return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86400000); };
     const prom = (vals) => { const v = vals.filter(x => x !== null && x >= 0); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
@@ -172,6 +193,18 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const cardBorder = darkMode ? "#1e293b" : "#e2e8f0";
   const textColor = darkMode ? "#f1f5f9" : "#1e293b";
   const subColor = darkMode ? "#64748b" : "#94a3b8";
+
+  const [mesSeleccionado, setMesSeleccionado] = useState(null);
+
+  const casosDelMes = useMemo(() => {
+    if (!mesSeleccionado) return [];
+    return allCasos.filter(c => {
+      if (c.estado !== "cobrado" || !c.monto_cobro_yo || !c.fecha_ultimo_movimiento) return false;
+      const fecha = new Date(c.fecha_ultimo_movimiento);
+      const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+      return key === mesSeleccionado;
+    });
+  }, [allCasos, mesSeleccionado]);
 
   return (
     <div className="fade-in">
@@ -196,24 +229,73 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <StatCard label="Monto total" value={fmtMoney(totalAcordado)} color="#22c55e" dark={darkMode} />
       </div>
 
-      {/* CASOS INACTIVOS */}
-      {casosInactivos.length > 0 && (
-        <div style={{ background: darkMode ? "#111827" : "#fff", border: "1px solid #ef444433", borderRadius: 14, padding: 16, marginBottom: 16, borderLeft: "3px solid #ef4444" }}>
-          <div style={{ fontSize: 12, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
-            <span>⚠️ Sin movimiento (+7 días)</span>
-            <Badge color="#ef4444">{casosInactivos.length}</Badge>
+      {/* EMBUDO DE ESTADOS */}
+      {allCasos.length > 0 && (() => {
+        const funnelEstados = ESTADOS_CASO.filter(e => e.key !== "desistido");
+        const conteos = funnelEstados.map(e => ({ ...e, count: allCasos.filter(c => c.estado === e.key).length }));
+        const maxCount = Math.max(...conteos.map(c => c.count), 1);
+        return (
+          <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 16 }}>🔽 Embudo de casos</div>
+            {conteos.map((e, i) => {
+              const pct = Math.max((e.count / maxCount) * 100, 8);
+              return (
+                <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  <div style={{ width: 90, fontSize: 11, color: subColor, textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.emoji} {e.label}</div>
+                  <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                    <div style={{ width: `${pct}%`, height: 26, background: `linear-gradient(90deg, ${e.color}, ${e.color}88)`, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", transition: "width .4s ease", minWidth: 28 }}>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", textShadow: "0 1px 2px #0004" }}>{e.count}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {(() => {
+              const desistidos = allCasos.filter(c => c.estado === "desistido").length;
+              return desistidos > 0 ? (
+                <div style={{ fontSize: 11, color: "#78716c", textAlign: "center", marginTop: 8, paddingTop: 8, borderTop: `1px solid ${cardBorder}` }}>
+                  🚫 {desistidos} desistido{desistidos !== 1 ? "s" : ""}
+                </div>
+              ) : null;
+            })()}
           </div>
-          <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
-            {casosInactivos.map(c => {
-              const d = diasSinMov(c);
-              const ei = ESTADOS_CASO.find(e => e.key === c.estado) || {};
+        );
+      })()}
+
+      {/* COBROS PENDIENTES */}
+      {cobrosPendientes.length > 0 && (
+        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #06b6d4" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>💰 Cobros pendientes</span>
+            <Badge color="#06b6d4">{cobrosPendientes.length}</Badge>
+          </div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 14, fontSize: 12 }}>
+            <span style={{ color: "#6366f1", fontWeight: 700 }}>Mis honorarios: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoYo, 0))}</span>
+            <span style={{ color: "#22c55e", fontWeight: 700 }}>Asegurados: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoAsegurado, 0))}</span>
+          </div>
+          <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 4 }}>
+            {cobrosPendientes.map(c => {
+              const vencido = c.diasRestantes !== null && c.diasRestantes < 0;
+              const urgente = c.diasRestantes !== null && c.diasRestantes <= 3 && c.diasRestantes >= 0;
+              const badgeColor = vencido ? "#ef4444" : urgente ? "#f97316" : c.fechaEstimada ? "#06b6d4" : "#64748b";
+              const badgeText = c.fechaEstimada
+                ? (vencido ? `Vencido (${Math.abs(c.diasRestantes)}d)` : c.diasRestantes === 0 ? "Hoy" : `${c.diasRestantes}d`)
+                : "Sin fecha";
               return (
                 <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", marginBottom: 4, background: darkMode ? "#0b1121" : "#fafbfc", borderRadius: 8, border: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
-                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{ei.emoji} {ei.label} · {c.compania || "sin compañía"}</div>
+                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>
+                      {c.compania || "—"}
+                      {c.fechaEstimada ? ` · Pago est. ${fmtDate(c.fechaEstimada)}` : ""}
+                    </div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 4, fontSize: 11 }}>
+                      {c.montoYo > 0 && <span style={{ color: "#6366f1", fontWeight: 600 }}>Yo: {fmtMoney(c.montoYo)}</span>}
+                      {c.montoAsegurado > 0 && <span style={{ color: "#22c55e", fontWeight: 600 }}>Aseg: {fmtMoney(c.montoAsegurado)}</span>}
+                      {c.montoComision > 0 && <span style={{ color: "#eab308", fontWeight: 600 }}>PAS: {fmtMoney(c.montoComision)}</span>}
+                    </div>
                   </div>
-                  <Badge color={d >= 30 ? "#ef4444" : "#f97316"}>{d}d</Badge>
+                  <Badge color={badgeColor}>{badgeText}</Badge>
                 </div>
               );
             })}
@@ -244,8 +326,32 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       </div>
 
       <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px 16px 10px", marginBottom: 20 }}>
-        <div style={{ fontSize: 11, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 16, fontWeight: 600 }}>Últimos 12 meses</div>
-        <GraficoBarras datos={facturacionMensual} darkMode={darkMode} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 600 }}>Últimos 12 meses</div>
+          {mesSeleccionado && <button onClick={() => setMesSeleccionado(null)} style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>✕ Cerrar detalle</button>}
+        </div>
+        <GraficoBarras datos={facturacionMensual} darkMode={darkMode} mesSeleccionado={mesSeleccionado} onClickMes={setMesSeleccionado} />
+        {mesSeleccionado && casosDelMes.length > 0 && (() => {
+          const mesLabel = facturacionMensual.find(d => d.key === mesSeleccionado)?.mes || mesSeleccionado;
+          const totalMes = casosDelMes.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+          return (
+            <div style={{ marginTop: 16, borderTop: `1px solid ${cardBorder}`, paddingTop: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>{mesLabel} — {casosDelMes.length} caso{casosDelMes.length !== 1 ? "s" : ""} cobrado{casosDelMes.length !== 1 ? "s" : ""}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#7c3aed" }}>{fmtMoney(totalMes)}</div>
+              </div>
+              {casosDelMes.map(c => (
+                <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", marginBottom: 4, background: darkMode ? "#0b1121" : "#fafbfc", borderRadius: 8, border: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
+                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{c.compania || "—"} · {fmtDate(c.fecha_ultimo_movimiento)}</div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#6366f1", flexShrink: 0 }}>{fmtMoney(Number(c.monto_cobro_yo))}</div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* RANKING PAS */}

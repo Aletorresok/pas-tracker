@@ -1,6 +1,6 @@
 // CarpetaLocal.jsx
 import { useState, useRef, useEffect } from "react";
-import { getExtension } from "../utils/casoDetalleUtils.js";
+import { getExtension } from "../utils/formatters.js";
 import {
   elegirCarpeta,
   verificarPermisoCarpeta,

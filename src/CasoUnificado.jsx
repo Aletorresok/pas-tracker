@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { formatoFecha, getExtension, THEME } from "./utils/casoDetalleUtils.js";
+import { formatoFecha, getExtension } from "./utils/formatters.js";
+import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal, ArchivoRow } from "./components/casoDetalleComponents.jsx";
 import { cargarArchivos } from "./utils/carpeta.js";
 import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
 import { generarEscrito } from "./utils/generarEscrito.js";
+import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
 import { CarpetaLocal } from "./components/CarpetaLocal.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
 import SeccionInfo from "./components/caso/SeccionInfo.jsx";
@@ -40,7 +42,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -54,6 +56,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
   const [modalEscrito, setModalEscrito] = useState(false);
   const [dniEscrito, setDniEscrito] = useState("");
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
+  const [exportandoPDF, setExportandoPDF] = useState(false);
   const dirHandleRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -87,6 +90,20 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
     monto_comision_pas: casoProp.monto_comision_pas || "",
     notas_log: casoProp.notas_log || [],
   });
+
+  const initialFormRef = useRef(JSON.stringify(formData));
+  const autoSaveTimerRef = useRef(null);
+  const guardarCasoRef = useRef(null);
+
+  useEffect(() => {
+    const current = JSON.stringify(formData);
+    if (current === initialFormRef.current) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      guardarCasoRef.current?.();
+    }, 2500);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [formData]);
 
   useEffect(() => { recargarArchivos(); cargarAcciones(); }, [caso.id]);
 
@@ -157,6 +174,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
     setGuardando(false);
   }, [caso, formData, onUpdate, pasId]);
 
+  useEffect(() => { guardarCasoRef.current = guardarCaso; }, [guardarCaso]);
+
   const handleFormChange = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
   const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
@@ -207,20 +226,30 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
             <SeccionTimeline acciones={acciones} loading={loadingAcciones} onGuardar={handleGuardarAccion} onEliminar={handleEliminarAccion} Th={Th} />
 
             {/* Acciones rápidas */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-              <button onClick={() => setModalEscrito(true)} style={{ background: "#f97316", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>📝 Generar escrito</button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+              <button onClick={() => setModalEscrito(true)} style={{ background: "#f97316", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>📝 Escrito</button>
+              <button
+                onClick={async () => {
+                  setExportandoPDF(true);
+                  await exportarCasoPDF({ caso: { ...caso, ...formData }, pasNombre: pasNombre || "", acciones, onSuccess: ({ nombreArchivo }) => setToast({ msg: `✓ PDF descargado: ${nombreArchivo}`, type: "success" }), onError: msg => setToast({ msg, type: "error" }) });
+                  setExportandoPDF(false);
+                }}
+                disabled={exportandoPDF}
+                style={{ background: exportandoPDF ? Th.card2 : "#8b5cf6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: exportandoPDF ? 0.5 : 1 }}
+              >{exportandoPDF ? "..." : "📄 Exportar PDF"}</button>
               <button onClick={recargarArchivos} disabled={archivosActualizando} style={{ background: archivosActualizando ? Th.card2 : "#3b82f6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: archivosActualizando ? 0.5 : 1 }}>
-                {archivosActualizando ? "Cargando..." : "🔄 Recargar archivos"}
+                {archivosActualizando ? "..." : "🔄 Archivos"}
               </button>
             </div>
 
-            {/* Guardar / Cancelar */}
+            {/* Cerrar / Guardar */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 10, borderTop: `1px solid ${Th.border}` }}>
-              <button onClick={onClose} style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>Cancelar</button>
+              <button onClick={onClose} style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>Cerrar</button>
               <button onClick={guardarCaso} disabled={guardando} style={{ background: guardando ? Th.card2 : "#10b981", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}>
-                {guardando ? "Guardando..." : "✓ Guardar caso"}
+                {guardando ? "Guardando..." : "✓ Guardar ahora"}
               </button>
             </div>
+            <div style={{ textAlign: "center", fontSize: 11, color: Th.muted, marginTop: 8 }}>Los cambios se guardan automáticamente</div>
           </div>
         </div>
       </div>

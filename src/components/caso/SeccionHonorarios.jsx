@@ -1,4 +1,5 @@
-import { ESTADOS_HONORARIOS, diasDesde } from "../../utils/casoDetalleUtils.js";
+import { diasDesde } from "../../utils/formatters.js";
+import { ESTADOS_HONORARIOS } from "../../constants.js";
 
 export default function SeccionHonorarios({ formData, onChange, Th }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };

@@ -7,7 +7,6 @@ import { RESULTADOS_CONTACTO, ESTADOS_CASO, VISTAS_C, TIPOS_DOC, ESTADOS_HONORAR
 
 // ── IMPORTS: UTILIDADES
 import { fmtDate, fmtMoney, primerNombre, cleanPhones, parsePAS, formatoFecha, diasDesde, waLink, getExtension, sanitizarNombre, verificarPermiso, sumarDias } from "./utils/formatters.js";
-import { buildAgendaCaso, syncCasoToAgenda, deleteCasoFromAgenda, syncMasivoCasos } from "./utils/sync.js";
 import { saveStorage, loadStorage, upsertPasManual, deletePasManual, insertHistorialEntry } from "./utils/storage.js";
 
 // ── IMPORTS: HOOKS
@@ -21,6 +20,7 @@ import TabClientes from './components/TabClientes.jsx'
 import TabContactos from './components/TabContactos.jsx'
 import TabContactados from './components/TabContactados.jsx'
 import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
+import TabCasos from './components/TabCasos.jsx'
 import PASCard from './components/PASCard.jsx'
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
@@ -127,6 +127,7 @@ export default function App() {
 
   const TABS = [
     { k: "dashboard", l: "Dashboard", icon: "📊" },
+    { k: "casos", l: "Casos", icon: "📂" },
     { k: "contactos", l: "Contactos", icon: "📞" },
     { k: "contactados", l: "Contactados", icon: "✓" },
     { k: "clientes", l: "Clientes", icon: "🏠" },
@@ -218,9 +219,7 @@ export default function App() {
     await saveStorage("pas_casos", updated);
     autoBackup(updated);
 
-    const nombre = pasNombre || (pas.find(p => p.id === pasId)?.nombre) || "";
-    await Promise.all(list.map(c => syncCasoToAgenda(c, nombre)));
-  }, [casos, pas, autoBackup]);
+  }, [casos, autoBackup]);
 
   const handleToggleDerivador = useCallback(async (pasId) => {
     const updated = { ...derivadores, [pasId]: !derivadores[pasId] };
@@ -392,6 +391,16 @@ export default function App() {
         {/* TABS CONTENT */}
         {!appLoading && pas.length > 0 && mainTab === "dashboard" && (
           <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />
+        )}
+
+        {!appLoading && pas.length > 0 && mainTab === "casos" && (
+          <TabCasos
+            pas={pas}
+            casos={casos}
+            onSaveCasos={handleSaveCasos}
+            darkMode={darkMode}
+            pasManuales={pasManuales}
+          />
         )}
 
         {!appLoading && pas.length > 0 && mainTab === "contactos" && (

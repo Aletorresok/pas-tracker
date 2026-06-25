@@ -1,6 +1,6 @@
 // casoDetalleComponents.jsx
 import { useState, useEffect, useRef } from "react";
-import { getExtension } from "../utils/casoDetalleUtils.js";
+import { getExtension } from "../utils/formatters.js";
 import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../utils/categorizarArchivo.js";
 
 // ─────────────────────────────────────────────────────────────────────────────

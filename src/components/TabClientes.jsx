@@ -5,7 +5,6 @@ import { ESTADOS_CASO } from "../constants.js";
 import EstadoSelector from "./caso/EstadoSelector.jsx";
 import CompaniaSelector, { useCompanias } from "./caso/CompaniaSelector.jsx";
 import CasoDetalle from "../CasoUnificado.jsx";
-import { deleteCasoFromAgenda } from "../utils/sync.js";
 import { deleteCaso } from "../utils/storage.js";
 
 const generateUUID = () => {
@@ -392,7 +391,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
       {filtered.map(p => (
         <ClienteCard key={p.id} pas={p} casos={casos[String(p.id)] || []}
           onAddCaso={() => setModalPas(p)}
-          onDeleteCaso={cid => { deleteCaso(cid); deleteCasoFromAgenda(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
+          onDeleteCaso={cid => { deleteCaso(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
           onDetalleCaso={c => { setCasoDetalle(c); setPasIdDetalle(p.id); }}
           expanded={expandedId === p.id}
           onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
@@ -421,6 +420,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
           <CasoDetalle
             caso={casoDetalle}
             pasId={pasIdDetalle}
+            pasNombre={[...pas, ...pasManuales].find(p => p.id === pasIdDetalle)?.nombre || ""}
             darkMode={darkMode}
             companias={companias}
             onAgregarCompania={agregarCompania}

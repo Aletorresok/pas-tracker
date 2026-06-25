@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { formatoFecha } from "../../utils/casoDetalleUtils.js";
+import { formatoFecha } from "../../utils/formatters.js";
 
 export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar, onEliminar, Th }) {
   const [modalOpen, setModalOpen] = useState(false);
