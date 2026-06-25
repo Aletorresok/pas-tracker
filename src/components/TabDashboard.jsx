@@ -293,6 +293,85 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         </div>
       )}
 
+      {/* COMPARATIVA COMPAÑÍAS */}
+      {(() => {
+        const porCompania = {};
+        allCasos.forEach(c => {
+          const comp = c.compania || c.compania_aseguradora;
+          if (!comp) return;
+          if (!porCompania[comp]) porCompania[comp] = { casos: [], nombre: comp };
+          porCompania[comp].casos.push(c);
+        });
+        const diff = (a, b) => { if (!a || !b) return null; return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86400000); };
+        const prom = (vals) => { const v = vals.filter(x => x !== null && x >= 0); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
+        const stats = Object.values(porCompania)
+          .map(g => {
+            const diasOfrecimiento = prom(g.casos.filter(c => c.fecha_ofrecimiento && c.fecha_inicio_reclamo).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento)));
+            const diasPago = prom(g.casos.filter(c => c.fecha_firma && c.fecha_inicio_reclamo).map(c => diff(c.fecha_inicio_reclamo, c.fecha_firma)));
+            const pctAcuerdo = (() => {
+              const validos = g.casos.filter(c => Number(c.monto_acordado) > 0 && Number(c.monto_ofrecimiento) > 0);
+              if (!validos.length) return null;
+              const avg = validos.reduce((s, c) => s + (Number(c.monto_acordado) / Number(c.monto_ofrecimiento)) * 100, 0) / validos.length;
+              return Math.round(avg);
+            })();
+            return { nombre: g.nombre, total: g.casos.length, diasOfrecimiento, diasPago, pctAcuerdo };
+          })
+          .filter(s => s.total >= 1 && (s.diasOfrecimiento !== null || s.diasPago !== null))
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10);
+        if (!stats.length) return null;
+        const maxDias = Math.max(...stats.map(s => Math.max(s.diasOfrecimiento || 0, s.diasPago || 0)), 1);
+        return (
+          <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>🏢 Plazos por compañía</div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+              {[
+                { color: "#3b82f6", label: "Días hasta ofrecimiento" },
+                { color: "#8b5cf6", label: "Días hasta pago" },
+                { color: "#22c55e", label: "% acuerdo/ofrecimiento" },
+              ].map(l => (
+                <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 3, background: l.color }} />
+                  <span style={{ fontSize: 10, color: subColor }}>{l.label}</span>
+                </div>
+              ))}
+            </div>
+            {stats.map((s, i) => (
+              <div key={s.nombre} style={{ marginBottom: i < stats.length - 1 ? 14 : 0, paddingBottom: i < stats.length - 1 ? 14 : 0, borderBottom: i < stats.length - 1 ? `1px solid ${darkMode ? "#1e293b44" : "#f1f5f9"}` : "none" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "65%" }}>{s.nombre}</div>
+                  <span style={{ fontSize: 10, color: subColor }}>{s.total} casos</span>
+                </div>
+                {s.diasOfrecimiento !== null && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <div style={{ height: 6, flex: 1, background: darkMode ? "#1e293b" : "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(s.diasOfrecimiento / maxDias) * 100}%`, background: "linear-gradient(90deg, #3b82f6, #60a5fa)", borderRadius: 3 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#3b82f6", minWidth: 32, textAlign: "right" }}>{s.diasOfrecimiento}d</span>
+                  </div>
+                )}
+                {s.diasPago !== null && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <div style={{ height: 6, flex: 1, background: darkMode ? "#1e293b" : "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(s.diasPago / maxDias) * 100}%`, background: "linear-gradient(90deg, #8b5cf6, #a78bfa)", borderRadius: 3 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#8b5cf6", minWidth: 32, textAlign: "right" }}>{s.diasPago}d</span>
+                  </div>
+                )}
+                {s.pctAcuerdo !== null && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ height: 6, flex: 1, background: darkMode ? "#1e293b" : "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.min(s.pctAcuerdo, 100)}%`, background: "linear-gradient(90deg, #22c55e, #4ade80)", borderRadius: 3 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#22c55e", minWidth: 32, textAlign: "right" }}>{s.pctAcuerdo}%</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* TIEMPOS PROMEDIO */}
       {metricas.totalDerAFirma !== null && (
         <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
