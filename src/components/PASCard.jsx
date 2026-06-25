@@ -19,7 +19,7 @@ function ActionToggle({ active, color, icon, label, sub, onClick }) {
   );
 }
 
-export default function PASCard({ pas, historial, derivadores, recordatorios, onContactar, onRegistrarContacto, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle, darkMode }) {
+export default function PASCard({ pas, historial, derivadores, recordatorios, onContactar, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle, darkMode }) {
   const contactos = historial[pas.id] || [];
   const ultimo = contactos[contactos.length - 1];
   const esDerivador = derivadores[pas.id] || false;
@@ -98,7 +98,7 @@ export default function PASCard({ pas, historial, derivadores, recordatorios, on
               <div>
                 <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4, fontWeight: 600 }}>Teléfonos</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                  {pas.telefonos.map(t => <a key={t} href={waLink(t, pas.nombre)} target="_blank" rel="noreferrer" onClick={() => { if (onRegistrarContacto && !historial[pas.id]?.length) onRegistrarContacto(pas); }} style={{ fontSize: 12, color: "#25d366", textDecoration: "none", background: "#25d36615", borderRadius: 6, padding: "3px 8px" }}>{t}</a>)}
+                  {pas.telefonos.map(t => <a key={t} href={waLink(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#25d366", textDecoration: "none", background: "#25d36615", borderRadius: 6, padding: "3px 8px" }}>{t}</a>)}
                 </div>
               </div>
             )}

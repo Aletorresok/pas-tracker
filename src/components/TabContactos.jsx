@@ -11,7 +11,6 @@ export default function TabContactos({
   descartados,
   darkMode,
   onContactar,
-  onRegistrarContacto,
   onToggleDerivador,
   onToggleDescartado,
 }) {
@@ -137,7 +136,6 @@ export default function TabContactos({
           derivadores={derivadores}
           recordatorios={recordatorios}
           onContactar={onContactar}
-          onRegistrarContacto={onRegistrarContacto}
           onToggleDerivador={onToggleDerivador}
           onToggleDescartado={onToggleDescartado}
           descartados={descartados}

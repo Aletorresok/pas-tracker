@@ -198,26 +198,24 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   }, [reloadAllData]);
 
-  const handleRegistrarContacto = useCallback(async (pas) => {
-    const entry = { fecha: new Date().toISOString().slice(0, 10), resultados: [], nota: "", ts: Date.now() };
-    const updated = { ...historial, [pas.id]: [...(historial[pas.id] || []), entry] };
-    setHistorial(updated);
-    await saveStorage("pas_historial", updated);
-  }, [historial]);
-
   const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, recordatorio }) => {
+    const pasId = modalPas.id;
     const entry = { fecha, resultados, nota, ts: Date.now() };
-    const updated = { ...historial, [modalPas.id]: [...(historial[modalPas.id] || []), entry] };
-    setHistorial(updated);
-    await saveStorage("pas_historial", updated);
+    setHistorial(prev => {
+      const updated = { ...prev, [pasId]: [...(prev[pasId] || []), entry] };
+      saveStorage("pas_historial", updated);
+      return updated;
+    });
 
     if (recordatorio && resultados.includes("volver_contactar")) {
-      const updatedRec = { ...recordatorios, [modalPas.id]: recordatorio };
-      setRecordatorios(updatedRec);
-      await saveStorage("pas_recordatorios", updatedRec);
+      setRecordatorios(prev => {
+        const updated = { ...prev, [pasId]: recordatorio };
+        saveStorage("pas_recordatorios", updated);
+        return updated;
+      });
     }
     setModalPas(null);
-  }, [historial, modalPas, recordatorios]);
+  }, [modalPas]);
 
   const handleSaveCasos = useCallback(async (pasId, list, pasNombre) => {
     const updated = { ...casos, [pasId]: list };
@@ -410,7 +408,6 @@ export default function App() {
             descartados={descartados}
             darkMode={darkMode}
             onContactar={setModalPas}
-            onRegistrarContacto={handleRegistrarContacto}
             onToggleDerivador={handleToggleDerivador}
             onToggleDescartado={handleToggleDescartado}
           />
