@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
 import { formatoFecha, getExtension, THEME } from "./utils/casoDetalleUtils.js";
-import { Toast, PreviewModal, ArchivoRow, ChecklistDocumental } from "./components/casoDetalleComponents.jsx";
+import { Toast, PreviewModal, ArchivoRow } from "./components/casoDetalleComponents.jsx";
 import { cargarArchivos } from "./utils/carpeta.js";
 import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
 import { generarEscrito } from "./utils/generarEscrito.js";
@@ -191,7 +191,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, darkMode, onUpdat
               <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
               <CarpetaLocal Th={Th} onToast={setToast} onPreview={arch => setPreviewArchivo(arch)} caso={caso} onDirHandleChange={h => { dirHandleRef.current = h; }} />
               <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>
-                <ChecklistDocumental archivos={archivos} Th={Th} />
                 {archivos.length === 0 && !archivosActualizando && (
                   <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>Sin archivos en este caso</div>
                 )}

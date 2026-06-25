@@ -296,7 +296,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
     if (filtroEstado !== "todos") {
       list = list.filter(p => (casos[String(p.id)] || []).some(c => c.estado === filtroEstado));
     }
-    return list;
+    return [...list].sort((a, b) => (casos[String(b.id)] || []).length - (casos[String(a.id)] || []).length);
   }, [clientes, busqueda, filtroEstado, casos]);
 
   const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
