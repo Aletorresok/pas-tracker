@@ -1,10 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Component } from "react";
 import { supabase } from "../../supabase.js";
 import { useRealtimeCasos } from "../../hooks/useRealtimeSync.js";
 import { ESTADOS_CASO, fmtDate, fmtMoney, theme } from "./portalTheme.js";
 import PortalCasoCard from "./PortalCasoCard.jsx";
 import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
 import GraficoCompanias from "../GraficoCompanias.jsx";
+
+class GraficoBoundary extends Component {
+  state = { error: false };
+  static getDerivedStateFromError() { return { error: true }; }
+  render() {
+    return this.state.error ? null : this.props.children;
+  }
+}
 
 const DEMO_CASO = {
   id: "demo",
@@ -156,15 +164,17 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
         {/* Gráfico compañías */}
         {todosLosCasos.length > 0 && (
-          <GraficoCompanias
-            allCasos={todosLosCasos}
-            darkMode={dark}
-            cardBg={T.card}
-            cardBorder={T.border}
-            textColor={T.text}
-            subColor={T.muted}
-            mostrarCasos={false}
-          />
+          <GraficoBoundary>
+            <GraficoCompanias
+              allCasos={todosLosCasos}
+              darkMode={dark}
+              cardBg={T.card}
+              cardBorder={T.border}
+              textColor={T.text}
+              subColor={T.muted}
+              mostrarCasos={false}
+            />
+          </GraficoBoundary>
         )}
 
         {/* Filtros */}

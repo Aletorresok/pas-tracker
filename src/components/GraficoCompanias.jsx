@@ -19,21 +19,23 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   const activeComp = selectedComp || (companias.length ? companias[0].nombre : "");
 
   const stats = useMemo(() => {
-    const comp = companias.find(c => c.nombre === activeComp);
-    if (!comp) return null;
-    const diff = (a, b) => { if (!a || !b) return null; return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86400000); };
-    const validos1 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_ofrecimiento).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento)).filter(d => d !== null && d >= 0 && d <= 730);
-    const validos2 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_cobro).map(c => diff(c.fecha_inicio_reclamo, c.fecha_cobro)).filter(d => d !== null && d >= 0 && d <= 730);
-    const validos3 = comp.casos.filter(c => Number(c.monto_cobro_asegurado) > 0 && Number(c.monto_reclamado) > 0).map(c => (Number(c.monto_cobro_asegurado) / Number(c.monto_reclamado)) * 100);
-    return {
-      diasOfrecimiento: validos1.length ? Math.round(validos1.reduce((s, x) => s + x, 0) / validos1.length) : null,
-      diasOfrecimientoCasos: validos1.length,
-      diasCobro: validos2.length ? Math.round(validos2.reduce((s, x) => s + x, 0) / validos2.length) : null,
-      diasCobroCasos: validos2.length,
-      pctCobro: validos3.length ? Math.round(validos3.reduce((s, x) => s + x, 0) / validos3.length) : null,
-      pctCobroCasos: validos3.length,
-      totalCasos: comp.total,
-    };
+    try {
+      const comp = companias.find(c => c.nombre === activeComp);
+      if (!comp) return null;
+      const diff = (a, b) => { if (!a || !b) return null; const d = Math.floor((new Date(String(b)).getTime() - new Date(String(a)).getTime()) / 86400000); return isFinite(d) ? d : null; };
+      const validos1 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_ofrecimiento).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento)).filter(d => d !== null && d >= 0 && d <= 730);
+      const validos2 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_cobro).map(c => diff(c.fecha_inicio_reclamo, c.fecha_cobro)).filter(d => d !== null && d >= 0 && d <= 730);
+      const validos3 = comp.casos.filter(c => Number(c.monto_cobro_asegurado) > 0 && Number(c.monto_reclamado) > 0).map(c => (Number(c.monto_cobro_asegurado) / Number(c.monto_reclamado)) * 100).filter(v => isFinite(v));
+      return {
+        diasOfrecimiento: validos1.length ? Math.round(validos1.reduce((s, x) => s + x, 0) / validos1.length) : null,
+        diasOfrecimientoCasos: validos1.length,
+        diasCobro: validos2.length ? Math.round(validos2.reduce((s, x) => s + x, 0) / validos2.length) : null,
+        diasCobroCasos: validos2.length,
+        pctCobro: validos3.length ? Math.round(validos3.reduce((s, x) => s + x, 0) / validos3.length) : null,
+        pctCobroCasos: validos3.length,
+        totalCasos: comp.total,
+      };
+    } catch { return null; }
   }, [activeComp, companias]);
 
   if (!companias.length) return null;

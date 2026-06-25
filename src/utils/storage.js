@@ -201,6 +201,15 @@ export async function upsertPasManual(pas) {
   if (error) console.error("[upsertPasManual] error:", error);
 }
 
+export async function deleteCaso(id) {
+  const { error } = await supabase
+    .from("pas_casos")
+    .delete()
+    .eq("id", id);
+
+  if (error) console.error("[deleteCaso] error:", error);
+}
+
 export async function deletePasManual(id) {
   const { error } = await supabase
     .from("pas_manuales")

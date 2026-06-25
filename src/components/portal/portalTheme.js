@@ -14,8 +14,11 @@ export const estadoInfo = k => ESTADOS_CASO.find(e => e.key === k) || ESTADOS_CA
 
 export const fmtDate = iso => {
   if (!iso) return "—";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${String(y).slice(-2)}`;
+  try {
+    const s = String(iso);
+    const [y, m, d] = s.slice(0, 10).split("-");
+    return `${d}/${m}/${String(y).slice(-2)}`;
+  } catch { return "—"; }
 };
 
 export const fmtMoney = n => {
