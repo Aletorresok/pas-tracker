@@ -26,7 +26,7 @@ export default function LoginScreen({ dark, onToggleDark }) {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
           <div style={{ fontSize: 11, color: "#6366f1", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 700 }}>PAS Tracker</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: T.text, letterSpacing: -0.5 }}>Portal de Derivadores</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: T.text, letterSpacing: -0.5 }}>Portal de Productores</div>
           <div style={{ fontSize: 14, color: T.muted, marginTop: 8 }}>Ingresá para ver el estado de tus casos</div>
         </div>
         <label style={{ display: "block", marginBottom: 16 }}>
