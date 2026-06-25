@@ -199,23 +199,19 @@ export default function App() {
   }, [reloadAllData]);
 
   const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, recordatorio }) => {
-    const pasId = modalPas.id;
     const entry = { fecha, resultados, nota, ts: Date.now() };
-    setHistorial(prev => {
-      const updated = { ...prev, [pasId]: [...(prev[pasId] || []), entry] };
-      saveStorage("pas_historial", updated);
-      return updated;
-    });
+    const updated = { ...historial, [modalPas.id]: [...(historial[modalPas.id] || []), entry] };
+    setHistorial(updated);
+    console.log("[handleSaveContacto] pasId:", modalPas.id, "entries:", updated[modalPas.id]?.length);
+    await saveStorage("pas_historial", updated);
 
     if (recordatorio && resultados.includes("volver_contactar")) {
-      setRecordatorios(prev => {
-        const updated = { ...prev, [pasId]: recordatorio };
-        saveStorage("pas_recordatorios", updated);
-        return updated;
-      });
+      const updatedRec = { ...recordatorios, [modalPas.id]: recordatorio };
+      setRecordatorios(updatedRec);
+      await saveStorage("pas_recordatorios", updatedRec);
     }
     setModalPas(null);
-  }, [modalPas]);
+  }, [historial, modalPas, recordatorios]);
 
   const handleSaveCasos = useCallback(async (pasId, list, pasNombre) => {
     const updated = { ...casos, [pasId]: list };

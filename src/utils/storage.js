@@ -37,13 +37,15 @@ export async function saveStorage(tabla, data) {
 
       if (!rows.length) return;
 
-      // Insertamos de a chunks para no superar límites
+      console.log("[saveStorage] pas_historial: guardando", rows.length, "rows");
       const CHUNK = 200;
       for (let i = 0; i < rows.length; i += CHUNK) {
-        const { error } = await supabase
+        const chunk = rows.slice(i, i + CHUNK);
+        const { error, data: result } = await supabase
           .from("pas_historial")
-          .upsert(rows.slice(i, i + CHUNK), { onConflict: "pas_id,ts" });
-        if (error) console.error("[saveStorage] pas_historial chunk error:", error);
+          .upsert(chunk, { onConflict: "pas_id,ts" });
+        if (error) console.error("[saveStorage] pas_historial chunk error:", error, "chunk:", JSON.stringify(chunk.slice(0, 2)));
+        else console.log("[saveStorage] pas_historial: chunk ok,", chunk.length, "rows");
       }
 
     } else if (tabla === "pas_casos") {
