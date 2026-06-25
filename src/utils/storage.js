@@ -15,38 +15,27 @@ function generateCasoId() {
   return ++casoIdCounter;
 }
 
+// ── HISTORIAL (insert individual) ─────────────────────────────────────────────
+export async function insertHistorialEntry(pasId, entry) {
+  const row = {
+    pas_id: parseInt(pasId, 10),
+    fecha: entry.fecha || "",
+    resultados: entry.resultados || [],
+    nota: entry.nota || "",
+    ts: entry.ts || Date.now(),
+  };
+  const { error } = await supabase.from("pas_historial").insert(row);
+  if (error) console.error("[insertHistorialEntry] error:", error);
+}
+
 // ── SAVE STORAGE ──────────────────────────────────────────────────────────────
-// Guarda historial, casos, derivadores, recordatorios, descartados en Supabase
+// Guarda casos, derivadores, recordatorios, descartados en Supabase
 
 export async function saveStorage(tabla, data) {
   try {
     if (tabla === "pas_historial") {
-      // data = { [pas_id]: [{fecha, resultados, nota, ts}] }
-      const rows = [];
-      Object.entries(data).forEach(([pas_id, entries]) => {
-        entries.forEach(entry => {
-          rows.push({
-            pas_id: parseInt(pas_id, 10),
-            fecha: entry.fecha || "",
-            resultados: entry.resultados || [],
-            nota: entry.nota || "",
-            ts: entry.ts || Date.now(),
-          });
-        });
-      });
-
-      if (!rows.length) return;
-
-      console.log("[saveStorage] pas_historial: guardando", rows.length, "rows");
-      const CHUNK = 200;
-      for (let i = 0; i < rows.length; i += CHUNK) {
-        const chunk = rows.slice(i, i + CHUNK);
-        const { error, data: result } = await supabase
-          .from("pas_historial")
-          .upsert(chunk, { onConflict: "pas_id,ts" });
-        if (error) console.error("[saveStorage] pas_historial chunk error:", error, "chunk:", JSON.stringify(chunk.slice(0, 2)));
-        else console.log("[saveStorage] pas_historial: chunk ok,", chunk.length, "rows");
-      }
+      // Ignorado — usar insertHistorialEntry() para guardar entries individuales
+      return;
 
     } else if (tabla === "pas_casos") {
       // data = { [pas_id]: [{...caso}] }

@@ -8,7 +8,7 @@ import { RESULTADOS_CONTACTO, ESTADOS_CASO, VISTAS_C, TIPOS_DOC, ESTADOS_HONORAR
 // ── IMPORTS: UTILIDADES
 import { fmtDate, fmtMoney, primerNombre, cleanPhones, parsePAS, formatoFecha, diasDesde, waLink, getExtension, sanitizarNombre, verificarPermiso, sumarDias } from "./utils/formatters.js";
 import { buildAgendaCaso, syncCasoToAgenda, deleteCasoFromAgenda, syncMasivoCasos } from "./utils/sync.js";
-import { saveStorage, loadStorage, upsertPasManual, deletePasManual } from "./utils/storage.js";
+import { saveStorage, loadStorage, upsertPasManual, deletePasManual, insertHistorialEntry } from "./utils/storage.js";
 
 // ── IMPORTS: HOOKS
 import { usePASData } from "./hooks/usePASData.js";
@@ -202,8 +202,7 @@ export default function App() {
     const entry = { fecha, resultados, nota, ts: Date.now() };
     const updated = { ...historial, [modalPas.id]: [...(historial[modalPas.id] || []), entry] };
     setHistorial(updated);
-    console.log("[handleSaveContacto] pasId:", modalPas.id, "entries:", updated[modalPas.id]?.length);
-    await saveStorage("pas_historial", updated);
+    await insertHistorialEntry(modalPas.id, entry);
 
     if (recordatorio && resultados.includes("volver_contactar")) {
       const updatedRec = { ...recordatorios, [modalPas.id]: recordatorio };
