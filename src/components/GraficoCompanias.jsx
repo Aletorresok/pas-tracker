@@ -13,7 +13,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
     });
     return Object.entries(porComp)
       .map(([nombre, casos]) => ({ nombre, casos, total: casos.length }))
-      .sort((a, b) => b.total - a.total);
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   }, [allCasos]);
 
   const activeComp = selectedComp || (companias.length ? companias[0].nombre : "");
