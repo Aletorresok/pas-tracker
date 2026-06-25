@@ -4,6 +4,7 @@ import { useRealtimeCasos } from "../../hooks/useRealtimeSync.js";
 import { ESTADOS_CASO, fmtDate, fmtMoney, theme } from "./portalTheme.js";
 import PortalCasoCard from "./PortalCasoCard.jsx";
 import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
+import GraficoCompanias from "../GraficoCompanias.jsx";
 
 const DEMO_CASO = {
   id: "demo",
@@ -34,6 +35,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [cambPwd, setCambPwd] = useState(false);
   const [filtro,  setFiltro]  = useState("todos");
   const [pasId,   setPasId]   = useState(null);
+  const [todosLosCasos, setTodosLosCasos] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -66,6 +68,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       setLoading(false);
     };
     loadData();
+    supabase.from("pas_casos").select("compania,compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
+      if (data) setTodosLosCasos(data);
+    });
   }, [session]);
 
   const handleRealtimeUpdate = useCallback((casoActualizado) => {
@@ -147,6 +152,19 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
               <div style={{ fontSize: 18, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
             </div>
           </div>
+        )}
+
+        {/* Gráfico compañías */}
+        {todosLosCasos.length > 0 && (
+          <GraficoCompanias
+            allCasos={todosLosCasos}
+            darkMode={dark}
+            cardBg={T.card}
+            cardBorder={T.border}
+            textColor={T.text}
+            subColor={T.muted}
+            mostrarCasos={false}
+          />
         )}
 
         {/* Filtros */}
