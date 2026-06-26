@@ -97,7 +97,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       if (c.estado === "cobrado" && c.monto_cobro_yo && c.fecha_cobro_honorarios) {
         const fecha = new Date(c.fecha_cobro_honorarios);
         const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
-        mapa[key] = (mapa[key] || 0) + Number(c.monto_cobro_yo);
+        mapa[key] = (mapa[key] || 0) + (Number(c.monto_cobro_yo) - (Number(c.monto_comision_pas) || 0));
       }
     });
     const datos = [];
@@ -110,8 +110,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   }, [allCasos]);
 
   const anoActual = hoy.getFullYear();
-  const cobradoEsteAno  = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const cobradoAnoAnt   = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual - 1))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const cobradoEsteAno  = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual))).reduce((s, c) => s + ((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0)), 0);
+  const cobradoAnoAnt   = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual - 1))).reduce((s, c) => s + ((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0)), 0);
   const varAnual = cobradoAnoAnt > 0 ? Math.round(((cobradoEsteAno - cobradoAnoAnt) / cobradoAnoAnt) * 100) : null;
 
   const mesKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
@@ -321,7 +321,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <GraficoBarras datos={facturacionMensual} darkMode={darkMode} mesSeleccionado={mesSeleccionado} onClickMes={setMesSeleccionado} />
         {mesSeleccionado && casosDelMes.length > 0 && (() => {
           const mesLabel = facturacionMensual.find(d => d.key === mesSeleccionado)?.mes || mesSeleccionado;
-          const totalMes = casosDelMes.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+          const totalMes = casosDelMes.reduce((s, c) => s + ((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0)), 0);
           return (
             <div style={{ marginTop: 16, borderTop: `1px solid ${cardBorder}`, paddingTop: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -334,7 +334,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                     <div style={{ fontSize: 13, fontWeight: 600, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
                     <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>{c.compania || "—"} · {fmtDate(c.fecha_cobro_honorarios)}</div>
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#6366f1", flexShrink: 0 }}>{fmtMoney(Number(c.monto_cobro_yo))}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#6366f1", flexShrink: 0 }}>{fmtMoney((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0))}</div>
                 </div>
               ))}
             </div>
