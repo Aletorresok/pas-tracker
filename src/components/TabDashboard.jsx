@@ -74,20 +74,17 @@ function GraficoBarras({ datos, darkMode, mesSeleccionado, onClickMes }) {
 
 export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onGoToClientes }) {
   const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
-  const totalCobradoYo     = allCasos.reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const totalCobradoYo     = allCasos.filter(c => c.fecha_cobro_honorarios).reduce((s, c) => s + ((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0)), 0);
   const totalComisionesPAS = allCasos.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
-  const totalPendiente     = allCasos.filter(c => c.estado === "esperando_pago").reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const totalPendiente     = allCasos.filter(c => !c.fecha_cobro_honorarios && (Number(c.monto_cobro_yo) || 0) > 0).reduce((s, c) => s + ((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0)), 0);
   const totalAcordado      = allCasos.reduce((s, c) => s + (Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0), 0);
   const enGestion          = allCasos.filter(c => !["cobrado", "desistido"].includes(c.estado)).length;
   const cobrados           = allCasos.filter(c => c.estado === "cobrado").length;
   const nDerivadores       = Object.values(derivadores).filter(Boolean).length;
 
-  const honorariosPendientes = allCasos
-    .filter(c => c.estado_honorarios !== "COBRADO" && (Number(c.monto_honorarios) > 0 || Number(c.monto_cobro_yo) > 0))
-    .reduce((s, c) => s + (Number(c.monto_honorarios) || Number(c.monto_cobro_yo) || 0), 0);
   const cobroAseguradoPendiente = allCasos
-    .filter(c => c.estado === "esperando_pago" && Number(c.monto_cobro_asegurado) > 0)
-    .reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
+    .filter(c => c.estado === "esperando_pago" && Number(c.monto_ofrecimiento) > 0)
+    .reduce((s, c) => s + (Number(c.monto_ofrecimiento) || 0), 0);
 
   const hoy = new Date();
 
@@ -204,9 +201,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <StatCard label="Casos cobrados" value={cobrados} color="#22c55e" sub={`${enGestion} en gestión`} dark={darkMode} icon="✅" />
       </div>
 
-      {/* HONORARIOS / COBRO PENDIENTE */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-        <StatCard label="Mis honorarios pendientes" value={fmtMoney(honorariosPendientes || null)} color={honorariosPendientes > 0 ? "#6366f1" : subColor} dark={darkMode} icon="💼" onClick={onGoToClientes} />
+      {/* COBRO PENDIENTE */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10, marginBottom: 12 }}>
         <StatCard label="Cobro asegurados pend." value={fmtMoney(cobroAseguradoPendiente || null)} color={cobroAseguradoPendiente > 0 ? "#22c55e" : subColor} dark={darkMode} icon="🕐" onClick={onGoToClientes} />
       </div>
 
