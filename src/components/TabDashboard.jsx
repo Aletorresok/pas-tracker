@@ -177,18 +177,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       });
   }, [allCasos]);
 
-  const metricas = useMemo(() => {
-    const diff = (a, b) => { if (!a || !b) return null; return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 86400000); };
-    const prom = (vals) => { const v = vals.filter(x => x !== null && x >= 0); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
-    return {
-      derivAContacto: prom(allCasos.map(c => diff(c.fecha_derivacion, c.fecha_contacto_asegurado))),
-      contactoAInicio: prom(allCasos.map(c => diff(c.fecha_contacto_asegurado, c.fecha_inicio_reclamo))),
-      inicioAOfrec: prom(allCasos.filter(c => c.fecha_ofrecimiento).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento))),
-      ofrecACobro: prom(allCasos.filter(c => c.estado === "cobrado" && c.fecha_firma).map(c => diff(c.fecha_ofrecimiento, c.fecha_firma))),
-      totalDerAFirma: prom(allCasos.filter(c => c.estado === "cobrado" && c.fecha_firma).map(c => diff(c.fecha_derivacion, c.fecha_firma))),
-    };
-  }, [allCasos]);
-
   const cardBg = darkMode ? "#111827" : "#fff";
   const cardBorder = darkMode ? "#1e293b" : "#e2e8f0";
   const textColor = darkMode ? "#f1f5f9" : "#1e293b";
@@ -403,39 +391,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* COMPARATIVA COMPAÑÍAS */}
       <GraficoCompanias allCasos={allCasos} darkMode={darkMode} cardBg={cardBg} cardBorder={cardBorder} textColor={textColor} subColor={subColor} />
 
-      {/* TIEMPOS PROMEDIO */}
-      {metricas.totalDerAFirma !== null && (
-        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14 }}>⚡ Tiempos promedio</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
-            <div style={{ fontSize: 32, fontWeight: 900, color: "#6366f1", lineHeight: 1 }}>{metricas.totalDerAFirma}d</div>
-            <div style={{ fontSize: 12, color: subColor }}>derivación → firma</div>
-          </div>
-          <div style={{ display: "flex", gap: 3, alignItems: "center", marginBottom: 12, height: 10 }}>
-            {[
-              { val: metricas.derivAContacto, color: "#22c55e" },
-              { val: metricas.contactoAInicio, color: "#3b82f6" },
-              { val: metricas.inicioAOfrec, color: "#f97316" },
-              { val: metricas.ofrecACobro, color: "#a855f7" },
-            ].filter(s => s.val !== null).map((s, i) => (
-              <div key={i} style={{ flex: s.val || 1, background: `linear-gradient(90deg, ${s.color}, ${s.color}88)`, borderRadius: 5, height: "100%", minWidth: 8 }} />
-            ))}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {[
-              { label: "Derivación → Contacto", val: metricas.derivAContacto, color: "#22c55e" },
-              { label: "Contacto → Inicio", val: metricas.contactoAInicio, color: "#3b82f6" },
-              { label: "Inicio → Ofrecimiento", val: metricas.inicioAOfrec, color: "#f97316" },
-              { label: "Ofrecimiento → Firma", val: metricas.ofrecACobro, color: "#a855f7" },
-            ].filter(s => s.val !== null).map(s => (
-              <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 3, background: s.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: subColor }}>{s.label}: <strong style={{ color: s.color }}>{s.val}d</strong></span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
