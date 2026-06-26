@@ -69,6 +69,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
   }, [allCasos, busqueda, filtroEstado, ordenCasos]);
 
   const handleDeleteCaso = (caso) => {
+    if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
     deleteCaso(caso.id);
     onSaveCasos(caso._pasId, (casos[String(caso._pasId)] || []).filter(c => c.id !== caso.id), caso._pasNombre);
   };

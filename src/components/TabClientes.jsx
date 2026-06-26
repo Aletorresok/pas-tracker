@@ -391,7 +391,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
       {filtered.map(p => (
         <ClienteCard key={p.id} pas={p} casos={casos[String(p.id)] || []}
           onAddCaso={() => setModalPas(p)}
-          onDeleteCaso={cid => { deleteCaso(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
+          onDeleteCaso={cid => { const caso = (casos[String(p.id)] || []).find(c => c.id === cid); if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso?.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return; deleteCaso(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
           onDetalleCaso={c => { setCasoDetalle(c); setPasIdDetalle(p.id); }}
           expanded={expandedId === p.id}
           onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}

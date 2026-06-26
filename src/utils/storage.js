@@ -193,11 +193,10 @@ export async function upsertPasManual(pas) {
 }
 
 export async function deleteCaso(id) {
-  const { error } = await supabase
-    .from("pas_casos")
-    .delete()
-    .eq("id", id);
+  const { error: errAcc } = await supabase.from("acciones").delete().eq("caso_id", id);
+  if (errAcc) console.error("[deleteCaso] error acciones:", errAcc);
 
+  const { error } = await supabase.from("pas_casos").delete().eq("id", id);
   if (error) console.error("[deleteCaso] error:", error);
 }
 

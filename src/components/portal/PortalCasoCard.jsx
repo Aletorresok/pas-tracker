@@ -101,11 +101,11 @@ export default function PortalCasoCard({ caso, dark }) {
             </div>
           )}
 
-          {MONTOS.filter(f => caso[f.k]).length > 0 && (
+          {MONTOS.filter(f => Number(caso[f.k]) > 0).length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700, marginBottom: 8 }}>Montos</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {MONTOS.filter(f => caso[f.k]).map(f => (
+                {MONTOS.filter(f => Number(caso[f.k]) > 0).map(f => (
                   <div key={f.k} style={{ background: T.card, borderRadius: 8, padding: "10px 12px", border: `1px solid ${f.c}33` }}>
                     <div style={{ fontSize: 10, color: f.c + "aa", marginBottom: 3 }}>{f.l}</div>
                     <div style={{ fontSize: 15, color: f.c, fontWeight: 800 }}>{fmtMoney(caso[f.k])}</div>
