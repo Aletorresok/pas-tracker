@@ -94,8 +94,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const facturacionMensual = useMemo(() => {
     const mapa = {};
     allCasos.forEach(c => {
-      if (c.estado === "cobrado" && c.monto_cobro_yo && c.fecha_ultimo_movimiento) {
-        const fecha = new Date(c.fecha_ultimo_movimiento);
+      if (c.estado === "cobrado" && c.monto_cobro_yo && c.fecha_cobro_honorarios) {
+        const fecha = new Date(c.fecha_cobro_honorarios);
         const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
         mapa[key] = (mapa[key] || 0) + Number(c.monto_cobro_yo);
       }
@@ -110,8 +110,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   }, [allCasos]);
 
   const anoActual = hoy.getFullYear();
-  const cobradoEsteAno  = allCasos.filter(c => c.estado === "cobrado" && c.fecha_ultimo_movimiento?.startsWith(String(anoActual))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
-  const cobradoAnoAnt   = allCasos.filter(c => c.estado === "cobrado" && c.fecha_ultimo_movimiento?.startsWith(String(anoActual - 1))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const cobradoEsteAno  = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
+  const cobradoAnoAnt   = allCasos.filter(c => c.estado === "cobrado" && c.fecha_cobro_honorarios?.startsWith(String(anoActual - 1))).reduce((s, c) => s + (Number(c.monto_cobro_yo) || 0), 0);
   const varAnual = cobradoAnoAnt > 0 ? Math.round(((cobradoEsteAno - cobradoAnoAnt) / cobradoAnoAnt) * 100) : null;
 
   const mesKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
@@ -187,8 +187,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const casosDelMes = useMemo(() => {
     if (!mesSeleccionado) return [];
     return allCasos.filter(c => {
-      if (c.estado !== "cobrado" || !c.monto_cobro_yo || !c.fecha_ultimo_movimiento) return false;
-      const fecha = new Date(c.fecha_ultimo_movimiento);
+      if (c.estado !== "cobrado" || !c.monto_cobro_yo || !c.fecha_cobro_honorarios) return false;
+      const fecha = new Date(c.fecha_cobro_honorarios);
       const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
       return key === mesSeleccionado;
     });
