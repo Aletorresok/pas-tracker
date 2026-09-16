@@ -88,6 +88,23 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const hoy = new Date();
 
+  // MEJORA 3: Lógica para Casos Dormidos (+15 días inactivos sin comentarios/movimientos)
+  const casosDormidos = useMemo(() => {
+    const limiteMs = hoy.getTime() - 15 * 86400000; 
+    return allCasos
+      .filter(c => !["cobrado", "desistido", "esperando_pago"].includes(c.estado))
+      .filter(c => {
+        const ultimaFech = c.fecha_ultimo_movimiento || c.fecha_derivacion;
+        if (!ultimaFech) return false;
+        return new Date(ultimaFech).getTime() < limiteMs;
+      })
+      .sort((a, b) => {
+        const fa = a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
+        const fb = b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
+        return fa.localeCompare(fb); // Los más viejos primero
+      });
+  }, [allCasos]);
+
   const facturacionMensual = useMemo(() => {
     const mapa = {};
     allCasos.forEach(c => {
@@ -145,6 +162,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       .filter(c => c.diasRestantes <= 15)
       .sort((a, b) => a.diasRestantes - b.diasRestantes);
   }, [allCasos]);
+  
+  const totalProximosPagos = proximosPagos.reduce((s, c) => s + (Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0), 0);
 
   const cobrosPendientes = useMemo(() => {
     const hoyMs = hoy.getTime();
@@ -193,24 +212,19 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   return (
     <div className="fade-in">
-      {/* RESUMEN FINANCIERO */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+      {/* MEJORA 1: RESUMEN FINANCIERO Y KPIs (Filas de 4) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
         <StatCard label="Total cobrado" value={fmtMoney(totalCobradoYo)} color="#6366f1" dark={darkMode} icon="💰" />
         <StatCard label="Esperando cobro" value={fmtMoney(totalPendiente)} color="#06b6d4" dark={darkMode} icon="⏳" />
         <StatCard label="Comisiones PAS" value={fmtMoney(totalComisionesPAS)} color="#eab308" dark={darkMode} icon="🤝" />
         <StatCard label="Casos cobrados" value={cobrados} color="#22c55e" sub={`${enGestion} en gestión`} dark={darkMode} icon="✅" />
       </div>
 
-      {/* COBRO PENDIENTE */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10, marginBottom: 12 }}>
-        <StatCard label="Cobro asegurados pend." value={fmtMoney(cobroAseguradoPendiente || null)} color={cobroAseguradoPendiente > 0 ? "#22c55e" : subColor} dark={darkMode} icon="🕐" onClick={onGoToClientes} />
-      </div>
-
-      {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
         <StatCard label="Total casos" value={allCasos.length} color="#6366f1" sub={`${enGestion} activos`} dark={darkMode} />
         <StatCard label="Derivadores" value={nDerivadores} color="#eab308" sub={`${Object.keys(casos).length} con casos`} dark={darkMode} />
         <StatCard label="Monto total" value={fmtMoney(totalAcordado)} color="#22c55e" dark={darkMode} />
+        <StatCard label="Asegurados Pend." value={fmtMoney(cobroAseguradoPendiente || 0)} color={cobroAseguradoPendiente > 0 ? "#f97316" : subColor} dark={darkMode} onClick={onGoToClientes} />
       </div>
 
       {/* EMBUDO DE ESTADOS */}
@@ -280,6 +294,34 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                     </div>
                   </div>
                   <Badge color={badgeColor}>{badgeText}</Badge>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* MEJORA 2: CASOS INACTIVOS (+15 DÍAS) */}
+      {casosDormidos.length > 0 && (
+        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #ef4444" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>💤 Casos Inactivos (+15 días)</span>
+            <Badge color="#ef4444">{casosDormidos.length}</Badge>
+          </div>
+          <div style={{ maxHeight: 250, overflowY: "auto", paddingRight: 4 }}>
+            {casosDormidos.map(c => {
+              const ultimaFech = c.fecha_ultimo_movimiento || c.fecha_derivacion;
+              const diasInactivo = Math.floor((hoy.getTime() - new Date(ultimaFech).getTime()) / 86400000);
+              const estadoObj = ESTADOS_CASO.find(e => e.key === c.estado);
+              return (
+                <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", marginBottom: 4, background: darkMode ? "#0b1121" : "#fafbfc", borderRadius: 8, border: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
+                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>
+                      {estadoObj?.emoji} {estadoObj?.label || c.estado} · Último mov: {fmtDate(ultimaFech)}
+                    </div>
+                  </div>
+                  <Badge color="#ef4444">{diasInactivo} días</Badge>
                 </div>
               );
             })}
@@ -365,7 +407,10 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* PRÓXIMOS PAGOS */}
       {proximosPagos.length > 0 && (
         <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #22c55e" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14 }}>💳 Próximos pagos (15 días)</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between" }}>
+            <span>💳 Próximos pagos (15 días)</span>
+            <span style={{ color: "#22c55e" }}>Total: {fmtMoney(totalProximosPagos)}</span>
+          </div>
           {proximosPagos.map(c => {
             const vencido = c.diasRestantes <= 0;
             const urgente = c.diasRestantes <= 3;
