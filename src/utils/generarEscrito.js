@@ -6,7 +6,22 @@ function formatoFecha(iso) {
   return `${d}/${m}/${String(y).slice(-2)}`;
 }
 
-export async function generarEscrito({ caso, pasId, dni, dirHandle, onSuccess, onError }) {
+const DOCUMENTAL_FIJA = [
+  "Denuncia administrativa",
+  "Certificado de cobertura",
+  "Fotos de los daños",
+  "DNI",
+  "Cédula / Título"
+];
+
+export async function generarEscrito({ 
+  caso, 
+  dni, 
+  dirHandle, 
+  opcionesDoc = {},
+  onSuccess, 
+  onError 
+}) {
   if (!dni?.trim()) {
     onError("DNI requerido");
     return;
@@ -17,32 +32,52 @@ export async function generarEscrito({ caso, pasId, dni, dirHandle, onSuccess, o
     const nombreCompleto = (caso.asegurado || "NOMBRE NO DISPONIBLE").toUpperCase();
     const compania = (caso.compania || caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
 
-    const contenido = `RECLAMO EXTRAJUDICIAL
-${compania}
-Reclamo de Terceros:
-
-Alexis Torres Gaveglio, abogado, inscripto al T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R, en representación de ${nombreCompleto}, DNI ${dni.trim()} vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.
-
-I. Acompaña:
-1. Denuncia administrativa
-2. Certificado de cobertura
-3. Fotos de los daños
-4. DNI (Frente y dorso)
-5. Cedula /Titulo
-6. Licencia de Conducir
-7. Presupuesto`;
+    // Armado del listado limpio
+    const listaDocumental = [...DOCUMENTAL_FIJA];
+    if (opcionesDoc.licencia) listaDocumental.push("Licencia de conducir");
+    if (opcionesDoc.presupuesto) listaDocumental.push("Presupuesto");
+    if (opcionesDoc.estudiosMedicos) listaDocumental.push("Estudios médicos / Constancia de atención");
+    if (opcionesDoc.cartaFranquicia) listaDocumental.push("Carta de franquicia");
 
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
     const margin = 20;
-    const contentWidth = 170;
+    const contentWidth = 170; // 210mm - (20mm * 2)
     let y = 25;
 
-    const lineas = doc.splitTextToSize(contenido, contentWidth);
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.text(lineas, margin, y);
+    // Encabezado
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("RECLAMO EXTRAJUDICIAL", margin, y);
+    y += 8;
 
+    doc.setFontSize(11);
+    doc.text(compania, margin, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.text("Reclamo de Terceros:", margin, y);
+    y += 12;
+
+    // Cuerpo con alineación justificada
+    const textoBase = `Alexis Torres Gaveglio, abogado, inscripto al T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R, responsable monotributo CUIT 20-39340318-8 en representación de ${nombreCompleto}, DNI ${dni.trim()}, constituyendo domicilio en Pte. Saenz Peña 943, Depto 76 piso 7, CABA, vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.`;
+
+    const lineasCuerpo = doc.splitTextToSize(textoBase, contentWidth);
+    doc.text(lineasCuerpo, margin, y, { align: "justify", maxWidth: contentWidth });
+
+    y += lineasCuerpo.length * 6 + 8;
+
+    // Documental Acompañada
+    doc.setFont("helvetica", "bold");
+    doc.text("I. Acompaña:", margin, y);
+    y += 7;
+
+    doc.setFont("helvetica", "normal");
+    listaDocumental.forEach((item, index) => {
+      doc.text(`${index + 1}. ${item}`, margin + 4, y);
+      y += 6;
+    });
+
+    // Descarga / Guardado
     const nombreArchivo = `Reclamo_${nombreCompleto.replace(/\s+/g, "_")}.pdf`;
 
     if (dirHandle) {
