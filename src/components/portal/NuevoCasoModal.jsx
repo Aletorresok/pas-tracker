@@ -10,6 +10,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   
   const [formData, setFormData] = useState({
     asegurado: "",
+    telefono: "",
     fecha_siniestro: "",
     compania: "",
   });
@@ -25,7 +26,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.asegurado || !formData.fecha_siniestro || !formData.compania) {
+    if (!formData.asegurado || !formData.telefono || !formData.fecha_siniestro || !formData.compania) {
       setError("Por favor completa los campos obligatorios.");
       return;
     }
@@ -34,16 +35,17 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
-      // 1. Guardar el caso en la base de datos
+      // 1. Guardar el caso en la base de datos usando 'tercero_contacto' para el teléfono
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
+        tercero_contacto: formData.telefono, // Mapeado a la columna existente en la DB
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
         compania_aseguradora: formData.compania,
         estado: "doc_pendiente", 
         fecha_derivacion: new Date().toISOString().slice(0, 10),
-        caso_id: String(Date.now()),
+        caso_id: Date.now(), // Es bigint en tu DB, va como número entero
       };
 
       const { data, error: dbError } = await supabase
@@ -54,15 +56,14 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
       if (dbError) throw dbError;
 
-      // 2. Subir los archivos a Supabase Storage y obtener los links públicos
+      // 2. Subir los archivos a Supabase Storage (balde 'adjuntos') y obtener links públicos
       const linksAdjuntos = [];
       if (archivos.length > 0) {
         for (let i = 0; i < archivos.length; i++) {
           const file = archivos[i];
-          // Generamos un nombre único para que no se pisen archivos con el mismo nombre
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-          const filePath = `${pasId}/${fileName}`; // Lo guardamos dentro de una carpeta con el ID del PAS
+          const filePath = `${pasId}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from("adjuntos")
@@ -88,6 +89,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       const templateParams = {
         pas_nombre: pasNombre || "PAS",
         asegurado: formData.asegurado,
+        telefono: formData.telefono,
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
         links_archivos: textoLinks,
@@ -134,6 +136,18 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               value={formData.asegurado} 
               onChange={handleChange} 
               placeholder="Ej: Pérez Juan"
+              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Teléfono del Asegurado *</label>
+            <input 
+              type="text" 
+              name="telefono" 
+              value={formData.telefono} 
+              onChange={handleChange} 
+              placeholder="Ej: 11 2345-6789"
               style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
             />
           </div>
