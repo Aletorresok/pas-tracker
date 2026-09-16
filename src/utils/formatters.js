@@ -41,7 +41,7 @@ export function waLink(phone, nombre) {
   const clean = phone.replace(/\D/g, "");
   const intl = clean.startsWith("54") ? clean : `54${clean}`;
   const n = primerNombre(nombre);
-  const msg = `Hola ${n}, cómo estás? Soy Alexis, abogado.\nTrabajo con productores de seguros cuando el asegurado quiere reclamarle a la compañía del tercero.\nTe hago una consulta rápida: cuando un cliente tuyo tiene un choque y quiere reclamar, ¿cómo lo manejás hoy?`;
+  const msg = `Hola ${n}, cómo estás? Soy Alexis Torres Gaveglio, abogado.\nTrabajo con productores de seguros cuando el asegurado quiere reclamarle a la compañía del tercero.\nTe hago una consulta rápida: cuando un cliente tuyo tiene un choque y quiere reclamar, ¿cómo lo manejás hoy?`;
   return `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
 }
 
