@@ -1,3 +1,4 @@
+import NuevoCasoModal from "./NuevoCasoModal.jsx";
 import { useState, useEffect, useCallback, Component } from "react";
 import { supabase } from "../../supabase.js";
 import { useRealtimeCasos } from "../../hooks/useRealtimeSync.js";
@@ -41,6 +42,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState("");
   const [cambPwd, setCambPwd] = useState(false);
+  const [modalNuevoCaso, setModalNuevoCaso] = useState(false); // Estado para el nuevo modal
   const [filtro,  setFiltro]  = useState("todos");
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState([]);
@@ -125,6 +127,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 1 }}>{pasInfo?.nombre || "Portal"}</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => setModalNuevoCaso(true)} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>➕ Nuevo Caso</button>
           <button onClick={onToggleDark} title={dark ? "Modo claro" : "Modo oscuro"} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 15 }}>
             {dark ? "☀️" : "🌙"}
           </button>
@@ -139,7 +142,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           {[
             { label: "Casos totales",  value: casos.length, color: "#6366f1" },
             { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
-{ label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
+            { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
           ].map(s => (
             <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
               <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
@@ -227,6 +230,17 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       </div>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
+
+      {/* Modal para derivar nuevo caso */}
+      {modalNuevoCaso && (
+        <NuevoCasoModal 
+          pasId={pasId} 
+          pasNombre={pasInfo?.nombre} 
+          onClose={() => setModalNuevoCaso(false)} 
+          onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev])} 
+          dark={dark} 
+        />
+      )}
     </div>
   );
 }
