@@ -14,7 +14,20 @@ export function usePASData() {
   const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Contactos — traer todos (Supabase pagina de a 1000)
+      // 1. Descartados (LO MOVIMOS ARRIBA DE TODO PARA USARLO DE FILTRO)
+      const { data: descartadosData } = await supabase
+        .from("pas_descartados")
+        .select("*");
+
+      const diccDescartados = {};
+      if (descartadosData?.length) {
+        descartadosData.filter(r => r.activo).forEach(r => {
+          diccDescartados[String(r.pas_id)] = true;
+        });
+        setDescartados(diccDescartados);
+      }
+
+      // 2. Contactos — traer todos (Supabase pagina de a 1000) y FILTRAR
       let contactosTodos = [];
       let from = 0;
       const CHUNK = 1000;
@@ -31,17 +44,20 @@ export function usePASData() {
       }
 
       if (contactosTodos.length) {
-        const lista = contactosTodos.map(p => ({
-          ...p,
-          id: p.id,
-          telefonos: Array.isArray(p.telefonos)
-            ? p.telefonos
-            : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
-        }));
+        const lista = contactosTodos
+          // LA LÍNEA MÁGICA: Si está en diccDescartados, lo ignora completamente
+          .filter(p => !diccDescartados[String(p.id)])
+          .map(p => ({
+            ...p,
+            id: p.id,
+            telefonos: Array.isArray(p.telefonos)
+              ? p.telefonos
+              : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
+          }));
         setPas(lista);
       }
 
-      // 2. Historial → { [pas_id]: [ {fecha, resultados, nota, ts} ] }
+      // 3. Historial
       const { data: historialData } = await supabase
         .from("pas_historial")
         .select("*")
@@ -62,7 +78,7 @@ export function usePASData() {
         setHistorial(h);
       }
 
-      // 3. Casos → { [pas_id]: [ {...caso} ] }
+      // 4. Casos
       const { data: casosData } = await supabase
         .from("pas_casos")
         .select("*");
@@ -78,7 +94,7 @@ export function usePASData() {
         setCasos(c);
       }
 
-      // 4. Derivadores → { [pas_id]: true }
+      // 5. Derivadores
       const { data: derivadoresData } = await supabase
         .from("pas_derivadores")
         .select("*");
@@ -91,7 +107,7 @@ export function usePASData() {
         setDerivadores(d);
       }
 
-      // 5. Recordatorios → { [pas_id]: "fecha" }
+      // 6. Recordatorios
       const { data: recordatoriosData } = await supabase
         .from("pas_recordatorios")
         .select("*");
@@ -106,31 +122,21 @@ export function usePASData() {
         setRecordatorios(r);
       }
 
-      // 6. Descartados → { [pas_id]: true }
-      const { data: descartadosData } = await supabase
-        .from("pas_descartados")
-        .select("*");
-
-      if (descartadosData?.length) {
-        const d = {};
-        descartadosData.filter(r => r.activo).forEach(r => {
-          d[String(r.pas_id)] = true;
-        });
-        setDescartados(d);
-      }
-
       // 7. Manuales
       const { data: manualesData } = await supabase
         .from("pas_manuales")
         .select("*");
 
       if (manualesData?.length) {
-        const lista = manualesData.map(p => ({
-          ...p,
-          telefonos: Array.isArray(p.telefonos)
-            ? p.telefonos
-            : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
-        }));
+        const lista = manualesData
+          // También filtramos los manuales por si descartaste alguno
+          .filter(p => !diccDescartados[String(p.id)])
+          .map(p => ({
+            ...p,
+            telefonos: Array.isArray(p.telefonos)
+              ? p.telefonos
+              : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
+          }));
         setPasManuales(lista);
       }
 

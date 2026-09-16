@@ -162,21 +162,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </div>
         )}
 
-        {/* Gráfico compañías */}
-        {todosLosCasos.length > 0 && (
-          <GraficoBoundary>
-            <GraficoCompanias
-              allCasos={todosLosCasos}
-              darkMode={dark}
-              cardBg={T.card}
-              cardBorder={T.border}
-              textColor={T.text}
-              subColor={T.muted}
-              mostrarCasos={false}
-            />
-          </GraficoBoundary>
-        )}
-
         {/* Filtros */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, paddingBottom: 6, marginBottom: 18 }}>
           {[{ key: "todos", label: "Todos", emoji: "📂", color: "#64748b" }, ...ESTADOS_CASO].map(e => {
@@ -221,6 +206,24 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             .sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || ""))
             .map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
         )}
+
+        {/* Gráfico compañías - Movido hacia abajo */}
+        {todosLosCasos.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <GraficoBoundary>
+              <GraficoCompanias
+                allCasos={todosLosCasos}
+                darkMode={dark}
+                cardBg={T.card}
+                cardBorder={T.border}
+                textColor={T.text}
+                subColor={T.muted}
+                mostrarCasos={false}
+              />
+            </GraficoBoundary>
+          </div>
+        )}
+
       </div>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
