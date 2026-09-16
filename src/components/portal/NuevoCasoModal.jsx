@@ -3,14 +3,6 @@ import emailjs from "@emailjs/browser";
 import { supabase } from "../../supabase.js";
 import { theme } from "./portalTheme.js";
 
-// Funciones auxiliares para convertir archivos locales a Base64 para EmailJS
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = (error) => reject(error);
-});
-
 export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, dark }) {
   const T = theme(dark);
   const [loading, setLoading] = useState(false);
@@ -42,7 +34,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
-      // 1. Guardar el caso en Supabase para que aparezca en tu panel de Admin
+      // 1. Guardar el caso en la base de datos
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
@@ -62,22 +54,43 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
       if (dbError) throw dbError;
 
-      // 2. Preparar los archivos adjuntos en formato Base64 para EmailJS
-      const adjuntosBase64 = {};
-      for (let i = 0; i < archivos.length; i++) {
-        const base64String = await fileToBase64(archivos[i]);
-        // EmailJS permite enviar parámetros de tipo attachment o variables mapeadas
-        adjuntosBase64[`attachment_${i + 1}`] = base64String;
+      // 2. Subir los archivos a Supabase Storage y obtener los links públicos
+      const linksAdjuntos = [];
+      if (archivos.length > 0) {
+        for (let i = 0; i < archivos.length; i++) {
+          const file = archivos[i];
+          // Generamos un nombre único para que no se pisen archivos con el mismo nombre
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+          const filePath = `${pasId}/${fileName}`; // Lo guardamos dentro de una carpeta con el ID del PAS
+
+          const { error: uploadError } = await supabase.storage
+            .from("adjuntos")
+            .upload(filePath, file);
+
+          if (!uploadError) {
+            const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
+            if (linkData?.publicUrl) {
+              linksAdjuntos.push(linkData.publicUrl);
+            }
+          } else {
+            console.error("Error subiendo archivo:", uploadError);
+          }
+        }
       }
 
-      // 3. Enviar el correo usando EmailJS con tus credenciales
+      // 3. Armar el texto con los links para el mail
+      const textoLinks = linksAdjuntos.length > 0
+        ? linksAdjuntos.map((link, i) => `🔗 Descargar Archivo ${i + 1}: ${link}`).join('\n')
+        : "No se adjuntaron archivos.";
+
+      // 4. Enviar el correo con EmailJS
       const templateParams = {
         pas_nombre: pasNombre || "PAS",
         asegurado: formData.asegurado,
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
-        cantidad_archivos: archivos.length > 0 ? `${archivos.length} archivo(s) adjunto(s)` : "Sin archivos adjuntos",
-        ...adjuntosBase64,
+        links_archivos: textoLinks,
       };
 
       await emailjs.send(
@@ -91,7 +104,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       onClose();
     } catch (err) {
       console.error("Error al derivar caso o enviar email:", err);
-      setError("El caso se guardó, pero hubo un error al enviar el correo. Verificá tu conexión.");
+      setError("El caso se guardó, pero hubo un problema procesando los archivos o enviando el aviso.");
     } finally {
       setLoading(false);
     }
