@@ -33,16 +33,15 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
-      // Preparamos el objeto exacto con las columnas que sabemos que existen en pas_casos
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
-        compania_aseguradora: formData.compania, // Por si tu app usa ambas columnas
+        compania_aseguradora: formData.compania,
         estado: "doc_pendiente", 
         fecha_derivacion: new Date().toISOString().slice(0, 10),
-        caso_id: String(Date.now()), // Genera un ID numérico único de referencia
+        caso_id: String(Date.now()),
       };
 
       const { data, error: dbError } = await supabase
@@ -52,8 +51,6 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         .single();
 
       if (dbError) throw dbError;
-
-      // TODO: Próximo paso: configurar el envío de archivos adjuntos por mail (EmailJS)
       
       onCasoCreado?.(data);
       onClose();
@@ -128,7 +125,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
           </div>
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-            <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</sup></button>
+            <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</button>
             <button type="submit" disabled={loading} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
               {loading ? "Enviando..." : "Derivar Caso"}
             </button>
