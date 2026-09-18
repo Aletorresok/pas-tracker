@@ -3,7 +3,7 @@ import emailjs from "@emailjs/browser";
 import { supabase } from "../../supabase.js";
 import { theme } from "./portalTheme.js";
 
-export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, dark }) {
+export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, dark, companias = [] }) {
   const T = theme(dark);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -165,14 +165,17 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
           <div>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Compañía Aseguradora del Tercero *</label>
-            <input 
-              type="text" 
+            <select 
               name="compania" 
               value={formData.compania} 
               onChange={handleChange} 
-              placeholder="Ej: Rivadavia, La Caja, etc."
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-            />
+              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", appearance: "none" }}
+            >
+              <option value="" disabled>Seleccionar compañía...</option>
+              {companias.map((comp) => (
+                <option key={comp.id || comp} value={comp.nombre || comp}>{comp.nombre || comp}</option>
+              ))}
+            </select>
           </div>
 
           <div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { supabase } from "../../supabase.js";
 import { ESTADOS_CASO, estadoInfo, fmtDate, fmtMoney, theme } from "./portalTheme.js";
 
 function PipelineBar({ estado, dark }) {
@@ -22,6 +23,9 @@ function PipelineBar({ estado, dark }) {
 
 export default function PortalCasoCard({ caso, dark }) {
   const [open, setOpen] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
+  const fileInputRef = useRef(null);
+  
   const T = theme(dark);
   const ei = estadoInfo(caso.estado);
   const logOrdenado = [...(caso.notas_log || [])].sort((a, b) => b.ts - a.ts);
@@ -47,6 +51,30 @@ export default function PortalCasoCard({ caso, dark }) {
     { k: "monto_cobro_yo", l: "Honorarios", c: "#6366f1" },
     { k: "monto_comision_pas", l: "Tu comisión", c: "#eab308" },
   ];
+
+  const handleSubirNuevaDoc = async (e) => {
+    const archivos = Array.from(e.target.files);
+    if (!archivos.length) return;
+    
+    setSubiendo(true);
+    try {
+      for (let file of archivos) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const filePath = `${caso.pas_id}/${fileName}`;
+        
+        const { error } = await supabase.storage.from("adjuntos").upload(filePath, file);
+        if (error) throw error;
+      }
+      alert("Documentación adjuntada al expediente correctamente.");
+    } catch (err) {
+      console.error("Error al subir:", err);
+      alert("Ocurrió un error al intentar subir la documentación.");
+    } finally {
+      setSubiendo(false);
+      if (fileInputRef.current) fileInputRef.current.value = null;
+    }
+  };
 
   return (
     <div style={{
@@ -143,6 +171,18 @@ export default function PortalCasoCard({ caso, dark }) {
               </div>
             </div>
           )}
+
+          {/* NUEVO BOTÓN DE ADJUNTAR */}
+          <div style={{ marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 16, textAlign: "center" }}>
+            <input type="file" multiple ref={fileInputRef} style={{ display: "none" }} onChange={handleSubirNuevaDoc} />
+            <button 
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
+              disabled={subiendo}
+              style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "8px 16px", cursor: subiendo ? "default" : "pointer", fontSize: 13, fontWeight: 700 }}
+            >
+              {subiendo ? "Subiendo archivos..." : "📎 Adjuntar nueva documentación"}
+            </button>
+          </div>
         </div>
       )}
     </div>

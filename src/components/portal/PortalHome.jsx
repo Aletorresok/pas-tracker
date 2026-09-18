@@ -42,7 +42,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState("");
   const [cambPwd, setCambPwd] = useState(false);
-  const [modalNuevoCaso, setModalNuevoCaso] = useState(false); // Estado para el nuevo modal
+  const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
   const [filtro,  setFiltro]  = useState("todos");
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState([]);
@@ -53,9 +53,19 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).single();
       if (linkErr || !link) { setError("Tu usuario no está vinculado a ningún PAS. Contactá al administrador."); setLoading(false); return; }
       setPasId(link.pas_id);
+      
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
       setPasInfo(pas);
-      const { data: casosData } = await supabase.from("pas_casos").select("*").eq("pas_id", link.pas_id);
+      
+      // LOGICA DE ADMINISTRADOR PARA VER TODOS LOS CASOS
+      let queryCasos = supabase.from("pas_casos").select("*");
+      if (session.user.email !== "atglexsolutions@gmail.com") {
+        queryCasos = queryCasos.eq("pas_id", link.pas_id);
+      } else {
+        queryCasos = queryCasos.order("created_at", { ascending: false }); 
+      }
+      const { data: casosData } = await queryCasos;
+
       if (casosData?.length) {
         const casoIds = casosData.map(c => c.id);
         const { data: accionesData } = await supabase.from("acciones").select("*").in("caso_id", casoIds).order("fecha", { ascending: false });
@@ -78,6 +88,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       setLoading(false);
     };
     loadData();
+
+    // Traemos información general para el gráfico y para armar la lista de compañías
     supabase.from("pas_casos").select("compania,compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
       if (data) setTodosLosCasos(data);
     });
@@ -101,6 +113,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
+
+  // Extraemos las compañías únicas de la base de datos general para pasarlas al select del modal
+  const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora || c.compania).filter(Boolean))].sort();
 
   if (loading) return (
     <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -238,7 +253,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           pasNombre={pasInfo?.nombre} 
           onClose={() => setModalNuevoCaso(false)} 
           onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev])} 
-          dark={dark} 
+          dark={dark}
+          companias={companiasUnicas}
         />
       )}
     </div>
