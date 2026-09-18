@@ -15,6 +15,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     compania: "",
   });
   const [archivos, setArchivos] = useState([]);
+  const [esOtraCompania, setEsOtraCompania] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -167,15 +168,35 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Compañía Aseguradora del Tercero *</label>
             <select 
               name="compania" 
-              value={formData.compania} 
-              onChange={handleChange} 
+              value={esOtraCompania ? "OTRA" : formData.compania} 
+              onChange={(e) => {
+                if (e.target.value === "OTRA") {
+                  setEsOtraCompania(true);
+                  setFormData({ ...formData, compania: "" });
+                } else {
+                  setEsOtraCompania(false);
+                  handleChange(e);
+                }
+              }} 
               style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", appearance: "none" }}
             >
               <option value="" disabled>Seleccionar compañía...</option>
               {companias.map((comp) => (
                 <option key={comp.id || comp} value={comp.nombre || comp}>{comp.nombre || comp}</option>
               ))}
+              <option value="OTRA">Otra nueva...</option>
             </select>
+
+            {esOtraCompania && (
+              <input 
+                type="text" 
+                name="compania" 
+                value={formData.compania} 
+                onChange={handleChange} 
+                placeholder="Escribí el nombre de la compañía"
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", marginTop: 8 }}
+              />
+            )}
           </div>
 
           <div>

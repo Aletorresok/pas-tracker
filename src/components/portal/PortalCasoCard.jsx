@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "../../supabase.js";
+import emailjs from "@emailjs/browser";
 import { ESTADOS_CASO, estadoInfo, fmtDate, fmtMoney, theme } from "./portalTheme.js";
 
 function PipelineBar({ estado, dark }) {
@@ -58,6 +59,7 @@ export default function PortalCasoCard({ caso, dark }) {
     
     setSubiendo(true);
     try {
+      const linksAdjuntos = [];
       for (let file of archivos) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
@@ -65,8 +67,29 @@ export default function PortalCasoCard({ caso, dark }) {
         
         const { error } = await supabase.storage.from("adjuntos").upload(filePath, file);
         if (error) throw error;
+        
+        // Obtener link para el correo
+        const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
+        if (linkData?.publicUrl) linksAdjuntos.push(linkData.publicUrl);
       }
-      alert("Documentación adjuntada al expediente correctamente.");
+
+      // Armar texto de links y enviar correo
+      const textoLinks = linksAdjuntos.map((link, i) => `🔗 Nuevo Archivo ${i + 1}: ${link}`).join('\n');
+      await emailjs.send(
+        "service_g5y3lf4",
+        "template_7y6omo1",
+        {
+          pas_nombre: caso.pas_nombre || "Productor",
+          asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",
+          telefono: caso.tercero_contacto || "Ya registrado",
+          fecha_siniestro: caso.fecha_siniestro || "Ya registrada",
+          compania: caso.compania_aseguradora || caso.compania,
+          links_archivos: textoLinks,
+        },
+        "uQTfm1gg21u5Wj6Z_"
+      );
+
+      alert("Documentación adjuntada y administrador notificado.");
     } catch (err) {
       console.error("Error al subir:", err);
       alert("Ocurrió un error al intentar subir la documentación.");
