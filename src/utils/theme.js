@@ -1,6 +1,6 @@
 // 🎛️ INTERRUPTOR DE DISEÑO
 // Escribí "slate" para el original (azulado) o "zinc" para el nuevo (gris/premium)
-const TEMA_ACTIVO = "zinc"; 
+const TEMA_ACTIVO = "slate"; 
 
 // ==========================================
 // 1. PALETAS DE COLORES
