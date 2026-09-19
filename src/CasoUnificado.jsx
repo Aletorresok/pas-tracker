@@ -14,6 +14,7 @@ import SeccionMontos from "./components/caso/SeccionMontos.jsx";
 import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
+import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
@@ -25,7 +26,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_reclamo","fecha_ultimo_reclamo","fecha_ofrecimiento","fecha_reconsideracion","fecha_aceptacion",
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
-  "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id"
+  "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -56,11 +57,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const [modalEscrito, setModalEscrito] = useState(false);
   const [dniEscrito, setDniEscrito] = useState("");
   const [opcionesDoc, setOpcionesDoc] = useState({
-  licencia: true,
-  presupuesto: true,
-  estudiosMedicos: false,
-  cartaFranquicia: false,
-});
+    licencia: true,
+    presupuesto: true,
+    estudiosMedicos: false,
+    cartaFranquicia: false,
+  });
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
   const dirHandleRef = useRef(null);
@@ -95,6 +96,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "",
     notas_log: casoProp.notas_log || [],
+    proxima_accion: casoProp.proxima_accion || "",
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -142,7 +144,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `✅ Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
-const handleGenerarEscrito = useCallback(async () => {
+  const handleGenerarEscrito = useCallback(async () => {
     setGenerandoEscrito(true);
     await generarEscrito({ caso, pasId, dni: dniEscrito, dirHandle: dirHandleRef.current, opcionesDoc, onSuccess: ({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); setModalEscrito(false); setDniEscrito(""); if (guardadoEn === "carpeta") recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
     setGenerandoEscrito(false);
@@ -152,7 +154,7 @@ const handleGenerarEscrito = useCallback(async () => {
     if (id) {
       const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota" }).eq("id", id);
       if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
-      setToast({ msg: "✅ Acción actualizada", type: "success" });
+      Toast({ msg: "✅ Acción actualizada", type: "success" });
     } else {
       const { error } = await supabase.from("acciones").insert({ caso_id: caso.id, descripcion, fecha, tipo: "nota" });
       if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
@@ -187,7 +189,7 @@ const handleGenerarEscrito = useCallback(async () => {
   const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
 
-return (
+  return (
     <>
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={onClose} />
 
@@ -209,6 +211,9 @@ return (
           </div>
 
           <div style={{ padding: 24 }}>
+            
+            <CasoProximaAccion formData={formData} onChange={handleFormChange} Th={Th} />
+
             <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
 
             {/* Documentos */}
