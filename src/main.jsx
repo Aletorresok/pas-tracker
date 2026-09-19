@@ -5,13 +5,18 @@ import './index.css'
 import App from './App.jsx'
 import Portal from './Portal.jsx'
 
+// Importamos el proveedor del tema global
+import { ThemeProvider } from './context/ThemeContext.jsx'
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/portal/*" element={<Portal />} />
-        <Route path="/*" element={<App />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/portal/*" element={<Portal />} />
+          <Route path="/*" element={<App />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
 )
