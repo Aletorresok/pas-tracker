@@ -87,32 +87,14 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const hoy = new Date();
 
-  // NUEVO: Panel de Pendientes de Gestión (Próxima Acción)
+  // Panel de Pendientes de Gestión (Próxima Acción)
   const misPendientes = useMemo(() => {
     return allCasos
       .filter(c => !["cobrado", "desistido"].includes(c.estado) && c.proxima_accion && c.proxima_accion.trim() !== "")
       .sort((a, b) => {
         const fa = a.updated_at || a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
         const fb = b.updated_at || b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
-        return fa.localeCompare(fb); // Ordenar por fecha del último movimiento
-      });
-  }, [allCasos]);
-
-  // CORREGIDO: Lógica para Casos Dormidos usando updated_at vinculado al trigger
-  const casosDormidos = useMemo(() => {
-    const limiteMs = hoy.getTime() - 15 * 86400000; 
-    return allCasos
-      .filter(c => !["cobrado", "desistido", "esperando_pago"].includes(c.estado))
-      .filter(c => {
-        // Priorizamos updated_at gracias al trigger de base de datos
-        const ultimaFech = c.updated_at || c.fecha_ultimo_movimiento || c.fecha_derivacion;
-        if (!ultimaFech) return false;
-        return new Date(ultimaFech).getTime() < limiteMs;
-      })
-      .sort((a, b) => {
-        const fa = a.updated_at || a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
-        const fb = b.updated_at || b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
-        return fa.localeCompare(fb); // Los más viejos primero
+        return fa.localeCompare(fb);
       });
   }, [allCasos]);
 
@@ -238,7 +220,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <StatCard label="Asegurados Pend." value={fmtMoney(cobroAseguradoPendiente || 0)} color={cobroAseguradoPendiente > 0 ? "#f97316" : subColor} dark={darkMode} onClick={onGoToClientes} />
       </div>
 
-      {/* NUEVO: MIS PENDIENTES DE GESTIÓN (PRÓXIMA ACCIÓN) */}
+      {/* MIS PENDIENTES DE GESTIÓN (PRÓXIMA ACCIÓN) */}
       {misPendientes.length > 0 && (
         <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #8b5cf6" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -329,34 +311,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                     </div>
                   </div>
                   <Badge color={badgeColor}>{badgeText}</Badge>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* CASOS INACTIVOS (+15 DÍAS) */}
-      {casosDormidos.length > 0 && (
-        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #ef4444" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>💤 Casos Inactivos (+15 días)</span>
-            <Badge color="#ef4444">{casosDormidos.length}</Badge>
-          </div>
-          <div style={{ maxHeight: 250, overflowY: "auto", paddingRight: 4 }}>
-            {casosDormidos.map(c => {
-              const ultimaFech = c.updated_at || c.fecha_ultimo_movimiento || c.fecha_derivacion;
-              const diasInactivo = Math.floor((hoy.getTime() - new Date(ultimaFech).getTime()) / 86400000);
-              const estadoObj = ESTADOS_CASO.find(e => e.key === c.estado);
-              return (
-                <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", marginBottom: 4, background: darkMode ? "#0b1121" : "#fafbfc", borderRadius: 8, border: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
-                    <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>
-                      {estadoObj?.emoji} {estadoObj?.label || c.estado} · Último mov: {fmtDate(ultimaFech)}
-                    </div>
-                  </div>
-                  <Badge color="#ef4444">{diasInactivo} días</Badge>
                 </div>
               );
             })}

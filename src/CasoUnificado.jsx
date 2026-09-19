@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
 import { formatoFecha, getExtension } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
-import { Toast, PreviewModal, ArchivoRow } from "./components/casoDetalleComponents.jsx";
+import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
 import { cargarArchivos } from "./utils/carpeta.js";
 import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
 import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
-import { CarpetaLocal } from "./components/CarpetaLocal.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
+
 import SeccionInfo from "./components/caso/SeccionInfo.jsx";
 import SeccionMontos from "./components/caso/SeccionMontos.jsx";
 import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
@@ -15,6 +15,8 @@ import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
+import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
+import CasoFooter from "./components/caso/CasoFooter.jsx";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
@@ -30,16 +32,13 @@ const PAS_CASOS_COLS = new Set([
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
-  Object.entries(obj)
-    .filter(([k]) => PAS_CASOS_COLS.has(k))
-    .map(([k, v]) => [k, v === "" ? null : v])
+  Object.entries(obj).filter(([k]) => PAS_CASOS_COLS.has(k)).map(([k, v]) => [k, v === "" ? null : v])
 );
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 };
 
@@ -59,36 +58,16 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const dirHandleRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    asegurado: casoProp.asegurado || "",
-    compania_aseguradora: casoProp.compania_aseguradora || "",
-    fecha_siniestro: casoProp.fecha_siniestro || "",
-    estado: casoProp.estado || "doc_pendiente",
-    monto_reclamado: casoProp.monto_reclamado || "",
-    monto_ofrecimiento: casoProp.monto_ofrecimiento || "",
-    estado_honorarios: casoProp.estado_honorarios || "NO_FACTURADO",
-    monto_honorarios: casoProp.monto_honorarios || "",
-    fecha_factura: casoProp.fecha_factura || "",
-    fecha_cobro_honorarios: casoProp.fecha_cobro_honorarios || "",
-    fecha_derivacion: casoProp.fecha_derivacion || "",
-    fecha_contacto_asegurado: casoProp.fecha_contacto_asegurado || "",
-    fecha_inicio_reclamo: casoProp.fecha_inicio_reclamo || "",
-    fecha_ultimo_movimiento: casoProp.fecha_ultimo_movimiento || "",
-    fecha_carga: casoProp.fecha_carga || "",
-    fecha_reclamo: casoProp.fecha_reclamo || "",
-    fecha_ultimo_reclamo: casoProp.fecha_ultimo_reclamo || "",
-    fecha_ofrecimiento: casoProp.fecha_ofrecimiento || "",
-    fecha_reconsideracion: casoProp.fecha_reconsideracion || "",
-    fecha_aceptacion: casoProp.fecha_aceptacion || "",
-    fecha_firma: casoProp.fecha_firma || "",
-    fecha_pago: casoProp.fecha_pago || "",
-    fecha_cobro: casoProp.fecha_cobro || "",
-    fecha_mediacion: casoProp.fecha_mediacion || "",
-    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "",
-    monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "",
-    monto_cobro_yo: casoProp.monto_cobro_yo || "",
-    monto_comision_pas: casoProp.monto_comision_pas || "",
-    notas_log: casoProp.notas_log || [],
-    proxima_accion: casoProp.proxima_accion || "",
+    asegurado: casoProp.asegurado || "", compania_aseguradora: casoProp.compania_aseguradora || "", fecha_siniestro: casoProp.fecha_siniestro || "",
+    estado: casoProp.estado || "doc_pendiente", monto_reclamado: casoProp.monto_reclamado || "", monto_ofrecimiento: casoProp.monto_ofrecimiento || "",
+    estado_honorarios: casoProp.estado_honorarios || "NO_FACTURADO", monto_honorarios: casoProp.monto_honorarios || "", fecha_factura: casoProp.fecha_factura || "",
+    fecha_cobro_honorarios: casoProp.fecha_cobro_honorarios || "", fecha_derivacion: casoProp.fecha_derivacion || "", fecha_contacto_asegurado: casoProp.fecha_contacto_asegurado || "",
+    fecha_inicio_reclamo: casoProp.fecha_inicio_reclamo || "", fecha_ultimo_movimiento: casoProp.fecha_ultimo_movimiento || "", fecha_carga: casoProp.fecha_carga || "",
+    fecha_reclamo: casoProp.fecha_reclamo || "", fecha_ultimo_reclamo: casoProp.fecha_ultimo_reclamo || "", fecha_ofrecimiento: casoProp.fecha_ofrecimiento || "",
+    fecha_reconsideracion: casoProp.fecha_reconsideracion || "", fecha_aceptacion: casoProp.fecha_aceptacion || "", fecha_firma: casoProp.fecha_firma || "",
+    fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
+    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
+    monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "",
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -99,19 +78,13 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     const current = JSON.stringify(formData);
     if (current === initialFormRef.current) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(() => {
-      guardarCasoRef.current?.();
-    }, 2500);
+    autoSaveTimerRef.current = setTimeout(() => { guardarCasoRef.current?.(); }, 2500);
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [formData]);
 
   useEffect(() => { recargarArchivos(); cargarAcciones(); }, [caso.id]);
 
-  useRealtimeSync("pas_casos", "id", caso.id, (datoActualizado) => {
-    setCaso(datoActualizado);
-    setFormData(prev => ({ ...prev, ...datoActualizado }));
-  });
-
+  useRealtimeSync("pas_casos", "id", caso.id, (dato) => { setCaso(dato); setFormData(p => ({ ...p, ...dato })); });
   useRealtimeAcciones(caso.id, () => { cargarAcciones(); });
 
   const recargarArchivos = async () => {
@@ -172,12 +145,19 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
   const handleFormChange = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
-  const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
+  const handleExportarPDF = async () => {
+    setExportandoPDF(true);
+    await exportarCasoPDF({ 
+      caso: { ...caso, ...formData }, pasNombre: pasNombre || "", acciones, 
+      onSuccess: ({ nombreArchivo }) => setToast({ msg: `✓ PDF descargado: ${nombreArchivo}`, type: "success" }), 
+      onError: msg => setToast({ msg, type: "error" }) 
+    });
+    setExportandoPDF(false);
+  };
 
   return (
     <>
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={onClose} />
-
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "auto", padding: 16 }}>
         <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)" }}>
 
@@ -196,76 +176,24 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
           </div>
 
           <div style={{ padding: 24 }}>
-            
             <CasoProximaAccion formData={formData} onChange={handleFormChange} Th={Th} />
-
             <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
-
-            {/* Documentos */}
-            <div style={sectionStyle}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
-              <CarpetaLocal Th={Th} onToast={setToast} onPreview={arch => setPreviewArchivo(arch)} caso={caso} onDirHandleChange={h => { dirHandleRef.current = h; }} />
-              <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>
-                {archivos.length === 0 && !archivosActualizando && (
-                  <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 13 }}>Sin archivos en este caso</div>
-                )}
-                {archivos.map(arch => (
-                  <ArchivoRow key={arch.nombre} archivo={arch} onPreview={() => setPreviewArchivo(arch)} onCategorizar={tipo => handleCategorizarArchivo(arch, tipo)} onRenombrar={nuevoNombre => handleRenombrarArchivo(arch, nuevoNombre)} Th={Th} />
-                ))}
-              </div>
-            </div>
+            
+            <CasoDocumentos Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
 
             <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
             <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
             <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} />
-
             <SeccionTimeline acciones={acciones} loading={loadingAcciones} onGuardar={handleGuardarAccion} onEliminar={handleEliminarAccion} Th={Th} />
 
-            {/* Acciones rápidas */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
-              <button onClick={() => setModalEscrito(true)} style={{ background: "#f97316", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>📝 Escrito</button>
-              <button
-                onClick={async () => {
-                  setExportandoPDF(true);
-                  await exportarCasoPDF({ caso: { ...caso, ...formData }, pasNombre: pasNombre || "", acciones, onSuccess: ({ nombreArchivo }) => setToast({ msg: `✓ PDF descargado: ${nombreArchivo}`, type: "success" }), onError: msg => setToast({ msg, type: "error" }) });
-                  setExportandoPDF(false);
-                }}
-                disabled={exportandoPDF}
-                style={{ background: exportandoPDF ? Th.card2 : "#8b5cf6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: exportandoPDF ? 0.5 : 1 }}
-              >{exportandoPDF ? "..." : "📄 Exportar PDF"}</button>
-              <button onClick={recargarArchivos} disabled={archivosActualizando} style={{ background: archivosActualizando ? Th.card2 : "#3b82f6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: archivosActualizando ? 0.5 : 1 }}>
-                {archivosActualizando ? "..." : "🔄 Archivos"}
-              </button>
-            </div>
-
-            {/* Cerrar / Guardar */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 10, borderTop: `1px solid ${Th.border}` }}>
-              <button onClick={onClose} style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>Cerrar</button>
-              <button onClick={guardarCaso} disabled={guardando} style={{ background: guardando ? Th.card2 : "#10b981", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}>
-                {guardando ? "Guardando..." : "✓ Guardar ahora"}
-              </button>
-            </div>
-            <div style={{ textAlign: "center", fontSize: 11, color: Th.muted, marginTop: 8 }}>Los cambios se guardan automáticamente</div>
+            <CasoFooter Th={Th} setModalEscrito={setModalEscrito} handleExportarPDF={handleExportarPDF} exportandoPDF={exportandoPDF} recargarArchivos={recargarArchivos} archivosActualizando={archivosActualizando} onClose={onClose} guardarCaso={guardarCaso} guardando={guardando} />
           </div>
         </div>
       </div>
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
-      <ModalGenerarEscrito
-        isOpen={modalEscrito}
-        onClose={() => setModalEscrito(false)}
-        caso={caso}
-        pasId={pasId}
-        dirHandle={dirHandleRef.current}
-        Th={Th}
-        onSuccess={({ guardadoEn }) => {
-          setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" });
-          if (guardadoEn === "carpeta") recargarArchivos();
-        }}
-        onError={msg => setToast({ msg, type: "error" })}
-      />
-
+      <ModalGenerarEscrito isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") recargarArchivos(); }} onError={msg => setToast({ msg, type: "error" })} />
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </>
   );
