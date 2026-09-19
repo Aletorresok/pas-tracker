@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { supabase } from "../../supabase.js";
 import { theme } from "./portalTheme.js";
@@ -8,14 +8,32 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  const [formData, setFormData] = useState({
-    asegurado: "",
-    telefono: "",
-    fecha_siniestro: "",
-    compania: "",
+  // 1. Inicializamos los datos leyendo la memoria primero
+  const [formData, setFormData] = useState(() => {
+    const borrador = sessionStorage.getItem("draft_nuevo_caso");
+    return borrador ? JSON.parse(borrador) : {
+      asegurado: "",
+      telefono: "",
+      fecha_siniestro: "",
+      compania: "",
+    };
   });
+  
   const [archivos, setArchivos] = useState([]);
-  const [esOtraCompania, setEsOtraCompania] = useState(false);
+  
+  // También guardamos si había elegido "Otra compañía"
+  const [esOtraCompania, setEsOtraCompania] = useState(() => {
+    return sessionStorage.getItem("draft_otra_compania") === "true";
+  });
+
+  // 2. Guardado automático: cada vez que formData cambia, actualizamos la memoria
+  useEffect(() => {
+    sessionStorage.setItem("draft_nuevo_caso", JSON.stringify(formData));
+  }, [formData]);
+
+  useEffect(() => {
+    sessionStorage.setItem("draft_otra_compania", esOtraCompania);
+  }, [esOtraCompania]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -102,6 +120,10 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         templateParams,
         "uQTfm1gg21u5Wj6Z_"
       );
+      
+      // 5. Carga exitosa: Limpiamos la memoria para que el próximo caso arranque en blanco
+      sessionStorage.removeItem("draft_nuevo_caso");
+      sessionStorage.removeItem("draft_otra_compania");
       
       onCasoCreado?.(data);
       onClose();
