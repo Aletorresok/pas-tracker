@@ -5,7 +5,6 @@ import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal, ArchivoRow } from "./components/casoDetalleComponents.jsx";
 import { cargarArchivos } from "./utils/carpeta.js";
 import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
-import { generarEscrito } from "./utils/generarEscrito.js";
 import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
 import { CarpetaLocal } from "./components/CarpetaLocal.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
@@ -15,6 +14,7 @@ import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
+import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
@@ -55,14 +55,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const [acciones, setAcciones] = useState([]);
   const [loadingAcciones, setLoadingAcciones] = useState(false);
   const [modalEscrito, setModalEscrito] = useState(false);
-  const [dniEscrito, setDniEscrito] = useState("");
-  const [opcionesDoc, setOpcionesDoc] = useState({
-    licencia: true,
-    presupuesto: true,
-    estudiosMedicos: false,
-    cartaFranquicia: false,
-  });
-  const [generandoEscrito, setGenerandoEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
   const dirHandleRef = useRef(null);
 
@@ -144,17 +136,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `✅ Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
-  const handleGenerarEscrito = useCallback(async () => {
-    setGenerandoEscrito(true);
-    await generarEscrito({ caso, pasId, dni: dniEscrito, dirHandle: dirHandleRef.current, opcionesDoc, onSuccess: ({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); setModalEscrito(false); setDniEscrito(""); if (guardadoEn === "carpeta") recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
-    setGenerandoEscrito(false);
-  }, [caso, pasId, dniEscrito, opcionesDoc]);
-
   const handleGuardarAccion = async ({ id, fecha, descripcion }) => {
     if (id) {
       const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota" }).eq("id", id);
       if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
-      Toast({ msg: "✅ Acción actualizada", type: "success" });
+      setToast({ msg: "✅ Acción actualizada", type: "success" });
     } else {
       const { error } = await supabase.from("acciones").insert({ caso_id: caso.id, descripcion, fecha, tipo: "nota" });
       if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
@@ -187,7 +173,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const handleFormChange = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
   const sectionStyle = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
-  const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
 
   return (
     <>
@@ -267,67 +252,19 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
-      {modalEscrito && (
-        <>
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 499 }} onClick={() => setModalEscrito(false)} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 500 }}>
-            <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 420, width: "100%" }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>📝 Generar escrito</div>
-              
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span style={labelStyle}>DNI del asegurado *</span>
-                <input value={dniEscrito} onChange={e => setDniEscrito(e.target.value)} placeholder="Ej: 25123456" style={Th.input} />
-              </label>
-
-              {/* Checkboxes de Documental Opcional */}
-              <div style={{ marginBottom: 18 }}>
-                <span style={{ ...labelStyle, marginBottom: 8 }}>Documental adicional a incluir:</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: Th.text }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={opcionesDoc.licencia}
-                      onChange={e => setOpcionesDoc(p => ({ ...p, licencia: e.target.checked }))}
-                    />
-                    Licencia de conducir
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={opcionesDoc.presupuesto}
-                      onChange={e => setOpcionesDoc(p => ({ ...p, presupuesto: e.target.checked }))}
-                    />
-                    Presupuesto
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={opcionesDoc.estudiosMedicos}
-                      onChange={e => setOpcionesDoc(p => ({ ...p, estudiosMedicos: e.target.checked }))}
-                    />
-                    Estudios médicos / Constancia de atención
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={opcionesDoc.cartaFranquicia}
-                      onChange={e => setOpcionesDoc(p => ({ ...p, cartaFranquicia: e.target.checked }))}
-                    />
-                    Carta de franquicia
-                  </label>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => { setModalEscrito(false); setDniEscrito(""); }} style={{ flex: 1, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-                <button onClick={handleGenerarEscrito} disabled={generandoEscrito || !dniEscrito.trim()} style={{ flex: 2, background: generandoEscrito || !dniEscrito.trim() ? Th.card2 : "#f97316", border: "none", borderRadius: 8, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
-                  {generandoEscrito ? "Generando..." : "Generar PDF"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ModalGenerarEscrito
+        isOpen={modalEscrito}
+        onClose={() => setModalEscrito(false)}
+        caso={caso}
+        pasId={pasId}
+        dirHandle={dirHandleRef.current}
+        Th={Th}
+        onSuccess={({ guardadoEn }) => {
+          setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" });
+          if (guardadoEn === "carpeta") recargarArchivos();
+        }}
+        onError={msg => setToast({ msg, type: "error" })}
+      />
 
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </>
