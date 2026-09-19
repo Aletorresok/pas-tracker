@@ -6,7 +6,26 @@ import { COLORES, THEME } from "../utils/theme.js";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-function StatCard({ label, value, color, sub, dark, icon, onClick, isHero = false }) {
+// 🧩 ÍCONOS SVG DE LÍNEA (Sin emojis de sistema operativo)
+const Iconos = {
+  money: (color) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+  ),
+  clock: (color) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+  ),
+  pointer: (color) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path><path d="m13 13 6 6"></path></svg>
+  ),
+  check: (color) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  ),
+  users: (color) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+  ),
+};
+
+function StatCard({ label, value, color, sub, dark, iconComponent, onClick, isHero = false }) {
   const Wrapper = onClick ? "button" : "div";
   const T = THEME(dark);
 
@@ -29,7 +48,7 @@ function StatCard({ label, value, color, sub, dark, icon, onClick, isHero = fals
             <div style={{ fontSize: 40, fontWeight: 800, color: COLORES.brand, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
             {sub && <div style={{ fontSize: 13, color: T.sub, marginTop: 8 }}>{sub}</div>}
           </div>
-          {icon && <div style={{ fontSize: 32, opacity: 0.4 }}>{icon}</div>}
+          {iconComponent && <div style={{ opacity: 0.8 }}>{iconComponent}</div>}
         </div>
         {onClick && <div style={{ fontSize: 12, color: COLORES.brand, marginTop: 10 }}>Ver detalle →</div>}
       </Wrapper>
@@ -53,7 +72,7 @@ function StatCard({ label, value, color, sub, dark, icon, onClick, isHero = fals
           <div style={{ fontSize: 24, fontWeight: 800, color: color || T.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
           {sub && <div style={{ fontSize: 11, color: T.sub, marginTop: 5 }}>{sub}</div>}
         </div>
-        {icon && <div style={{ fontSize: 24, opacity: 0.3 }}>{icon}</div>}
+        {iconComponent && <div style={{ opacity: 0.6 }}>{iconComponent}</div>}
       </div>
       {onClick && <div style={{ fontSize: 11, color: T.sub, marginTop: 6 }}>Ver detalle →</div>}
     </Wrapper>
@@ -117,7 +136,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const hoy = new Date();
 
-  // Panel de Pendientes de Gestión
   const misPendientes = useMemo(() => {
     return allCasos
       .filter(c => !["cobrado", "desistido"].includes(c.estado) && c.proxima_accion && c.proxima_accion.trim() !== "")
@@ -228,7 +246,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
     });
   }, [allCasos, mesSeleccionado]);
 
-  // Cálculo de distribución por los 4 grupos semánticos para la barra apilada
   const distribucionSemantica = useMemo(() => {
     const total = allCasos.length || 1;
     const grupos = {
@@ -243,7 +260,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       else if (["ofrecimiento", "mediacion", "en_juicio", "esperando_pago"].includes(c.estado)) grupos.gestion.count++;
       else if (c.estado === "cobrado") grupos.cobrado.count++;
       else if (c.estado === "desistido") grupos.desistido.count++;
-      else grupos.tramite.count++; // fallback
+      else grupos.tramite.count++;
     });
 
     return Object.values(grupos).map(g => ({ ...g, pct: (g.count / total) * 100 }));
@@ -251,13 +268,19 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   return (
     <div className="fade-in">
-      {/* TARJETA HERO (Única destacada en su propia fila con acento dorado) */}
-      <StatCard label="Comisión cobrada total" value={fmtMoney(totalCobradoYo)} isHero={true} dark={darkMode} icon="💰" />
+      {/* TARJETA HERO (Única con acento dorado exclusivo) */}
+      <StatCard 
+        label="Comisión cobrada total" 
+        value={fmtMoney(totalCobradoYo)} 
+        isHero={true} 
+        dark={darkMode} 
+        iconComponent={Iconos.money(COLORES.brand)} 
+      />
 
-      {/* FILA SECUNDARIA DE KPIS */}
+      {/* FILA SECUNDARIA DE KPIS (Comisiones PAS pasa a color neutro T.text) */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
         <StatCard label="Esperando cobro" value={fmtMoney(totalPendiente)} color={COLORES.info} dark={darkMode} />
-        <StatCard label="Comisiones PAS" value={fmtMoney(totalComisionesPAS)} color={COLORES.warning} dark={darkMode} />
+        <StatCard label="Comisiones PAS" value={fmtMoney(totalComisionesPAS)} color={T.text} dark={darkMode} />
         <StatCard label="Casos cobrados" value={cobrados} color={COLORES.success} sub={`${enGestion} en gestión`} dark={darkMode} />
         <StatCard label="Total casos" value={allCasos.length} color={T.text} sub={`${nDerivadores} derivadores`} dark={darkMode} />
       </div>
@@ -265,13 +288,13 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* DISTRIBUCIÓN POR ESTADO (Barra apilada horizontal unificada) */}
       {allCasos.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 12 }}>Distribución de casos por estado actual</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12 }}>Distribución de casos por estado actual</div>
           <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden", gap: 2, background: T.border, marginBottom: 10 }}>
             {distribucionSemantica.map((g, idx) => g.count > 0 && (
               <div key={idx} style={{ width: `${g.pct}%`, background: g.color, height: "100%", transition: "width .4s ease" }} title={`${g.label}: ${g.count} (${g.pct.toFixed(1)}%)`} />
             ))}
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 11, color: T.sub }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 11, color: T.text }}>
             {distribucionSemantica.map((g, idx) => (
               <div key={idx} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 3, background: g.color }} />
@@ -285,7 +308,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* MIS PENDIENTES DE GESTIÓN */}
       {misPendientes.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.warning}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Mis pendientes de gestión (próxima acción)</span>
             <Badge color={COLORES.warning}>{misPendientes.length}</Badge>
           </div>
@@ -297,7 +320,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                     {c.asegurado} <span style={{ fontWeight: 400, color: T.sub, fontSize: 11 }}>· {c.compania || "Sin Cía"}</span>
                   </div>
                   <div style={{ fontSize: 13, color: COLORES.warning, marginTop: 4, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                    <span>👉</span> {c.proxima_accion}
+                    <span style={{ display: "inline-flex", transform: "rotate(90deg)" }}>{Iconos.pointer(COLORES.warning)}</span> {c.proxima_accion}
                   </div>
                 </div>
               </div>
@@ -306,16 +329,16 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         </div>
       )}
 
-      {/* COBROS PENDIENTES */}
+      {/* COBROS PENDIENTES (Jerarquía marcada: Mis honorarios destacados) */}
       {cobrosPendientes.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.info}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Cobros pendientes</span>
             <Badge color={COLORES.info}>{cobrosPendientes.length}</Badge>
           </div>
-          <div style={{ display: "flex", gap: 12, marginBottom: 14, fontSize: 12 }}>
-            <span style={{ color: COLORES.success, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>Mis honorarios: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoYo, 0))}</span>
-            <span style={{ color: COLORES.info, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>Asegurados: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoAsegurado, 0))}</span>
+          <div style={{ display: "flex", gap: 16, marginBottom: 14, fontSize: 12 }}>
+            <span style={{ color: COLORES.success, fontWeight: 800, fontSize: 13, fontVariantNumeric: "tabular-nums" }}>Mis honorarios: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoYo, 0))}</span>
+            <span style={{ color: T.sub, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>Asegurados: {fmtMoney(cobrosPendientes.reduce((s, c) => s + c.montoAsegurado, 0))}</span>
           </div>
           <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 4 }}>
             {cobrosPendientes.map(c => {
@@ -345,7 +368,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* FACTURACIÓN */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px", borderLeft: `3px solid ${COLORES.info}` }}>
-          <div style={{ fontSize: 11, color: T.sub, marginBottom: 6, fontWeight: 600 }}>Este mes</div>
+          <div style={{ fontSize: 11, color: T.text, marginBottom: 6, fontWeight: 600 }}>Este mes</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: COLORES.info, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(cobradoEsteMes)}</div>
           {varMensual !== null && (
             <div style={{ fontSize: 11, color: varMensual >= 0 ? COLORES.success : COLORES.danger, marginTop: 4, fontWeight: 600 }}>
@@ -354,7 +377,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
           )}
         </div>
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px", borderLeft: `3px solid ${COLORES.warning}` }}>
-          <div style={{ fontSize: 11, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{anoActual}</div>
+          <div style={{ fontSize: 11, color: T.text, marginBottom: 6, fontWeight: 600 }}>{anoActual}</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: COLORES.warning, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(cobradoEsteAno)}</div>
           {varAnual !== null && (
             <div style={{ fontSize: 11, color: varAnual >= 0 ? COLORES.success : COLORES.danger, marginTop: 4, fontWeight: 600 }}>
@@ -366,7 +389,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 16px 10px", marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>Últimos 12 meses</div>
+          <div style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>Últimos 12 meses</div>
           {mesSeleccionado && <button onClick={() => setMesSeleccionado(null)} style={{ background: "none", border: "none", color: COLORES.info, cursor: "pointer", fontSize: 11, fontWeight: 600 }}>✕ Cerrar detalle</button>}
         </div>
         <GraficoBarras datos={facturacionMensual} darkMode={darkMode} mesSeleccionado={mesSeleccionado} onClickMes={setMesSeleccionado} />
@@ -396,7 +419,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* RANKING PAS */}
       {rankingPAS.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 14 }}>Ranking PAS</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 14 }}>Ranking PAS</div>
           {rankingPAS.map((p, i) => (
             <div key={p.nombre} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < rankingPAS.length - 1 ? `1px solid ${T.border}` : "none" }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: i === 0 ? COLORES.warning + "22" : T.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
@@ -410,7 +433,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
                 <div style={{ height: 4, background: T.border, borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${Math.max((p.cobrado / maxCobrado) * 100, p.total > 0 ? 4 : 0)}%`, background: i === 0 ? COLORES.warning : COLORES.info, borderRadius: 2, transition: "width .5s ease" }} />
                 </div>
-                <div style={{ fontSize: 11, color: T.sub, marginTop: 4 }}>{p.total} caso{p.total !== 1 ? "s" : ""}{p.activos > 0 ? ` · ${p.activos} activo${p.activos !== 1 ? "s" : ""}` : ""}</div>
+                <div style={{ fontSize: 11, color: T.text, marginTop: 4 }}>{p.total} caso{p.total !== 1 ? "s" : ""}{p.activos > 0 ? ` · ${p.activos} activo${p.activos !== 1 ? "s" : ""}` : ""}</div>
               </div>
             </div>
           ))}
@@ -420,7 +443,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {/* PRÓXIMOS PAGOS */}
       {proximosPagos.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.success}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 14, display: "flex", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 14, display: "flex", justifyContent: "space-between" }}>
             <span>Próximos pagos (15 días)</span>
             <span style={{ color: COLORES.success, fontVariantNumeric: "tabular-nums" }}>Total: {fmtMoney(totalProximosPagos)}</span>
           </div>
@@ -443,7 +466,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       )}
 
       {/* COMPARATIVA COMPAÑÍAS */}
-      <GraficoCompanias allCasos={allCasos} darkMode={darkMode} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} />
+      <GraficoCompanias allCasos={allCasos} darkMode={darkMode} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.text} />
     </div>
   );
 }
