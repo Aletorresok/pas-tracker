@@ -1,34 +1,44 @@
-const FECHAS = [
-  { k: "fecha_derivacion", l: "Derivación" },
-  { k: "fecha_contacto_asegurado", l: "Contacto asegurado" },
-  { k: "fecha_inicio_reclamo", l: "Inicio reclamo" },
-  { k: "fecha_ultimo_movimiento", l: "Último movimiento" },
-  { k: "fecha_carga", l: "Carga del caso" },
-  { k: "fecha_reclamo", l: "Reclamo" },
-  { k: "fecha_ultimo_reclamo", l: "Último reclamo" },
-  { k: "fecha_ofrecimiento", l: "Ofrecimiento (auto)" },
-  { k: "fecha_reconsideracion", l: "Reconsideración" },
-  { k: "fecha_aceptacion", l: "Aceptación" },
-  { k: "fecha_firma", l: "Firma acuerdo" },
-  { k: "fecha_pago", l: "Pago" },
-  { k: "fecha_cobro", l: "Cobro" },
-  { k: "fecha_mediacion", l: "Mediación" },
-  { k: "fecha_inicio_juicio", l: "Inicio de juicio" },
-];
+import React from "react";
 
 export default function SeccionFechas({ formData, onChange, Th }) {
-  const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
-  const inputStyle = Th.input;
+  const camposFechas = [
+    ["Derivación", "fecha_derivacion"],
+    ["Inicio de reclamo", "fecha_inicio_reclamo"],
+    ["Ofrecimiento", "fecha_ofrecimiento"],
+    ["Aceptación", "fecha_aceptacion"],
+    ["Fecha de pago", "fecha_pago"],
+    ["Cobro", "fecha_cobro"],
+    ["Mediación", "fecha_mediacion"],
+    ["Inicio de juicio", "fecha_inicio_juicio"]
+  ];
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📅 Fechas del expediente</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {FECHAS.map(f => (
-          <label key={f.k}>
-            <span style={labelStyle}>{f.l}</span>
-            <input type="date" value={formData[f.k] || ""} onChange={e => onChange(f.k, e.target.value)} style={inputStyle} />
-          </label>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 20, marginBottom: 20 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+        📅 Fechas del expediente
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+        {camposFechas.map(([label, key]) => (
+          <div key={key}>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: Th.sub, marginBottom: 6 }}>
+              {label}
+            </label>
+            <input
+              type="date"
+              value={formData[key] || ""}
+              onChange={(e) => onChange(key, e.target.value)}
+              style={{
+                width: "100%",
+                background: Th.card2,
+                border: `1px solid ${Th.border}`,
+                borderRadius: 8,
+                padding: "10px 12px",
+                color: Th.text,
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+          </div>
         ))}
       </div>
     </div>
