@@ -18,7 +18,6 @@ function StatCard({ label, value, color, sub, dark, icon, onClick }) {
       borderRadius: 12,
       padding: "14px 16px",
       transition: "all .2s",
-      ...(onClick ? {} : {}),
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
@@ -88,19 +87,31 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const hoy = new Date();
 
-  // MEJORA 3: Lógica para Casos Dormidos (+15 días inactivos sin comentarios/movimientos)
+  // NUEVO: Panel de Pendientes de Gestión (Próxima Acción)
+  const misPendientes = useMemo(() => {
+    return allCasos
+      .filter(c => !["cobrado", "desistido"].includes(c.estado) && c.proxima_accion && c.proxima_accion.trim() !== "")
+      .sort((a, b) => {
+        const fa = a.updated_at || a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
+        const fb = b.updated_at || b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
+        return fa.localeCompare(fb); // Ordenar por fecha del último movimiento
+      });
+  }, [allCasos]);
+
+  // CORREGIDO: Lógica para Casos Dormidos usando updated_at vinculado al trigger
   const casosDormidos = useMemo(() => {
     const limiteMs = hoy.getTime() - 15 * 86400000; 
     return allCasos
       .filter(c => !["cobrado", "desistido", "esperando_pago"].includes(c.estado))
       .filter(c => {
-        const ultimaFech = c.fecha_ultimo_movimiento || c.fecha_derivacion;
+        // Priorizamos updated_at gracias al trigger de base de datos
+        const ultimaFech = c.updated_at || c.fecha_ultimo_movimiento || c.fecha_derivacion;
         if (!ultimaFech) return false;
         return new Date(ultimaFech).getTime() < limiteMs;
       })
       .sort((a, b) => {
-        const fa = a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
-        const fb = b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
+        const fa = a.updated_at || a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
+        const fb = b.updated_at || b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
         return fa.localeCompare(fb); // Los más viejos primero
       });
   }, [allCasos]);
@@ -212,7 +223,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   return (
     <div className="fade-in">
-      {/* MEJORA 1: RESUMEN FINANCIERO Y KPIs (Filas de 4) */}
+      {/* RESUMEN FINANCIERO Y KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
         <StatCard label="Total cobrado" value={fmtMoney(totalCobradoYo)} color="#6366f1" dark={darkMode} icon="💰" />
         <StatCard label="Esperando cobro" value={fmtMoney(totalPendiente)} color="#06b6d4" dark={darkMode} icon="⏳" />
@@ -226,6 +237,30 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <StatCard label="Monto total" value={fmtMoney(totalAcordado)} color="#22c55e" dark={darkMode} />
         <StatCard label="Asegurados Pend." value={fmtMoney(cobroAseguradoPendiente || 0)} color={cobroAseguradoPendiente > 0 ? "#f97316" : subColor} dark={darkMode} onClick={onGoToClientes} />
       </div>
+
+      {/* NUEVO: MIS PENDIENTES DE GESTIÓN (PRÓXIMA ACCIÓN) */}
+      {misPendientes.length > 0 && (
+        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #8b5cf6" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>📝 Mis Pendientes de Gestión</span>
+            <Badge color="#8b5cf6">{misPendientes.length}</Badge>
+          </div>
+          <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
+            {misPendientes.map(c => (
+              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", marginBottom: 6, background: darkMode ? "#0b1121" : "#fafbfc", borderRadius: 8, border: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.asegurado} <span style={{ fontWeight: 400, color: subColor, fontSize: 11 }}>· {c.compania || "Sin Cía"}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: darkMode ? "#a78bfa" : "#7c3aed", marginTop: 4, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>👉</span> {c.proxima_accion}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* EMBUDO DE ESTADOS */}
       {allCasos.length > 0 && (() => {
@@ -301,7 +336,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         </div>
       )}
 
-      {/* MEJORA 2: CASOS INACTIVOS (+15 DÍAS) */}
+      {/* CASOS INACTIVOS (+15 DÍAS) */}
       {casosDormidos.length > 0 && (
         <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: "3px solid #ef4444" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -310,7 +345,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
           </div>
           <div style={{ maxHeight: 250, overflowY: "auto", paddingRight: 4 }}>
             {casosDormidos.map(c => {
-              const ultimaFech = c.fecha_ultimo_movimiento || c.fecha_derivacion;
+              const ultimaFech = c.updated_at || c.fecha_ultimo_movimiento || c.fecha_derivacion;
               const diasInactivo = Math.floor((hoy.getTime() - new Date(ultimaFech).getTime()) / 86400000);
               const estadoObj = ESTADOS_CASO.find(e => e.key === c.estado);
               return (
@@ -431,7 +466,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       {/* COMPARATIVA COMPAÑÍAS */}
       <GraficoCompanias allCasos={allCasos} darkMode={darkMode} cardBg={cardBg} cardBorder={cardBorder} textColor={textColor} subColor={subColor} />
-
     </div>
   );
 }
