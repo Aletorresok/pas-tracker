@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { fmtMoney, fmtDate } from "../../utils/formatters.js";
-import GraficoCompanias from "../GraficoCompanias.jsx";
+import { fmtMoney, fmtDate } from "../utils/formatters.js";
+import GraficoCompanias from "./GraficoCompanias.jsx";
 import StatCard from "./dashboard/StatCard.jsx";
 import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import MisPendientesCard from "./dashboard/MisPendientesCard.jsx";
 import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
 import RankingPASCard from "./dashboard/RankingPASCard.jsx";
-import { COLORES, THEME } from "../../utils/theme.js";
+import { COLORES, THEME } from "../utils/theme.js";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
