@@ -20,8 +20,12 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
           <span style={labelStyle}>Patente</span>
           <input 
             type="text" 
-            value={formData.patente || ""} 
-            onChange={e => onChange("patente", e.target.value.toUpperCase())} 
+            value={formData.patente || formData.dominio || ""} 
+            onChange={e => {
+              const val = e.target.value.toUpperCase();
+              onChange("patente", val);
+              onChange("dominio", val); // Sincronizamos ambos para evitar problemas de búsqueda
+            }} 
             placeholder="Ej: AB123CD"
             style={{ ...inputStyle, textTransform: "uppercase", textAlign: "center" }} 
           />

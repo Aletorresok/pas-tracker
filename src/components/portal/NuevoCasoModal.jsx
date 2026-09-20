@@ -14,6 +14,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       asegurado: "",
       telefono: "",
       patente: "",
+      dominio: "",
       fecha_siniestro: "",
       compania: "",
     };
@@ -35,10 +36,15 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ 
-      ...formData, 
-      [name]: name === "patente" ? value.toUpperCase() : value 
-    });
+    const finalValue = name === "patente" || name === "dominio" ? value.toUpperCase() : value;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: finalValue,
+      // Si cambia patente, actualizamos también dominio automáticamente (y viceversa)
+      ...(name === "patente" ? { dominio: finalValue } : {}),
+      ...(name === "dominio" ? { patente: finalValue } : {})
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -56,11 +62,14 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
+      const valorPatente = (formData.patente || formData.dominio || "").trim();
+
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
         tercero_contacto: formData.telefono,
-        patente: (formData.patente || "").trim(),
+        patente: valorPatente,
+        dominio: valorPatente, // Guardamos en ambas columnas de Supabase para asegurar que el cliente lo encuentre sin importar cuál lea el buscador
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
         compania_aseguradora: formData.compania,
@@ -201,7 +210,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               onChange={(e) => {
                 if (e.target.value === "OTRA") {
                   setEsOtraCompania(true);
-                  setFormData({ ...formData, compania: "" });
+                  setFormData(prev => ({ ...prev, compania: "" }));
                 } else {
                   setEsOtraCompania(false);
                   handleChange(e);
