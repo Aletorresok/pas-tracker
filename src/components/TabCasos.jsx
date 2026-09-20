@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { fmtMoney, fmtDate, diasDesde } from "../utils/formatters.js";
+import { fmtMoney, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import CasoDetalle from "../CasoUnificado.jsx";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
+import FiltrosEstados from "./caso/FiltrosEstados.jsx";
 import { deleteCaso } from "../utils/storage.js";
 
 const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { label: key || "—", emoji: "📄", color: "#64748b" };
@@ -10,7 +11,7 @@ const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { label: key 
 export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuales = [] }) {
   const { companias, agregarCompania: onAgregarCompania } = useCompanias(casos);
   const [busqueda, setBusqueda] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtrosEstados, setFiltrosEstados] = useState(() => ESTADOS_CASO.map(e => e.key));
   const [ordenCasos, setOrdenCasos] = useState("ultimo_mov");
   const [casoDetalle, setCasoDetalle] = useState(null);
   const [pasIdDetalle, setPasIdDetalle] = useState(null);
@@ -25,11 +26,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
   }, [casos, todosLosPas]);
 
   const filtered = useMemo(() => {
-    let list = allCasos;
-
-    if (filtroEstado !== "todos") {
-      list = list.filter(c => c.estado === filtroEstado);
-    }
+    let list = allCasos.filter(c => filtrosEstados.includes(c.estado));
 
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase();
@@ -43,11 +40,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
 
     switch (ordenCasos) {
       case "ultimo_mov":
-        list.sort((a, b) => {
-          const lastA = a.fecha_ultimo_movimiento || a.fecha_derivacion || "";
-          const lastB = b.fecha_ultimo_movimiento || b.fecha_derivacion || "";
-          return lastB.localeCompare(lastA);
-        });
+        list.sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
         break;
       case "alfabetico":
         list.sort((a, b) => (a.asegurado || "").localeCompare(b.asegurado || ""));
@@ -64,9 +57,8 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
         list.sort((a, b) => (a._pasNombre || "").localeCompare(b._pasNombre || ""));
         break;
     }
-
     return list;
-  }, [allCasos, busqueda, filtroEstado, ordenCasos]);
+  }, [allCasos, busqueda, filtrosEstados, ordenCasos]);
 
   const handleDeleteCaso = (caso) => {
     if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
@@ -79,41 +71,15 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
     border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
     borderRadius: 10,
     color: darkMode ? "#f1f5f9" : "#0f172a",
-    padding: "10px 14px",
-    fontSize: 14,
-    width: "100%",
-    boxSizing: "border-box",
-    outline: "none",
-    fontFamily: "inherit",
+    padding: "10px 14px", fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", fontFamily: "inherit",
   };
 
   return (
     <div>
-      {/* Filtros de estado */}
-      <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {ESTADOS_CASO.map(e => {
-            const cnt = allCasos.filter(c => c.estado === e.key).length;
-            const active = filtroEstado === e.key;
-            return (
-              <button key={e.key} onClick={() => setFiltroEstado(active ? "todos" : e.key)} style={{ flex: 1, minWidth: 58, background: active ? e.color + "28" : cnt > 0 ? e.color + "10" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${active ? e.color : cnt > 0 ? e.color + "33" : darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center", cursor: "pointer", transition: "all .15s" }}>
-                <div style={{ fontSize: 14 }}>{e.emoji}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div>
-                <div style={{ fontSize: 8, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <FiltrosEstados filtrosEstados={filtrosEstados} setFiltrosEstados={setFiltrosEstados} allCasos={allCasos} darkMode={darkMode} />
 
-      {/* Búsqueda y ordenamiento */}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-        <input
-          value={busqueda}
-          onChange={e => setBusqueda(e.target.value)}
-          placeholder="Buscar por asegurado, PAS, compañía o siniestro..."
-          style={{ ...iStyle, flex: 1, minWidth: 200 }}
-        />
+        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por asegurado, PAS, compañía o siniestro..." style={{ ...iStyle, flex: 1, minWidth: 200 }} />
         <select value={ordenCasos} onChange={e => setOrdenCasos(e.target.value)} style={{ ...iStyle, flex: "none", width: "auto", minWidth: 140, cursor: "pointer" }}>
           <option value="ultimo_mov">Último mov.</option>
           <option value="alfabetico">A → Z</option>
@@ -123,19 +89,15 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
         </select>
       </div>
 
-      {/* Contador */}
-      <div style={{ fontSize: 12, color: darkMode ? "#64748b" : "#94a3b8", marginBottom: 12 }}>
-        {filtered.length} caso{filtered.length !== 1 ? "s" : ""}{filtroEstado !== "todos" ? ` · ${estadoInfo(filtroEstado).emoji} ${estadoInfo(filtroEstado).label}` : ""}{busqueda.trim() ? ` · "${busqueda}"` : ""}
+      <div style={{ fontSize: 12, color: darkMode ? "#8D93A1" : "#6B7180", marginBottom: 12 }}>
+        {filtered.length} caso{filtered.length !== 1 ? "s" : ""} mostrados ({filtrosEstados.length} de {ESTADOS_CASO.length} estados activos)
       </div>
 
-      {/* Lista de casos */}
       {filtered.length === 0 && (
-        <div style={{ textAlign: "center", padding: "32px 16px", color: darkMode ? "#475569" : "#94a3b8" }}>
+        <div style={{ textAlign: "center", padding: "32px 16px", color: darkMode ? "#5A6273" : "#9CA3AF" }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
-          <div style={{ fontSize: 14 }}>Sin resultados{filtroEstado !== "todos" ? " para ese estado" : ""}</div>
-          {(filtroEstado !== "todos" || busqueda.trim()) && (
-            <button onClick={() => { setFiltroEstado("todos"); setBusqueda(""); }} style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 13, marginTop: 8 }}>Limpiar filtros</button>
-          )}
+          <div style={{ fontSize: 14 }}>Sin resultados con los filtros actuales</div>
+          <button onClick={() => { setFiltrosEstados(ESTADOS_CASO.map(e => e.key)); setBusqueda(""); }} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 13, marginTop: 8, fontWeight: 600 }}>Restablecer filtros</button>
         </div>
       )}
 
@@ -149,65 +111,48 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
             key={c.id}
             onClick={() => { setCasoDetalle(c); setPasIdDetalle(c._pasId); }}
             style={{
-              background: darkMode ? "#1e293b" : "#fff",
-              border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+              background: darkMode ? "#171E2B" : "#fff",
+              border: `1px solid ${darkMode ? "#252D3D" : "#E4E2DC"}`,
               borderLeft: `3px solid ${ei.color}`,
-              borderRadius: 10,
-              padding: "12px 14px",
-              marginBottom: 8,
-              cursor: "pointer",
-              transition: "border-color .15s, box-shadow .15s",
+              borderRadius: 10, padding: "12px 14px", marginBottom: 8, cursor: "pointer", transition: "border-color .15s, box-shadow .15s",
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = ei.color + "88"; e.currentTarget.style.boxShadow = `0 2px 8px ${ei.color}22`; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? "#2d3f55" : "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? "#252D3D" : "#E4E2DC"; e.currentTarget.style.boxShadow = "none"; }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontWeight: 700, color: darkMode ? "#E9E7E1" : "#1A1D24", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {c.asegurado || "Sin nombre"}
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
                   <span style={{ fontSize: 10, background: ei.color + "18", color: ei.color, border: `1px solid ${ei.color}33`, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
                     {ei.emoji} {ei.label}
                   </span>
-                  <span style={{ fontSize: 10, background: darkMode ? "#6366f115" : "#6366f110", color: "#818cf8", borderRadius: 6, padding: "2px 7px", border: "1px solid #6366f133", fontWeight: 600 }}>
+                  <span style={{ fontSize: 10, background: darkMode ? "#C9A22715" : "#C9A22710", color: "#C9A227", borderRadius: 6, padding: "2px 7px", border: "1px solid #C9A22733", fontWeight: 600 }}>
                     {c._pasNombre}
                   </span>
                   {c.compania && (
-                    <span style={{ fontSize: 10, background: darkMode ? "#1e293b" : "#f1f5f9", color: darkMode ? "#94a3b8" : "#64748b", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
+                    <span style={{ fontSize: 10, background: darkMode ? "#1E2738" : "#EFEFEA", color: darkMode ? "#8D93A1" : "#555B6E", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#252D3D" : "#E4E2DC"}` }}>
                       {c.compania}
                     </span>
                   )}
-                  {dias !== null && (
-                    <span style={{ fontSize: 10, color: darkMode ? "#64748b" : "#94a3b8" }}>
-                      {dias}d
-                    </span>
-                  )}
+                  {dias !== null && <span style={{ fontSize: 10, color: darkMode ? "#5A6273" : "#9CA3AF" }}>{dias}d</span>}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
-                {monto > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#6366f1" }}>{fmtMoney(monto)}</span>}
-                <button
-                  onClick={e => { e.stopPropagation(); handleDeleteCaso(c); }}
-                  style={{ background: "none", border: "none", color: darkMode ? "#334155" : "#cbd5e1", fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1 }}
-                  title="Eliminar caso"
-                >×</button>
+                {monto > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#C9A227" }}>{fmtMoney(monto)}</span>}
+                <button onClick={e => { e.stopPropagation(); handleDeleteCaso(c); }} style={{ background: "none", border: "none", color: darkMode ? "#5A6273" : "#9CA3AF", fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1 }} title="Eliminar caso">×</button>
               </div>
             </div>
           </div>
         );
       })}
 
-      {/* Modal detalle de caso */}
       {casoDetalle && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: darkMode ? "#111827" : "#f8fafc" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: darkMode ? "#10151F" : "#F7F6F2" }}>
           <CasoDetalle
-            caso={casoDetalle}
-            pasId={pasIdDetalle}
-            pasNombre={casoDetalle._pasNombre}
-            darkMode={darkMode}
-            companias={companias}
-            onAgregarCompania={onAgregarCompania}
+            caso={casoDetalle} pasId={pasIdDetalle} pasNombre={casoDetalle._pasNombre} darkMode={darkMode}
+            companias={companias} onAgregarCompania={onAgregarCompania}
             onUpdate={updated => {
               const cur = casos[String(pasIdDetalle)] || [];
               const pasNom = todosLosPas.find(p => String(p.id) === String(pasIdDetalle))?.nombre || "";
