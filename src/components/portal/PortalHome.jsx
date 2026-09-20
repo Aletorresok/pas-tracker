@@ -28,6 +28,7 @@ const DEMO_CASO = {
   monto_cobro_yo: "",
   monto_comision_pas: "",
   nota: "Este es un caso de ejemplo para que puedas ver cómo se verán tus casos reales.",
+  mensaje_cliente: "El reclamo ya fue ingresado a la compañía y estamos esperando la resolución del analista. Te aviso apenas tengamos novedades.",
   notas_log: [
     { texto: "Se inició el reclamo ante la aseguradora del tercero.", fecha: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), ts: Date.now() - 200000 },
     { texto: "Tomé contacto con el asegurado. Nos envió la documentación.", fecha: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10), ts: Date.now() - 300000 },
@@ -44,7 +45,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [cambPwd, setCambPwd] = useState(false);
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
   
-  // Filtro múltiple por estado (por defecto todos seleccionados)
   const [filtrosEstados, setFiltrosEstados] = useState(() => ESTADOS_CASO.map(e => e.key));
   
   const [pasId,   setPasId]   = useState(null);
@@ -110,7 +110,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
   useRealtimeCasos(pasId, handleRealtimeUpdate);
 
-  // Funciones de control para el filtro múltiple
   const toggleFiltroEstado = (key) => {
     setFiltrosEstados(prev => {
       if (prev.includes(key)) {
@@ -133,8 +132,12 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
-
   const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora || c.compania).filter(Boolean))].sort();
+
+  // Filtrar y ordenar pagos pendientes (los más próximos primero)
+  const pagosPendientes = casos
+    .filter(c => c.estado === "esperando_pago" || (c.fecha_pago && c.estado !== "cobrado" && c.estado !== "desistido"))
+    .sort((a, b) => new Date(a.fecha_pago || "2099-01-01") - new Date(b.fecha_pago || "2099-01-01"));
 
   if (loading) return (
     <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -170,112 +173,128 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         </div>
       </div>
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
-          {[
-            { label: "Casos totales",  value: casos.length, color: "#6366f1" },
-            { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
-            { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
-          ].map(s => (
-            <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: T.muted, marginTop: 5, fontWeight: 500 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Comisión */}
-        {comisionTotal > 0 && (
-          <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
-            <div>
-              <div style={{ fontSize: 11, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 700 }}>Tu comisión total cobrada</div>
-              <div style={{ fontSize: 26, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>Asegurados cobrados</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Filtro múltiple por estado */}
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", marginBottom: 18, boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, fontSize: 11, color: T.muted }}>
-            <span style={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar por estado (múltiple):</span>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>⚡ Solo activos</button>
-              <span>·</span>
-              <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>
-                {todosSeleccionados ? "Ninguno" : "Todos"}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {ESTADOS_CASO.map(e => {
-              const cnt = casos.filter(c => c.estado === e.key).length;
-              const active = filtrosEstados.includes(e.key);
-              return (
-                <button 
-                  key={e.key} 
-                  onClick={() => toggleFiltroEstado(e.key)} 
-                  style={{ 
-                    flex: 1, 
-                    minWidth: 54, 
-                    background: active ? e.color + "28" : T.card2, 
-                    border: `1px solid ${active ? e.color : T.border}`, 
-                    borderRadius: 8, 
-                    padding: "8px 4px", 
-                    textAlign: "center", 
-                    cursor: "pointer", 
-                    transition: "all .15s",
-                    opacity: active ? 1 : 0.45
-                  }}
-                >
-                  <div style={{ fontSize: 13 }}>{e.emoji}</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
-                  <div style={{ fontSize: 8, color: cnt > 0 ? e.color : T.muted, marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+      {/* NUEVO LAYOUT: Sidebar Izquierdo + Contenido Principal */}
+      <div style={{ display: "flex", gap: 24, maxWidth: 1050, margin: "0 auto", padding: "24px 16px", alignItems: "flex-start" }}>
+        
+        {/* SIDEBAR */}
+        <div style={{ width: 280, flexShrink: 0, position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+          
+          {/* Bloque de Filtros (Movido al sidebar) */}
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar Estado:</span>
+              <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+                <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>⚡ Activos</button>
+                <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>
+                  {todosSeleccionados ? "Ninguno" : "Todos"}
                 </button>
-              );
-            })}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              {ESTADOS_CASO.map(e => {
+                const cnt = casos.filter(c => c.estado === e.key).length;
+                const active = filtrosEstados.includes(e.key);
+                return (
+                  <button 
+                    key={e.key} 
+                    onClick={() => toggleFiltroEstado(e.key)} 
+                    style={{ background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "6px", textAlign: "center", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}
+                  >
+                    <div style={{ fontSize: 16 }}>{e.emoji}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bloque del Calendario de Pagos */}
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", maxHeight: 320, boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+            <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>📅 Futuros Pagos</div>
+            <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, paddingRight: 4 }}>
+              {pagosPendientes.length === 0 ? (
+                 <div style={{ fontSize: 12, color: T.sub, textAlign: "center", padding: "10px 0" }}>No hay pagos programados.</div>
+              ) : (
+                pagosPendientes.map(p => (
+                  <div key={p.id} style={{ background: T.card2, borderRadius: 8, padding: "10px", border: `1px solid ${T.border}` }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>{p.asegurado}</div>
+                    <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700 }}>
+                      {p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Casos */}
-        {casos.length > 0 && casos[0]?._demo && (
-          <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#818cf8" }}>
-            👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.
+        {/* CONTENIDO PRINCIPAL (Columna Derecha) */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          
+          {/* Stats Principales */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+            {[
+              { label: "Casos totales",  value: casos.length, color: "#6366f1" },
+              { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
+              { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
+            ].map(s => (
+              <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: 12, color: T.muted, marginTop: 5, fontWeight: 500 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
-        )}
-        {casosFiltrados.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "50px 20px" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-            <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con los filtros seleccionados</div>
-          </div>
-        ) : (
-          casosFiltrados
-            .sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || ""))
-            .map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
-        )}
 
-        {/* Gráfico compañías */}
-        {todosLosCasos.length > 0 && (
-          <div style={{ marginTop: 32 }}>
-            <GraficoBoundary>
-              <GraficoCompanias
-                allCasos={todosLosCasos}
-                darkMode={dark}
-                cardBg={T.card}
-                cardBorder={T.border}
-                textColor={T.text}
-                subColor={T.muted}
-                mostrarCasos={false}
-              />
-            </GraficoBoundary>
-          </div>
-        )}
+          {/* Comisión Total */}
+          {comisionTotal > 0 && (
+            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+              <div>
+                <div style={{ fontSize: 11, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 700 }}>Tu comisión total cobrada</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>Asegurados cobrados</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
+              </div>
+            </div>
+          )}
 
+          {/* Listado de Casos */}
+          {casos.length > 0 && casos[0]?._demo && (
+            <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#818cf8" }}>
+              👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.
+            </div>
+          )}
+          {casosFiltrados.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "50px 20px" }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+              <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con los filtros seleccionados</div>
+            </div>
+          ) : (
+            casosFiltrados
+              .sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || ""))
+              .map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
+          )}
+
+          {/* Gráfico de Compañías */}
+          {todosLosCasos.length > 0 && (
+            <div style={{ marginTop: 32 }}>
+              <GraficoBoundary>
+                <GraficoCompanias
+                  allCasos={todosLosCasos}
+                  darkMode={dark}
+                  cardBg={T.card}
+                  cardBorder={T.border}
+                  textColor={T.text}
+                  subColor={T.muted}
+                  mostrarCasos={false}
+                />
+              </GraficoBoundary>
+            </div>
+          )}
+
+        </div>
       </div>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}

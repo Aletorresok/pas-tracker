@@ -68,12 +68,10 @@ export default function PortalCasoCard({ caso, dark }) {
         const { error } = await supabase.storage.from("adjuntos").upload(filePath, file);
         if (error) throw error;
         
-        // Obtener link para el correo
         const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
         if (linkData?.publicUrl) linksAdjuntos.push(linkData.publicUrl);
       }
 
-      // Armar texto de links y enviar correo
       const textoLinks = linksAdjuntos.map((link, i) => `🔗 Nuevo Archivo ${i + 1}: ${link}`).join('\n');
       await emailjs.send(
         "service_g5y3lf4",
@@ -117,8 +115,16 @@ export default function PortalCasoCard({ caso, dark }) {
 
         <PipelineBar estado={caso.estado} dark={dark} />
 
+        {/* MENSAJE DIRECTO DE QUÉ DECIRLE AL CLIENTE */}
+        {caso.mensaje_cliente && (
+          <div style={{ marginTop: 12, background: dark ? "#f59e0b15" : "#fef3c7", border: "1px solid #f59e0b44", borderRadius: 8, padding: "10px 12px" }}>
+            <div style={{ fontSize: 10, color: "#d97706", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800, marginBottom: 4 }}>🗣️ Qué decirle al cliente</div>
+            <div style={{ fontSize: 13, color: T.text, fontWeight: 500, lineHeight: 1.4 }}>{caso.mensaje_cliente}</div>
+          </div>
+        )}
+
         {FECHAS_PREVIEW.filter(f => caso[f.k]).length > 0 && (
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
             {FECHAS_PREVIEW.filter(f => caso[f.k]).map(f => (
               <span key={f.k} style={{ fontSize: 11, background: T.card2, color: T.sub, borderRadius: 6, padding: "3px 8px", border: `1px solid ${T.border}` }}>📅 {f.l}: {fmtDate(caso[f.k])}</span>
             ))}
@@ -195,7 +201,6 @@ export default function PortalCasoCard({ caso, dark }) {
             </div>
           )}
 
-          {/* NUEVO BOTÓN DE ADJUNTAR */}
           <div style={{ marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 16, textAlign: "center" }}>
             <input type="file" multiple ref={fileInputRef} style={{ display: "none" }} onChange={handleSubirNuevaDoc} />
             <button 
