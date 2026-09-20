@@ -14,7 +14,7 @@ import { usePASData } from "./hooks/usePASData.js";
 
 // ── IMPORTS: COMPONENTES
 import LoginGate from "./components/LoginGate.jsx";
-import AppHeader from "./components/AppHeader.jsx";
+import SidebarNav from "./components/SidebarNav.jsx";
 import CasoDetalle from './CasoUnificado.jsx'
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
@@ -164,8 +164,9 @@ export default function App() {
   if (!unlocked) return <LoginGate onUnlock={() => setUnlocked(true)} />;
 
   return (
-    <div style={{ background: T.bg, color: T.text, minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <AppHeader
+    <div style={{ background: T.bg, color: T.text, minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", display: "flex" }}>
+      {/* SIDEBAR DE NAVEGACIÓN */}
+      <SidebarNav
         pasCount={pas.length}
         mainTab={mainTab}
         setMainTab={setMainTab}
@@ -174,40 +175,42 @@ export default function App() {
         onRestore={handleRestore}
       />
 
-      {/* CONTENT */}
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: "20px 20px 60px" }}>
-        {pas.length === 0 && !appLoading && (
-          <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: 16, padding: "32px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card2, transition: "border-color .2s" }}>
-            <div style={{ fontSize: 32 }}>📂</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.sub }}>Cargar listado_productores.xlsx</div>
-            <div style={{ fontSize: 12, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
-            <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
-          </label>
-        )}
-        
-        {appLoading && (
-          <div style={{ textAlign: "center", padding: 48, color: T.muted }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-            <div>Procesando el archivo...</div>
-          </div>
-        )}
+      {/* CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO PARA EL SIDEBAR Y ANCHO MÁXIMO AMPLIADO */}
+      <main style={{ marginLeft: 240, flex: 1, minHeight: "100vh" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 80px" }}>
+          {pas.length === 0 && !appLoading && (
+            <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: 16, padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
+              <div style={{ fontSize: 36 }}>📂</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
+              <div style={{ fontSize: 13, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
+              <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
+            </label>
+          )}
+          
+          {appLoading && (
+            <div style={{ textAlign: "center", padding: 64, color: T.muted }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
+              <div>Procesando el archivo...</div>
+            </div>
+          )}
 
-        {!appLoading && pas.length === 0 && (
-          <div style={{ textAlign: "center", padding: 64 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <div style={{ fontSize: 16, color: T.sub }}>Cargá el archivo Excel para comenzar</div>
-            <div style={{ fontSize: 12, marginTop: 6, color: T.muted }}>Tu seguimiento se guarda automáticamente</div>
-          </div>
-        )}
+          {!appLoading && pas.length === 0 && (
+            <div style={{ textAlign: "center", padding: 80 }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+              <div style={{ fontSize: 16, color: T.sub, fontWeight: 500 }}>Cargá el archivo Excel para comenzar</div>
+              <div style={{ fontSize: 13, marginTop: 6, color: T.muted }}>Tu seguimiento se guarda automáticamente</div>
+            </div>
+          )}
 
-        {/* TABS CONTENT */}
-        {!appLoading && pas.length > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />}
-        {!appLoading && pas.length > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} />}
-        {!appLoading && pas.length > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
-        {!appLoading && pas.length > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
-        {!appLoading && pas.length > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
-        {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
-      </div>
+          {/* TABS CONTENT */}
+          {!appLoading && pas.length > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />}
+          {!appLoading && pas.length > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} />}
+          {!appLoading && pas.length > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
+          {!appLoading && pas.length > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
+          {!appLoading && pas.length > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
+          {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
+        </div>
+      </main>
 
       {/* MODALES */}
       {modalPas && <ContactModal pas={modalPas} onClose={() => setModalPas(null)} onSave={handleSaveContacto} darkMode={darkMode} />}
