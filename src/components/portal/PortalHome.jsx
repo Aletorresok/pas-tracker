@@ -27,12 +27,9 @@ const DEMO_CASO = {
   monto_cobro_asegurado: "",
   monto_cobro_yo: "",
   monto_comision_pas: "",
-  nota: "Este es un caso de ejemplo para que puedas ver cómo se verán tus casos reales.",
-  mensaje_cliente: "El reclamo ya fue ingresado a la compañía y estamos esperando la resolución del analista. Te aviso apenas tengamos novedades.",
-  notas_log: [
-    { texto: "Se inició el reclamo ante la aseguradora del tercero.", fecha: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), ts: Date.now() - 200000 },
-    { texto: "Tomé contacto con el asegurado. Nos envió la documentación.", fecha: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10), ts: Date.now() - 300000 },
-  ],
+  nota: "Este es un caso de ejemplo.",
+  mensaje_cliente: "El reclamo ya fue ingresado a la compañía.",
+  notas_log: [],
   _demo: true,
 };
 
@@ -54,7 +51,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     const loadData = async () => {
       setLoading(true);
       const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).single();
-      if (linkErr || !link) { setError("Tu usuario no está vinculado a ningún PAS. Contactá al administrador."); setLoading(false); return; }
+      if (linkErr || !link) { setError("Tu usuario no está vinculado a ningún PAS."); setLoading(false); return; }
       setPasId(link.pas_id);
       
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
@@ -78,9 +75,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         });
         const casosConAcciones = casosData.map(c => {
           const dbAcciones = accionesPorCaso[c.id] || [];
-          const oldLog = (c.notas_log || []).filter(n =>
-            !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha)
-          );
+          const oldLog = (c.notas_log || []).filter(n => !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha));
           return { ...c, notas_log: [...dbAcciones, ...oldLog] };
         });
         setCasos(casosConAcciones);
@@ -110,97 +105,59 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
   useRealtimeCasos(pasId, handleRealtimeUpdate);
 
-  const toggleFiltroEstado = (key) => {
-    setFiltrosEstados(prev => {
-      if (prev.includes(key)) {
-        return prev.filter(k => k !== key);
-      } else {
-        return [...prev, key];
-      }
-    });
-  };
-
+  const toggleFiltroEstado = (key) => setFiltrosEstados(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   const seleccionarTodosLosEstados = () => setFiltrosEstados(ESTADOS_CASO.map(e => e.key));
   const limpiarEstados = () => setFiltrosEstados([]);
-  const seleccionarSoloActivos = () => {
-    const activos = ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.key)).map(e => e.key);
-    setFiltrosEstados(activos);
-  };
+  const seleccionarSoloActivos = () => setFiltrosEstados(ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.key)).map(e => e.key));
+  
   const todosSeleccionados = filtrosEstados.length === ESTADOS_CASO.length;
-
   const casosFiltrados = casos.filter(c => filtrosEstados.includes(c.estado));
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
   const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora || c.compania).filter(Boolean))].sort();
 
-  // Filtrar y ordenar pagos pendientes (los más próximos primero)
   const pagosPendientes = casos
     .filter(c => c.estado === "esperando_pago" || (c.fecha_pago && c.estado !== "cobrado" && c.estado !== "desistido"))
     .sort((a, b) => new Date(a.fecha_pago || "2099-01-01") - new Date(b.fecha_pago || "2099-01-01"));
 
-  if (loading) return (
-    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: T.muted, fontSize: 14 }}>Cargando tus casos...</div>
-    </div>
-  );
-
-  if (error) return (
-    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: T.card, border: "1px solid #ef444444", borderRadius: 16, padding: 32, maxWidth: 380, textAlign: "center" }}>
-        <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
-        <div style={{ color: "#ef4444", fontSize: 14, marginBottom: 20 }}>{error}</div>
-        <button onClick={onLogout} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "8px 18px", cursor: "pointer", fontSize: 13 }}>Cerrar sesión</button>
-      </div>
-    </div>
-  );
+  if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos...</div>;
 
   return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, transition: "background .3s" }}>
       {/* Header */}
-      <div style={{ background: T.card, borderBottom: `1px solid ${T.border}`, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10, boxShadow: dark ? "none" : "0 1px 8px #00000010" }}>
+      <div style={{ background: T.card, borderBottom: `1px solid ${T.border}`, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10 }}>
         <div>
           <div style={{ fontSize: 10, color: "#6366f1", textTransform: "uppercase", letterSpacing: 2.5, fontWeight: 700 }}>PAS Tracker</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 1 }}>{pasInfo?.nombre || "Portal"}</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={() => setModalNuevoCaso(true)} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>➕ Nuevo Caso</button>
-          <button onClick={onToggleDark} title={dark ? "Modo claro" : "Modo oscuro"} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 15 }}>
-            {dark ? "☀️" : "🌙"}
-          </button>
+          <button onClick={onToggleDark} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 15 }}>{dark ? "☀️" : "🌙"}</button>
           <button onClick={() => setCambPwd(true)} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🔒 Contraseña</button>
           <button onClick={onLogout} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Salir</button>
         </div>
       </div>
 
-      {/* NUEVO LAYOUT: Sidebar Izquierdo + Contenido Principal */}
       <div style={{ display: "flex", gap: 24, maxWidth: 1050, margin: "0 auto", padding: "24px 16px", alignItems: "flex-start" }}>
         
-        {/* SIDEBAR */}
-        <div style={{ width: 280, flexShrink: 0, position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* SIDEBAR AJUSTADO A FULL HEIGHT */}
+        <div style={{ width: 280, flexShrink: 0, position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16, height: "calc(100vh - 110px)" }}>
           
-          {/* Bloque de Filtros (Movido al sidebar) */}
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
               <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar Estado:</span>
               <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
                 <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>⚡ Activos</button>
-                <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>
-                  {todosSeleccionados ? "Ninguno" : "Todos"}
-                </button>
+                <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>{todosSeleccionados ? "Ninguno" : "Todos"}</button>
               </div>
             </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
               {ESTADOS_CASO.map(e => {
                 const cnt = casos.filter(c => c.estado === e.key).length;
                 const active = filtrosEstados.includes(e.key);
                 return (
-                  <button 
-                    key={e.key} 
-                    onClick={() => toggleFiltroEstado(e.key)} 
-                    style={{ background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "6px", textAlign: "center", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}
-                  >
+                  <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "6px", textAlign: "center", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
                     <div style={{ fontSize: 16 }}>{e.emoji}</div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
                   </button>
@@ -209,19 +166,16 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             </div>
           </div>
 
-          {/* Bloque del Calendario de Pagos */}
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", maxHeight: 320, boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>📅 Futuros Pagos</div>
-            <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, paddingRight: 4 }}>
+            <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, paddingRight: 4, flex: 1 }}>
               {pagosPendientes.length === 0 ? (
                  <div style={{ fontSize: 12, color: T.sub, textAlign: "center", padding: "10px 0" }}>No hay pagos programados.</div>
               ) : (
                 pagosPendientes.map(p => (
                   <div key={p.id} style={{ background: T.card2, borderRadius: 8, padding: "10px", border: `1px solid ${T.border}` }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>{p.asegurado}</div>
-                    <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700 }}>
-                      {p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}
-                    </div>
+                    <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
                   </div>
                 ))
               )}
@@ -229,26 +183,22 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </div>
         </div>
 
-        {/* CONTENIDO PRINCIPAL (Columna Derecha) */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          
-          {/* Stats Principales */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
             {[
               { label: "Casos totales",  value: casos.length, color: "#6366f1" },
               { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
               { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
             ].map(s => (
-              <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+              <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center" }}>
                 <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
                 <div style={{ fontSize: 12, color: T.muted, marginTop: 5, fontWeight: 500 }}>{s.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Comisión Total */}
           {comisionTotal > 0 && (
-            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 11, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 700 }}>Tu comisión total cobrada</div>
                 <div style={{ fontSize: 26, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
@@ -260,55 +210,28 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             </div>
           )}
 
-          {/* Listado de Casos */}
-          {casos.length > 0 && casos[0]?._demo && (
-            <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#818cf8" }}>
-              👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.
-            </div>
-          )}
+          {casos.length > 0 && casos[0]?._demo && <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#818cf8" }}>👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.</div>}
           {casosFiltrados.length === 0 ? (
             <div style={{ textAlign: "center", padding: "50px 20px" }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
               <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con los filtros seleccionados</div>
             </div>
           ) : (
-            casosFiltrados
-              .sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || ""))
-              .map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
+            casosFiltrados.sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || "")).map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
           )}
 
-          {/* Gráfico de Compañías */}
           {todosLosCasos.length > 0 && (
             <div style={{ marginTop: 32 }}>
               <GraficoBoundary>
-                <GraficoCompanias
-                  allCasos={todosLosCasos}
-                  darkMode={dark}
-                  cardBg={T.card}
-                  cardBorder={T.border}
-                  textColor={T.text}
-                  subColor={T.muted}
-                  mostrarCasos={false}
-                />
+                <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.muted} mostrarCasos={false} />
               </GraficoBoundary>
             </div>
           )}
-
         </div>
       </div>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
-
-      {modalNuevoCaso && (
-        <NuevoCasoModal 
-          pasId={pasId} 
-          pasNombre={pasInfo?.nombre} 
-          onClose={() => setModalNuevoCaso(false)} 
-          onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev])} 
-          dark={dark}
-          companias={companiasUnicas}
-        />
-      )}
+      {modalNuevoCaso && <NuevoCasoModal pasId={pasId} pasNombre={pasInfo?.nombre} onClose={() => setModalNuevoCaso(false)} onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev])} dark={dark} companias={companiasUnicas} />}
     </div>
   );
 }

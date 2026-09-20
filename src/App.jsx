@@ -23,6 +23,7 @@ import TabContactos from './components/TabContactos.jsx'
 import TabContactados from './components/TabContactados.jsx'
 import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import TabCasos from './components/TabCasos.jsx'
+import PortalCliente from './components/portal/PortalCliente.jsx';
 
 export default function App() {
   const { darkMode, T } = useTheme();
@@ -46,6 +47,15 @@ export default function App() {
   const [casosDetalleModal, setCasosDetalleModal] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [autobackupFecha, setAutobackupFecha] = useState(() => localStorage.getItem('pastracker_autobackup_fecha') || null);
+
+  // ⬇️ --- INTERCEPTOR PARA EL PORTAL DEL CLIENTE --- ⬇️
+  const params = new URLSearchParams(window.location.search);
+  const isClienteView = params.has("caso") || params.get("vista") === "cliente";
+
+  if (isClienteView) {
+    return <PortalCliente dark={darkMode} onToggleDark={() => window.location.reload()} />;
+  }
+  // ⬆️ ------------------------------------------------ ⬆️
 
   // ── HANDLERS
   const autoBackup = useCallback((casosData) => {
