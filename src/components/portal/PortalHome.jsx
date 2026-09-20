@@ -188,16 +188,18 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 6 }}>{p.asegurado}</div>
                       <div style={{ fontSize: 12, color: "#06b6d4", fontWeight: 700, marginBottom: 8 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
                       
-                      {/* Montos Asegurado y PAS */}
+                      {/* Montos Asegurado y PAS (Condicionado a que exista comisión) */}
                       <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
                         <div>
                           <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#22c55e" }}>{fmtMoney(p.monto_cobro_asegurado)}</div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Tu Comisión</div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: "#eab308" }}>{fmtMoney(p.monto_comision_pas)}</div>
-                        </div>
+                        {Number(p.monto_comision_pas) > 0 && (
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Tu Comisión</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#eab308" }}>{fmtMoney(p.monto_comision_pas)}</div>
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -224,16 +226,26 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             ))}
           </div>
 
-          {comisionTotal > 0 && (
-            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 12, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Tu comisión total cobrada</div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 12, color: T.muted, fontWeight: 600 }}>Asegurados cobrados</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
-              </div>
+          {/* BANNER PRINCIPAL ADAPTATIVO */}
+          {(comisionTotal > 0 || totalCobrado > 0) && (
+            <div style={{ background: T.card, border: `1px solid ${comisionTotal > 0 ? '#eab30844' : '#22c55e44'}`, borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {comisionTotal > 0 ? (
+                <>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Tu comisión total cobrada</div>
+                    <div style={{ fontSize: 28, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 12, color: T.muted, fontWeight: 600 }}>Asegurados cobrados</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{ fontSize: 12, color: "#22c55e", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Total indemnizaciones cobradas</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#22c55e", marginTop: 4 }}>{fmtMoney(totalCobrado)}</div>
+                </div>
+              )}
             </div>
           )}
 
