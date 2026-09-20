@@ -156,7 +156,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                 </div>
               </div>
               
-              {/* Filtros apilados en 1 sola columna como en la imagen */}
+              {/* Filtros apilados en 1 sola columna con etiquetas de texto */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
                 {ESTADOS_CASO.map(e => {
                   const cnt = casos.filter(c => c.estado === e.key).length;
@@ -165,6 +165,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                     <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ fontSize: 16 }}>{e.emoji}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: active ? e.color : T.text }}>{e.label}</span>
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
                     </button>
@@ -185,7 +186,20 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                   pagosPendientes.map(p => (
                     <div key={p.id} style={{ background: T.card2, borderRadius: 10, padding: "14px", border: `1px solid ${T.border}` }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 6 }}>{p.asegurado}</div>
-                      <div style={{ fontSize: 12, color: "#06b6d4", fontWeight: 700 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
+                      <div style={{ fontSize: 12, color: "#06b6d4", fontWeight: 700, marginBottom: 8 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
+                      
+                      {/* Montos Asegurado y PAS */}
+                      <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#22c55e" }}>{fmtMoney(p.monto_cobro_asegurado)}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Tu Comisión</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#eab308" }}>{fmtMoney(p.monto_comision_pas)}</div>
+                        </div>
+                      </div>
+
                     </div>
                   ))
                 )}
