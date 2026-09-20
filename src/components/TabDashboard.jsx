@@ -7,6 +7,7 @@ import MisPendientesCard from "./dashboard/MisPendientesCard.jsx";
 import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
 import RankingPASCard from "./dashboard/RankingPASCard.jsx";
 import { COLORES, THEME } from "../utils/theme.js";
+import { ESTADOS_CASO } from "../constants.js";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -28,6 +29,17 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
 
   const hoy = new Date();
+
+  // Cálculo de distribución de estados para Data Viz rápido
+  const distribucionEstados = useMemo(() => {
+    const total = allCasos.length;
+    if (total === 0) return [];
+    return ESTADOS_CASO.map(e => {
+      const count = allCasos.filter(c => c.estado === e.key).length;
+      const porcentaje = Math.round((count / total) * 100);
+      return { ...e, count, porcentaje };
+    }).filter(e => e.count > 0);
+  }, [allCasos]);
 
   const misPendientes = useMemo(() => {
     return allCasos
@@ -120,6 +132,36 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <StatCard label="Casos cobrados" value={cobrados} color={COLORES.success} sub={`${enGestion} en gestión`} dark={darkMode} />
         <StatCard label="Total casos" value={allCasos.length} color={T.text} sub={`${nDerivadores} derivadores`} dark={darkMode} />
       </div>
+
+      {/* NUEVO BLOQUE: DATA VIZ - DISTRIBUCIÓN VISUAL DE ESTADOS DE CASOS */}
+      {allCasos.length > 0 && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>📊 Distribución de Casos por Estado</span>
+            <span style={{ fontSize: 11, color: T.muted, fontWeight: 400 }}>{allCasos.length} casos totales</span>
+          </div>
+          {/* Barra de progreso segmentada / Gráfico visual proporcional */}
+          <div style={{ display: "flex", height: 10, borderRadius: 6, overflow: "hidden", background: T.card2, gap: 2, marginBottom: 12 }}>
+            {distribucionEstados.map(e => (
+              <div 
+                key={e.key} 
+                style={{ width: `${e.porcentaje}%`, background: e.color, height: "100%", transition: "width 0.3s ease" }} 
+                title={`${e.label}: ${e.count} (${e.porcentaje}%)`}
+              />
+            ))}
+          </div>
+          {/* Leyenda resumida */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            {distribucionEstados.map(e => (
+              <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: e.color }} />
+                <span style={{ color: T.sub }}>{e.label}:</span>
+                <span style={{ fontWeight: 700, color: T.text }}>{e.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <MisPendientesCard pendientes={misPendientes} darkMode={darkMode} />
       <CobrosPendientesCard cobrosPendientes={cobrosPendientes} darkMode={darkMode} />
