@@ -46,11 +46,19 @@ export default function PortalCliente({ dark, onToggleDark }) {
     setSearched(true);
 
     try {
-      // SOLO traemos los datos seguros para el cliente (nada de comisiones ni honorarios)
-      const { data, error: err } = await supabase
+      const valorLimpio = valor.trim().toUpperCase();
+      let query = supabase
         .from("pas_casos")
-        .select("id, asegurado, compania, compania_aseguradora, estado, fecha_inicio_reclamo, fecha_ofrecimiento, fecha_pago, monto_ofrecimiento, monto_cobro_asegurado, mensaje_cliente, patente")
-        .eq(columna, valor.trim().toUpperCase());
+        .select("id, asegurado, compania, compania_aseguradora, estado, fecha_inicio_reclamo, fecha_ofrecimiento, fecha_pago, monto_ofrecimiento, monto_cobro_asegurado, mensaje_cliente, patente, dominio");
+
+      // Si la búsqueda es por patente, buscamos tanto en 'patente' como en 'dominio' para cubrir casos viejos y nuevos
+      if (columna === "patente") {
+        query = query.or(`patente.eq.${valorLimpio},dominio.eq.${valorLimpio}`);
+      } else {
+        query = query.eq(columna, valorLimpio);
+      }
+
+      const { data, error: err } = await query;
 
       if (err) throw err;
       if (!data || data.length === 0) {
