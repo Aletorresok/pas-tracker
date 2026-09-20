@@ -43,7 +43,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [error,   setError]   = useState("");
   const [cambPwd, setCambPwd] = useState(false);
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
-  const [filtro,  setFiltro]  = useState("todos");
+  
+  // Filtro múltiple por estado (por defecto todos seleccionados)
+  const [filtrosEstados, setFiltrosEstados] = useState(() => ESTADOS_CASO.map(e => e.key));
+  
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState([]);
 
@@ -57,7 +60,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
       setPasInfo(pas);
       
-      // LOGICA DE ADMINISTRADOR PARA VER TODOS LOS CASOS
       let queryCasos = supabase.from("pas_casos").select("*");
       if (session.user.email !== "atglexsolutions@gmail.com") {
         queryCasos = queryCasos.eq("pas_id", link.pas_id);
@@ -89,7 +91,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     };
     loadData();
 
-    // Traemos información general para el gráfico y para armar la lista de compañías
     supabase.from("pas_casos").select("compania,compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
       if (data) setTodosLosCasos(data);
     });
@@ -109,12 +110,30 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
   useRealtimeCasos(pasId, handleRealtimeUpdate);
 
-  const casosFiltrados = casos.filter(c => filtro === "todos" || c.estado === filtro);
+  // Funciones de control para el filtro múltiple
+  const toggleFiltroEstado = (key) => {
+    setFiltrosEstados(prev => {
+      if (prev.includes(key)) {
+        return prev.filter(k => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
+  };
+
+  const seleccionarTodosLosEstados = () => setFiltrosEstados(ESTADOS_CASO.map(e => e.key));
+  const limpiarEstados = () => setFiltrosEstados([]);
+  const seleccionarSoloActivos = () => {
+    const activos = ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.key)).map(e => e.key);
+    setFiltrosEstados(activos);
+  };
+  const todosSeleccionados = filtrosEstados.length === ESTADOS_CASO.length;
+
+  const casosFiltrados = casos.filter(c => filtrosEstados.includes(c.estado));
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
 
-  // Extraemos las compañías únicas de la base de datos general para pasarlas al select del modal
   const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora || c.compania).filter(Boolean))].sort();
 
   if (loading) return (
@@ -151,7 +170,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         </div>
       </div>
 
-      <div style={{ maxWidth: 660, margin: "0 auto", padding: "24px 16px" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
           {[
@@ -180,32 +199,47 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </div>
         )}
 
-        {/* Filtros */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, paddingBottom: 6, marginBottom: 18 }}>
-          {[{ key: "todos", label: "Todos", emoji: "📂", color: "#64748b" }, ...ESTADOS_CASO].map(e => {
-            const cnt = e.key === "todos" ? casos.length : casos.filter(c => c.estado === e.key).length;
-            const active = filtro === e.key;
-            return (
-              <button key={e.key} onClick={() => setFiltro(e.key)} style={{
-                flexShrink: 0,
-                display: "flex", alignItems: "center", gap: 4,
-                background: active ? e.color + "20" : T.card,
-                border: `1px solid ${active ? e.color : T.border}`,
-                borderRadius: 8,
-                color: active ? e.color : T.muted,
-                padding: "5px 10px",
-                cursor: "pointer",
-                fontSize: 11,
-                fontWeight: active ? 700 : 500,
-                transition: "all .15s",
-                boxShadow: dark ? "none" : "0 1px 3px #00000008",
-              }}>
-                <span>{e.emoji}</span>
-                <span>{e.label}</span>
-                {cnt > 0 && <span style={{ background: active ? e.color + "30" : T.card2, color: active ? e.color : T.muted, borderRadius: 10, padding: "0 5px", fontSize: 10, fontWeight: 700 }}>{cnt}</span>}
+        {/* Filtro múltiple por estado */}
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", marginBottom: 18, boxShadow: dark ? "none" : "0 1px 4px #00000008" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, fontSize: 11, color: T.muted }}>
+            <span style={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar por estado (múltiple):</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>⚡ Solo activos</button>
+              <span>·</span>
+              <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>
+                {todosSeleccionados ? "Ninguno" : "Todos"}
               </button>
-            );
-          })}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {ESTADOS_CASO.map(e => {
+              const cnt = casos.filter(c => c.estado === e.key).length;
+              const active = filtrosEstados.includes(e.key);
+              return (
+                <button 
+                  key={e.key} 
+                  onClick={() => toggleFiltroEstado(e.key)} 
+                  style={{ 
+                    flex: 1, 
+                    minWidth: 54, 
+                    background: active ? e.color + "28" : T.card2, 
+                    border: `1px solid ${active ? e.color : T.border}`, 
+                    borderRadius: 8, 
+                    padding: "8px 4px", 
+                    textAlign: "center", 
+                    cursor: "pointer", 
+                    transition: "all .15s",
+                    opacity: active ? 1 : 0.45
+                  }}
+                >
+                  <div style={{ fontSize: 13 }}>{e.emoji}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
+                  <div style={{ fontSize: 8, color: cnt > 0 ? e.color : T.muted, marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Casos */}
@@ -217,7 +251,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         {casosFiltrados.length === 0 ? (
           <div style={{ textAlign: "center", padding: "50px 20px" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-            <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con ese filtro</div>
+            <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con los filtros seleccionados</div>
           </div>
         ) : (
           casosFiltrados
@@ -225,7 +259,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             .map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
         )}
 
-        {/* Gráfico compañías - Movido hacia abajo */}
+        {/* Gráfico compañías */}
         {todosLosCasos.length > 0 && (
           <div style={{ marginTop: 32 }}>
             <GraficoBoundary>
@@ -246,7 +280,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
 
-      {/* Modal para derivar nuevo caso */}
       {modalNuevoCaso && (
         <NuevoCasoModal 
           pasId={pasId} 

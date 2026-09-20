@@ -14,8 +14,8 @@ export default function Portal() {
   }, []);
 
   if (session === undefined) return (
-    <div style={{ minHeight: "100vh", background: "#111827", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: "#64748b", fontSize: 14 }}>Cargando...</div>
+    <div style={{ minHeight: "100vh", background: "#10151F", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
+      <div style={{ color: "#8D93A1", fontSize: 14 }}>Cargando portal...</div>
     </div>
   );
 
