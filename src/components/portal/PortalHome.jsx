@@ -139,89 +139,102 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 24, maxWidth: 1050, margin: "0 auto", padding: "24px 16px", alignItems: "flex-start" }}>
+      {/* NUEVO LAYOUT: Ancho ampliado y doble columna lateral */}
+      <div style={{ display: "flex", gap: 24, maxWidth: 1400, margin: "0 auto", padding: "24px 32px", alignItems: "flex-start" }}>
         
-        {/* SIDEBAR AJUSTADO A FULL HEIGHT */}
-        <div style={{ width: 280, flexShrink: 0, position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16, height: "calc(100vh - 110px)" }}>
+        {/* SIDEBAR DOBLE */}
+        <div style={{ display: "flex", gap: 16, flexShrink: 0, position: "sticky", top: 88, height: "calc(100vh - 110px)" }}>
           
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar Estado:</span>
-              <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-                <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>⚡ Activos</button>
-                <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>{todosSeleccionados ? "Ninguno" : "Todos"}</button>
+          {/* COLUMNA 1: FILTROS */}
+          <div style={{ width: 220, display: "flex", flexDirection: "column" }}>
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px", height: "100%", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar Estado:</span>
+                <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+                  <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>⚡ Activos</button>
+                  <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>{todosSeleccionados ? "Ninguno" : "Todos"}</button>
+                </div>
+              </div>
+              
+              {/* Filtros apilados en 1 sola columna como en la imagen */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+                {ESTADOS_CASO.map(e => {
+                  const cnt = casos.filter(c => c.estado === e.key).length;
+                  const active = filtrosEstados.includes(e.key);
+                  return (
+                    <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 16 }}>{e.emoji}</span>
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              {ESTADOS_CASO.map(e => {
-                const cnt = casos.filter(c => c.estado === e.key).length;
-                const active = filtrosEstados.includes(e.key);
-                return (
-                  <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "6px", textAlign: "center", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
-                    <div style={{ fontSize: 16 }}>{e.emoji}</div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: cnt > 0 ? e.color : T.muted }}>{cnt}</div>
-                  </button>
-                );
-              })}
+          </div>
+
+          {/* COLUMNA 2: FUTUROS PAGOS */}
+          <div style={{ width: 260, display: "flex", flexDirection: "column" }}>
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px", display: "flex", flexDirection: "column", height: "100%" }}>
+              <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>📅 Futuros Pagos</div>
+              <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 4, flex: 1 }}>
+                {pagosPendientes.length === 0 ? (
+                   <div style={{ fontSize: 12, color: T.sub, textAlign: "center", padding: "20px 0" }}>No hay pagos programados.</div>
+                ) : (
+                  pagosPendientes.map(p => (
+                    <div key={p.id} style={{ background: T.card2, borderRadius: 10, padding: "14px", border: `1px solid ${T.border}` }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 6 }}>{p.asegurado}</div>
+                      <div style={{ fontSize: 12, color: "#06b6d4", fontWeight: 700 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-            <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>📅 Futuros Pagos</div>
-            <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, paddingRight: 4, flex: 1 }}>
-              {pagosPendientes.length === 0 ? (
-                 <div style={{ fontSize: 12, color: T.sub, textAlign: "center", padding: "10px 0" }}>No hay pagos programados.</div>
-              ) : (
-                pagosPendientes.map(p => (
-                  <div key={p.id} style={{ background: T.card2, borderRadius: 8, padding: "10px", border: `1px solid ${T.border}` }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>{p.asegurado}</div>
-                    <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
 
+        {/* CONTENIDO PRINCIPAL */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
             {[
               { label: "Casos totales",  value: casos.length, color: "#6366f1" },
               { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
               { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
             ].map(s => (
-              <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 12px", textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: 12, color: T.muted, marginTop: 5, fontWeight: 500 }}>{s.label}</div>
+              <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "24px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 32, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: 13, color: T.muted, marginTop: 8, fontWeight: 600 }}>{s.label}</div>
               </div>
             ))}
           </div>
 
           {comisionTotal > 0 && (
-            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: T.card, border: "1px solid #eab30844", borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 11, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 700 }}>Tu comisión total cobrada</div>
-                <div style={{ fontSize: 26, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
+                <div style={{ fontSize: 12, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Tu comisión total cobrada</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>Asegurados cobrados</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
+                <div style={{ fontSize: 12, color: T.muted, fontWeight: 600 }}>Asegurados cobrados</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
               </div>
             </div>
           )}
 
-          {casos.length > 0 && casos[0]?._demo && <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#818cf8" }}>👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.</div>}
+          {casos.length > 0 && casos[0]?._demo && <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#818cf8" }}>👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.</div>}
           {casosFiltrados.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "50px 20px" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-              <div style={{ color: T.muted, fontSize: 15 }}>No hay casos con los filtros seleccionados</div>
+            <div style={{ textAlign: "center", padding: "60px 20px" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
+              <div style={{ color: T.muted, fontSize: 16 }}>No hay casos con los filtros seleccionados</div>
             </div>
           ) : (
             casosFiltrados.sort((a, b) => (b.fecha_derivacion || "").localeCompare(a.fecha_derivacion || "")).map(c => <PortalCasoCard key={c.id} caso={c} dark={dark} />)
           )}
 
           {todosLosCasos.length > 0 && (
-            <div style={{ marginTop: 32 }}>
+            <div style={{ marginTop: 40 }}>
               <GraficoBoundary>
                 <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.muted} mostrarCasos={false} />
               </GraficoBoundary>

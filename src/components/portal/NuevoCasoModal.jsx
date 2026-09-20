@@ -8,12 +8,12 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // 1. Inicializamos los datos leyendo la memoria primero
   const [formData, setFormData] = useState(() => {
     const borrador = sessionStorage.getItem("draft_nuevo_caso");
     return borrador ? JSON.parse(borrador) : {
       asegurado: "",
       telefono: "",
+      patente: "",
       fecha_siniestro: "",
       compania: "",
     };
@@ -21,12 +21,10 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   
   const [archivos, setArchivos] = useState([]);
   
-  // También guardamos si había elegido "Otra compañía"
   const [esOtraCompania, setEsOtraCompania] = useState(() => {
     return sessionStorage.getItem("draft_otra_compania") === "true";
   });
 
-  // 2. Guardado automático: cada vez que formData cambia, actualizamos la memoria
   useEffect(() => {
     sessionStorage.setItem("draft_nuevo_caso", JSON.stringify(formData));
   }, [formData]);
@@ -36,7 +34,11 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   }, [esOtraCompania]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: name === "patente" ? value.toUpperCase() : value 
+    });
   };
 
   const handleFileChange = (e) => {
@@ -54,17 +56,17 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
-      // 1. Guardar el caso en la base de datos usando 'tercero_contacto' para el teléfono
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
-        tercero_contacto: formData.telefono, // Mapeado a la columna existente en la DB
+        tercero_contacto: formData.telefono,
+        patente: (formData.patente || "").trim(),
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
         compania_aseguradora: formData.compania,
         estado: "doc_pendiente", 
         fecha_derivacion: new Date().toISOString().slice(0, 10),
-        caso_id: Date.now(), // Es bigint en tu DB, va como número entero
+        caso_id: Date.now(), 
       };
 
       const { data, error: dbError } = await supabase
@@ -75,7 +77,6 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
       if (dbError) throw dbError;
 
-      // 2. Subir los archivos a Supabase Storage (balde 'adjuntos') y obtener links públicos
       const linksAdjuntos = [];
       if (archivos.length > 0) {
         for (let i = 0; i < archivos.length; i++) {
@@ -84,27 +85,21 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
           const filePath = `${pasId}/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from("adjuntos")
-            .upload(filePath, file);
+          const { error: uploadError } = await supabase.storage.from("adjuntos").upload(filePath, file);
 
           if (!uploadError) {
             const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
             if (linkData?.publicUrl) {
               linksAdjuntos.push(linkData.publicUrl);
             }
-          } else {
-            console.error("Error subiendo archivo:", uploadError);
           }
         }
       }
 
-      // 3. Armar el texto con los links para el mail
       const textoLinks = linksAdjuntos.length > 0
         ? linksAdjuntos.map((link, i) => `🔗 Descargar Archivo ${i + 1}: ${link}`).join('\n')
         : "No se adjuntaron archivos.";
 
-      // 4. Enviar el correo con EmailJS
       const templateParams = {
         pas_nombre: pasNombre || "PAS",
         asegurado: formData.asegurado,
@@ -121,7 +116,6 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         "uQTfm1gg21u5Wj6Z_"
       );
       
-      // 5. Carga exitosa: Limpiamos la memoria para que el próximo caso arranque en blanco
       sessionStorage.removeItem("draft_nuevo_caso");
       sessionStorage.removeItem("draft_otra_compania");
       
@@ -136,7 +130,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#00000088", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+    <div style={{ position: "fixed", inset: 0, background: "#000000aa", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "0 10px 25px #00000033" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -163,16 +157,29 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
             />
           </div>
 
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Teléfono del Asegurado *</label>
-            <input 
-              type="text" 
-              name="telefono" 
-              value={formData.telefono} 
-              onChange={handleChange} 
-              placeholder="Ej: 11 2345-6789"
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Teléfono del Asegurado *</label>
+              <input 
+                type="text" 
+                name="telefono" 
+                value={formData.telefono} 
+                onChange={handleChange} 
+                placeholder="Ej: 11 2345-6789"
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Patente</label>
+              <input 
+                type="text" 
+                name="patente" 
+                value={formData.patente} 
+                onChange={handleChange} 
+                placeholder="Ej: AB123CD"
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", textTransform: "uppercase", textAlign: "center" }}
+              />
+            </div>
           </div>
 
           <div>

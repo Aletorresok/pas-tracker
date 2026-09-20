@@ -9,11 +9,24 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📋 Información del caso</div>
       
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+      {/* GRILLA DE 3 COLUMNAS PARA INCLUIR LA PATENTE */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
         <label>
           <span style={labelStyle}>Asegurado *</span>
           <input type="text" value={formData.asegurado || ""} onChange={e => onChange("asegurado", e.target.value)} style={inputStyle} />
         </label>
+        
+        <label>
+          <span style={labelStyle}>Patente</span>
+          <input 
+            type="text" 
+            value={formData.patente || ""} 
+            onChange={e => onChange("patente", e.target.value.toUpperCase())} 
+            placeholder="Ej: AB123CD"
+            style={{ ...inputStyle, textTransform: "uppercase", textAlign: "center" }} 
+          />
+        </label>
+
         <div>
           <span style={labelStyle}>Compañía aseguradora</span>
           <CompaniaSelector value={formData.compania_aseguradora || formData.compania || ""} onChange={v => { onChange("compania_aseguradora", v); onChange("compania", v); }} companias={companias || []} onAgregar={onAgregarCompania || (() => {})} darkMode={darkMode} />
@@ -33,11 +46,10 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
         </div>
       </div>
 
-      {/* NUEVO CAMPO: Mensaje visible para el Productor */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${Th.border}` }}>
         <label>
           <span style={{ ...labelStyle, color: "#d97706", display: "flex", alignItems: "center", gap: 6 }}>
-            🗣️ Qué decirle al cliente (Visible en el Portal PAS)
+            🗣️ Qué decirle al cliente (Visible en el Portal PAS y Portal Cliente)
           </span>
           <textarea 
             value={formData.mensaje_cliente || ""} 
