@@ -18,7 +18,6 @@ import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import CasoFooter from "./components/caso/CasoFooter.jsx";
 
-// AGREGAMOS "patente" y "mensaje_cliente" A LA LISTA PERMITIDA DE COLUMNAS
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
   "fecha_siniestro","ubicacion","presupuesto","tercero_nombre","tercero_dni","tercero_contacto",
@@ -30,7 +29,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion",
-  "patente", "mensaje_cliente" // <-- ESTO FALTABA
+  "patente", "mensaje_cliente"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -59,7 +58,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const [exportandoPDF, setExportandoPDF] = useState(false);
   const dirHandleRef = useRef(null);
 
-  // AGREGAMOS LAS PROPIEDADES INICIALES FALTANTES
   const [formData, setFormData] = useState({
     asegurado: casoProp.asegurado || "", compania_aseguradora: casoProp.compania_aseguradora || "", fecha_siniestro: casoProp.fecha_siniestro || "",
     estado: casoProp.estado || "doc_pendiente", monto_reclamado: casoProp.monto_reclamado || "", monto_ofrecimiento: casoProp.monto_ofrecimiento || "",
@@ -71,9 +69,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "",
-    patente: casoProp.patente || casoProp.dominio || "", // <-- Carga inicial de patente
-    dominio: casoProp.dominio || casoProp.patente || "", // <-- Carga inicial de dominio
-    mensaje_cliente: casoProp.mensaje_cliente || "" // <-- Carga inicial del mensaje al cliente
+    patente: casoProp.patente || casoProp.dominio || "",
+    dominio: casoProp.dominio || casoProp.patente || "",
+    mensaje_cliente: casoProp.mensaje_cliente || ""
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -116,7 +114,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   };
 
   const handleGuardarAccion = async ({ id, fecha, descripcion }) => {
-    if (id) {
+    const esActualizacion = id && String(id).length === 36;
+    if (esActualizacion) {
       const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota" }).eq("id", id);
       if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
       setToast({ msg: "✅ Acción actualizada", type: "success" });
@@ -149,12 +148,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
   useEffect(() => { guardarCasoRef.current = guardarCaso; }, [guardarCaso]);
 
-  // INTERCEPTAMOS EL CAMBIO PARA SINCRONIZAR AUTOMÁTICAMENTE PATENTE Y DOMINIO
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ 
       ...prev, 
       [key]: value,
-      // Si actualizamos uno, clonamos el valor en el otro de forma automática
       ...(key === "patente" ? { dominio: value } : {}),
       ...(key === "dominio" ? { patente: value } : {})
     }));
