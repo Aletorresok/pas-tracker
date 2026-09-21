@@ -2,24 +2,48 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { formatoFecha } from "../../utils/formatters.js";
 
-export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar, onEliminar, Th }) {
+export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, Th }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [descripcion, setDescripcion] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const [editando, setEditando] = useState(null);
+  const [editandoId, setEditandoId] = useState(null); // Guardamos solo el ID, no todo el objeto
 
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
 
-  const abrirNueva = () => { setEditando(null); setFecha(new Date().toISOString().slice(0, 10)); setDescripcion(""); setModalOpen(true); };
-  const abrirEditar = (a) => { setEditando(a); setFecha(a.fecha?.slice(0, 10) || ""); setDescripcion(a.descripcion || ""); setModalOpen(true); };
-  const cerrar = () => { setModalOpen(false); setDescripcion(""); setEditando(null); };
+  const abrirNueva = () => { 
+    setEditandoId(null); 
+    setFecha(new Date().toISOString().slice(0, 10)); 
+    setDescripcion(""); 
+    setModalOpen(true); 
+  };
+  
+  const abrirEditar = (a) => { 
+    setEditandoId(a.id); // ID exacto de la base de datos
+    setFecha(a.fecha?.slice(0, 10) || ""); 
+    setDescripcion(a.descripcion || ""); 
+    setModalOpen(true); 
+  };
+  
+  const cerrar = () => { 
+    setModalOpen(false); 
+    setDescripcion(""); 
+    setEditandoId(null); 
+  };
 
   const handleGuardar = async () => {
     if (!descripcion.trim()) return;
     setGuardando(true);
-    await onGuardar({ id: editando?.id, fecha, descripcion: descripcion.trim() });
+
+    if (editandoId) {
+      // Es una edición explícita
+      await onActualizar({ id: editandoId, fecha, descripcion: descripcion.trim() });
+    } else {
+      // Es una creación explícita
+      await onCrear({ fecha, descripcion: descripcion.trim() });
+    }
+
     setGuardando(false);
     cerrar();
   };
@@ -65,7 +89,7 @@ export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9999 }}>
             <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 440, width: "100%" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>
-                {editando ? "✏️ Editar acción" : "➕ Registrar acción"}
+                {editandoId ? "✏️ Editar acción" : "➕ Registrar acción"}
               </div>
               <label style={{ display: "block", marginBottom: 14 }}>
                 <span style={labelStyle}>Fecha</span>
@@ -78,7 +102,7 @@ export default function SeccionTimeline({ acciones, loading, onGuardar, onEditar
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={cerrar} style={{ flex: 1, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
                 <button onClick={handleGuardar} disabled={guardando || !descripcion.trim()} style={{ flex: 2, background: guardando || !descripcion.trim() ? Th.card2 : "#6366f1", border: "none", borderRadius: 8, color: "white", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700, opacity: guardando || !descripcion.trim() ? 0.5 : 1 }}>
-                  {guardando ? "Guardando..." : editando ? "✓ Actualizar" : "✓ Guardar acción"}
+                  {guardando ? "Guardando..." : editandoId ? "✓ Actualizar" : "✓ Guardar acción"}
                 </button>
               </div>
             </div>

@@ -113,17 +113,32 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `✅ Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
-  const handleGuardarAccion = async ({ id, fecha, descripcion }) => {
-    const esActualizacion = id && String(id).length === 36;
-    if (esActualizacion) {
-      const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota" }).eq("id", id);
-      if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
-      setToast({ msg: "✅ Acción actualizada", type: "success" });
-    } else {
-      const { error } = await supabase.from("acciones").insert({ caso_id: caso.id, descripcion, fecha, tipo: "nota" });
-      if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
-      setToast({ msg: "✅ Acción registrada", type: "success" });
+  const handleCrearAccion = async ({ fecha, descripcion }) => {
+    const { error } = await supabase.from("acciones").insert({ 
+      caso_id: caso.id, 
+      descripcion, 
+      fecha, 
+      tipo: "nota" 
+    });
+    if (error) { 
+      setToast({ msg: "Error al crear: " + error.message, type: "error" }); 
+      return; 
     }
+    setToast({ msg: "✅ Acción registrada", type: "success" });
+    await cargarAcciones();
+  };
+
+  const handleActualizarAccion = async ({ id, fecha, descripcion }) => {
+    const { error } = await supabase
+      .from("acciones")
+      .update({ descripcion, fecha, tipo: "nota" })
+      .eq("id", id);
+      
+    if (error) { 
+      setToast({ msg: "Error al actualizar: " + error.message, type: "error" }); 
+      return; 
+    }
+    setToast({ msg: "✅ Acción actualizada", type: "success" });
     await cargarAcciones();
   };
 
@@ -196,7 +211,15 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
             <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
             <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
             <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} />
-            <SeccionTimeline acciones={acciones} loading={loadingAcciones} onGuardar={handleGuardarAccion} onEliminar={handleEliminarAccion} Th={Th} />
+            
+            <SeccionTimeline 
+              acciones={acciones} 
+              loading={loadingAcciones} 
+              onCrear={handleCrearAccion} 
+              onActualizar={handleActualizarAccion} 
+              onEliminar={handleEliminarAccion} 
+              Th={Th} 
+            />
 
             <CasoFooter Th={Th} setModalEscrito={setModalEscrito} handleExportarPDF={handleExportarPDF} exportandoPDF={exportandoPDF} recargarArchivos={recargarArchivos} archivosActualizando={archivosActualizando} onClose={onClose} guardarCaso={guardarCaso} guardando={guardando} />
           </div>
