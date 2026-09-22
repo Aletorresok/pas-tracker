@@ -8,7 +8,7 @@ export default function CasoDocumentos({
 }) {
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>📁 Documentos del caso</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>Documentos del caso</div>
       
       <CarpetaLocal 
         Th={Th} 

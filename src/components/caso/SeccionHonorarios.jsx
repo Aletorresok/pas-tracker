@@ -9,7 +9,7 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
 
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>🏦 Honorarios (facturación)</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>Honorarios (facturación)</div>
       <label style={{ marginBottom: 12, display: "block" }}>
         <span style={labelStyle}>Monto de honorarios ($)</span>
         <input type="number" value={formData.monto_honorarios} onChange={e => onChange("monto_honorarios", e.target.value)} style={inputStyle} />
@@ -20,9 +20,9 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
           {ESTADOS_HONORARIOS.map(e => (
             <button key={e} onClick={() => onChange("estado_honorarios", e)} style={{
               flex: 1, padding: "8px 6px", borderRadius: 6,
-              border: `1px solid ${formData.estado_honorarios === e ? "#818cf8" : Th.border}`,
-              background: formData.estado_honorarios === e ? "#6366f122" : "transparent",
-              color: formData.estado_honorarios === e ? "#818cf8" : Th.sub,
+              border: `1px solid ${formData.estado_honorarios === e ? "var(--accent)" : Th.border}`,
+              background: formData.estado_honorarios === e ? "color-mix(in srgb, var(--accent) 13%, transparent)" : "transparent",
+              color: formData.estado_honorarios === e ? "var(--accent)" : Th.sub,
               cursor: "pointer", fontSize: 12, fontWeight: formData.estado_honorarios === e ? 700 : 400,
             }}>{e}</button>
           ))}
@@ -39,13 +39,13 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
         </label>
       </div>
       {formData.estado_honorarios === "FACTURADO" && diasDesdeFactura !== null && (
-        <div style={{ fontSize: 12, color: "#f97316", background: "#f9731612", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
-          ⏱ Facturado hace {diasDesdeFactura} días
+        <div style={{ fontSize: 12, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 7%, transparent)", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+          Facturado hace {diasDesdeFactura} días
         </div>
       )}
       {honorariosVencidos && (
-        <div style={{ fontSize: 12, color: "#ef4444", background: "#ef444412", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
-          ⚠️ Cobro de honorarios vencido
+        <div style={{ fontSize: 12, color: "var(--bad)", background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+          Cobro de honorarios vencido
         </div>
       )}
     </div>

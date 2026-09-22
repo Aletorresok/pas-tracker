@@ -43,6 +43,41 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
+### 2026-09-22 — Etapa 1 del rediseño: base visual, temas y bugs (rama `claude/kind-carson-68fvrx`, en revisión)
+*   **Tokens de color en CSS:** `src/index.css` define `--bg, --card, --card2, --border, --border2, --text, --sub, --muted, --accent, --accent-ink, --on-accent, --ok, --warn, --bad, --info, --shadow`. `[data-theme="dark"]` y `[data-accent="marino|borgona|grafito"]` sobre `<html>` los redefinen. **Regla: no escribir colores hex en componentes**; usar `T.*` (de `THEME()`), `COLORES.*` o `var(--x)`. Para transparencias usar `alpha(color, pct)` de `utils/theme.js` (genera `color-mix`).
+*   `utils/theme.js`: `THEME()` devuelve `var(--x)` (el parámetro dark quedó por compatibilidad); `COLORES` semánticos; `ACENTOS` (Dorado, Marino, Borgoña, Grafito); `alpha()`; `FONT` (escala).
+*   `ThemeContext`: modo oscuro sigue al sistema si no hay elección guardada (`pas_tracker_dark_mode`); acento en `pas_tracker_acento`; expone `acento`, `setAcento`, `ACENTOS`. `index.html` aplica tema antes de pintar (sin parpadeo), carga IBM Plex Sans/Mono, `lang="es"`.
+*   **Estados unificados:** `ESTADOS_CASO` y `estadoInfo` viven solo en `constants.js` (con campo `etapa` 0–7); `portalTheme.js` los re-exporta. Colores de estado en orden de avance, tonos medios válidos en claro y oscuro. Sin emojis.
+*   **Componentes base nuevos** en `src/components/ui/`: `Icono.jsx` (íconos de línea SVG), `Boton.jsx` (primario/secundario/fantasma/peligro), `EstadoPill.jsx`, `BarraAvance.jsx` (portales; desistido no muestra avance).
+*   **Navegación:** `SidebarNav` con íconos, menú "Apariencia y backup" (modo, color, backup). En ≤900 px pasa a **barra inferior** (Dashboard, Casos, Contactos, Clientes, Más). Layout con clases `.app-main`/`.app-content`; grillas inline de 3–4 columnas se reacomodan en celular vía CSS.
+*   **Emojis eliminados** de la interfaz (títulos, botones, toasts); tamaños de letra mínimos 11 px.
+*   **Bugs arreglados:** filtro seleccionado de Contactos en gris; colores de modo oscuro en modo claro; contenido visible sobre el encabezado fijo del caso; "Mis pendientes" ahora ordena por `fecha_ultimo_movimiento` (más antiguo primero); barra de avance de casos desistidos en portal PAS y vista cliente.
+*   **Ficha del caso:** botonera sin colores arcoíris (una acción principal "Generar escrito"); en celular el modal ocupa toda la pantalla.
+*   **Portal PAS:** encabezado con marca ATG Lex Solutions, botones con íconos, layout apilado en celular, columna "Futuros pagos" oculta si está vacía.
+
+### 2026-09-22 — Propuesta de rediseño visual (APROBADA en líneas generales)
+*   Documento (v2): https://claude.ai/artifact/3TGX6ipnw65AmWVFejXh3r (diagnóstico con capturas, maquetas de app, portal PAS y vista cliente, plan).
+*   **Diagnóstico principal:** 73 colores hex de 3 paletas (theme.js dorado/marfil, índigo `#6366f1` + pizarra `#1e293b` heredados, `portalTheme.js` con otros colores de estado); 20 tamaños de fuente (algunos de 8–9 px); Inter declarada pero nunca cargada; emojis como íconos; Dashboard de 11 bloques apilados; casos en tarjetas; ficha del caso con 7 secciones apiladas; sin versión celular; 51.048 contactos cargados en 52 pedidos secuenciales al abrir.
+*   **Bugs visuales detectados:** filtro seleccionado de Contactos sale gris (`VISTAS_C` sin `color`); colores de modo oscuro en modo claro (PASCard, FiltrosEstados, TabContactos); contenido que asoma sobre el encabezado fijo del modal del caso; "Mis pendientes" ordena por `updated_at` (columna inexistente); en el portal PAS un caso Desistido muestra la barra de avance completa (incluye el verde de Cobrado).
+*   **Portal PAS:** layout de escritorio con dos columnas fijas (filtros + futuros pagos); inutilizable en celular; identidad violeta distinta a la app; "Plazos por compañía" usa datos de todos los PAS; `alert()` al subir documentación.
+*   **Vista cliente (`?vista=cliente`):** 🔴 privacidad — con solo la patente se ve nombre del asegurado, compañía y montos. Sin marca del estudio ni contacto; etapas en lenguaje interno.
+*   **Decisiones del usuario:**
+    *   Un solo estilo visual basado en theme.js (se abandona el fondo azul pizarra). ✅
+    *   Dashboard "Hoy" orientado a tareas por urgencia. ✅
+    *   Casos en **tabla con fila desplegable** (edición rápida inline) + "Abrir ficha completa" con pestañas. ✅
+    *   Campos editables en el lugar, sin modo edición, con autoguardado e indicador "Guardado"; "Deshacer" al cambiar a Cobrado/Desistido. (propuesto)
+    *   Contactos + Contactados unificados en "Prospección". ✅
+    *   **Temas de color:** dorado principal + Marino, Borgoña y Grafito (cada uno claro/oscuro), elegibles por el usuario. (propuesto a pedido)
+    *   **App 100% funcional en celular** (barra de navegación inferior). ✅
+    *   Rediseñar también el portal PAS y la vista del cliente. ✅
+*   **Plan (8 etapas, un PR cada una, celular incluido en todas):** 1) base visual + temas + bugs, 2) carga rápida de contactos, 3) Dashboard "Hoy", 4) Casos en tabla con fila desplegable, 5) ficha del caso completa, 6) Prospección, 7) Portal PAS, 8) Vista del cliente (acceso con patente + DNI o link único).
+*   **Respuestas del usuario (2026-09-22):**
+    *   Marca en portal y vista cliente: **ATG Lex Solutions** (logo pendiente, por ahora iniciales "ATG").
+    *   Contacto de clientes: WhatsApp **+54 9 11 3313-3259** — Dr. Alexis Torres Gaveglio.
+    *   Acceso del cliente: **patente + últimos 3 dígitos del DNI** (`dni_asegurado`). Para que sea seguro de verdad hace falta una función en Supabase (RPC `security definer`) + RLS; se hace junto con la tarea de RLS.
+    *   "Plazos por compañía" **se mantiene en el portal PAS** (sirve cuando el PAS no tuvo casos con esa compañía), pero sin mostrar cantidad de casos ni datos personales: solo promedios.
+    *   Modo oscuro: sin preferencia → **por defecto sigue el tema del sistema**; el botón manual se mantiene y su elección queda guardada.
+
 ## ✅ LOGROS RECIENTES (Sesión anterior)
 *   **Base de Datos Automatizada:** Trigger en PostgreSQL que sincroniza automáticamente la fecha `updated_at` del caso al registrarse movimientos en la bitácora.
 *   **Gestor de Tareas Integrado:** Incorporación y visualización del campo `proxima_accion` en `TabDashboard` bajo la grilla "📝 Mis Pendientes de Gestión".

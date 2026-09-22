@@ -1,70 +1,61 @@
-// 🎛️ CONFIGURACIÓN DE TEMA - PAS TRACKER
-// Paleta semántica y estructural corregida para accesibilidad WCAG y contraste profesional
+// 🎛️ SISTEMA VISUAL - PAS TRACKER
+// Todos los colores salen de variables CSS definidas en src/index.css.
+// El modo (claro/oscuro) y el color de acento se aplican con data-theme / data-accent
+// sobre <html> (ver ThemeContext). Por eso los valores de acá son "var(--x)" y no hex:
+// cambian solos al cambiar el tema, sin re-render.
 
-// ==========================================
-// 1. PALETAS DE COLORES SEMÁNTICOS Y ACENTO
-// ==========================================
+// Mezcla un color (hex o var()) con transparencia. pct = opacidad 0-100.
+export const alpha = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
+
+// Colores semánticos (avisos). El acento es el único que cambia con el tema de color.
 export const COLORES = {
-  brand: "#C9A227",          // Dorado apagado (uso reservado: número hero y logo)
-  primaryGradient: "linear-gradient(135deg, #C9A227 0%, #A6821F 100%)",
-  primaryLight: "#D4AF37",
-  
-  // Colores semánticos adaptados (más oscuros y saturados para evitar efectos neón molestos)
-  success: "#2E7D53",        // Verde esmeralda profundo (Cobrado / positivo)
-  warning: "#B86B29",        // Ámbar terracota formal (Pendiente de gestión)
-  danger: "#A63C2E",         // Rojo ladrillo sobrio (Desistido / riesgo)
-  info: "#3B6E9E",           // Azul acero profundo (En trámite / activo)
+  brand: "var(--accent)",
+  brandInk: "var(--accent-ink)",
+  primaryGradient: "var(--accent)",
+  success: "var(--ok)",
+  warning: "var(--warn)",
+  danger: "var(--bad)",
+  info: "var(--info)",
 };
 
-// ==========================================
-// 2. CONFIGURACIÓN DE FONDOS, TEXTOS Y BORDES (MODO CLARO / OSCURO)
-// ==========================================
-export const THEME = (dark) => {
-  if (dark) {
-    return {
-      bg:     "#10151F",
-      card:   "#171E2B",
-      card2:  "#1E2738",
-      border: "#252D3D",
-      text:   "#E9E7E1",
-      sub:    "#8D93A1",
-      muted:  "#5A6273",
-      input: {
-        background: "#171E2B",
-        border: "1px solid #252D3D",
-        borderRadius: 8,
-        color: "#E9E7E1",
-        padding: "10px 14px",
-        fontSize: 14,
-        width: "100%",
-        boxSizing: "border-box",
-        outline: "none",
-        fontFamily: "inherit",
-        fontVariantNumeric: "tabular-nums",
-      },
-    };
-  }
+// Temas de acento disponibles (el valor es el de data-accent; "" = dorado por defecto)
+export const ACENTOS = [
+  { key: "", label: "Dorado", muestra: "#C9A227" },
+  { key: "marino", label: "Marino", muestra: "#2D4A7A" },
+  { key: "borgona", label: "Borgoña", muestra: "#7D2E46" },
+  { key: "grafito", label: "Grafito", muestra: "#3F4654" },
+];
 
-  return {
-    bg:     "#F7F6F2",       // Fondo general marfil suave (elimina el blanco puro cansador)
-    card:   "#FFFFFF",
-    card2:  "#EFEFEA",
-    border: "#E4E2DC",
-    text:   "#1A1D24",       // Texto casi negro de alta legibilidad
-    sub:    "#555B6E",       // Gris secundario con excelente contraste
-    muted:  "#8A909F",
-    input: {
-      background: "#FFFFFF",
-      border: "1px solid #E4E2DC",
-      borderRadius: 8,
-      color: "#1A1D24",
-      padding: "10px 14px",
-      fontSize: 14,
-      width: "100%",
-      boxSizing: "border-box",
-      outline: "none",
-      fontFamily: "inherit",
-      fontVariantNumeric: "tabular-nums",
-    },
-  };
+// Escala tipográfica (px)
+export const FONT = { xs: 11, sm: 12, base: 14, md: 16, lg: 20, xl: 24 };
+
+const TOKENS = {
+  bg: "var(--bg)",
+  card: "var(--card)",
+  card2: "var(--card2)",
+  border: "var(--border)",
+  border2: "var(--border2)",
+  text: "var(--text)",
+  sub: "var(--sub)",
+  muted: "var(--muted)",
+  accent: "var(--accent)",
+  accentInk: "var(--accent-ink)",
+  onAccent: "var(--on-accent)",
+  shadow: "var(--shadow)",
+  input: {
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    color: "var(--text)",
+    padding: "10px 14px",
+    fontSize: 14,
+    width: "100%",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
+    fontVariantNumeric: "tabular-nums",
+  },
 };
+
+// Se mantiene la firma THEME(dark) por compatibilidad; el modo lo resuelve el CSS.
+export const THEME = () => TOKENS;

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { alpha } from "../utils/theme.js";
 
 export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorder, textColor, subColor, mostrarCasos = true }) {
   const [selectedComp, setSelectedComp] = useState("");
@@ -41,10 +42,10 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   if (!companias.length) return null;
 
   const selectStyle = {
-    background: darkMode ? "#1e293b" : "#f8fafc",
-    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    background: "var(--card2)",
+    border: `1px solid ${"var(--border)"}`,
     borderRadius: 10,
-    color: darkMode ? "#f1f5f9" : "#0f172a",
+    color: "var(--text)",
     padding: "9px 14px",
     fontSize: 13,
     fontWeight: 600,
@@ -59,14 +60,14 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   const maxDias = stats ? Math.max(stats.diasOfrecimiento || 0, stats.diasCobro || 0, 1) : 1;
 
   const barras = stats ? [
-    { label: "Días hasta ofrecimiento", valor: stats.diasOfrecimiento, casos: stats.diasOfrecimientoCasos, color: "#3b82f6", suffix: "d", max: maxDias },
-    { label: "Días hasta cobro", valor: stats.diasCobro, casos: stats.diasCobroCasos, color: "#8b5cf6", suffix: "d", max: maxDias },
-    { label: "% cobro / reclamado", valor: stats.pctCobro, casos: stats.pctCobroCasos, color: "#22c55e", suffix: "%", max: 100 },
+    { label: "Días hasta ofrecimiento", valor: stats.diasOfrecimiento, casos: stats.diasOfrecimientoCasos, color: "var(--info)", suffix: "d", max: maxDias },
+    { label: "Días hasta cobro", valor: stats.diasCobro, casos: stats.diasCobroCasos, color: "var(--accent)", suffix: "d", max: maxDias },
+    { label: "% cobro / reclamado", valor: stats.pctCobro, casos: stats.pctCobroCasos, color: "var(--ok)", suffix: "%", max: 100 },
   ] : [];
 
   return (
     <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>🏢 Plazos por compañía</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Plazos por compañía</div>
 
       <select value={activeComp} onChange={e => setSelectedComp(e.target.value)} style={selectStyle}>
         {companias.map(c => (
@@ -88,9 +89,9 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
                   ) : (
                     <div style={{ fontSize: 13, color: subColor }}>—</div>
                   )}
-                  {mostrarCasos && <div style={{ fontSize: 9, color: subColor }}>{b.casos} caso{b.casos !== 1 ? "s" : ""}</div>}
-                  <div style={{ width: "100%", height: maxBarHeight, background: darkMode ? "#1e293b" : "#e2e8f0", borderRadius: 8, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                    <div style={{ width: "100%", height: `${pct}%`, background: `linear-gradient(180deg, ${b.color}, ${b.color}88)`, borderRadius: "8px 8px 0 0", transition: "height .4s ease", minHeight: b.valor !== null ? 4 : 0 }} />
+                  {mostrarCasos && <div style={{ fontSize: 11, color: subColor }}>{b.casos} caso{b.casos !== 1 ? "s" : ""}</div>}
+                  <div style={{ width: "100%", height: maxBarHeight, background: "var(--border)", borderRadius: 8, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                    <div style={{ width: "100%", height: `${pct}%`, background: `linear-gradient(180deg, ${b.color}, ${alpha(b.color, 53)})`, borderRadius: "8px 8px 0 0", transition: "height .4s ease", minHeight: b.valor !== null ? 4 : 0 }} />
                   </div>
                 </div>
               );
@@ -98,7 +99,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 8, padding: "0 10px" }}>
             {barras.map(b => (
-              <div key={b.label} style={{ flex: 1, maxWidth: 100, textAlign: "center", fontSize: 9, color: subColor, lineHeight: 1.3 }}>{b.label}</div>
+              <div key={b.label} style={{ flex: 1, maxWidth: 100, textAlign: "center", fontSize: 11, color: subColor, lineHeight: 1.3 }}>{b.label}</div>
             ))}
           </div>
         </>

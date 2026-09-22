@@ -1,10 +1,59 @@
+/* ── SISTEMA VISUAL · tokens ─────────────────────────────────────────────
+   Modo claro por defecto; [data-theme="dark"] y [data-accent] los pone ThemeContext. */
 :root {
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --bg: #F7F6F2;
+  --card: #FFFFFF;
+  --card2: #EFEEE8;
+  --border: #E4E2DC;
+  --border2: #D3D0C8;
+  --text: #1A1D24;
+  --sub: #555B6E;
+  --muted: #7D8392;
+  --accent: #A6821F;
+  --accent-ink: #7E6214;
+  --on-accent: #FFFFFF;
+  --ok: #2E7D53;
+  --warn: #B86B29;
+  --bad: #A63C2E;
+  --info: #3B6E9E;
+  --shadow: 0 1px 2px #1a1d2410, 0 8px 24px #1a1d240d;
+  --font: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #10151F;
+  --card: #171E2B;
+  --card2: #1E2738;
+  --border: #252D3D;
+  --border2: #323B4D;
+  --text: #E9E7E1;
+  --sub: #A3A8B4;
+  --muted: #7A8191;
+  --accent: #D4AF37;
+  --accent-ink: #E3C35A;
+  --on-accent: #10151F;
+  --ok: #4FA776;
+  --warn: #D98E4F;
+  --bad: #D0685A;
+  --info: #6E9FCC;
+  --shadow: 0 1px 2px #0006, 0 8px 24px #0004;
+  color-scheme: dark;
+}
+:root[data-accent="marino"] { --accent: #2D4A7A; --accent-ink: #24406B; --on-accent: #FFFFFF; }
+:root[data-accent="borgona"] { --accent: #7D2E46; --accent-ink: #6B2239; --on-accent: #FFFFFF; }
+:root[data-accent="grafito"] { --accent: #3F4654; --accent-ink: #2E3440; --on-accent: #FFFFFF; }
+:root[data-theme="dark"][data-accent="marino"] { --accent: #8FB0E6; --accent-ink: #A9C3EE; --on-accent: #10151F; }
+:root[data-theme="dark"][data-accent="borgona"] { --accent: #D98AA2; --accent-ink: #E6A5B8; --on-accent: #10151F; }
+:root[data-theme="dark"][data-accent="grafito"] { --accent: #C9CED8; --accent-ink: #DDE1E8; --on-accent: #10151F; }
+
+:root {
+  font-family: var(--font);
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
-  background-color: #0b1121;
-  color: #f1f5f9;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -12,60 +61,81 @@ body {
   padding: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text);
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
+#root { width: 100%; min-height: 100vh; }
 
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: var(--border2) transparent;
 }
-
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-*::-webkit-scrollbar-thumb:hover { background: #475569; }
+*::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-input, button, select, textarea {
-  font-family: inherit;
-}
-
-button {
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  filter: brightness(1.08);
-}
-
-button:active {
-  transform: scale(0.97);
-}
+input, button, select, textarea { font-family: inherit; }
+button { transition: background-color .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease; }
+button:hover:not(:disabled) { filter: brightness(1.06); }
+button:active:not(:disabled) { transform: scale(0.98); }
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 3px #6366f122;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-::selection {
-  background: #6366f144;
-  color: #f1f5f9;
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text); }
+
+.num { font-variant-numeric: tabular-nums; }
+
+/* ── LAYOUT DE LA APP ────────────────────────────────────────────────── */
+.modal-sticky { top: -16px; }
+.app-main { margin-left: 232px; flex: 1; min-height: 100vh; min-width: 0; }
+.app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }
+.sidebar { display: flex; }
+.bottom-nav { display: none; }
+
+@media (max-width: 900px) {
+  .app-main { margin-left: 0; }
+  .app-content { padding: 16px 16px calc(88px + env(safe-area-inset-bottom, 0px)); }
+  .sidebar { display: none !important; }
+  .bottom-nav {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
+    background: var(--card); border-top: 1px solid var(--border);
+    padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Grillas que en compu son de varias columnas pasan a una o dos */
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid-3, .grid-2 { grid-template-columns: minmax(0, 1fr) !important; }
+  /* Grillas escritas en línea: se reacomodan en pantallas chicas */
+  [style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  [style*="grid-template-columns: repeat(3"], [style*="grid-template-columns: 1fr 1fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr 2fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+  .modal-panel { padding: 0 !important; max-height: 100vh !important; height: 100vh; }
+  .modal-panel > div { border-radius: 0 !important; min-height: 100%; }
+  .modal-sticky { top: 0; border-radius: 0 !important; }
+  .hide-mobile { display: none !important; }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ── PORTAL PAS en celular ── */
+@media (max-width: 900px) {
+  .portal-layout { flex-direction: column; padding: 12px 12px 32px !important; gap: 12px !important; }
+  .portal-side { position: static !important; height: auto !important; width: 100%; flex-direction: column; }
+  .portal-col { width: 100% !important; }
+  .portal-col > div { height: auto !important; }
+  .portal-filtros { display: flex !important; overflow-x: auto; gap: 6px !important; padding-bottom: 4px; }
+  .portal-filtros > button { flex: none; padding: 8px 10px !important; }
+  .portal-kpis[style] { gap: 8px !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .portal-kpis > div { padding: 14px 8px !important; }
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeIn 0.25s ease-out; }
 .slide-up { animation: slideUp 0.3s ease-out; }
+@media (prefers-reduced-motion: reduce) { .fade-in, .slide-up { animation: none; } * { transition: none !important; } }

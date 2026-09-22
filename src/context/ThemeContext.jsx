@@ -1,33 +1,55 @@
 import { createContext, useContext, useState, useMemo, useEffect } from "react";
-import { THEME, COLORES } from "../utils/theme.js";
+import { THEME, COLORES, ACENTOS } from "../utils/theme.js";
 
-// Creamos el contexto
 const ThemeContext = createContext();
 
-// Este componente va a envolver a toda tu app
+const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sin storage */ } };
+const sistemaOscuro = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+
 export function ThemeProvider({ children }) {
-  // Leemos la preferencia de modo oscuro de la memoria (por defecto oscuro)
-  const [darkMode, setDarkMode] = useState(() => {
-    const guardado = localStorage.getItem("pas_tracker_dark_mode");
-    return guardado !== null ? JSON.parse(guardado) : true;
+  // null = seguir el tema del sistema; true/false = elección manual guardada
+  const [preferencia, setPreferencia] = useState(() => {
+    const g = leer("pas_tracker_dark_mode");
+    return g === null ? null : JSON.parse(g);
   });
+  const [oscuroSistema, setOscuroSistema] = useState(sistemaOscuro);
+  const [acento, setAcentoState] = useState(() => leer("pas_tracker_acento") || "");
 
-  // Cada vez que cambie, lo guardamos en el navegador
   useEffect(() => {
-    localStorage.setItem("pas_tracker_dark_mode", JSON.stringify(darkMode));
-  }, [darkMode]);
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!mq) return;
+    const onChange = (e) => setOscuroSistema(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
-  const toggleDarkMode = () => setDarkMode((prev) => !prev);
+  const darkMode = preferencia === null ? oscuroSistema : preferencia;
 
-  // Generamos el tema dinámicamente
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = darkMode ? "dark" : "light";
+    if (acento) root.dataset.accent = acento; else delete root.dataset.accent;
+  }, [darkMode, acento]);
+
+  const toggleDarkMode = () => {
+    const nuevo = !darkMode;
+    setPreferencia(nuevo);
+    guardar("pas_tracker_dark_mode", JSON.stringify(nuevo));
+  };
+
+  const setAcento = (a) => {
+    setAcentoState(a);
+    guardar("pas_tracker_acento", a);
+  };
+
   const T = useMemo(() => THEME(darkMode), [darkMode]);
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleDarkMode, T, COLORES }}>
+    <ThemeContext.Provider value={{ darkMode, toggleDarkMode, acento, setAcento, ACENTOS, T, COLORES }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-// Hook personalizado para usar el tema en cualquier archivo fácilmente
 export const useTheme = () => useContext(ThemeContext);

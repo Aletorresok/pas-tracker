@@ -4,8 +4,10 @@ import { supabase } from "../../supabase.js";
 import { useRealtimeCasos } from "../../hooks/useRealtimeSync.js";
 import { ESTADOS_CASO, fmtDate, fmtMoney, theme } from "./portalTheme.js";
 import PortalCasoCard from "./PortalCasoCard.jsx";
+import Boton from "../ui/Boton.jsx";
 import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
 import GraficoCompanias from "../GraficoCompanias.jsx";
+import { alpha } from "../../utils/theme.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -126,43 +128,46 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, transition: "background .3s" }}>
       {/* Header */}
-      <div style={{ background: T.card, borderBottom: `1px solid ${T.border}`, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10 }}>
-        <div>
-          <div style={{ fontSize: 10, color: "#6366f1", textTransform: "uppercase", letterSpacing: 2.5, fontWeight: 700 }}>PAS Tracker</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 1 }}>{pasInfo?.nombre || "Portal"}</div>
+      <div style={{ background: T.card, borderBottom: `1px solid ${T.border}`, padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: T.accent, color: T.onAccent, display: "grid", placeItems: "center", fontSize: 12, fontWeight: 700, fontFamily: "var(--mono)", flex: "none" }}>ATG</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 12, color: T.muted }}>ATG Lex Solutions · Portal de productores</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pasInfo?.nombre || "Portal"}</div>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button onClick={() => setModalNuevoCaso(true)} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>➕ Nuevo Caso</button>
-          <button onClick={onToggleDark} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 15 }}>{dark ? "☀️" : "🌙"}</button>
-          <button onClick={() => setCambPwd(true)} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🔒 Contraseña</button>
-          <button onClick={onLogout} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Salir</button>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flex: "none" }}>
+          <Boton variante="primario" icono="agregar" tamaño="sm" onClick={() => setModalNuevoCaso(true)}><span className="hide-mobile">Derivar caso</span></Boton>
+          <Boton variante="fantasma" tamaño="sm" icono={dark ? "sol" : "luna"} onClick={onToggleDark} aria-label={dark ? "Modo claro" : "Modo oscuro"} />
+          <Boton variante="fantasma" tamaño="sm" icono="candado" onClick={() => setCambPwd(true)} aria-label="Cambiar contraseña"><span className="hide-mobile">Contraseña</span></Boton>
+          <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={onLogout} aria-label="Salir"><span className="hide-mobile">Salir</span></Boton>
         </div>
       </div>
 
       {/* NUEVO LAYOUT: Ancho ampliado y doble columna lateral */}
-      <div style={{ display: "flex", gap: 24, maxWidth: 1400, margin: "0 auto", padding: "24px 32px", alignItems: "flex-start" }}>
+      <div className="portal-layout" style={{ display: "flex", gap: 24, maxWidth: 1400, margin: "0 auto", padding: "24px 32px", alignItems: "flex-start" }}>
         
         {/* SIDEBAR DOBLE */}
-        <div style={{ display: "flex", gap: 16, flexShrink: 0, position: "sticky", top: 88, height: "calc(100vh - 110px)" }}>
+        <div className="portal-side" style={{ display: "flex", gap: 16, flexShrink: 0, position: "sticky", top: 88, height: "calc(100vh - 110px)" }}>
           
           {/* COLUMNA 1: FILTROS */}
-          <div style={{ width: 220, display: "flex", flexDirection: "column" }}>
+          <div className="portal-col" style={{ width: 220, display: "flex", flexDirection: "column" }}>
             <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px", height: "100%", overflowY: "auto" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
                 <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Filtrar Estado:</span>
                 <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-                  <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>⚡ Activos</button>
-                  <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>{todosSeleccionados ? "Ninguno" : "Todos"}</button>
+                  <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>Activos</button>
+                  <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "var(--info)", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: 0 }}>{todosSeleccionados ? "Ninguno" : "Todos"}</button>
                 </div>
               </div>
               
               {/* Filtros apilados en 1 sola columna con etiquetas de texto */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+              <div className="portal-filtros" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
                 {ESTADOS_CASO.map(e => {
                   const cnt = casos.filter(c => c.estado === e.key).length;
                   const active = filtrosEstados.includes(e.key);
                   return (
-                    <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: active ? e.color + "28" : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
+                    <button key={e.key} onClick={() => toggleFiltroEstado(e.key)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: active ? alpha(e.color, 16) : T.card2, border: `1px solid ${active ? e.color : T.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", transition: "all .15s", opacity: active ? 1 : 0.45 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ fontSize: 16 }}>{e.emoji}</span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: active ? e.color : T.text }}>{e.label}</span>
@@ -176,9 +181,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </div>
 
           {/* COLUMNA 2: FUTUROS PAGOS */}
-          <div style={{ width: 260, display: "flex", flexDirection: "column" }}>
+          <div className="portal-col" style={{ width: 260, display: pagosPendientes.length ? "flex" : "none", flexDirection: "column" }}>
             <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px", display: "flex", flexDirection: "column", height: "100%" }}>
-              <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>📅 Futuros Pagos</div>
+              <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>Futuros Pagos</div>
               <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 4, flex: 1 }}>
                 {pagosPendientes.length === 0 ? (
                    <div style={{ fontSize: 12, color: T.sub, textAlign: "center", padding: "20px 0" }}>No hay pagos programados.</div>
@@ -186,18 +191,18 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                   pagosPendientes.map(p => (
                     <div key={p.id} style={{ background: T.card2, borderRadius: 10, padding: "14px", border: `1px solid ${T.border}` }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 6 }}>{p.asegurado}</div>
-                      <div style={{ fontSize: 12, color: "#06b6d4", fontWeight: 700, marginBottom: 8 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
+                      <div style={{ fontSize: 12, color: "var(--info)", fontWeight: 700, marginBottom: 8 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</div>
                       
                       {/* Montos Asegurado y PAS (Condicionado a que exista comisión) */}
                       <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
                         <div>
-                          <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: "#22c55e" }}>{fmtMoney(p.monto_cobro_asegurado)}</div>
+                          <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ok)" }}>{fmtMoney(p.monto_cobro_asegurado)}</div>
                         </div>
                         {Number(p.monto_comision_pas) > 0 && (
                           <div style={{ textAlign: "right" }}>
-                            <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Tu Comisión</div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: "#eab308" }}>{fmtMoney(p.monto_comision_pas)}</div>
+                            <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Tu Comisión</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--warn)" }}>{fmtMoney(p.monto_comision_pas)}</div>
                           </div>
                         )}
                       </div>
@@ -213,11 +218,11 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
         {/* CONTENIDO PRINCIPAL */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+          <div className="portal-kpis" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
             {[
-              { label: "Casos totales",  value: casos.length, color: "#6366f1" },
-              { label: "Cobrados",       value: casosCobrados.length, color: "#22c55e" },
-              { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "#f97316" },
+              { label: "Casos totales",  value: casos.length, color: "var(--accent)" },
+              { label: "Cobrados",       value: casosCobrados.length, color: "var(--ok)" },
+              { label: "En proceso",     value: casos.filter(c => !["cobrado","desistido"].includes(c.estado)).length, color: "var(--warn)" },
             ].map(s => (
               <div key={s.label} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "24px 16px", textAlign: "center" }}>
                 <div style={{ fontSize: 32, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
@@ -228,31 +233,30 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
           {/* BANNER PRINCIPAL ADAPTATIVO */}
           {(comisionTotal > 0 || totalCobrado > 0) && (
-            <div style={{ background: T.card, border: `1px solid ${comisionTotal > 0 ? '#eab30844' : '#22c55e44'}`, borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: T.card, border: `1px solid ${comisionTotal > 0 ? 'color-mix(in srgb, var(--warn) 27%, transparent)' : 'color-mix(in srgb, var(--ok) 27%, transparent)'}`, borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               {comisionTotal > 0 ? (
                 <>
                   <div>
-                    <div style={{ fontSize: 12, color: "#eab308", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Tu comisión total cobrada</div>
-                    <div style={{ fontSize: 28, fontWeight: 900, color: "#eab308", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
+                    <div style={{ fontSize: 12, color: "var(--warn)", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Tu comisión total cobrada</div>
+                    <div style={{ fontSize: 28, fontWeight: 900, color: "var(--warn)", marginTop: 4 }}>{fmtMoney(comisionTotal)}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 12, color: T.muted, fontWeight: 600 }}>Asegurados cobrados</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: "#22c55e", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ok)", marginTop: 2 }}>{fmtMoney(totalCobrado)}</div>
                   </div>
                 </>
               ) : (
                 <div>
-                  <div style={{ fontSize: 12, color: "#22c55e", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Total indemnizaciones cobradas</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#22c55e", marginTop: 4 }}>{fmtMoney(totalCobrado)}</div>
+                  <div style={{ fontSize: 12, color: "var(--ok)", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>Total indemnizaciones cobradas</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--ok)", marginTop: 4 }}>{fmtMoney(totalCobrado)}</div>
                 </div>
               )}
             </div>
           )}
 
-          {casos.length > 0 && casos[0]?._demo && <div style={{ background: "#6366f118", border: "1px solid #6366f144", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#818cf8" }}>👋 Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.</div>}
+          {casos.length > 0 && casos[0]?._demo && <div style={{ background: "color-mix(in srgb, var(--accent) 9%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "var(--accent)" }}>Todavía no tenés casos asignados. Este es un ejemplo de cómo se verán.</div>}
           {casosFiltrados.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
               <div style={{ color: T.muted, fontSize: 16 }}>No hay casos con los filtros seleccionados</div>
             </div>
           ) : (

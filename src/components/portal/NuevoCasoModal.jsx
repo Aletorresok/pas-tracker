@@ -106,12 +106,12 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "0 10px 25px #00000033" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>➕ Derivar Nuevo Caso</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>Derivar Nuevo Caso</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 18, cursor: "pointer" }}>✕</button>
         </div>
 
         {error && (
-          <div style={{ background: "#ef444422", border: "1px solid #ef4444", borderRadius: 8, padding: "10px 14px", color: "#ef4444", fontSize: 12, marginBottom: 16 }}>
+          <div style={{ background: "color-mix(in srgb, var(--bad) 13%, transparent)", border: "1px solid var(--bad)", borderRadius: 8, padding: "10px 14px", color: "var(--bad)", fontSize: 12, marginBottom: 16 }}>
             {error}
           </div>
         )}
@@ -208,12 +208,12 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               onChange={handleFileChange}
               style={{ width: "100%", color: T.muted, fontSize: 12 }}
             />
-            <div style={{ fontSize: 10, color: T.muted, marginTop: 4 }}>Podés seleccionar varios archivos (fotos, DNI, denuncia).</div>
+            <div style={{ fontSize: 11, color: T.muted, marginTop: 4 }}>Podés seleccionar varios archivos (fotos, DNI, denuncia).</div>
           </div>
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
             <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-            <button type="submit" disabled={loading} style={{ background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+            <button type="submit" disabled={loading} style={{ background: "var(--accent)", border: "none", borderRadius: 8, color: "var(--on-accent)", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
               {loading ? "Enviando..." : "Derivar Caso"}
             </button>
           </div>

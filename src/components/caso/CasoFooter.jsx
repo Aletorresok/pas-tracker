@@ -1,38 +1,23 @@
-import React from 'react';
+import Boton from "../ui/Boton.jsx";
 
-export default function CasoFooter({ 
-  Th, setModalEscrito, handleExportarPDF, exportandoPDF, 
-  recargarArchivos, archivosActualizando, onClose, guardarCaso, guardando 
+export default function CasoFooter({
+  Th, setModalEscrito, handleExportarPDF, exportandoPDF,
+  recargarArchivos, archivosActualizando, onClose, guardarCaso, guardando
 }) {
   return (
     <>
-      {/* Acciones rápidas */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
-        <button onClick={() => setModalEscrito(true)} style={{ background: "#f97316", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-          📝 Escrito
-        </button>
-        <button
-          onClick={handleExportarPDF}
-          disabled={exportandoPDF}
-          style={{ background: exportandoPDF ? Th.card2 : "#8b5cf6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: exportandoPDF ? 0.5 : 1 }}
-        >
-          {exportandoPDF ? "..." : "📄 Exportar PDF"}
-        </button>
-        <button onClick={recargarArchivos} disabled={archivosActualizando} style={{ background: archivosActualizando ? Th.card2 : "#3b82f6", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: archivosActualizando ? 0.5 : 1 }}>
-          {archivosActualizando ? "..." : "🔄 Archivos"}
-        </button>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: `1px solid ${Th.border}` }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <Boton variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
+          <Boton icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "Exportar PDF"}</Boton>
+          <Boton icono="recargar" onClick={recargarArchivos} disabled={archivosActualizando}>{archivosActualizando ? "Actualizando…" : "Actualizar archivos"}</Boton>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Boton variante="fantasma" onClick={guardarCaso} disabled={guardando}>{guardando ? "Guardando…" : "Guardar ahora"}</Boton>
+          <Boton onClick={onClose}>Cerrar</Boton>
+        </div>
       </div>
-
-      {/* Cerrar / Guardar */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 10, borderTop: `1px solid ${Th.border}` }}>
-        <button onClick={onClose} style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-          Cerrar
-        </button>
-        <button onClick={guardarCaso} disabled={guardando} style={{ background: guardando ? Th.card2 : "#10b981", border: "none", borderRadius: 8, color: "white", padding: "12px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}>
-          {guardando ? "Guardando..." : "✓ Guardar ahora"}
-        </button>
-      </div>
-      <div style={{ textAlign: "center", fontSize: 11, color: Th.muted, marginTop: 8 }}>Los cambios se guardan automáticamente</div>
+      <div style={{ fontSize: 12, color: Th.muted, marginTop: 10 }}>Los cambios se guardan automáticamente.</div>
     </>
   );
 }

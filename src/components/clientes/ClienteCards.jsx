@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { fmtMoney, fmtDate, diasDesde } from "../../utils/formatters.js";
 import { ESTADOS_CASO } from "../../constants.js";
+import { alpha } from "../../utils/theme.js";
+import EstadoPill from "../ui/EstadoPill.jsx";
 
-const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { label: key || "—", emoji: "📄", color: "#64748b" };
+const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { label: key || "—", emoji: "", color: "var(--muted)" };
 
 export function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -17,33 +19,31 @@ export function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: darkMode ? "#0f172a" : "#fff",
-        border: `1px solid ${isHovered ? ei.color + "88" : darkMode ? "#1e293b" : "#e2e8f0"}`,
+        background: "var(--card)",
+        border: `1px solid ${isHovered ? alpha(ei.color, 53) : "var(--border)"}`,
         borderLeft: `3px solid ${ei.color}`,
         borderRadius: 10,
         padding: "12px 14px",
         marginBottom: 8,
         cursor: "pointer",
         transition: "all .15s ease",
-        boxShadow: isHovered ? `0 4px 12px ${ei.color}15` : "none",
+        boxShadow: isHovered ? `0 4px 12px ${alpha(ei.color, 8)}` : "none",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {caso.asegurado || "Sin nombre"}
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-            <span style={{ fontSize: 10, background: ei.color + "18", color: ei.color, border: `1px solid ${ei.color}33`, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
-              {ei.emoji} {ei.label}
-            </span>
+            <EstadoPill estado={caso.estado} size="sm" />
             {caso.compania_aseguradora && (
-              <span style={{ fontSize: 10, background: darkMode ? "#1e293b" : "#f1f5f9", color: darkMode ? "#94a3b8" : "#64748b", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
+              <span style={{ fontSize: 11, background: "var(--card2)", color: "var(--sub)", borderRadius: 6, padding: "2px 7px", border: `1px solid ${"var(--border)"}` }}>
                 {caso.compania_aseguradora}
               </span>
             )}
             {dias !== null && (
-              <span style={{ fontSize: 10, color: darkMode ? "#64748b" : "#94a3b8" }}>
+              <span style={{ fontSize: 11, color: "var(--muted)" }}>
                 {dias}d
               </span>
             )}
@@ -51,14 +51,14 @@ export function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
           {caso.monto_acordado || caso.monto_ofrecimiento ? (
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#C9A227" }}>{fmtMoney(Number(caso.monto_acordado) || Number(caso.monto_ofrecimiento))}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)" }}>{fmtMoney(Number(caso.monto_acordado) || Number(caso.monto_ofrecimiento))}</span>
           ) : null}
           <button
             onClick={e => { e.stopPropagation(); onDelete(caso.id); }}
             style={{ 
               background: "none", 
               border: "none", 
-              color: darkMode ? "#f87171" : "#dc2626", 
+              color: "var(--bad)", 
               fontSize: 15, 
               cursor: "pointer", 
               padding: "2px 6px", 
@@ -68,14 +68,14 @@ export function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
             }}
             title="Eliminar caso"
           >
-            🗑️
+            
           </button>
         </div>
       </div>
       {ultimaAccion && (
         <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
-          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#C9A227", flexShrink: 0 }} />
-          <div style={{ fontSize: 11, color: darkMode ? "#64748b" : "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }} />
+          <div style={{ fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {fmtDate(ultimaAccion.fecha)} — {ultimaAccion.texto}
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDet
   const cobrados = casos.filter(c => c.estado === "cobrado").length;
 
   return (
-    <div style={{ background: darkMode ? "#171E2B" : "#ffffff", border: `1px solid ${darkMode ? "#252D3D" : "#E4E2DC"}`, borderRadius: 12, marginBottom: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+    <div style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: 12, marginBottom: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
       <div
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "14px 18px" }}
         onClick={onToggle}
@@ -125,23 +125,23 @@ export default function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDet
       >
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ fontWeight: 700, color: darkMode ? "#E9E7E1" : "#1A1D24", fontSize: 15 }}>{pas.nombre}</div>
-            {pas.manual && <span style={{ fontSize: 9, background: "#C9A22722", color: "#C9A227", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>manual</span>}
+            <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 15 }}>{pas.nombre}</div>
+            {pas.manual && <span style={{ fontSize: 11, background: "color-mix(in srgb, var(--accent) 13%, transparent)", color: "var(--accent)", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>manual</span>}
           </div>
-          <div style={{ display: "flex", gap: 10, marginTop: 4, fontSize: 11, color: darkMode ? "#8D93A1" : "#6B7180" }}>
+          <div style={{ display: "flex", gap: 10, marginTop: 4, fontSize: 11, color: "var(--sub)" }}>
             <span>{filtered.length} caso{filtered.length !== 1 ? "s" : ""}</span>
-            {cobrados > 0 && <span style={{ color: "#2E7D53" }}>✓ {cobrados} cobrado{cobrados !== 1 ? "s" : ""}</span>}
-            {totalMonto > 0 && <span style={{ color: "#C9A227" }}>{fmtMoney(totalMonto)}</span>}
+            {cobrados > 0 && <span style={{ color: "var(--ok)" }}>✓ {cobrados} cobrado{cobrados !== 1 ? "s" : ""}</span>}
+            {totalMonto > 0 && <span style={{ color: "var(--accent)" }}>{fmtMoney(totalMonto)}</span>}
           </div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <button
             onClick={e => { e.stopPropagation(); onAddCaso(); }}
             style={{ 
-              background: isHoveredHeader ? "#C9A227" : "transparent", 
-              border: `1px solid #C9A227`, 
+              background: isHoveredHeader ? "var(--accent)" : "transparent", 
+              border: `1px solid var(--accent)`, 
               borderRadius: 8, 
-              color: isHoveredHeader ? "#fff" : "#C9A227", 
+              color: isHoveredHeader ? "var(--on-accent)" : "var(--accent)", 
               padding: "6px 12px", 
               fontSize: 12, 
               cursor: "pointer", 
@@ -151,13 +151,13 @@ export default function ClienteCard({ pas, casos, onAddCaso, onDeleteCaso, onDet
           >
             + Caso
           </button>
-          <span style={{ fontSize: 14, color: darkMode ? "#5A6273" : "#9CA3AF" }}>{expanded ? "▲" : "▼"}</span>
+          <span style={{ fontSize: 14, color: "var(--muted)" }}>{expanded ? "▲" : "▼"}</span>
         </div>
       </div>
       {expanded && (
-        <div style={{ padding: "0 18px 16px", borderTop: `1px solid ${darkMode ? "#252D3D" : "#E4E2DC"}`, paddingTop: 14, background: darkMode ? "#10151F" : "#F7F6F2" }}>
+        <div style={{ padding: "0 18px 16px", borderTop: `1px solid ${"var(--border)"}`, paddingTop: 14, background: "var(--bg)" }}>
           {filtered.length === 0 ? (
-            <div style={{ color: darkMode ? "#5A6273" : "#9CA3AF", fontSize: 12, textAlign: "center", padding: 20 }}>Sin casos{filtroEstado !== "todos" ? " con este filtro" : ""}</div>
+            <div style={{ color: "var(--muted)", fontSize: 12, textAlign: "center", padding: 20 }}>Sin casos{filtroEstado !== "todos" ? " con este filtro" : ""}</div>
           ) : (
             filtered.map(c => (
               <CasoCard key={c.id} caso={c} onDetalle={onDetalleCaso} onDelete={onDeleteCaso} darkMode={darkMode} />

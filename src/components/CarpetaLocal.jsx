@@ -57,7 +57,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
       setNombreCarpeta(nombre);
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
-      onToast({ msg: `📁 Carpeta "${nombre}" creada y vinculada`, type: "success" });
+      onToast({ msg: `Carpeta "${nombre}" creada y vinculada`, type: "success" });
     } catch (e) {
       onToast({ msg: `Error: ${e.message}`, type: "error" });
     }
@@ -110,7 +110,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
     try {
       await renombrarArchivoLocal(dirHandle, archivo, nuevoNombre);
       handleRenombrado(archivo.nombre, nuevoNombre, archivo.blob);
-      onToast({ msg: `✅ ${archivo.nombre} → ${nuevoNombre}`, type: "success" });
+      onToast({ msg: `${archivo.nombre} → ${nuevoNombre}`, type: "success" });
     } catch (e) {
       onToast({ msg: `Error: ${e.message}`, type: "error" });
     }
@@ -119,7 +119,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
   if (!soportado) {
     return (
       <div style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, padding: "12px 14px", marginTop: 14, fontSize: 12, color: Th.muted }}>
-        📁 La vinculación de carpeta local requiere Chrome o Edge. No disponible en este navegador.
+        La vinculación de carpeta local requiere Chrome o Edge. No disponible en este navegador.
       </div>
     );
   }
@@ -129,7 +129,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: Th.text }}>📁 Carpeta local</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: Th.text }}>Carpeta local</span>
           {nombreCarpeta && <span style={{ fontSize: 11, color: Th.muted, marginLeft: 8 }}>{nombreCarpeta}</span>}
         </div>
 
@@ -138,16 +138,16 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
             <button
               onClick={crearYVincular}
               disabled={cargando}
-              style={{ background: "#10b981", border: "none", borderRadius: 7, color: "white", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+              style={{ background: "var(--ok)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
             >
-              {cargando ? "Creando..." : "📁 Crear carpeta"}
+              {cargando ? "Creando..." : "Crear carpeta"}
             </button>
             <button
               onClick={vincularCarpeta}
               disabled={cargando}
-              style={{ background: "#6366f1", border: "none", borderRadius: 7, color: "white", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+              style={{ background: "var(--accent)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
             >
-              {cargando ? "Abriendo..." : "🔗 Vincular carpeta"}
+              {cargando ? "Abriendo..." : "Vincular carpeta"}
             </button>
           </div>
         ) : (
@@ -158,7 +158,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
               title="Recargar archivos"
               style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 7, color: Th.sub, padding: "6px 12px", cursor: "pointer", fontSize: 13 }}
             >
-              {cargando ? "..." : "🔄"}
+              {cargando ? "…" : "Actualizar"}
             </button>
             <button
               onClick={desvincularCarpeta}

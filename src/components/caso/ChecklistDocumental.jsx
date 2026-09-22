@@ -19,20 +19,20 @@ export default function ChecklistDocumental({ archivos, Th }) {
         borderRadius: 8,
         padding: "10px 14px",
         marginBottom: 14,
-        background: listoParaReclamo ? "#22c55e15" : "#ef444415",
-        border: `1px solid ${listoParaReclamo ? "#22c55e44" : "#ef444444"}`,
+        background: listoParaReclamo ? "color-mix(in srgb, var(--ok) 8%, transparent)" : "color-mix(in srgb, var(--bad) 8%, transparent)",
+        border: `1px solid ${listoParaReclamo ? "color-mix(in srgb, var(--ok) 27%, transparent)" : "color-mix(in srgb, var(--bad) 27%, transparent)"}`,
         display: "flex",
         alignItems: "center",
         gap: 10,
       }}>
-        <span style={{ fontSize: 18 }}>{listoParaReclamo ? "✅" : "⚠️"}</span>
+        <span style={{ fontSize: 16, fontWeight: 700, color: listoParaReclamo ? "var(--ok)" : "var(--bad)" }}>{listoParaReclamo ? "✓" : "!"}</span>
         <div style={{ flex: 1 }}>
           {listoParaReclamo ? (
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#22c55e" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ok)" }}>
               Listo para iniciar reclamo
             </span>
           ) : (
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--bad)" }}>
               Faltan para el reclamo:{" "}
               <span style={{ fontWeight: 400 }}>{faltanRequeridos.join(", ")}</span>
             </span>
@@ -49,10 +49,10 @@ export default function ChecklistDocumental({ archivos, Th }) {
             <div
               key={tipo}
               style={{
-                border: `1px solid ${tiene ? "#22c55e66" : esRequerido ? "#ef444444" : Th.border}`,
+                border: `1px solid ${tiene ? "color-mix(in srgb, var(--ok) 40%, transparent)" : esRequerido ? "color-mix(in srgb, var(--bad) 27%, transparent)" : Th.border}`,
                 borderRadius: 8,
                 padding: "8px 10px",
-                background: tiene ? "#22c55e0d" : esRequerido ? "#ef44440d" : "transparent",
+                background: tiene ? "color-mix(in srgb, var(--ok) 5%, transparent)" : esRequerido ? "color-mix(in srgb, var(--bad) 5%, transparent)" : "transparent",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
@@ -62,15 +62,15 @@ export default function ChecklistDocumental({ archivos, Th }) {
                 {idx + 1}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tiene ? "#22c55e" : esRequerido ? "#ef4444" : Th.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tiene ? "var(--ok)" : esRequerido ? "var(--bad)" : Th.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {tipo}
                 </div>
                 {tiene && cantidad > 1 && (
-                  <div style={{ fontSize: 10, color: Th.muted }}>{cantidad} archivos</div>
+                  <div style={{ fontSize: 11, color: Th.muted }}>{cantidad} archivos</div>
                 )}
               </div>
               <span style={{ fontSize: 14, flexShrink: 0 }}>
-                {tiene ? "✅" : esRequerido ? "❌" : "○"}
+                {tiene ? "✓" : esRequerido ? "✕" : "○"}
               </span>
             </div>
           );

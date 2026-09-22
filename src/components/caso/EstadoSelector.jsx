@@ -1,4 +1,5 @@
 import { ESTADOS_CASO } from "../../constants.js";
+import { alpha } from "../../utils/theme.js";
 
 export default function EstadoSelector({ value, onChange, darkMode }) {
   return (
@@ -7,7 +8,7 @@ export default function EstadoSelector({ value, onChange, darkMode }) {
         const active = value === e.key;
         return (
           <button key={e.key} type="button" onClick={() => onChange(e.key)} style={{
-            background: active ? e.color + "22" : darkMode ? "#1e293b" : "#f1f5f9",
+            background: active ? alpha(e.color, 13) : "var(--card2)",
             border: `2px solid ${active ? e.color : "transparent"}`,
             borderRadius: 8,
             padding: "8px 2px 6px",
@@ -16,7 +17,7 @@ export default function EstadoSelector({ value, onChange, darkMode }) {
             transition: "all .15s",
           }}>
             <div style={{ fontSize: 18, marginBottom: 2 }}>{e.emoji}</div>
-            <div style={{ fontSize: 8, fontWeight: 700, color: active ? e.color : darkMode ? "#94a3b8" : "#64748b", lineHeight: 1.2 }}>{e.label}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: active ? e.color : "var(--sub)", lineHeight: 1.2 }}>{e.label}</div>
           </button>
         );
       })}

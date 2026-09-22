@@ -20,12 +20,12 @@ export default function TabContactados({
   const [page, setPage] = useState(0);
   const PER_PAGE = 40;
 
-  const subColor = darkMode ? "#94a3b8" : "#475569";
+  const subColor = "var(--sub)";
   const iStyle = {
-    background: darkMode ? "#1e293b" : "#f1f5f9",
-    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    background: "var(--card2)",
+    border: `1px solid ${"var(--border)"}`,
     borderRadius: 8,
-    color: darkMode ? "#f1f5f9" : "#0f172a",
+    color: "var(--text)",
     padding: "9px 12px",
     fontSize: 14,
     width: "100%",
@@ -75,17 +75,17 @@ export default function TabContactados({
           setBusqueda(e.target.value);
           setPage(0);
         }}
-        placeholder="🔍  Buscar contactado..."
+        placeholder="Buscar contactado..."
         style={{ ...iStyle, marginBottom: 8 }}
       />
 
       <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 2 }}>
         {[
           { k: "todos", l: "Todos" },
-          { k: "positivo", l: "🟢 Positivos" },
-          { k: "volver", l: "🔁 Volver a contactar" },
-          { k: "negativo", l: "🔴 Negativos" },
-          { k: "derivadores", l: "☑️ Derivadores" },
+          { k: "positivo", l: "Positivos" },
+          { k: "volver", l: "Volver a contactar" },
+          { k: "negativo", l: "Negativos" },
+          { k: "derivadores", l: "Derivadores" },
         ].map(f => (
           <button
             key={f.k}
@@ -97,9 +97,9 @@ export default function TabContactados({
               padding: "5px 11px",
               borderRadius: 20,
               border: "1px solid",
-              borderColor: filtroResp === f.k ? "#6366f1" : darkMode ? "#1e293b" : "#e2e8f0",
-              background: filtroResp === f.k ? "#6366f122" : darkMode ? "#0a0f1e" : "#f8fafc",
-              color: filtroResp === f.k ? "#818cf8" : subColor,
+              borderColor: filtroResp === f.k ? "var(--accent)" : "var(--border)",
+              background: filtroResp === f.k ? "color-mix(in srgb, var(--accent) 13%, transparent)" : "var(--card2)",
+              color: filtroResp === f.k ? "var(--accent)" : subColor,
               fontSize: 11,
               fontWeight: 600,
               cursor: "pointer",
@@ -118,7 +118,6 @@ export default function TabContactados({
 
       {filtered.length === 0 && (
         <div style={{ textAlign: "center", padding: 48, color: subColor }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
           <div style={{ fontSize: 14 }}>No hay contactados con ese filtro</div>
         </div>
       )}
@@ -148,9 +147,9 @@ export default function TabContactados({
             style={{
               padding: "8px 16px",
               borderRadius: 8,
-              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
-              background: darkMode ? "#0a0f1e" : "#f8fafc",
-              color: page === 0 ? "#1e293b" : "#94a3b8",
+              border: `1px solid ${"var(--border)"}`,
+              background: "var(--card2)",
+              color: page === 0 ? "var(--border)" : "var(--sub)",
               cursor: page === 0 ? "default" : "pointer",
             }}
           >
@@ -162,9 +161,9 @@ export default function TabContactados({
             style={{
               padding: "8px 16px",
               borderRadius: 8,
-              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
-              background: darkMode ? "#0a0f1e" : "#f8fafc",
-              color: page >= totalPages - 1 ? "#1e293b" : "#94a3b8",
+              border: `1px solid ${"var(--border)"}`,
+              background: "var(--card2)",
+              color: page >= totalPages - 1 ? "var(--border)" : "var(--sub)",
               cursor: page >= totalPages - 1 ? "default" : "pointer",
             }}
           >
@@ -180,17 +179,17 @@ export default function TabContactados({
             width: "100%",
             marginTop: 16,
             background: "transparent",
-            border: `1px dashed ${darkMode ? "#334155" : "#cbd5e1"}`,
+            border: `1px dashed ${"var(--border2)"}`,
             borderRadius: 10,
-            color: darkMode ? "#475569" : "#94a3b8",
+            color: "var(--muted)",
             padding: "10px",
             cursor: "pointer",
             fontSize: 13,
           }}
         >
           {mostrarDescartados
-            ? "🙈 Ocultar descartados"
-            : `👁 Ver descartados (${Object.values(descartados).filter(Boolean).length})`}
+            ? "Ocultar descartados"
+            : `Ver descartados (${Object.values(descartados).filter(Boolean).length})`}
         </button>
       )}
     </>

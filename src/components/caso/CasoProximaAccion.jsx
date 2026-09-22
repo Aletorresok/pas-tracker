@@ -5,13 +5,13 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
     <div style={{
       background: Th.card,
       border: `1px solid ${Th.border}`,
-      borderLeft: `4px solid #f59e0b`, // Borde naranja para destacarlo como uso interno
+      borderLeft: `4px solid var(--warn)`, // Borde naranja para destacarlo como uso interno
       borderRadius: 12,
       padding: 16,
       marginBottom: 16
     }}>
       <label style={{ display: "block", fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 8 }}>
-        🎯 Próxima Acción (Uso Interno)
+        Próxima Acción (Uso Interno)
       </label>
       <textarea
         value={formData.proxima_accion || ""}

@@ -47,14 +47,14 @@ export default function App() {
   const [appLoading, setAppLoading] = useState(false);
   const [autobackupFecha, setAutobackupFecha] = useState(() => localStorage.getItem('pastracker_autobackup_fecha') || null);
 
-  // ⬇️ --- INTERCEPTOR PARA EL PORTAL DEL CLIENTE --- ⬇️
+  // --- INTERCEPTOR PARA EL PORTAL DEL CLIENTE --- 
   const params = new URLSearchParams(window.location.search);
   const isClienteView = params.has("caso") || params.get("vista") === "cliente";
 
   if (isClienteView) {
     return <PortalCliente dark={darkMode} onToggleDark={() => window.location.reload()} />;
   }
-  // ⬆️ ------------------------------------------------ ⬆️
+  // ------------------------------------------------ 
 
   // ── HANDLERS
   const autoBackup = useCallback((casosData) => {
@@ -173,7 +173,7 @@ export default function App() {
   if (!unlocked) return <LoginGate onUnlock={() => setUnlocked(true)} />;
 
   return (
-    <div style={{ background: T.bg, color: T.text, minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", display: "flex" }}>
+    <div style={{ background: T.bg, color: T.text, minHeight: "100vh", display: "flex" }}>
       {/* SIDEBAR DE NAVEGACIÓN */}
       <SidebarNav
         pasCount={pas.length}
@@ -185,12 +185,11 @@ export default function App() {
       />
 
       {/* CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO PARA EL SIDEBAR Y ANCHO MÁXIMO AMPLIADO */}
-      <main style={{ marginLeft: 240, flex: 1, minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 80px" }}>
+      <main className="app-main">
+        <div className="app-content">
           {pas.length === 0 && !appLoading && (
             <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: 16, padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
-              <div style={{ fontSize: 36 }}>📂</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
               <div style={{ fontSize: 13, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
               <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
             </label>
@@ -198,15 +197,13 @@ export default function App() {
           
           {appLoading && (
             <div style={{ textAlign: "center", padding: 64, color: T.muted }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-              <div>Procesando el archivo...</div>
+                            <div>Procesando el archivo...</div>
             </div>
           )}
 
           {!appLoading && pas.length === 0 && (
             <div style={{ textAlign: "center", padding: 80 }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-              <div style={{ fontSize: 16, color: T.sub, fontWeight: 500 }}>Cargá el archivo Excel para comenzar</div>
+                            <div style={{ fontSize: 16, color: T.sub, fontWeight: 500 }}>Cargá el archivo Excel para comenzar</div>
               <div style={{ fontSize: 13, marginTop: 6, color: T.muted }}>Tu seguimiento se guarda automáticamente</div>
             </div>
           )}

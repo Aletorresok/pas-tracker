@@ -8,6 +8,7 @@ import { deleteCaso } from "../utils/storage.js";
 // Importamos los nuevos componentes modulares
 import ClienteCard from "./clientes/ClienteCards.jsx";
 import { NuevoCasoModal, NuevoPASModal } from "./clientes/ModalesCliente.jsx";
+import { alpha } from "../utils/theme.js";
 
 export default function TabClientes({ pas, casos, derivadores, onSaveCasos, darkMode, pasManuales, onAddPasManual, onEditPasManual, onDeletePasManual }) {
   const { companias, agregarCompania } = useCompanias(casos);
@@ -68,10 +69,10 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
   };
 
   const iStyle = {
-    background: darkMode ? "#0f172a" : "#f8fafc",
-    border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+    background: "var(--card2)",
+    border: `1px solid ${"var(--border)"}`,
     borderRadius: 10,
-    color: darkMode ? "#f1f5f9" : "#0f172a",
+    color: "var(--text)",
     padding: "10px 14px",
     fontSize: 14,
     width: "100%",
@@ -82,16 +83,16 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
 
   return (
     <div>
-      <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+      <div style={{ background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {ESTADOS_CASO.map(e => {
             const cnt = allCasos.filter(c => c.estado === e.key).length;
             const active = filtroEstado === e.key;
             return (
-              <button key={e.key} onClick={() => setFiltroEstado(active ? "todos" : e.key)} style={{ flex: 1, minWidth: 58, background: active ? e.color + "28" : cnt > 0 ? e.color + "10" : darkMode ? "#0a0f1e" : "#fff", border: `1px solid ${active ? e.color : cnt > 0 ? e.color + "33" : darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center", cursor: "pointer", transition: "all .15s" }}>
+              <button key={e.key} onClick={() => setFiltroEstado(active ? "todos" : e.key)} style={{ flex: 1, minWidth: 58, background: active ? alpha(e.color, 16) : cnt > 0 ? alpha(e.color, 6) : "var(--card)", border: `1px solid ${active ? e.color : cnt > 0 ? alpha(e.color, 20) : "var(--border)"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center", cursor: "pointer", transition: "all .15s" }}>
                 <div style={{ fontSize: 14 }}>{e.emoji}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div>
-                <div style={{ fontSize: 8, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "var(--border2)" }}>{cnt}</div>
+                <div style={{ fontSize: 11, color: cnt > 0 ? alpha(e.color, 60) : "var(--border2)", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
               </button>
             );
           })}
@@ -99,33 +100,31 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍  Buscar PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
+        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
         <select value={ordenCasos} onChange={e => setOrdenCasos(e.target.value)} style={{ ...iStyle, flex: "none", width: "auto", minWidth: 130, cursor: "pointer" }}>
           <option value="creacion">Creación</option>
           <option value="ultimo_mov">Último mov.</option>
           <option value="alfabetico">A → Z</option>
           <option value="estado">Estado</option>
         </select>
-        <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 8, color: "#818cf8", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
-        <button onClick={exportarExcel} style={{ background: "#22c55e22", border: "1px solid #22c55e44", borderRadius: 8, color: "#22c55e", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>⬇ Excel</button>
+        <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "color-mix(in srgb, var(--accent) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: 8, color: "var(--accent)", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
+        <button onClick={exportarExcel} style={{ background: "color-mix(in srgb, var(--ok) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 27%, transparent)", borderRadius: 8, color: "var(--ok)", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>Excel</button>
       </div>
 
       {filtered.length === 0 && clientes.length === 0 && (
-        <div style={{ textAlign: "center", padding: "44px 16px", background: darkMode ? "#0f172a" : "#f8fafc", borderRadius: 12, border: `1px dashed ${darkMode ? "#1e293b" : "#e2e8f0"}` }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>☑️</div>
-          <div style={{ fontSize: 15, color: "#475569", fontWeight: 600 }}>Todavía no tenés clientes PAS</div>
-          <div style={{ fontSize: 13, color: "#334155", marginTop: 8, lineHeight: 1.6 }}>
-            Podés marcar un PAS del Excel como derivador en <strong style={{ color: "#818cf8" }}>Contactos</strong>,<br />
-            o usar el botón <strong style={{ color: "#818cf8" }}>+ PAS manual</strong> de arriba.
+        <div style={{ textAlign: "center", padding: "44px 16px", background: "var(--card2)", borderRadius: 12, border: `1px dashed ${"var(--border)"}` }}>
+          <div style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>Todavía no tenés clientes PAS</div>
+          <div style={{ fontSize: 13, color: "var(--border2)", marginTop: 8, lineHeight: 1.6 }}>
+            Podés marcar un PAS del Excel como derivador en <strong style={{ color: "var(--accent)" }}>Contactos</strong>,<br />
+            o usar el botón <strong style={{ color: "var(--accent)" }}>+ PAS manual</strong> de arriba.
           </div>
         </div>
       )}
 
       {filtered.length === 0 && clientes.length > 0 && (
-        <div style={{ textAlign: "center", padding: "32px 16px", color: darkMode ? "#475569" : "#94a3b8" }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
+        <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--muted)" }}>
           <div style={{ fontSize: 14 }}>Sin resultados{filtroEstado !== "todos" ? " para ese estado" : ""}</div>
-          {filtroEstado !== "todos" && <button onClick={() => setFiltroEstado("todos")} style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 13, marginTop: 8 }}>Ver todos</button>}
+          {filtroEstado !== "todos" && <button onClick={() => setFiltroEstado("todos")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 13, marginTop: 8 }}>Ver todos</button>}
         </div>
       )}
 
@@ -157,7 +156,7 @@ export default function TabClientes({ pas, casos, derivadores, onSaveCasos, dark
       )}
 
       {casoDetalle && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: darkMode ? "#111827" : "#f8fafc" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: "var(--card2)" }}>
           <CasoDetalle
             caso={casoDetalle}
             pasId={pasIdDetalle}

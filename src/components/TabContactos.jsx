@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { VISTAS_C } from "../constants.js";
 import { cleanPhones } from "../utils/formatters.js";
 import PASCard from "./PASCard.jsx";
+import { alpha } from "../utils/theme.js";
 
 export default function TabContactos({
   pas,
@@ -21,12 +22,12 @@ export default function TabContactos({
   const [orden, setOrden] = useState("nombre");
   const PER_PAGE = 40;
 
-  const subColor = darkMode ? "#94a3b8" : "#475569";
+  const subColor = "var(--sub)";
   const iStyle = {
-    background: darkMode ? "#1e293b" : "#f1f5f9",
-    border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}`,
+    background: "var(--card2)",
+    border: `1px solid ${"var(--border)"}`,
     borderRadius: 8,
-    color: darkMode ? "#f1f5f9" : "#0f172a",
+    color: "var(--text)",
     padding: "9px 12px",
     fontSize: 14,
     width: "100%",
@@ -70,10 +71,10 @@ export default function TabContactos({
               padding: "6px 4px",
               borderRadius: 8,
               border: "1px solid",
-              borderColor: vista === v.key ? v.color : darkMode ? "#1e293b" : "#e2e8f0",
-              background: vista === v.key ? v.color + "22" : darkMode ? "#0a0f1e" : "#f8fafc",
+              borderColor: vista === v.key ? v.color : "var(--border)",
+              background: vista === v.key ? alpha(v.color, 13) : "var(--card2)",
               color: vista === v.key ? v.color : subColor,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               cursor: "pointer",
               transition: "all .15s",
@@ -94,7 +95,7 @@ export default function TabContactos({
           setBusqueda(e.target.value);
           setPage(0);
         }}
-        placeholder="🔍  Buscar por nombre, mail o teléfono..."
+        placeholder="Buscar por nombre, mail o teléfono..."
         style={{ ...iStyle, marginBottom: 8 }}
       />
 
@@ -106,9 +107,9 @@ export default function TabContactos({
         ].map(o => (
           <button key={o.key} onClick={() => { setOrden(o.key); setPage(0); }} style={{
             flex: 1, padding: "5px 8px", borderRadius: 7, fontSize: 11, fontWeight: orden === o.key ? 700 : 500,
-            border: `1px solid ${orden === o.key ? "#6366f1" : darkMode ? "#1e293b" : "#e2e8f0"}`,
-            background: orden === o.key ? "#6366f118" : darkMode ? "#0a0f1e" : "#f8fafc",
-            color: orden === o.key ? "#6366f1" : subColor,
+            border: `1px solid ${orden === o.key ? "var(--accent)" : "var(--border)"}`,
+            background: orden === o.key ? "color-mix(in srgb, var(--accent) 9%, transparent)" : "var(--card2)",
+            color: orden === o.key ? "var(--accent)" : subColor,
             cursor: "pointer", transition: "all .15s",
           }}>
             {orden === o.key ? "↕ " : ""}{o.label}
@@ -123,7 +124,6 @@ export default function TabContactos({
 
       {paginated.length === 0 && (
         <div style={{ textAlign: "center", padding: 48, color: subColor }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>🔍</div>
           <div style={{ fontSize: 14 }}>No hay contactos disponibles</div>
         </div>
       )}
@@ -153,9 +153,9 @@ export default function TabContactos({
             style={{
               padding: "8px 16px",
               borderRadius: 8,
-              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
-              background: darkMode ? "#0a0f1e" : "#f8fafc",
-              color: page === 0 ? "#1e293b" : "#94a3b8",
+              border: `1px solid ${"var(--border)"}`,
+              background: "var(--card2)",
+              color: page === 0 ? "var(--border)" : "var(--sub)",
               cursor: page === 0 ? "default" : "pointer",
             }}
           >
@@ -167,9 +167,9 @@ export default function TabContactos({
             style={{
               padding: "8px 16px",
               borderRadius: 8,
-              border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
-              background: darkMode ? "#0a0f1e" : "#f8fafc",
-              color: page >= totalPages - 1 ? "#1e293b" : "#94a3b8",
+              border: `1px solid ${"var(--border)"}`,
+              background: "var(--card2)",
+              color: page >= totalPages - 1 ? "var(--border)" : "var(--sub)",
               cursor: page >= totalPages - 1 ? "default" : "pointer",
             }}
           >

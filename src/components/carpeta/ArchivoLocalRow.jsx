@@ -37,7 +37,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
     try {
       await renombrarArchivoLocal(dirHandle, archivo, nombreFinal);
       onRenombrado(archivo.nombre, nombreFinal, archivo.blob);
-      onToast({ msg: `✏️ ${archivo.nombre} → ${nombreFinal}`, type: "success" });
+      onToast({ msg: `${archivo.nombre} → ${nombreFinal}`, type: "success" });
     } catch (e) {
       onToast({ msg: `Error al renombrar: ${e.message}`, type: "error" });
     }
@@ -55,10 +55,10 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
     <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <span style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "var(--mono)", color: "var(--muted)", width: 32, textAlign: "center" }}>{esImagen ? "IMG" : "PDF"}</span>
           <span style={{
             position: "absolute", top: -4, right: -8,
-            fontSize: 8, background: "#f97316", color: "white",
+            fontSize: 11, background: "var(--warn)", color: "var(--on-accent)",
             borderRadius: 3, padding: "1px 3px", fontWeight: 700, whiteSpace: "nowrap",
           }}>
             LOCAL
@@ -74,7 +74,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
 
         <button
           onClick={() => onPreview(archivo)}
-          style={{ background: "#6366f122", border: "1px solid #6366f144", borderRadius: 6, color: "#818cf8", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+          style={{ background: "color-mix(in srgb, var(--accent) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: 6, color: "var(--accent)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
         >
           Ver
         </button>
@@ -83,7 +83,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
           <button
             ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
-            style={{ background: "#f9731622", border: "1px solid #f9731644", borderRadius: 6, color: "#f97316", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+            style={{ background: "color-mix(in srgb, var(--warn) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--warn) 27%, transparent)", borderRadius: 6, color: "var(--warn)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
@@ -109,11 +109,11 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
               <div style={{ borderTop: `1px solid ${Th.border}`, margin: "4px 0" }} />
               <button
                 onClick={iniciarRenombrar}
-                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", padding: "8px 14px", color: "#818cf8", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", padding: "8px 14px", color: "var(--accent)", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
                 onMouseEnter={e => e.currentTarget.style.background = Th.card2}
                 onMouseLeave={e => e.currentTarget.style.background = "none"}
               >
-                ✏️ Renombrar…
+                Renombrar…
               </button>
             </div>
           )}
@@ -138,7 +138,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
           <button
             onClick={() => ejecutarRenombrar(nuevoNombre)}
             disabled={guardando || !nuevoNombre.trim()}
-            style={{ background: "#22c55e", border: "none", borderRadius: 6, color: "white", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}
+            style={{ background: "var(--ok)", border: "none", borderRadius: 6, color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}
           >
             {guardando ? "..." : "✓"}
           </button>
