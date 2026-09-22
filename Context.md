@@ -40,6 +40,7 @@
 *   **SQL en `sql/`:** `2026-09-22_01_backup.sql` (copia todas las tablas al esquema `backup_20260922`) y `2026-09-22_02_unificar_columnas.sql` (copia `dominio`→`patente`, `compania`→`compania_aseguradora` + trigger puente). **Orden de deploy: backup → migración SQL → recién ahí publicar el código.**
     *   ✅ **Ejecutado en producción el 2026-09-22:** backup verificado (pas_casos 95, acciones 664, pas_contactos 51048, pas_historial 828, pas_manuales 2), diagnóstico sin conflictos, migración con 0 filas pendientes y trigger puente activo. Las tablas del esquema `backup_20260922` tienen RLS activado.
     *   ✅ **Variables de entorno cargadas en Vercel** (proyecto `pas-tracker2.0`, conectado a `Aletorresok/pas-tracker`) para Production y Preview.
+    *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
 ## ✅ LOGROS RECIENTES (Sesión anterior)
