@@ -1,8 +1,46 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase.js";
 
+// Normaliza un contacto tal como viene de Supabase (teléfonos como array)
+export const normalizarContacto = p => ({
+  ...p,
+  id: p.id,
+  telefonos: Array.isArray(p.telefonos)
+    ? p.telefonos
+    : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
+});
+
+// Trae todas las filas de una consulta, de a 1000 (el máximo que devuelve Supabase por pedido)
+export async function traerTodo(construirConsulta) {
+  const CHUNK = 1000;
+  let filas = [];
+  for (let from = 0; ; from += CHUNK) {
+    const { data, error } = await construirConsulta().range(from, from + CHUNK - 1);
+    if (error) throw error;
+    filas = filas.concat(data || []);
+    if (!data || data.length < CHUNK) break;
+  }
+  return filas;
+}
+
+// Trae contactos por id, en tandas para no pasarse del largo máximo de URL
+async function traerContactosPorId(ids) {
+  const TANDA = 150;
+  const tandas = [];
+  for (let i = 0; i < ids.length; i += TANDA) tandas.push(ids.slice(i, i + TANDA));
+  const resultados = await Promise.all(tandas.map(t => supabase.from("pas_contactos").select("*").in("id", t)));
+  return resultados.flatMap(r => {
+    if (r.error) console.error("[usePASData] contactos error:", r.error);
+    return r.data || [];
+  });
+}
+
 export function usePASData() {
+  // `pas` guarda solo los contactos que la app usa siempre: los que tienen historial,
+  // casos, recordatorio o son derivadores. El resto (miles, sin contactar) se pide
+  // paginado desde la pestaña Contactos.
   const [pas, setPas] = useState([]);
+  const [totalContactos, setTotalContactos] = useState(0);
   const [historial, setHistorial] = useState({});
   const [casos, setCasos] = useState({});
   const [derivadores, setDerivadores] = useState({});
@@ -11,41 +49,32 @@ export function usePASData() {
   const [pasManuales, setPasManuales] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Agrega un contacto a `pas` si todavía no está (ej.: al contactarlo desde la lista paginada)
+  const agregarPas = useCallback((p) => {
+    setPas(prev => prev.some(x => String(x.id) === String(p.id)) ? prev : [...prev, normalizarContacto(p)]);
+  }, []);
+
   const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Paginación de contactos (mantiene la lógica segura por chunks de 1000)
-      let contactosTodos = [];
-      let from = 0;
-      const CHUNK = 1000;
-      while (true) {
-        const { data, error } = await supabase
-          .from("pas_contactos")
-          .select("*")
-          .range(from, from + CHUNK - 1);
-        if (error) { console.error("[usePASData] contactos error:", error); break; }
-        if (!data?.length) break;
-        contactosTodos = [...contactosTodos, ...data];
-        if (data.length < CHUNK) break;
-        from += CHUNK;
-      }
-
-      // 2. Consultas secundarias ejecutadas en paralelo con Promise.all
       const [
+        { count: total },
         { data: descartadosData },
-        { data: historialData },
-        { data: casosData },
+        historialData,
+        casosData,
         { data: derivadoresData },
         { data: recordatoriosData },
         { data: manualesData }
       ] = await Promise.all([
+        supabase.from("pas_contactos").select("id", { count: "exact", head: true }),
         supabase.from("pas_descartados").select("*"),
-        supabase.from("pas_historial").select("*").order("fecha", { ascending: true }),
-        supabase.from("pas_casos").select("*"),
+        traerTodo(() => supabase.from("pas_historial").select("*").order("fecha", { ascending: true })),
+        traerTodo(() => supabase.from("pas_casos").select("*").order("id")),
         supabase.from("pas_derivadores").select("*"),
         supabase.from("pas_recordatorios").select("*"),
         supabase.from("pas_manuales").select("*"),
       ]);
+      setTotalContactos(total || 0);
 
       // Procesamiento de Descartados
       const diccDescartados = {};
@@ -56,19 +85,14 @@ export function usePASData() {
         setDescartados(diccDescartados);
       }
 
-      // Procesamiento de Contactos (PAS)
-      if (contactosTodos.length) {
-        const lista = contactosTodos
-          .filter(p => !diccDescartados[String(p.id)])
-          .map(p => ({
-            ...p,
-            id: p.id,
-            telefonos: Array.isArray(p.telefonos)
-              ? p.telefonos
-              : (p.telefonos ? p.telefonos.split(",").map(t => t.trim()).filter(Boolean) : []),
-          }));
-        setPas(lista);
-      }
+      // Contactos que la app necesita tener siempre a mano
+      const ids = new Set();
+      historialData.forEach(r => ids.add(String(r.pas_id)));
+      casosData.forEach(r => ids.add(String(r.pas_id)));
+      (derivadoresData || []).forEach(r => r.activo && ids.add(String(r.pas_id)));
+      (recordatoriosData || []).forEach(r => ids.add(String(r.pas_id)));
+      const contactos = await traerContactosPorId([...ids].filter(id => !diccDescartados[id]));
+      setPas(contactos.map(normalizarContacto));
 
       // Procesamiento de Historial
       if (historialData?.length) {
@@ -143,7 +167,8 @@ export function usePASData() {
   }, [loadAllData]);
 
   return {
-    pas, setPas,
+    pas, setPas, agregarPas,
+    totalContactos,
     historial, setHistorial,
     casos, setCasos,
     derivadores, setDerivadores,

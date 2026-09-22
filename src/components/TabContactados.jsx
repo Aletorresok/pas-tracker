@@ -42,13 +42,13 @@ export default function TabContactados({
     const porFiltro = {
       todos: conContacto,
       positivo: conContacto.filter(p =>
-        historial[p.id]?.some(e => e.resultados?.includes("positivo"))
+        historial[p.id]?.some(e => e.resultados?.includes("respondio_positivo"))
       ),
       volver: conContacto.filter(p =>
         historial[p.id]?.some(e => e.resultados?.includes("volver_contactar"))
       ),
       negativo: conContacto.filter(p =>
-        historial[p.id]?.some(e => e.resultados?.includes("negativo"))
+        historial[p.id]?.some(e => e.resultados?.includes("respondio_negativo"))
       ),
       derivadores: conContacto.filter(p => derivadores[p.id]),
     };

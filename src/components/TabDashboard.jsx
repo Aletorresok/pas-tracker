@@ -44,7 +44,12 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const misPendientes = useMemo(() => {
     return allCasos
       .filter(c => !["cobrado", "desistido"].includes(c.estado) && c.proxima_accion && c.proxima_accion.trim() !== "")
-      .sort((a, b) => (a.fecha_ultimo_movimiento || a.fecha_derivacion || "").localeCompare(b.fecha_ultimo_movimiento || b.fecha_derivacion || ""));
+      // Primero lo que vence antes (vencidos arriba); sin plazo al final, del más quieto al más reciente
+      .sort((a, b) => {
+        const va = a.proxima_accion_vence || "9999-12-31", vb = b.proxima_accion_vence || "9999-12-31";
+        if (va !== vb) return va.localeCompare(vb);
+        return (a.fecha_ultimo_movimiento || a.fecha_derivacion || "").localeCompare(b.fecha_ultimo_movimiento || b.fecha_derivacion || "");
+      });
   }, [allCasos]);
 
   const facturacionMensual = useMemo(() => {
