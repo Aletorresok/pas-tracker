@@ -66,7 +66,7 @@ export default function PortalCasoCard({ caso, dark }) {
           asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",
           telefono: caso.tercero_contacto || "Ya registrado",
           fecha_siniestro: caso.fecha_siniestro || "Ya registrada",
-          compania: caso.compania_aseguradora || caso.compania,
+          compania: caso.compania_aseguradora,
         },
         archivos
       });

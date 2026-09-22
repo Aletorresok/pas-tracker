@@ -30,7 +30,7 @@ export async function generarEscrito({
   try {
     const fechaSiniestro = formatoFecha(caso.fecha_siniestro || caso.fecha_derivacion);
     const nombreCompleto = (caso.asegurado || "NOMBRE NO DISPONIBLE").toUpperCase();
-    const compania = (caso.compania || caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
+    const compania = (caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
 
     // Armado del listado limpio
     const listaDocumental = [...DOCUMENTAL_FIJA];

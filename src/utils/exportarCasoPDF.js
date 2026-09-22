@@ -67,14 +67,14 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     addLine(13, "bold", "Datos del caso");
     y += 2;
     addRow("Asegurado", caso.asegurado);
-    addRow("Compañía", caso.compania || caso.compania_aseguradora);
+    addRow("Compañía", caso.compania_aseguradora);
     addRow("Estado", ESTADO_LABEL[caso.estado] || caso.estado);
     addRow("N° Siniestro", caso.nro_siniestro);
     addRow("PAS / Productor", pasNombre);
     addRow("DNI Asegurado", caso.dni_asegurado);
     addRow("Ubicación", caso.ubicacion);
     addRow("Vehículo", caso.vehiculo);
-    addRow("Dominio", caso.dominio);
+    addRow("Patente", caso.patente);
     if (caso.tercero_nombre) {
       addRow("Tercero", caso.tercero_nombre);
       addRow("DNI Tercero", caso.tercero_dni);

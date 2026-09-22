@@ -29,7 +29,7 @@ export default function MisPendientesCard({ pendientes, darkMode }) {
           <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", marginBottom: 6, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {c.asegurado} <span style={{ fontWeight: 400, color: T.sub, fontSize: 11 }}>· {c.compania || "Sin Cía"}</span>
+                {c.asegurado} <span style={{ fontWeight: 400, color: T.sub, fontSize: 11 }}>· {c.compania_aseguradora || "Sin Cía"}</span>
               </div>
               <div style={{ fontSize: 13, color: COLORES.warning, marginTop: 4, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ display: "inline-flex", transform: "rotate(90deg)" }}>{Iconos.pointer(COLORES.warning)}</span> {c.proxima_accion}

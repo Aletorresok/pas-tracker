@@ -20,11 +20,10 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
           <span style={labelStyle}>Patente</span>
           <input 
             type="text" 
-            value={formData.patente || formData.dominio || ""} 
+            value={formData.patente || ""} 
             onChange={e => {
               const val = e.target.value.toUpperCase();
               onChange("patente", val);
-              onChange("dominio", val); // Sincronizamos ambos para evitar problemas de búsqueda
             }} 
             placeholder="Ej: AB123CD"
             style={{ ...inputStyle, textTransform: "uppercase", textAlign: "center" }} 
@@ -33,7 +32,7 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
 
         <div>
           <span style={labelStyle}>Compañía aseguradora</span>
-          <CompaniaSelector value={formData.compania_aseguradora || formData.compania || ""} onChange={v => { onChange("compania_aseguradora", v); onChange("compania", v); }} companias={companias || []} onAgregar={onAgregarCompania || (() => {})} darkMode={darkMode} />
+          <CompaniaSelector value={formData.compania_aseguradora || ""} onChange={v => onChange("compania_aseguradora", v)} companias={companias || []} onAgregar={onAgregarCompania || (() => {})} darkMode={darkMode} />
         </div>
       </div>
       

@@ -33,7 +33,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
       list = list.filter(c =>
         (c.asegurado || "").toLowerCase().includes(q) ||
         (c._pasNombre || "").toLowerCase().includes(q) ||
-        (c.compania || "").toLowerCase().includes(q) ||
+        (c.compania_aseguradora || "").toLowerCase().includes(q) ||
         (c.nro_siniestro || "").toLowerCase().includes(q)
       );
     }
@@ -131,9 +131,9 @@ export default function TabCasos({ pas, casos, onSaveCasos, darkMode, pasManuale
                   <span style={{ fontSize: 10, background: darkMode ? "#C9A22715" : "#C9A22710", color: "#C9A227", borderRadius: 6, padding: "2px 7px", border: "1px solid #C9A22733", fontWeight: 600 }}>
                     {c._pasNombre}
                   </span>
-                  {c.compania && (
+                  {c.compania_aseguradora && (
                     <span style={{ fontSize: 10, background: darkMode ? "#1E2738" : "#EFEFEA", color: darkMode ? "#8D93A1" : "#555B6E", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#252D3D" : "#E4E2DC"}` }}>
-                      {c.compania}
+                      {c.compania_aseguradora}
                     </span>
                   )}
                   {dias !== null && <span style={{ fontSize: 10, color: darkMode ? "#5A6273" : "#9CA3AF" }}>{dias}d</span>}

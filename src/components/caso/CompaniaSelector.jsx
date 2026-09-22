@@ -14,7 +14,7 @@ export function useCompanias(casos) {
   const [extra, setExtra] = useState(loadCompaniasExtra);
 
   const todas = useMemo(() => {
-    const fromCasos = Object.values(casos || {}).flat().map(c => c.compania?.trim()).filter(Boolean);
+    const fromCasos = Object.values(casos || {}).flat().map(c => c.compania_aseguradora?.trim()).filter(Boolean);
     const merged = [...new Set([...fromCasos, ...extra])].sort((a, b) => a.localeCompare(b, "es"));
     return merged;
   }, [casos, extra]);

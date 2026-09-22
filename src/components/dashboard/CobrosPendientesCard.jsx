@@ -41,7 +41,7 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
                   <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>
-                    {c.compania || "—"}
+                    {c.compania_aseguradora || "—"}
                     {c.fechaEstimada ? ` · Pago est. ${fmtDate(c.fechaEstimada)}` : ""}
                   </div>
                 </div>

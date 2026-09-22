@@ -1,9 +1,9 @@
 import { supabase } from "../supabase.js";
 import emailjs from "@emailjs/browser";
 
-const SERVICE_ID = "service_g5y3lf4";
-const TEMPLATE_ID = "template_7y6omo1";
-const PUBLIC_KEY = "uQTfm1gg21u5Wj6Z_";
+const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 /**
  * Sube múltiples archivos al bucket de Supabase y notifica por EmailJS.

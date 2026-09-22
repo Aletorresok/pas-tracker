@@ -14,7 +14,6 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       asegurado: "",
       telefono: "",
       patente: "",
-      dominio: "",
       fecha_siniestro: "",
       compania: "",
     };
@@ -36,13 +35,11 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const finalValue = name === "patente" || name === "dominio" ? value.toUpperCase() : value;
+    const finalValue = name === "patente" ? value.toUpperCase() : value;
     
     setFormData(prev => ({ 
       ...prev, 
       [name]: finalValue,
-      ...(name === "patente" ? { dominio: finalValue } : {}),
-      ...(name === "dominio" ? { patente: finalValue } : {})
     }));
   };
 
@@ -61,16 +58,14 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setError("");
 
     try {
-      const valorPatente = (formData.patente || formData.dominio || "").trim();
+      const valorPatente = (formData.patente || "").trim();
 
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
         tercero_contacto: formData.telefono,
         patente: valorPatente,
-        dominio: valorPatente,
         fecha_siniestro: formData.fecha_siniestro,
-        compania: formData.compania,
         compania_aseguradora: formData.compania,
         estado: "doc_pendiente", 
         fecha_derivacion: new Date().toISOString().slice(0, 10),
