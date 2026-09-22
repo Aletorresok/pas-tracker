@@ -59,7 +59,12 @@
     *   **App 100% funcional en celular** (barra de navegación inferior). ✅
     *   Rediseñar también el portal PAS y la vista del cliente. ✅
 *   **Plan (8 etapas, un PR cada una, celular incluido en todas):** 1) base visual + temas + bugs, 2) carga rápida de contactos, 3) Dashboard "Hoy", 4) Casos en tabla con fila desplegable, 5) ficha del caso completa, 6) Prospección, 7) Portal PAS, 8) Vista del cliente (acceso con patente + DNI o link único).
-*   **Pendiente de respuesta:** nombre/logo del estudio para portal y vista cliente, WhatsApp de contacto, método de acceso del cliente, si el portal PAS sigue mostrando "Plazos por compañía", modo oscuro por defecto.
+*   **Respuestas del usuario (2026-09-22):**
+    *   Marca en portal y vista cliente: **ATG Lex Solutions** (logo pendiente, por ahora iniciales "ATG").
+    *   Contacto de clientes: WhatsApp **+54 9 11 3313-3259** — Dr. Alexis Torres Gaveglio.
+    *   Acceso del cliente: **patente + últimos 3 dígitos del DNI** (`dni_asegurado`). Para que sea seguro de verdad hace falta una función en Supabase (RPC `security definer`) + RLS; se hace junto con la tarea de RLS.
+    *   "Plazos por compañía" **se mantiene en el portal PAS** (sirve cuando el PAS no tuvo casos con esa compañía), pero sin mostrar cantidad de casos ni datos personales: solo promedios.
+    *   Modo oscuro: sin preferencia → **por defecto sigue el tema del sistema**; el botón manual se mantiene y su elección queda guardada.
 
 ## ✅ LOGROS RECIENTES (Sesión anterior)
 *   **Base de Datos Automatizada:** Trigger en PostgreSQL que sincroniza automáticamente la fecha `updated_at` del caso al registrarse movimientos en la bitácora.
