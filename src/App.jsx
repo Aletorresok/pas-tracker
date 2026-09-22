@@ -18,6 +18,7 @@ import SidebarNav from "./components/SidebarNav.jsx";
 import CasoDetalle from './CasoUnificado.jsx'
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
+import TabAnalisis from './components/TabAnalisis.jsx'
 import TabClientes from './components/TabClientes.jsx'
 import TabContactos from './components/TabContactos.jsx'
 import TabContactados from './components/TabContactados.jsx'
@@ -214,7 +215,8 @@ export default function App() {
           )}
 
           {/* TABS CONTENT */}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} recordatorios={recordatorios} onSaveCasos={handleSaveCasos} onIrA={setMainTab} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}

@@ -67,7 +67,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
 
   return (
     <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: subColor, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Plazos por compañía</div>
+      <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: textColor }}>Plazos por compañía</h2>
 
       <select value={activeComp} onChange={e => setSelectedComp(e.target.value)} style={selectStyle}>
         {companias.map(c => (
@@ -77,33 +77,24 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
         ))}
       </select>
 
-      {stats && (
-        <>
-          <div style={{ display: "flex", justifyContent: "center", gap: 20, alignItems: "flex-end", height: maxBarHeight + 40, padding: "0 10px", marginTop: 18 }}>
-            {barras.map(b => {
-              const pct = b.valor !== null ? Math.max((b.valor / b.max) * 100, 5) : 0;
-              return (
-                <div key={b.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: 1, maxWidth: 100 }}>
-                  {b.valor !== null ? (
-                    <div style={{ fontSize: 22, fontWeight: 900, color: b.color, lineHeight: 1 }}>{b.valor}{b.suffix}</div>
-                  ) : (
-                    <div style={{ fontSize: 13, color: subColor }}>—</div>
-                  )}
-                  {mostrarCasos && <div style={{ fontSize: 11, color: subColor }}>{b.casos} caso{b.casos !== 1 ? "s" : ""}</div>}
-                  <div style={{ width: "100%", height: maxBarHeight, background: "var(--border)", borderRadius: 8, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                    <div style={{ width: "100%", height: `${pct}%`, background: `linear-gradient(180deg, ${b.color}, ${alpha(b.color, 53)})`, borderRadius: "8px 8px 0 0", transition: "height .4s ease", minHeight: b.valor !== null ? 4 : 0 }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 8, padding: "0 10px" }}>
-            {barras.map(b => (
-              <div key={b.label} style={{ flex: 1, maxWidth: 100, textAlign: "center", fontSize: 11, color: subColor, lineHeight: 1.3 }}>{b.label}</div>
-            ))}
-          </div>
-        </>
-      )}
+      {stats && (barras.every(b => b.valor === null) ? (
+        <div style={{ fontSize: 13, color: subColor, padding: "16px 0 4px" }}>
+          Todavía no hay fechas suficientes de esta compañía para calcular plazos.
+        </div>
+      ) : (
+        // Tres números independientes (días y %), no un gráfico: tienen escalas distintas
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginTop: 14 }}>
+          {barras.map(b => (
+            <div key={b.label} style={{ borderTop: `3px solid ${b.valor !== null ? b.color : "var(--border)"}`, paddingTop: 8 }}>
+              <div className="num" style={{ fontSize: 24, fontWeight: 700, color: textColor, lineHeight: 1.1 }}>
+                {b.valor !== null ? `${b.valor}${b.suffix === "d" ? " días" : "%"}` : "—"}
+              </div>
+              <div style={{ fontSize: 12, color: subColor, marginTop: 4, lineHeight: 1.3 }}>{b.label}</div>
+              {mostrarCasos && b.valor !== null && <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>sobre {b.casos} caso{b.casos !== 1 ? "s" : ""}</div>}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

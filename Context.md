@@ -43,7 +43,15 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-22 — Etapa 2: carga rápida + plazo en "Próxima acción" (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-22 — Etapa 3: Dashboard "Hoy" + pestaña Análisis (rama `claude/kind-carson-68fvrx`, en revisión)
+*   **`src/utils/metricas.js`** (funciones puras): `aplanarCasos` (agrega `_pasId`/`_pasNombre`), `kpis`, `honorariosPorMes`, `cobrosPendientes`, `tareasPendientes`, `casosPorTramo` + `TRAMOS`.
+*   **Dashboard "Hoy"** (`TabDashboard`): fila de 4 KPIs (honorarios del año con variación vs año anterior, por cobrar, en gestión, este mes vs mes anterior); **"Para hacer"** (`dashboard/ParaHacer.jsx`) = una sola lista ordenada por vencimiento que junta próximas acciones (con su plazo), cobros esperando pago (fecha estimada = firma + plazo de pago, o fecha de pago), honorarios facturados hace >30 días sin cobrar y recordatorios de contactos de la próxima semana. Clic en una tarea abre la ficha del caso encima (`caso/CasoOverlay.jsx`); los recordatorios llevan a Contactados.
+*   **Casos por etapa**: 5 tramos (Arranque, Reclamado, Negociación, Esperando pago, Cobrado) en tonos del color de acento de suave a pleno; desistidos aparte. Decisión: los 9 colores de estado no pasan el validador de color para daltonismo en un gráfico apilado, así que el tablero usa una escala ordinal de un solo tono + leyenda con números.
+*   **Honorarios por mes** (`GraficoBarraMensual`): SVG al ancho real del contenedor (texto legible), eje con valores redondos, mes actual en acento, hover/clic muestra el monto; clic en un mes lista los casos cobrados ese mes.
+*   **Nueva pestaña "Análisis"** (`TabAnalisis`): totales históricos, casos por estado, cobros pendientes en detalle, ranking de PAS y plazos por compañía. "Dashboard" pasa a llamarse "Hoy" en el menú.
+*   **Plazos por compañía**: ya no es un gráfico de barras que mezclaba días y % en la misma escala; ahora son 3 números. Sin datos muestra un mensaje en lugar de cajas vacías.
+
+### 2026-09-22 — Etapa 2: carga rápida + plazo en "Próxima acción" (✅ publicada, PR #3)
 *   **Carga inicial liviana (`usePASData`)**: ya no descarga los ~51 mil `pas_contactos`. Trae el total (`count` head), las tablas chicas y **solo los contactos que se usan siempre** (con historial, casos, recordatorio o derivadores), pedidos por id en tandas de 150. Expone `totalContactos` y `agregarPas(p)`.
 *   `traerTodo()` pagina de a 1000 (límite de Supabase por pedido): se usa para `pas_historial` y `pas_casos`, que antes se cortaban en silencio al pasar las 1000 filas (historial ya tenía 828).
 *   **Pestaña Contactos**: consulta paginada a Supabase (40 por tanda, botón "Mostrar más"), búsqueda en el servidor por nombre/mail/teléfono con espera de 350 ms, orden por columna, conteos por vista = total en la base − contactados/descartados. Al contactar o marcar derivador, el contacto se suma a `pas` con `agregarPas`.

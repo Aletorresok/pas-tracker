@@ -1,34 +1,78 @@
+import { useState, useRef, useEffect } from "react";
 import { fmtMoney } from "../../utils/formatters.js";
-import { COLORES, THEME, alpha } from "../../utils/theme.js";
 
-export default function GraficoBarraMensual({ datos, darkMode, mesSeleccionado, onClickMes }) {
-  const T = THEME(darkMode);
-  const maxValor = Math.max(...datos.map(d => d.valor), 1);
-  const mesActual = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+// Honorarios por mes (una sola serie). Mes actual en color de acento, el resto atenuado.
+// Hover o foco muestra el monto; clic filtra el detalle del mes.
+const ALTO = 150, IZQ = 44, ABAJO = 22, ARRIBA = 8;
+
+function escala(max) {
+  const pasos = [1, 2, 2.5, 5, 10];
+  const bruto = max / 3;
+  const pot = Math.pow(10, Math.floor(Math.log10(bruto || 1)));
+  const paso = pasos.map(p => p * pot).find(p => p >= bruto) || pot * 10;
+  return { paso, tope: Math.max(paso * 3, paso * Math.ceil(max / paso)) };
+}
+const abreviar = v => (v >= 1e6 ? `${(v / 1e6).toLocaleString("es-AR", { maximumFractionDigits: 1 })} M` : v >= 1e3 ? `${Math.round(v / 1e3)} k` : String(v));
+
+export default function GraficoBarraMensual({ datos, mesSeleccionado, onClickMes }) {
+  const [hover, setHover] = useState(null);
+  // El SVG se dibuja al ancho real del contenedor para que el texto no se achique
+  const cajaRef = useRef(null);
+  const [ANCHO, setAncho] = useState(480);
+  useEffect(() => {
+    const el = cajaRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setAncho(Math.max(240, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const max = Math.max(...datos.map(d => d.valor), 1);
+  const { paso, tope } = escala(max);
+  const ticks = [];
+  for (let v = 0; v <= tope; v += paso) ticks.push(v);
+  const altoPlot = ALTO - ABAJO - ARRIBA;
+  const y = v => ARRIBA + altoPlot - (v / tope) * altoPlot;
+  const banda = (ANCHO - IZQ) / datos.length;
+  const anchoBarra = Math.min(24, banda * 0.6);
+  const activo = hover ?? mesSeleccionado;
+  const dActivo = datos.find(d => d.key === activo);
 
   return (
-    <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 120, padding: "0 4px" }}>
-      {datos.map(d => {
-        const pct = Math.max((d.valor / maxValor) * 100, 3);
-        const isActual = d.key === mesActual;
-        const isSelected = d.key === mesSeleccionado;
-        return (
-          <div key={d.key} onClick={() => onClickMes?.(isSelected ? null : d.key)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: d.valor > 0 ? "pointer" : "default" }}>
-            {d.valor > 0 && <div style={{ fontSize: 11, color: isSelected ? T.text : isActual ? COLORES.info : T.muted, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{(d.valor / 1000).toFixed(0)}k</div>}
-            <div style={{
-              width: "100%",
-              height: `${pct}%`,
-              background: d.valor > 0
-                ? isSelected ? `linear-gradient(180deg, ${COLORES.brand}, ${alpha(COLORES.brand, 53)})` : isActual ? `linear-gradient(180deg, ${COLORES.info}, ${alpha(COLORES.info, 53)})` : `linear-gradient(180deg, ${alpha(COLORES.info, 40)}, ${alpha(COLORES.info, 20)})`
-                : T.border,
-              borderRadius: "4px 4px 0 0",
-              transition: "all .3s ease",
-              minHeight: 3,
-            }} title={`${d.mes}: ${fmtMoney(d.valor)}`} />
-            <div style={{ fontSize: 11, color: isSelected ? COLORES.brand : isActual ? COLORES.info : T.sub, textAlign: "center", fontWeight: isSelected || isActual ? 700 : 400 }}>{d.mes}</div>
-          </div>
-        );
-      })}
+    <div ref={cajaRef} style={{ position: "relative" }}>
+      <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} width={ANCHO} height={ALTO} role="img" aria-label="Honorarios cobrados por mes, últimos 12 meses" style={{ display: "block", overflow: "visible" }}>
+        {ticks.map(v => (
+          <g key={v}>
+            <line x1={IZQ} x2={ANCHO} y1={y(v)} y2={y(v)} stroke="var(--border)" strokeWidth="1" />
+            <text x={IZQ - 8} y={y(v) + 4} textAnchor="end" fontSize="11" fill="var(--muted)" style={{ fontVariantNumeric: "tabular-nums" }}>{abreviar(v)}</text>
+          </g>
+        ))}
+        {datos.map((d, i) => {
+          const x = IZQ + i * banda + (banda - anchoBarra) / 2;
+          const h = Math.max(y(0) - y(d.valor), d.valor > 0 ? 2 : 0);
+          const esActual = i === datos.length - 1;
+          const seleccionado = d.key === mesSeleccionado;
+          const r = Math.min(4, h);
+          const color = seleccionado || esActual ? "var(--accent)" : "color-mix(in srgb, var(--accent) 45%, var(--card))";
+          return (
+            <g key={d.key}
+              onMouseEnter={() => setHover(d.key)} onMouseLeave={() => setHover(null)}
+              onClick={() => d.valor > 0 && onClickMes?.(seleccionado ? null : d.key)}
+              style={{ cursor: d.valor > 0 ? "pointer" : "default" }}>
+              <rect x={IZQ + i * banda} y={ARRIBA} width={banda} height={altoPlot + ABAJO} fill="transparent" />
+              {h > 0 && (
+                <path d={`M${x},${y(0)} V${y(0) - h + r} Q${x},${y(0) - h} ${x + r},${y(0) - h} H${x + anchoBarra - r} Q${x + anchoBarra},${y(0) - h} ${x + anchoBarra},${y(0) - h + r} V${y(0)} Z`} fill={color} />
+              )}
+              <text x={x + anchoBarra / 2} y={ALTO - 6} textAnchor="middle" fontSize="11"
+                fill={esActual || seleccionado ? "var(--text)" : "var(--muted)"} fontWeight={esActual || seleccionado ? 700 : 400}>{d.mes}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div aria-live="polite" style={{ minHeight: 20, fontSize: 12, color: "var(--sub)", marginTop: 4 }}>
+        {dActivo
+          ? <><b style={{ color: "var(--text)" }}>{dActivo.mes} {dActivo.anio}:</b> <span className="num">{fmtMoney(dActivo.valor)}</span>{dActivo.valor > 0 && !mesSeleccionado ? " · clic para ver los casos" : ""}</>
+          : "Pasá el mouse o tocá una barra para ver el monto."}
+      </div>
     </div>
   );
 }
