@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "./supabase.js";
 import LoginScreen from "./components/portal/LoginScreen.jsx";
 import PortalHome from "./components/portal/PortalHome.jsx";
+import { useTheme } from "./context/ThemeContext.jsx"; // <-- Importamos el contexto global
 
 export default function Portal() {
   const [session, setSession] = useState(undefined);
-  const [dark, setDark] = useState(true);
+  const { darkMode, toggleDarkMode } = useTheme(); // <-- Consumimos el tema global de la app
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -14,11 +15,12 @@ export default function Portal() {
   }, []);
 
   if (session === undefined) return (
-    <div style={{ minHeight: "100vh", background: "#10151F", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <div style={{ color: "#8D93A1", fontSize: 14 }}>Cargando portal...</div>
+    <div style={{ minHeight: "100vh", background: darkMode ? "#10151F" : "#F7F6F2", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
+      <div style={{ color: darkMode ? "#8D93A1" : "#555B6E", fontSize: 14 }}>Cargando portal...</div>
     </div>
   );
 
-  if (!session) return <LoginScreen dark={dark} onToggleDark={() => setDark(d => !d)} />;
-  return <PortalHome session={session} dark={dark} onToggleDark={() => setDark(d => !d)} onLogout={() => supabase.auth.signOut()} />;
+  // Pasamos darkMode y toggleDarkMode usando el contexto global
+  if (!session) return <LoginScreen dark={darkMode} onToggleDark={toggleDarkMode} />;
+  return <PortalHome session={session} dark={darkMode} onToggleDark={toggleDarkMode} onLogout={() => supabase.auth.signOut()} />;
 }

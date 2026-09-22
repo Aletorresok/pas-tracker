@@ -304,11 +304,10 @@ Markdown
 *   **Flujos Críticos:** Invoca a la función externa `generarEscrito` pasándole el contexto completo del caso[cite: 42].
 *   **Dependencias Fuertes:** Utilidad de negocio `generarEscrito.js`[cite: 42].
 
-### 📄 `src/components/caso/ArchivoRow.jsx` (Nota: Contiene `PreviewModal`)
-*   **Responsabilidad:** Componente modal de previsualización para archivos adjuntos[cite: 43]. Crea una URL temporal de objeto (`URL.createObjectURL`) para mostrar imágenes (JPG/PNG) o documentos PDF directamente en pantalla[cite: 43].
-*   **Estados y Props Clave:** Gestiona el estado de la URL temporal del blob (`url`)[cite: 43].
-*   **Flujos Críticos:** Limpia los recursos de memoria del navegador liberando la URL del objeto al desmontarse o cerrarse el modal mediante `useEffect`[cite: 43].
-*   **Dependencias Fuertes:** Utilidad de formateo `getExtension`[cite: 43].
+### 📄 `src/components/caso/ArchivoRow.jsx`
+*   **Responsabilidad:** Renderiza la fila visual individual de un archivo adjunto del expediente, mostrando su nombre, tipo de extensión, y proveyendo botones de acción rápida para previsualizar (`PreviewModal`) o eliminar.
+*   **Estados y Props Clave:** Maneja de forma local el estado booleano `showPreview` para alternar la apertura del visor modal del archivo.
+*   **Dependencias Fuertes:** `PreviewModal.jsx` y utilidades de formato (`getExtension`).
 
 ### 📄 `src/components/caso/CasoDocumentos.jsx`
 *   **Responsabilidad:** Contenedor de la sección de documentos del expediente[cite: 44]. Agrupa la integración de la carpeta local del sistema de archivos y el listado de archivos adjuntos del caso[cite: 44].
@@ -579,9 +578,6 @@ Markdown
 - [ ] **`src/components/TabCasos.jsx` (Tech Debt de Datos):** En el algoritmo de ordenamiento por monto, se realiza la comprobación `Number(b.monto_acordado) || Number(b.monto_ofrecimiento) || 0`[cite: 36]. Esto indica que los datos económicos provienen de Supabase en formato `string` (posiblemente de inputs de texto sin sanitizar), lo cual impacta el rendimiento y obliga al frontend a hacer *casting* constante.
 - [ ] **`src/components/TabContactados.jsx` (Tech Debt / Parche):** Se le pasa explícitamente el prop `recordatorios={{}}` (un objeto vacío) al componente `PASCard` en lugar de consumir los recordatorios reales[cite: 37]. Esto puede hacer que los avisos de fechas de seguimiento no se rendericen correctamente en esta pestaña.
 - [ ] **`src/components/carpeta/ArchivoLocalRow.jsx` (Tech Debt de Estilos):** Se observa el uso de colores y bordes hardcodeados en línea (por ejemplo, `#f9731644` para los tonos naranjas) en lugar de consumir de forma exclusiva las variables del objeto de temas `Th` proporcionadas por el contexto global[cite: 41].
-- [ ] **`src/components/caso/ArchivoRow.jsx` (Confusión de Naming):** El archivo físico se llama `ArchivoRow.jsx`, sin embargo, el código fuente exporta por defecto el componente `PreviewModal`[cite: 43]. Conviene verificar si hay una superposición de nombres con el archivo homónimo ubicado en `casoDetalleComponents.jsx` para evitar confusiones de importación[cite: 29, 43].
-
-- [ ] **Duplicidad de `PreviewModal`:** Tenemos el archivo físico independiente `src/components/caso/PreviewModal.jsx`[cite: 58], pero curiosamente el archivo `src/components/caso/ArchivoRow.jsx` define y exporta *otro* componente `PreviewModal` de forma interna[cite: 43]. Hay que revisar cuál de los dos está usando realmente la aplicación para eliminar el archivo o código sobrante y evitar confusiones.
 - [ ] **Redundancia con `Toast.jsx`:** El componente de notificaciones flotantes `Toast.jsx` tiene su archivo físico independiente[cite: 57], pero a la vez es importado y re-exportado como un módulo centralizado desde `src/components/casoDetalleComponents.jsx`[cite: 29]. Si se consume centralizado, hay que verificar si el archivo individual sigue siendo necesario o si puede modularizarse por completo.
 - [ ] **Duplicidad de lógica de patentes/dominios:** Al igual que se vio en `CasoUnificado.jsx`, en `SeccionInfo.jsx` se vuelve a parchar la sincronización manual de `patente` y `dominio` (`onChange("patente", val); onChange("dominio", val);`)[cite: 20, 54]. Esto es un claro indicio de deuda técnica a nivel de base de datos: tener dos columnas separadas para el mismo dato en Supabase obliga al frontend a duplicar validaciones constantemente.
 - [ ] **`src/components/clientes/ModalesCliente.jsx` (Tech Debt de IDs):** Al crear un nuevo PAS manual, se genera un ID aleatorio mediante una operación matemática (`100000 + Math.floor(Math.random() * 1900000)`)[cite: 60]. Esto representa una mala práctica y un riesgo latente de colisión de IDs en la base de datos comparado con el uso robusto de UUIDs que se implementa para los casos.
