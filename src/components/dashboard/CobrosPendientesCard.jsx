@@ -1,13 +1,6 @@
 import { fmtMoney, fmtDate } from "../../utils/formatters.js";
 import { COLORES, THEME } from "../../utils/theme.js";
-
-function Badge({ color, children }) {
-  return (
-    <div style={{ background: color + "18", border: `1px solid ${color}33`, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, color, whiteSpace: "nowrap" }}>
-      {children}
-    </div>
-  );
-}
+import DashboardBadge from "./DashboardBadge.jsx"; // <-- Importamos el componente compartido
 
 export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
   const T = THEME(darkMode);
@@ -21,7 +14,7 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
     <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.info}` }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span>Cobros pendientes</span>
-        <Badge color={COLORES.info}>{cobrosPendientes.length}</Badge>
+        <DashboardBadge color={COLORES.info}>{cobrosPendientes.length}</DashboardBadge>
       </div>
       <div style={{ display: "flex", gap: 16, marginBottom: 14, fontSize: 12 }}>
         <span style={{ color: COLORES.success, fontWeight: 800, fontSize: 13, fontVariantNumeric: "tabular-nums" }}>Mi Neto: {fmtMoney(totalNetoYo)}</span>
@@ -44,7 +37,6 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
           return (
             <div key={c.id} style={{ padding: "10px 12px", marginBottom: 8, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
               
-              {/* Parte superior original */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
@@ -53,10 +45,10 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
                     {c.fechaEstimada ? ` · Pago est. ${fmtDate(c.fechaEstimada)}` : ""}
                   </div>
                 </div>
-                <Badge color={badgeColor}>{badgeText}</Badge>
+                <DashboardBadge color={badgeColor}>{badgeText}</DashboardBadge>
               </div>
 
-              {/* NUEVO: Las 3 columnas de montos */}
+              {/* Las 3 columnas de montos */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, borderTop: `1px solid ${T.border}`, paddingTop: 8, marginTop: 10 }}>
                 <div>
                   <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
