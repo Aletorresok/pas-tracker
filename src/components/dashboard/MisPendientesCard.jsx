@@ -1,4 +1,5 @@
 import { COLORES, THEME, alpha } from "../../utils/theme.js";
+import PlazoChip from "../ui/PlazoChip.jsx";
 
 const Iconos = {
   pointer: (color) => (
@@ -21,19 +22,18 @@ export default function MisPendientesCard({ pendientes, darkMode }) {
   return (
     <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.warning}` }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span>Mis pendientes de gestión (próxima acción)</span>
+        <span>Mis pendientes · por vencimiento</span>
         <Badge color={COLORES.warning}>{pendientes.length}</Badge>
       </div>
       <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 4 }}>
         {pendientes.map(c => (
-          <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", marginBottom: 6, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
-            <div style={{ minWidth: 0, flex: 1 }}>
+          <div key={c.id} style={{ display: "grid", gridTemplateColumns: "118px minmax(0, 1fr)", gap: 12, alignItems: "center", padding: "10px 12px", marginBottom: 6, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
+            <div>{c.proxima_accion_vence ? <PlazoChip vence={c.proxima_accion_vence} /> : <span style={{ fontSize: 11, color: T.muted }}>Sin plazo</span>}</div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {c.asegurado} <span style={{ fontWeight: 400, color: T.sub, fontSize: 11 }}>· {c.compania_aseguradora || "Sin Cía"}</span>
+                {c.asegurado} <span style={{ fontWeight: 400, color: T.sub, fontSize: 12 }}>· {c.compania_aseguradora || "Sin compañía"}</span>
               </div>
-              <div style={{ fontSize: 13, color: COLORES.warning, marginTop: 4, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ display: "inline-flex", transform: "rotate(90deg)" }}>{Iconos.pointer(COLORES.warning)}</span> {c.proxima_accion}
-              </div>
+              <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>{c.proxima_accion}</div>
             </div>
           </div>
         ))}

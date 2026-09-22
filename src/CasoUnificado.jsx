@@ -28,7 +28,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_reclamo","fecha_ultimo_reclamo","fecha_ofrecimiento","fecha_reconsideracion","fecha_aceptacion",
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
-  "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion",
+  "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
   "patente", "mensaje_cliente"
 ]);
 
@@ -68,7 +68,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     fecha_reconsideracion: casoProp.fecha_reconsideracion || "", fecha_aceptacion: casoProp.fecha_aceptacion || "", fecha_firma: casoProp.fecha_firma || "",
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
-    monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "",
+    monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
     patente: casoProp.patente || "",
     mensaje_cliente: casoProp.mensaje_cliente || ""
   });
@@ -153,7 +153,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     setGuardando(true);
     try {
       const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: formData.estado_honorarios || "NO_FACTURADO" };
-      const { error } = await supabase.from("pas_casos").upsert([pickCols(updated)]);
+      const fila = pickCols(updated);
+      // Si la columna del plazo todavía no existe en la base, no la mandamos (evita error al guardar)
+      if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;
+      const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) { setCaso(updated); setToast({ msg: "✓ Caso guardado", type: "success" }); onUpdate?.(updated); }
       else setToast({ msg: "Error: " + (error.message || "desconocido"), type: "error" });
     } catch (e) { setToast({ msg: "Error: " + e.message, type: "error" }); }

@@ -98,3 +98,35 @@ export async function verificarPermiso(handle, mode = "readwrite") {
     return false;
   }
 }
+// ── PLAZOS (fecha local, no UTC: evita que después de las 21 h ya sea "mañana") ──
+export function fechaLocalISO(d = new Date()) {
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// Fecha (YYYY-MM-DD) dentro de N días desde hoy
+export function fechaEnDias(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + Number(n));
+  return fechaLocalISO(d);
+}
+
+// Días que faltan hasta una fecha (negativo = vencido). null si no hay fecha.
+export function diasHasta(iso) {
+  if (!iso) return null;
+  const [y, m, d] = String(iso).slice(0, 10).split("-").map(Number);
+  const objetivo = new Date(y, m - 1, d);
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  return Math.round((objetivo - hoy) / 86400000);
+}
+
+// Texto y severidad de un plazo: para chips de "vence en…"
+export function describirPlazo(iso) {
+  const dias = diasHasta(iso);
+  if (dias === null) return null;
+  if (dias < 0) return { dias, texto: `Vencido hace ${-dias} d`, nivel: "vencido" };
+  if (dias === 0) return { dias, texto: "Vence hoy", nivel: "hoy" };
+  if (dias === 1) return { dias, texto: "Vence mañana", nivel: "pronto" };
+  if (dias <= 3) return { dias, texto: `Vence en ${dias} d`, nivel: "pronto" };
+  return { dias, texto: `Vence en ${dias} d`, nivel: "tranquilo" };
+}

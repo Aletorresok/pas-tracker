@@ -30,7 +30,8 @@ export default function App() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("pas_unlocked") === "1");
 
   const {
-    pas, setPas,
+    pas, setPas, agregarPas,
+    totalContactos,
     historial, setHistorial,
     casos, setCasos,
     derivadores, setDerivadores,
@@ -176,7 +177,7 @@ export default function App() {
     <div style={{ background: T.bg, color: T.text, minHeight: "100vh", display: "flex" }}>
       {/* SIDEBAR DE NAVEGACIÓN */}
       <SidebarNav
-        pasCount={pas.length}
+        pasCount={totalContactos}
         mainTab={mainTab}
         setMainTab={setMainTab}
         autobackupFecha={autobackupFecha}
@@ -187,7 +188,7 @@ export default function App() {
       {/* CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO PARA EL SIDEBAR Y ANCHO MÁXIMO AMPLIADO */}
       <main className="app-main">
         <div className="app-content">
-          {pas.length === 0 && !appLoading && (
+          {!loading && totalContactos === 0 && !appLoading && (
             <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: 16, padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
                             <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
               <div style={{ fontSize: 13, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
@@ -195,13 +196,17 @@ export default function App() {
             </label>
           )}
           
+          {loading && !appLoading && (
+            <div style={{ textAlign: "center", padding: 64, color: T.muted }}>Cargando…</div>
+          )}
+
           {appLoading && (
             <div style={{ textAlign: "center", padding: 64, color: T.muted }}>
                             <div>Procesando el archivo...</div>
             </div>
           )}
 
-          {!appLoading && pas.length === 0 && (
+          {!loading && !appLoading && totalContactos === 0 && (
             <div style={{ textAlign: "center", padding: 80 }}>
                             <div style={{ fontSize: 16, color: T.sub, fontWeight: 500 }}>Cargá el archivo Excel para comenzar</div>
               <div style={{ fontSize: 13, marginTop: 6, color: T.muted }}>Tu seguimiento se guarda automáticamente</div>
@@ -209,11 +214,11 @@ export default function App() {
           )}
 
           {/* TABS CONTENT */}
-          {!appLoading && pas.length > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />}
-          {!appLoading && pas.length > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && pas.length > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
-          {!appLoading && pas.length > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
-          {!appLoading && pas.length > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onGoToClientes={() => setMainTab("clientes")} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
           {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
       </main>
