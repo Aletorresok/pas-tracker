@@ -37,18 +37,6 @@
 *   **Refactorización Completa de `CasoUnificado.jsx`:** Extracción de lógicas y vistas complejas a componentes dedicados (`ModalGenerarEscrito`, `CasoDocumentos`, `CasoFooter`, `CasoProximaAccion`), reduciendo drásticamente el tamaño del archivo principal y mejorando la mantenibilidad.
 *   **Limpieza de Dashboard:** Eliminación definitiva de la vista de "Casos Inactivos (+15 días)" para simplificar la interfaz operativa.
 
-## 🚀 ROADMAP PRIORIZADO (Próximos Pasos)
-1.  **Rediseño Visual (UI/UX):** Actualizar `utils/theme.js` para migrar hacia una paleta de colores más moderna, tipografías balanceadas y contrastes suaves (estilo Slate/Zinc).
-2.  **Módulo IA (Resúmenes Automáticos):** Integrar API de IA (Gemini/OpenAI) para generar resúmenes profesionales del estado del expediente a pedido.
-3.  **Auditoría y Refactorización de Archivos Extensos (>250 líneas):** Planificar la modularización progresiva de módulos pesados identificados:
-    *   `TabClientes.jsx` (440 líneas)
-    *   `App.jsx` (476 líneas)
-    *   `TabDashboard.jsx` (425 líneas)
-    *   `CarpetaLocal.jsx` (365 líneas)
-    *   `CasoDetalleComponents.jsx` (283 líneas)
-    *   `Storage.js` (210 líneas)
-
-
     Mapeo
 
     📦 src[cite: 11]
@@ -134,16 +122,16 @@
            ├── 📄 PortalHome.jsx        # Dashboard principal del PAS[cite: 17]
            └── 📄 portalTheme.js        # Tema visual aislado para el portal[cite: 17]
 
-           ### 📄 `src/App.jsx`
-*   **Responsabilidad:** Es el Layout principal, enrutador manual de pestañas (Tabs) y gestor del estado global de la sesión. También actúa como interceptor de vistas externas (si detecta `?vista=cliente`, ignora la app y renderiza `PortalCliente`)[cite: 19].
+ ### 📄 `src/App.jsx`
+*   **Responsabilidad:** Es el Layout principal, enrutador manual de pestañas (Tabs) y gestor del estado global de la sesión. También actúa como interceptor de vistas externas (si detecta `?vista=cliente`, ignora la app y renderiza `PortalCliente`).
 *   **Estados y Props Clave:** 
-    *   Delega la carga de datos de Supabase completamente al hook `usePASData` (obtiene `pas`, `casos`, `historial`, etc.)[cite: 19].
-    *   Maneja el estado de navegación de la UI mediante `mainTab` (dashboard, casos, contactos, clientes, portal)[cite: 19].
-    *   Controla el bloqueo de la app (`unlocked`) mediante `sessionStorage` y `LoginGate`[cite: 19].
+    *   Delega la carga de datos de Supabase completamente al hook `usePASData` (obtiene `pas`, `casos`, `historial`, etc.).
+    *   Maneja el estado de navegación de la UI mediante `mainTab` (dashboard, casos, contactos, clientes, portal).
+    *   Controla el bloqueo de la app (`unlocked`) mediante `sessionStorage` y `LoginGate`.
 *   **Flujos Críticos:**
-    *   **Captación por Excel:** Contiene la lógica principal de carga de Excel masiva (`handleFile`), usando la librería `xlsx` para parsear y hacer un `upsert` a la tabla `pas_contactos` en Supabase[cite: 19].
-    *   **Copias de Seguridad:** Gestiona la lógica de autoguardado local (`autoBackup`) y la descarga/restauración de backups en formato `.json`[cite: 19].
-*   **Dependencias Fuertes:** `usePASData` (datos), `ThemeContext` (estilos), y `XLSX` (parseo)[cite: 19].
+    *   **Captación por Excel:** Contiene la lógica principal de carga de Excel masiva (`handleFile`), usando la librería `xlsx` para parsear y hacer un `upsert` a la tabla `pas_contactos` en Supabase.
+    *   **Copias de Seguridad:** Gestiona la lógica de autoguardado local (`autoBackup`) y la descarga/restauración de backups en formato `.json`.
+*   **Dependencias Fuertes:** `usePASData` (datos), `ThemeContext` (estilos), y `XLSX` (parseo).
 
 ### 📄 `src/CasoUnificado.jsx`
 *   **Responsabilidad:** Es el contenedor modal y "orquestador" principal del detalle de un expediente[cite: 20]. No renderiza mucha UI por sí mismo, sino que delega la visualización a sus subcomponentes (las diferentes "Secciones" y botones), encargándose exclusivamente de centralizar el estado y la comunicación con la base de datos[cite: 20].
@@ -578,28 +566,19 @@ Markdown
 *   **Dependencias Fuertes:** Ninguna[cite: 82].
 
 ## 🧹 TODO: Auditoría de Código Muerto (A verificar al final)
-- [ ] **`src/App.css`:** Sospecha de código residual de Vite. Verificar si se puede eliminar (actualmente no está importado en `App.jsx`).
-- [ ] **`src/App.jsx`:** El estado `casosDetalleModal` y su respectivo renderizado (`<CasoDetalle />` al fondo del componente) parecen estar huérfanos. Verificar si la apertura del modal del expediente ya fue migrada definitivamente adentro de las Tabs (`TabCasos` / `TabClientes`).
-
 - [ ] **`src/CasoUnificado.jsx`:** No hay código estructuralmente "muerto", pero existe un "parche" de retrocompatibilidad o deuda técnica en el estado y `handleFormChange`: se sincronizan artificialmente los campos `patente` y `dominio` (`...(key === "patente" ? { dominio: value } : {})`)[cite: 20]. Se debería unificar el nombre de la columna en la base de datos a futuro para evitar este duplicado.
 
 - [ ] **`src/constants.js`:** No se detecta código muerto evidente al ser puras estructuras de datos[cite: 21]. Solo restaría comprobar (cuando analicemos `TabContactos.jsx`) si el arreglo `VISTAS_C` (filtros "agendado", "multi", "sin_tel") se sigue utilizando en la interfaz actual o si pertenece a una versión vieja del listado de prospección[cite: 21]
 
 - [ ] **`src/Portal.jsx` (Tech Debt):** El estado del tema (`dark`) se está manejando de forma local con un `useState` en lugar de consumir el `ThemeContext` global que usa `App.jsx`[cite: 24]. Esto genera inconsistencias en la arquitectura de estilos.
 - [ ] **`src/supabase.js` (Tech Debt):** Las credenciales `SUPABASE_URL` y `SUPABASE_KEY` están "hardcodeadas" directamente en el código fuente en lugar de utilizar variables de entorno (ej. `import.meta.env.VITE_SUPABASE_URL`)[cite: 25]. Esto es un riesgo de seguridad y dificulta el despliegue en múltiples entornos.
-
-- [ ] **`src/assets/react.svg`:** Este es el gráfico por defecto que genera Vite al inicializar un proyecto[cite: 26]. Si no estás utilizando explícitamente el logo de React en la interfaz de tu aplicación (por ejemplo, en el Navbar o en la pantalla de Login), este archivo es **código muerto** y puede ser eliminado de forma segura para mantener limpia la carpeta de assets.
-
 - [ ] **`src/components/ContactModal.jsx` (Código Incompleto/Muerto):** El botón de confirmar ejecuta `onSave({ fecha: ..., resultados: [], nota: "", recordatorio: "" })` pasando arrays vacíos y strings en blanco de forma "hardcodeada"[cite: 30]. No parece haber inputs en este modal para que el usuario pueda escribir una nota o elegir un resultado, lo que sugiere que es un remanente de una versión anterior o una característica a medio terminar.
 - [ ] **`src/components/GraficoCompanias.jsx` (Tech Debt de DB):** El componente hace un parche dinámico leyendo `const comp = c.compania || c.compania_aseguradora`[cite: 31]. Esto evidencia que en la base de datos de Supabase existen registros con la columna `compania` y otros con `compania_aseguradora`, debiendo unificarse la nomenclatura en la base de datos para no penalizar el rendimiento del frontend con comprobaciones dobles.
 - [ ] **`src/components/LoginGate.jsx` (Vulnerabilidad / Tech Debt):** La constante `APP_PIN = "3934"` está "hardcodeada" en texto plano en el frontend[cite: 32]. Cualquier persona que inspeccione el código fuente en el navegador o el bundle compilado puede ver la contraseña. Esto debería manejarse al menos mediante validación contra Supabase Auth.
-
-- [ ] **`src/components/AppHeader.jsx` (Código Muerto):** Al revisar `SidebarNav.jsx`[cite: 35], se evidencia que es exactamente el mismo componente que `AppHeader.jsx` (mismos tabs, misma lógica de backup, mismos props), pero adaptado a una barra lateral. Si revisamos `App.jsx`, solo se renderiza `<SidebarNav />`. Es altamente probable que `AppHeader.jsx` sea código 100% muerto de una versión anterior y deba ser eliminado.
 - [ ] **`src/components/TabClientes.jsx` (Confirmación):** Este componente renderiza su propio modal `<CasoDetalle />` en la parte inferior[cite: 33]. Esto confirma la sospecha anterior de que el modal homónimo en `App.jsx` era código huérfano y puede ser eliminado de forma segura.
 - [ ] **`src/components/TabCasos.jsx` (Tech Debt de Datos):** En el algoritmo de ordenamiento por monto, se realiza la comprobación `Number(b.monto_acordado) || Number(b.monto_ofrecimiento) || 0`[cite: 36]. Esto indica que los datos económicos provienen de Supabase en formato `string` (posiblemente de inputs de texto sin sanitizar), lo cual impacta el rendimiento y obliga al frontend a hacer *casting* constante.
 - [ ] **`src/components/TabContactados.jsx` (Tech Debt / Parche):** Se le pasa explícitamente el prop `recordatorios={{}}` (un objeto vacío) al componente `PASCard` en lugar de consumir los recordatorios reales[cite: 37]. Esto puede hacer que los avisos de fechas de seguimiento no se rendericen correctamente en esta pestaña.
 - [ ] **`src/components/carpeta/ArchivoLocalRow.jsx` (Tech Debt de Estilos):** Se observa el uso de colores y bordes hardcodeados en línea (por ejemplo, `#f9731644` para los tonos naranjas) en lugar de consumir de forma exclusiva las variables del objeto de temas `Th` proporcionadas por el contexto global[cite: 41].
-- [ ] **`src/components/caso/EscritoConfigModal.jsx` (Código Muerto / Redundancia):** Este componente es funcionalmente idéntico a `ModalGenerarEscrito.jsx`[cite: 42], pero utiliza clases CSS externas (`.modal-overlay`, `.modal-content`) que no se condicen con el sistema de estilos en línea basado en `Th` que usa el resto de la aplicación. Es un componente huérfano que no está importado en `CasoUnificado.jsx` (el cual utiliza exclusivamente a `ModalGenerarEscrito.jsx`), por lo que puede eliminarse de forma segura[cite: 42, 49].
 - [ ] **`src/components/caso/ArchivoRow.jsx` (Confusión de Naming):** El archivo físico se llama `ArchivoRow.jsx`, sin embargo, el código fuente exporta por defecto el componente `PreviewModal`[cite: 43]. Conviene verificar si hay una superposición de nombres con el archivo homónimo ubicado en `casoDetalleComponents.jsx` para evitar confusiones de importación[cite: 29, 43].
 
 - [ ] **Duplicidad de `PreviewModal`:** Tenemos el archivo físico independiente `src/components/caso/PreviewModal.jsx`[cite: 58], pero curiosamente el archivo `src/components/caso/ArchivoRow.jsx` define y exporta *otro* componente `PreviewModal` de forma interna[cite: 43]. Hay que revisar cuál de los dos está usando realmente la aplicación para eliminar el archivo o código sobrante y evitar confusiones.

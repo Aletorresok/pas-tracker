@@ -1,33 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getExtension } from "../../utils/formatters.js";
+import PreviewModal from "./PreviewModal.jsx";
 
-export default function PreviewModal({ archivo, onClose }) {
-  const [url, setUrl] = useState(null);
-  
-  useEffect(() => {
-    if (!archivo) return;
-    const objectUrl = URL.createObjectURL(archivo.blob);
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [archivo]);
-
-  if (!archivo || !url) return null;
-  const esImagen = [".jpg", ".jpeg", ".png"].includes(getExtension(archivo.nombre));
-  const esPdf = getExtension(archivo.nombre) === ".pdf";
+export default function ArchivoRow({ archivo, onDelete, Th }) {
+  const [showPreview, setShowPreview] = useState(false);
+  const ext = getExtension(archivo.nombre || archivo.name);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.88)", zIndex: 500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#1a2535", border: "1px solid #2d3f55", borderRadius: 16, width: "100%", maxWidth: 780, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #2d3f55" }}>
-          <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 15 }}>{archivo.nombre}</div>
-          <button onClick={onClose} style={{ background: "#222f42", border: "1px solid #2d3f55", borderRadius: 8, color: "#94a3b8", padding: "4px 12px", cursor: "pointer" }}>✕ Cerrar</button>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: Th?.card || "#1e293b", border: `1px solid ${Th?.border || "#334155"}`, borderRadius: 8, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, overflow: "hidden" }}>
+        <span style={{ fontSize: 18 }}>📄</span>
+        <div style={{ fontSize: 13, fontWeight: 500, color: Th?.text || "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {archivo.nombre || archivo.name}
         </div>
-        <div style={{ flex: 1, overflow: "auto", padding: 16, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 }}>
-          {esImagen && <img src={url} alt={archivo.nombre} style={{ maxWidth: "100%", maxHeight: "70vh", borderRadius: 8, objectFit: "contain" }} />}
-          {esPdf && <iframe src={url} title={archivo.nombre} style={{ width: "100%", height: "70vh", border: "none", borderRadius: 8 }} />}
-          {!esImagen && !esPdf && <div style={{ color: "#64748b" }}>Tipo de archivo no soportado para previsualización</div>}
-        </div>
+        <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 4, background: "#334155", color: "#cbd5e1", textTransform: "uppercase" }}>
+          {ext.replace(".", "")}
+        </span>
       </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button 
+          onClick={() => setShowPreview(true)}
+          style={{ background: "transparent", border: "1px solid #475569", borderRadius: 6, color: "#94a3b8", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
+        >
+          👁️ Ver
+        </button>
+        {onDelete && (
+          <button 
+            onClick={() => onDelete(archivo)}
+            style={{ background: "transparent", border: "1px solid #ef444455", borderRadius: 6, color: "#ef4444", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
+          >
+            🗑️
+          </button>
+        )}
+      </div>
+
+      {showPreview && <PreviewModal archivo={archivo} onClose={() => setShowPreview(false)} />}
     </div>
   );
 }
