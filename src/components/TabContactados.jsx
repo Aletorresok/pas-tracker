@@ -6,6 +6,7 @@ export default function TabContactados({
   pas,
   historial,
   derivadores,
+  recordatorios, // <-- 1. Recibimos los recordatorios reales por props
   descartados,
   darkMode,
   onContactar,
@@ -128,7 +129,7 @@ export default function TabContactados({
           pas={p}
           historial={historial}
           derivadores={derivadores}
-          recordatorios={{}}
+          recordatorios={recordatorios} // <-- 2. Conectamos los recordatorios reales aquí
           onContactar={onContactar}
           onToggleDerivador={onToggleDerivador}
           onToggleDescartado={onToggleDescartado}

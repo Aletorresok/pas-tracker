@@ -52,7 +52,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: "1px solid #f9731644", overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
+    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 20 }}>{esImagen ? "🖼" : "📄"}</span>

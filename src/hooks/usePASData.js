@@ -14,20 +14,7 @@ export function usePASData() {
   const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Descartados (LO MOVIMOS ARRIBA DE TODO PARA USARLO DE FILTRO)
-      const { data: descartadosData } = await supabase
-        .from("pas_descartados")
-        .select("*");
-
-      const diccDescartados = {};
-      if (descartadosData?.length) {
-        descartadosData.filter(r => r.activo).forEach(r => {
-          diccDescartados[String(r.pas_id)] = true;
-        });
-        setDescartados(diccDescartados);
-      }
-
-      // 2. Contactos — traer todos (Supabase pagina de a 1000) y FILTRAR
+      // 1. Paginación de contactos (mantiene la lógica segura por chunks de 1000)
       let contactosTodos = [];
       let from = 0;
       const CHUNK = 1000;
@@ -43,9 +30,35 @@ export function usePASData() {
         from += CHUNK;
       }
 
+      // 2. Consultas secundarias ejecutadas en paralelo con Promise.all
+      const [
+        { data: descartadosData },
+        { data: historialData },
+        { data: casosData },
+        { data: derivadoresData },
+        { data: recordatoriosData },
+        { data: manualesData }
+      ] = await Promise.all([
+        supabase.from("pas_descartados").select("*"),
+        supabase.from("pas_historial").select("*").order("fecha", { ascending: true }),
+        supabase.from("pas_casos").select("*"),
+        supabase.from("pas_derivadores").select("*"),
+        supabase.from("pas_recordatorios").select("*"),
+        supabase.from("pas_manuales").select("*"),
+      ]);
+
+      // Procesamiento de Descartados
+      const diccDescartados = {};
+      if (descartadosData?.length) {
+        descartadosData.filter(r => r.activo).forEach(r => {
+          diccDescartados[String(r.pas_id)] = true;
+        });
+        setDescartados(diccDescartados);
+      }
+
+      // Procesamiento de Contactos (PAS)
       if (contactosTodos.length) {
         const lista = contactosTodos
-          // LA LÍNEA MÁGICA: Si está en diccDescartados, lo ignora completamente
           .filter(p => !diccDescartados[String(p.id)])
           .map(p => ({
             ...p,
@@ -57,12 +70,7 @@ export function usePASData() {
         setPas(lista);
       }
 
-      // 3. Historial
-      const { data: historialData } = await supabase
-        .from("pas_historial")
-        .select("*")
-        .order("fecha", { ascending: true });
-
+      // Procesamiento de Historial
       if (historialData?.length) {
         const h = {};
         historialData.forEach(row => {
@@ -78,11 +86,7 @@ export function usePASData() {
         setHistorial(h);
       }
 
-      // 4. Casos
-      const { data: casosData } = await supabase
-        .from("pas_casos")
-        .select("*");
-
+      // Procesamiento de Casos
       if (casosData?.length) {
         const c = {};
         casosData.forEach(row => {
@@ -94,11 +98,7 @@ export function usePASData() {
         setCasos(c);
       }
 
-      // 5. Derivadores
-      const { data: derivadoresData } = await supabase
-        .from("pas_derivadores")
-        .select("*");
-
+      // Procesamiento de Derivadores
       if (derivadoresData?.length) {
         const d = {};
         derivadoresData.filter(r => r.activo).forEach(r => {
@@ -107,11 +107,7 @@ export function usePASData() {
         setDerivadores(d);
       }
 
-      // 6. Recordatorios
-      const { data: recordatoriosData } = await supabase
-        .from("pas_recordatorios")
-        .select("*");
-
+      // Procesamiento de Recordatorios
       if (recordatoriosData?.length) {
         const r = {};
         recordatoriosData.forEach(row => {
@@ -122,14 +118,9 @@ export function usePASData() {
         setRecordatorios(r);
       }
 
-      // 7. Manuales
-      const { data: manualesData } = await supabase
-        .from("pas_manuales")
-        .select("*");
-
+      // Procesamiento de Manuales
       if (manualesData?.length) {
         const lista = manualesData
-          // También filtramos los manuales por si descartaste alguno
           .filter(p => !diccDescartados[String(p.id)])
           .map(p => ({
             ...p,
