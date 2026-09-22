@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import emailjs from "@emailjs/browser";
 import { supabase } from "../../supabase.js";
 import { theme } from "./portalTheme.js";
+import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 
 export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, dark, companias = [] }) {
   const T = theme(dark);
@@ -41,7 +41,6 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     setFormData(prev => ({ 
       ...prev, 
       [name]: finalValue,
-      // Si cambia patente, actualizamos también dominio automáticamente (y viceversa)
       ...(name === "patente" ? { dominio: finalValue } : {}),
       ...(name === "dominio" ? { patente: finalValue } : {})
     }));
@@ -69,7 +68,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         asegurado: formData.asegurado,
         tercero_contacto: formData.telefono,
         patente: valorPatente,
-        dominio: valorPatente, // Guardamos en ambas columnas de Supabase para asegurar que el cliente lo encuentre sin importar cuál lea el buscador
+        dominio: valorPatente,
         fecha_siniestro: formData.fecha_siniestro,
         compania: formData.compania,
         compania_aseguradora: formData.compania,
@@ -86,44 +85,13 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
       if (dbError) throw dbError;
 
-      const linksAdjuntos = [];
-      if (archivos.length > 0) {
-        for (let i = 0; i < archivos.length; i++) {
-          const file = archivos[i];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-          const filePath = `${pasId}/${fileName}`;
-
-          const { error: uploadError } = await supabase.storage.from("adjuntos").upload(filePath, file);
-
-          if (!uploadError) {
-            const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
-            if (linkData?.publicUrl) {
-              linksAdjuntos.push(linkData.publicUrl);
-            }
-          }
-        }
-      }
-
-      const textoLinks = linksAdjuntos.length > 0
-        ? linksAdjuntos.map((link, i) => `🔗 Descargar Archivo ${i + 1}: ${link}`).join('\n')
-        : "No se adjuntaron archivos.";
-
-      const templateParams = {
-        pas_nombre: pasNombre || "PAS",
-        asegurado: formData.asegurado,
-        telefono: formData.telefono,
-        fecha_siniestro: formData.fecha_siniestro,
-        compania: formData.compania,
-        links_archivos: textoLinks,
-      };
-
-      await emailjs.send(
-        "service_g5y3lf4",
-        "template_7y6omo1",
-        templateParams,
-        "uQTfm1gg21u5Wj6Z_"
-      );
+      // Llamada limpia a la utilidad compartida
+      await subirArchivosYNotificar({
+        pasId,
+        pasNombre,
+        casoData: formData,
+        archivos
+      });
       
       sessionStorage.removeItem("draft_nuevo_caso");
       sessionStorage.removeItem("draft_otra_compania");

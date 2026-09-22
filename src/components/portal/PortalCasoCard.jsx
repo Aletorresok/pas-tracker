@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
-import { supabase } from "../../supabase.js";
-import emailjs from "@emailjs/browser";
 import { ESTADOS_CASO, estadoInfo, fmtDate, fmtMoney, theme } from "./portalTheme.js";
+import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 
 function PipelineBar({ estado, dark }) {
   const T = theme(dark);
@@ -59,33 +58,18 @@ export default function PortalCasoCard({ caso, dark }) {
     
     setSubiendo(true);
     try {
-      const linksAdjuntos = [];
-      for (let file of archivos) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `${caso.pas_id}/${fileName}`;
-        
-        const { error } = await supabase.storage.from("adjuntos").upload(filePath, file);
-        if (error) throw error;
-        
-        const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
-        if (linkData?.publicUrl) linksAdjuntos.push(linkData.publicUrl);
-      }
-
-      const textoLinks = linksAdjuntos.map((link, i) => `🔗 Nuevo Archivo ${i + 1}: ${link}`).join('\n');
-      await emailjs.send(
-        "service_g5y3lf4",
-        "template_7y6omo1",
-        {
-          pas_nombre: caso.pas_nombre || "Productor",
+      // Llamada limpia a la utilidad compartida con sufijo para identificar nueva documentación
+      await subirArchivosYNotificar({
+        pasId: caso.pas_id,
+        pasNombre: caso.pas_nombre || "Productor",
+        casoData: {
           asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",
           telefono: caso.tercero_contacto || "Ya registrado",
           fecha_siniestro: caso.fecha_siniestro || "Ya registrada",
           compania: caso.compania_aseguradora || caso.compania,
-          links_archivos: textoLinks,
         },
-        "uQTfm1gg21u5Wj6Z_"
-      );
+        archivos
+      });
 
       alert("Documentación adjuntada y administrador notificado.");
     } catch (err) {
@@ -115,7 +99,6 @@ export default function PortalCasoCard({ caso, dark }) {
 
         <PipelineBar estado={caso.estado} dark={dark} />
 
-        {/* MENSAJE DIRECTO DE QUÉ DECIRLE AL CLIENTE */}
         {caso.mensaje_cliente && (
           <div style={{ marginTop: 12, background: dark ? "#f59e0b15" : "#fef3c7", border: "1px solid #f59e0b44", borderRadius: 8, padding: "10px 12px" }}>
             <div style={{ fontSize: 10, color: "#d97706", textTransform: "uppercase", letterSpacing: 1, fontWeight: 800, marginBottom: 4 }}>🗣️ Qué decirle al cliente</div>
