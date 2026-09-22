@@ -43,12 +43,23 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-22 — Propuesta de rediseño visual (pendiente de aprobación)
-*   Documento: https://claude.ai/artifact/3TGX6ipnw65AmWVFejXh3r (diagnóstico con capturas, maquetas y plan).
-*   **Diagnóstico principal:** 73 colores hex escritos a mano de 3 paletas (theme.js dorado/marfil, índigo `#6366f1` + pizarra `#1e293b` heredados, `portalTheme.js` con otros colores de estado); 20 tamaños de fuente (algunos de 8–9 px); Inter declarada pero nunca cargada; emojis como íconos; Dashboard de 11 bloques apilados (~3 pantallas); casos en tarjetas; ficha del caso con 7 secciones apiladas y 5 botones de colores; sin versión celular; 51.048 contactos cargados en 52 pedidos secuenciales al abrir.
-*   **Bugs visuales detectados:** filtro seleccionado de Contactos sale gris (`VISTAS_C` sin `color`); colores de modo oscuro en modo claro (PASCard, FiltrosEstados, TabContactos); contenido que asoma sobre el encabezado fijo del modal del caso; "Mis pendientes" ordena por `updated_at`, columna inexistente.
-*   **Plan propuesto (6 etapas, un PR cada una):** 1) base visual + bugs, 2) carga rápida de contactos, 3) Dashboard "Hoy", 4) Casos en tabla, 5) ficha del caso con pestañas y stepper de etapas, 6) Prospección unificada + celular.
-*   **Decisiones pendientes del usuario:** dorado como marca, modo oscuro por defecto, tabla vs tarjetas, unificar Contactos/Contactados, pestañas vs página larga, uso desde celular.
+### 2026-09-22 — Propuesta de rediseño visual (APROBADA en líneas generales)
+*   Documento (v2): https://claude.ai/artifact/3TGX6ipnw65AmWVFejXh3r (diagnóstico con capturas, maquetas de app, portal PAS y vista cliente, plan).
+*   **Diagnóstico principal:** 73 colores hex de 3 paletas (theme.js dorado/marfil, índigo `#6366f1` + pizarra `#1e293b` heredados, `portalTheme.js` con otros colores de estado); 20 tamaños de fuente (algunos de 8–9 px); Inter declarada pero nunca cargada; emojis como íconos; Dashboard de 11 bloques apilados; casos en tarjetas; ficha del caso con 7 secciones apiladas; sin versión celular; 51.048 contactos cargados en 52 pedidos secuenciales al abrir.
+*   **Bugs visuales detectados:** filtro seleccionado de Contactos sale gris (`VISTAS_C` sin `color`); colores de modo oscuro en modo claro (PASCard, FiltrosEstados, TabContactos); contenido que asoma sobre el encabezado fijo del modal del caso; "Mis pendientes" ordena por `updated_at` (columna inexistente); en el portal PAS un caso Desistido muestra la barra de avance completa (incluye el verde de Cobrado).
+*   **Portal PAS:** layout de escritorio con dos columnas fijas (filtros + futuros pagos); inutilizable en celular; identidad violeta distinta a la app; "Plazos por compañía" usa datos de todos los PAS; `alert()` al subir documentación.
+*   **Vista cliente (`?vista=cliente`):** 🔴 privacidad — con solo la patente se ve nombre del asegurado, compañía y montos. Sin marca del estudio ni contacto; etapas en lenguaje interno.
+*   **Decisiones del usuario:**
+    *   Un solo estilo visual basado en theme.js (se abandona el fondo azul pizarra). ✅
+    *   Dashboard "Hoy" orientado a tareas por urgencia. ✅
+    *   Casos en **tabla con fila desplegable** (edición rápida inline) + "Abrir ficha completa" con pestañas. ✅
+    *   Campos editables en el lugar, sin modo edición, con autoguardado e indicador "Guardado"; "Deshacer" al cambiar a Cobrado/Desistido. (propuesto)
+    *   Contactos + Contactados unificados en "Prospección". ✅
+    *   **Temas de color:** dorado principal + Marino, Borgoña y Grafito (cada uno claro/oscuro), elegibles por el usuario. (propuesto a pedido)
+    *   **App 100% funcional en celular** (barra de navegación inferior). ✅
+    *   Rediseñar también el portal PAS y la vista del cliente. ✅
+*   **Plan (8 etapas, un PR cada una, celular incluido en todas):** 1) base visual + temas + bugs, 2) carga rápida de contactos, 3) Dashboard "Hoy", 4) Casos en tabla con fila desplegable, 5) ficha del caso completa, 6) Prospección, 7) Portal PAS, 8) Vista del cliente (acceso con patente + DNI o link único).
+*   **Pendiente de respuesta:** nombre/logo del estudio para portal y vista cliente, WhatsApp de contacto, método de acceso del cliente, si el portal PAS sigue mostrando "Plazos por compañía", modo oscuro por defecto.
 
 ## ✅ LOGROS RECIENTES (Sesión anterior)
 *   **Base de Datos Automatizada:** Trigger en PostgreSQL que sincroniza automáticamente la fecha `updated_at` del caso al registrarse movimientos en la bitácora.
