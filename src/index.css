@@ -94,6 +94,7 @@ input:focus, select:focus, textarea:focus {
 
 /* ── LAYOUT DE LA APP ────────────────────────────────────────────────── */
 .modal-sticky { top: -16px; }
+.fila-caso:hover td { background: var(--card2); }
 .app-main { margin-left: 232px; flex: 1; min-height: 100vh; min-width: 0; }
 .app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }
 .sidebar { display: flex; }
@@ -118,6 +119,7 @@ input:focus, select:focus, textarea:focus {
   [style*="grid-template-columns: 2fr 1fr 2fr"] { grid-template-columns: minmax(0, 1fr) !important; }
   .tarea[style] { grid-template-columns: minmax(0, 1fr) auto !important; row-gap: 4px !important; }
   .tarea-plazo { grid-column: 1 / -1; }
+  .fila-exp[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 0 12px 14px !important; }
   .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; }
   .kpis[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .kpis[style] > div:nth-child(n+3) { border-top: 1px solid var(--border); }
