@@ -44,7 +44,6 @@ export default function App() {
   // ── STATE GLOBAL
   const [mainTab, setMainTab] = useState("dashboard");
   const [modalPas, setModalPas] = useState(null);
-  const [casosDetalleModal, setCasosDetalleModal] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [autobackupFecha, setAutobackupFecha] = useState(() => localStorage.getItem('pastracker_autobackup_fecha') || null);
 
@@ -224,7 +223,6 @@ export default function App() {
 
       {/* MODALES */}
       {modalPas && <ContactModal pas={modalPas} onClose={() => setModalPas(null)} onSave={handleSaveContacto} darkMode={darkMode} />}
-      {casosDetalleModal && <CasoDetalle caso={casosDetalleModal.caso} pasId={casosDetalleModal.pasId} darkMode={darkMode} onUpdate={(updatedCaso) => { console.log("Caso actualizado:", updatedCaso); setCasosDetalleModal(null); }} onClose={() => setCasosDetalleModal(null)} />}
     </div>
   );
 }
