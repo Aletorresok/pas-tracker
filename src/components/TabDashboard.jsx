@@ -191,7 +191,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
               <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", marginBottom: 4, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</div>
-                  <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{c.compania || "—"} · {fmtDate(c.fecha_cobro_honorarios)}</div>
+                  <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{c.compania_aseguradora || "—"} · {fmtDate(c.fecha_cobro_honorarios)}</div>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: COLORES.success, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmtMoney((Number(c.monto_cobro_yo) || 0) - (Number(c.monto_comision_pas) || 0))}</div>
               </div>

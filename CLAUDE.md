@@ -5,6 +5,7 @@
 - `npm run dev` — Inicia Vite dev server (HMR)
 - `npm run build` — Build de producción (dist/)
 - `npm run preview` — Preview del build de producción
+- Requiere `.env` (ver `.env.example`): credenciales de Supabase y EmailJS vía `import.meta.env`.
 
 ## Stack
 
@@ -62,6 +63,9 @@ src/
 - `pas_portal_users` — Mapeo usuario portal → PAS
 - `pas_lista` — Info PAS para portal
 - `acciones` — Timeline de acciones por caso
+
+En `pas_casos` usar siempre `patente` y `compania_aseguradora` (las columnas `dominio` y `compania` son legacy, no usarlas).
+Migraciones SQL manuales en `sql/` (se corren a mano en el SQL Editor de Supabase). Mantener `Context.md` actualizado con cada cambio.
 
 ### Estado global
 No hay Redux/Zustand. Estado en hooks de React + Supabase realtime.

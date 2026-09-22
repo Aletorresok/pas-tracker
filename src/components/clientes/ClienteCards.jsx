@@ -37,9 +37,9 @@ export function CasoCard({ caso, onDetalle, onDelete, darkMode }) {
             <span style={{ fontSize: 10, background: ei.color + "18", color: ei.color, border: `1px solid ${ei.color}33`, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
               {ei.emoji} {ei.label}
             </span>
-            {caso.compania && (
+            {caso.compania_aseguradora && (
               <span style={{ fontSize: 10, background: darkMode ? "#1e293b" : "#f1f5f9", color: darkMode ? "#94a3b8" : "#64748b", borderRadius: 6, padding: "2px 7px", border: `1px solid ${darkMode ? "#2d3f55" : "#e2e8f0"}` }}>
-                {caso.compania}
+                {caso.compania_aseguradora}
               </span>
             )}
             {dias !== null && (

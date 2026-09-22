@@ -86,7 +86,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     };
     loadData();
 
-    supabase.from("pas_casos").select("compania,compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
+    supabase.from("pas_casos").select("compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
       if (data) setTodosLosCasos(data);
     });
   }, [session]);
@@ -115,7 +115,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
-  const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora || c.compania).filter(Boolean))].sort();
+  const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora).filter(Boolean))].sort();
 
   const pagosPendientes = casos
     .filter(c => c.estado === "esperando_pago" || (c.fecha_pago && c.estado !== "cobrado" && c.estado !== "desistido"))

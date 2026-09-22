@@ -36,7 +36,6 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
       id: generateUUID(),
       caso_id: Date.now(),
       asegurado: asegurado.trim(),
-      compania: compania.trim() || null,
       compania_aseguradora: compania.trim() || null,
       fecha_siniestro: fechaSiniestro || null,
       fecha_derivacion: fechaDerivacion || null,

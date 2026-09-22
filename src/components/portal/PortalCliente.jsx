@@ -49,14 +49,9 @@ export default function PortalCliente({ dark, onToggleDark }) {
       const valorLimpio = valor.trim().toUpperCase();
       let query = supabase
         .from("pas_casos")
-        .select("id, asegurado, compania, compania_aseguradora, estado, fecha_inicio_reclamo, fecha_ofrecimiento, fecha_pago, monto_ofrecimiento, monto_cobro_asegurado, mensaje_cliente, patente, dominio");
+        .select("id, asegurado, compania_aseguradora, estado, fecha_inicio_reclamo, fecha_ofrecimiento, fecha_pago, monto_ofrecimiento, monto_cobro_asegurado, mensaje_cliente, patente");
 
-      // Si la búsqueda es por patente, buscamos tanto en 'patente' como en 'dominio' para cubrir casos viejos y nuevos
-      if (columna === "patente") {
-        query = query.or(`patente.eq.${valorLimpio},dominio.eq.${valorLimpio}`);
-      } else {
-        query = query.eq(columna, valorLimpio);
-      }
+      query = query.eq(columna, valorLimpio);
 
       const { data, error: err } = await query;
 
@@ -141,7 +136,7 @@ export default function PortalCliente({ dark, onToggleDark }) {
               
               <div style={{ borderBottom: `1px solid ${T.border}`, paddingBottom: 16, marginBottom: 20 }}>
                 <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 700, marginBottom: 6 }}>
-                  Reclamo contra {caso.compania_aseguradora || caso.compania || "Aseguradora"}
+                  Reclamo contra {caso.compania_aseguradora || "Aseguradora"}
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 900, color: T.text }}>{caso.asegurado}</div>
               </div>

@@ -19,9 +19,9 @@ import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import CasoFooter from "./components/caso/CasoFooter.jsx";
 
 const PAS_CASOS_COLS = new Set([
-  "id","caso_id","asegurado","dni_asegurado","estado","nota","compania","nro_siniestro",
+  "id","caso_id","asegurado","dni_asegurado","estado","nota","nro_siniestro",
   "fecha_siniestro","ubicacion","presupuesto","tercero_nombre","tercero_dni","tercero_contacto",
-  "vehiculo","dominio","motor","chasis","vehiculo_tercero","dominio_tercero","relato","comentarios",
+  "vehiculo","motor","chasis","vehiculo_tercero","dominio_tercero","relato","comentarios",
   "fecha_derivacion","fecha_contacto_asegurado","fecha_inicio_reclamo","fecha_ultimo_movimiento",
   "monto_ofrecimiento","monto_cobro_asegurado","monto_cobro_yo","monto_comision_pas","recordatorio",
   "notas_log","created_at","carpeta_path","primer_ofrecimiento","segundo_ofrecimiento","fecha_carga",
@@ -69,8 +69,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "",
-    patente: casoProp.patente || casoProp.dominio || "",
-    dominio: casoProp.dominio || casoProp.patente || "",
+    patente: casoProp.patente || "",
     mensaje_cliente: casoProp.mensaje_cliente || ""
   });
 
@@ -164,12 +163,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   useEffect(() => { guardarCasoRef.current = guardarCaso; }, [guardarCaso]);
 
   const handleFormChange = (key, value) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      [key]: value,
-      ...(key === "patente" ? { dominio: value } : {}),
-      ...(key === "dominio" ? { patente: value } : {})
-    }));
+    setFormData(prev => ({ ...prev, [key]: value }));
   };
 
   const handleExportarPDF = async () => {

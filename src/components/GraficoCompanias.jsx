@@ -6,7 +6,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   const companias = useMemo(() => {
     const porComp = {};
     allCasos.forEach(c => {
-      const comp = c.compania || c.compania_aseguradora;
+      const comp = c.compania_aseguradora;
       if (!comp) return;
       if (!porComp[comp]) porComp[comp] = [];
       porComp[comp].push(c);

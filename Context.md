@@ -18,7 +18,8 @@
 *   `src/components/portal/NuevoCasoModal.jsx`: Formulario de derivación de casos desde el portal PAS con subida a Supabase Storage y aviso vía EmailJS.
 
 ## 🗄️ Esquema de Base de Datos (Supabase)
-*   **pas_casos:** Expedientes con ~40 campos (montos, fechas, honorarios). Incluye `proxima_accion` (texto interno) y `updated_at` (actualización automatizada).
+*   **pas_casos:** Expedientes con ~40 campos (montos, fechas, honorarios). Incluye `proxima_accion` (texto interno) y `updated_at` (actualización automatizada — ⚠️ la columna NO aparece en el esquema real exportado el 2026-09-22, verificar).
+    *   Columnas canónicas: **`patente`** (reemplaza a `dominio`) y **`compania_aseguradora`** (reemplaza a `compania`). Las viejas siguen existiendo en la DB con un trigger puente (`trg_pas_casos_sync_columnas_viejas`) hasta que se borren.
 *   **acciones:** Timeline de bitácora vinculada a cada caso vía `caso_id`. Posee un **Trigger (`trigger_actualizar_fecha_caso`)** que actualiza el campo `updated_at` de `pas_casos` de manera automática en cada INSERT/UPDATE.
 *   pas_contactos / pas_historial / pas_recordatorios: Gestión de prospección y llamadas.
 *   pas_derivadores / pas_descartados / pas_manuales / pas_lista: Gestión de productores y exclusiones de Excel.
@@ -31,7 +32,18 @@
 *   **Gestión:** El expediente avanza por sus estados. Monitoreo y operación centralizada de pendientes privados directamente desde `TabDashboard`.
 *   **Portal PAS:** El productor ingresa a `/portal`, ve sus métricas, sus casos en curso, y un panel analítico.
 
-## ✅ LOGROS RECIENTES (Última Sesión)
+## 📝 Registro de Cambios
+
+### 2026-09-22 — Rama `claude/kind-carson-68fvrx`
+*   **Variables de entorno:** `src/supabase.js` y `src/utils/portalStorageUtils.js` leen credenciales de `import.meta.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_TEMPLATE_ID`, `VITE_EMAILJS_PUBLIC_KEY`). Plantilla en `.env.example`. Hay que cargarlas en `.env` local **y** en Vercel antes de deployar.
+*   **Unificación de columnas:** todo el frontend lee/escribe solo `patente` y `compania_aseguradora`. Se eliminaron los parches `c.compania || c.compania_aseguradora` y la sincronización manual `patente`↔`dominio` (CasoUnificado, SeccionInfo, NuevoCasoModal, PortalCliente, PortalHome, GraficoCompanias, TabCasos, dashboard, PDFs, storage.js).
+*   **SQL en `sql/`:** `2026-09-22_01_backup.sql` (copia todas las tablas al esquema `backup_20260922`) y `2026-09-22_02_unificar_columnas.sql` (copia `dominio`→`patente`, `compania`→`compania_aseguradora` + trigger puente). **Orden de deploy: backup → migración SQL → recién ahí publicar el código.**
+    *   ✅ **Ejecutado en producción el 2026-09-22:** backup verificado (pas_casos 95, acciones 664, pas_contactos 51048, pas_historial 828, pas_manuales 2), diagnóstico sin conflictos, migración con 0 filas pendientes y trigger puente activo. Las tablas del esquema `backup_20260922` tienen RLS activado.
+    *   ✅ **Variables de entorno cargadas en Vercel** (proyecto `pas-tracker2.0`, conectado a `Aletorresok/pas-tracker`) para Production y Preview.
+    *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
+*   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
+
+## ✅ LOGROS RECIENTES (Sesión anterior)
 *   **Base de Datos Automatizada:** Trigger en PostgreSQL que sincroniza automáticamente la fecha `updated_at` del caso al registrarse movimientos en la bitácora.
 *   **Gestor de Tareas Integrado:** Incorporación y visualización del campo `proxima_accion` en `TabDashboard` bajo la grilla "📝 Mis Pendientes de Gestión".
 *   **Refactorización Completa de `CasoUnificado.jsx`:** Extracción de lógicas y vistas complejas a componentes dedicados (`ModalGenerarEscrito`, `CasoDocumentos`, `CasoFooter`, `CasoProximaAccion`), reduciendo drásticamente el tamaño del archivo principal y mejorando la mantenibilidad.
@@ -567,11 +579,16 @@ Markdown
 *   **Dependencias Fuertes:** Ninguna[cite: 82].
 
 ## 🧹 TODO: Auditoría de Código Muerto (A verificar al final)
-- [ ] **`src/CasoUnificado.jsx`:** No hay código estructuralmente "muerto", pero existe un "parche" de retrocompatibilidad o deuda técnica en el estado y `handleFormChange`: se sincronizan artificialmente los campos `patente` y `dominio` (`...(key === "patente" ? { dominio: value } : {})`)[cite: 20]. Se debería unificar el nombre de la columna en la base de datos a futuro para evitar este duplicado.
-- [ ] **`src/supabase.js` (Tech Debt):** Las credenciales `SUPABASE_URL` y `SUPABASE_KEY` están "hardcodeadas" directamente en el código fuente en lugar de utilizar variables de entorno (ej. `import.meta.env.VITE_SUPABASE_URL`)[cite: 25]. Esto es un riesgo de seguridad y dificulta el despliegue en múltiples entornos.
-- [ ] **`src/components/GraficoCompanias.jsx` (Tech Debt de DB):** El componente hace un parche dinámico leyendo `const comp = c.compania || c.compania_aseguradora`[cite: 31]. Esto evidencia que en la base de datos de Supabase existen registros con la columna `compania` y otros con `compania_aseguradora`, debiendo unificarse la nomenclatura en la base de datos para no penalizar el rendimiento del frontend con comprobaciones dobles.
+- [x] **(Resuelto 2026-09-22)** **`src/CasoUnificado.jsx`:** No hay código estructuralmente "muerto", pero existe un "parche" de retrocompatibilidad o deuda técnica en el estado y `handleFormChange`: se sincronizan artificialmente los campos `patente` y `dominio` (`...(key === "patente" ? { dominio: value } : {})`)[cite: 20]. Se debería unificar el nombre de la columna en la base de datos a futuro para evitar este duplicado.
+- [x] **(Resuelto 2026-09-22 — variables de entorno)** **`src/supabase.js` (Tech Debt):** Las credenciales `SUPABASE_URL` y `SUPABASE_KEY` están "hardcodeadas" directamente en el código fuente en lugar de utilizar variables de entorno (ej. `import.meta.env.VITE_SUPABASE_URL`)[cite: 25]. Esto es un riesgo de seguridad y dificulta el despliegue en múltiples entornos.
+- [x] **(Resuelto 2026-09-22)** **`src/components/GraficoCompanias.jsx` (Tech Debt de DB):** El componente hace un parche dinámico leyendo `const comp = c.compania || c.compania_aseguradora`[cite: 31]. Esto evidencia que en la base de datos de Supabase existen registros con la columna `compania` y otros con `compania_aseguradora`, debiendo unificarse la nomenclatura en la base de datos para no penalizar el rendimiento del frontend con comprobaciones dobles.
 - [ ] **`src/components/LoginGate.jsx` (Vulnerabilidad / Tech Debt):** La constante `APP_PIN = "3934"` está "hardcodeada" en texto plano en el frontend[cite: 32]. Cualquier persona que inspeccione el código fuente en el navegador o el bundle compilado puede ver la contraseña. Esto debería manejarse al menos mediante validación contra Supabase Auth.
 - [ ] **`src/components/TabCasos.jsx` (Tech Debt de Datos):** En el algoritmo de ordenamiento por monto, se realiza la comprobación `Number(b.monto_acordado) || Number(b.monto_ofrecimiento) || 0`[cite: 36]. Esto indica que los datos económicos provienen de Supabase en formato `string` (posiblemente de inputs de texto sin sanitizar), lo cual impacta el rendimiento y obliga al frontend a hacer *casting* constante.
-- [ ] **Duplicidad de lógica de patentes/dominios:** Al igual que se vio en `CasoUnificado.jsx`, en `SeccionInfo.jsx` se vuelve a parchar la sincronización manual de `patente` y `dominio` (`onChange("patente", val); onChange("dominio", val);`)[cite: 20, 54]. Esto es un claro indicio de deuda técnica a nivel de base de datos: tener dos columnas separadas para el mismo dato en Supabase obliga al frontend a duplicar validaciones constantemente.
+- [x] **(Resuelto 2026-09-22)** **Duplicidad de lógica de patentes/dominios:** Al igual que se vio en `CasoUnificado.jsx`, en `SeccionInfo.jsx` se vuelve a parchar la sincronización manual de `patente` y `dominio` (`onChange("patente", val); onChange("dominio", val);`)[cite: 20, 54]. Esto es un claro indicio de deuda técnica a nivel de base de datos: tener dos columnas separadas para el mismo dato en Supabase obliga al frontend a duplicar validaciones constantemente.
 - [ ] **`src/components/clientes/ModalesCliente.jsx` (Tech Debt de IDs):** Al crear un nuevo PAS manual, se genera un ID aleatorio mediante una operación matemática (`100000 + Math.floor(Math.random() * 1900000)`)[cite: 60]. Esto representa una mala práctica y un riesgo latente de colisión de IDs en la base de datos comparado con el uso robusto de UUIDs que se implementa para los casos.
 - [ ] **`src/components/portal/PortalHome.jsx` (Excepción de Seguridad / Hardcode):** En la carga inicial de datos se incluye una validación por correo electrónico hardcodeada (`if (session.user.email === "atglexsolutions@gmail.com")`) para otorgar privilegios especiales o vista global de casos[cite: 71]. Esto representa una deuda técnica y un riesgo de seguridad al depender de un string estricto en el frontend en lugar de un sistema de roles/permisos robusto en la base de datos.
+- [ ] **🔴 RLS desactivado (CRÍTICO):** Salvo `pas_portal_users`, ninguna tabla tiene Row Level Security. Como la anon key viaja en el bundle, cualquiera puede leer/modificar/borrar todos los datos vía API. Asegurar el PIN no sirve sin RLS.
+- [ ] **`pas_casos.monto_reclamado` es `text`:** el resto de montos ya son `numeric` (el casting de `TabCasos` sobre `monto_acordado` es inocuo). Migrar `monto_reclamado` a `numeric` tras revisar formatos existentes.
+- [ ] **Tipos inconsistentes de IDs de PAS:** `pas_contactos.id` es `text`, pero `pas_casos.pas_id` y `pas_derivadores.pas_id` son `integer`.
+- [ ] **Borrar columnas viejas** `dominio` y `compania` + trigger puente (paso 5 de `sql/2026-09-22_02_unificar_columnas.sql`) cuando la versión nueva esté estable.
+- [ ] **`schema.sql` desactualizado:** regenerar con el esquema real completo.
