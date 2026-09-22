@@ -12,7 +12,7 @@
 - React 18 + Vite 5 + React Router 6 (JavaScript, sin TypeScript)
 - Supabase (PostgreSQL + Auth + Realtime)
 - jsPDF (generación de escritos), XLSX (import Excel)
-- 100% inline styles (no CSS files, no Tailwind)
+- Inline styles + tokens de color como variables CSS en `src/index.css` (sin Tailwind). No usar hex en componentes: `T.*`, `COLORES.*`, `var(--x)` y `alpha()` de `utils/theme.js`.
 
 ## Arquitectura
 
@@ -80,8 +80,9 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 ## Convenciones
 
 - Archivos JSX en español (nombres de variables, funciones, comentarios)
-- Colores centralizados en utils/theme.js (primary: #6366f1, #8b5cf6, #818cf8)
-- Dark mode toggle en App.jsx (bg: #0b1121 dark, #f0f4f8 light)
+- Colores: tokens en `src/index.css`; temas por `data-theme` (claro/oscuro) y `data-accent` (dorado/marino/borgona/grafito) en `<html>`
+- Componentes base en `src/components/ui/` (Icono, Boton, EstadoPill, BarraAvance). Sin emojis en la interfaz.
+- Modo oscuro y acento en `ThemeContext` (sigue al sistema si el usuario no eligió)
 - Estilos inline como objetos JS en cada componente
 - Inserts grandes se splitean en chunks de 200 rows
 - UUIDs con fallback para navegadores viejos

@@ -52,11 +52,11 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
     return companias.filter(c => c.toLowerCase().includes(q));
   }, [companias, query]);
 
-  const bg = darkMode ? "#1e293b" : "#f8fafc";
-  const border = darkMode ? "#2d3f55" : "#e2e8f0";
-  const text = darkMode ? "#f1f5f9" : "#0f172a";
-  const muted = darkMode ? "#64748b" : "#94a3b8";
-  const dropBg = darkMode ? "#0f172a" : "#fff";
+  const bg = "var(--card2)";
+  const border = "var(--border)";
+  const text = "var(--text)";
+  const muted = "var(--muted)";
+  const dropBg = "var(--card)";
 
   const handleAgregar = () => {
     if (!nueva.trim()) return;
@@ -87,7 +87,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {value || "Seleccionar compañía..."}
         </span>
-        <span style={{ fontSize: 10, color: muted, flexShrink: 0, marginLeft: 8 }}>{open ? "▲" : "▼"}</span>
+        <span style={{ fontSize: 11, color: muted, flexShrink: 0, marginLeft: 8 }}>{open ? "▲" : "▼"}</span>
       </div>
 
       {open && (
@@ -111,7 +111,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
             {value && (
               <div
                 onClick={() => { onChange(""); setOpen(false); setQuery(""); }}
-                style={{ padding: "8px 14px", fontSize: 12, color: "#ef4444", cursor: "pointer", borderBottom: `1px solid ${border}` }}
+                style={{ padding: "8px 14px", fontSize: 12, color: "var(--bad)", cursor: "pointer", borderBottom: `1px solid ${border}` }}
               >
                 ✕ Quitar compañía
               </div>
@@ -122,11 +122,11 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
                 onClick={() => { onChange(c); setOpen(false); setQuery(""); }}
                 style={{
                   padding: "8px 14px", fontSize: 13, cursor: "pointer",
-                  color: c === value ? "#6366f1" : text,
+                  color: c === value ? "var(--accent)" : text,
                   fontWeight: c === value ? 700 : 400,
-                  background: c === value ? "#6366f110" : "transparent",
+                  background: c === value ? "color-mix(in srgb, var(--accent) 6%, transparent)" : "transparent",
                 }}
-                onMouseEnter={e => { if (c !== value) e.currentTarget.style.background = darkMode ? "#1e293b" : "#f1f5f9"; }}
+                onMouseEnter={e => { if (c !== value) e.currentTarget.style.background = "var(--card2)"; }}
                 onMouseLeave={e => { if (c !== value) e.currentTarget.style.background = "transparent"; }}
               >
                 {c}
@@ -141,7 +141,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
             {!adding ? (
               <button
                 onClick={() => { setAdding(true); setNueva(query); }}
-                style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 12, fontWeight: 700, padding: 0 }}
+                style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 12, fontWeight: 700, padding: 0 }}
               >
                 + Agregar nueva compañía
               </button>
@@ -155,7 +155,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
                   autoFocus
                   style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: 6, color: text, padding: "6px 10px", fontSize: 12, outline: "none", fontFamily: "inherit" }}
                 />
-                <button onClick={handleAgregar} style={{ background: "#6366f1", border: "none", borderRadius: 6, color: "white", padding: "6px 10px", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>Agregar</button>
+                <button onClick={handleAgregar} style={{ background: "var(--accent)", border: "none", borderRadius: 6, color: "var(--on-accent)", padding: "6px 10px", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>Agregar</button>
                 <button onClick={() => setAdding(false)} style={{ background: "none", border: "none", color: muted, cursor: "pointer", fontSize: 14 }}>✕</button>
               </div>
             )}

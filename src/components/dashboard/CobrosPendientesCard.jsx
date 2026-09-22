@@ -51,15 +51,15 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
               {/* Las 3 columnas de montos */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, borderTop: `1px solid ${T.border}`, paddingTop: 8, marginTop: 10 }}>
                 <div>
-                  <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
+                  <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Asegurado</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: COLORES.success }}>{fmtMoney(cobraAsegurado)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Mi Neto</div>
+                  <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Mi Neto</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: COLORES.info }}>{fmtMoney(miGananciaNeta)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Comisión PAS</div>
+                  <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Comisión PAS</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: COLORES.warning }}>{fmtMoney(comisionPAS)}</div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { ESTADOS_CASO } from "../../constants.js";
+import { alpha } from "../../utils/theme.js";
 
 export default function FiltrosEstados({ filtrosEstados, setFiltrosEstados, allCasos, darkMode }) {
   const toggleFiltroEstado = (key) => {
@@ -21,13 +22,13 @@ export default function FiltrosEstados({ filtrosEstados, setFiltrosEstados, allC
   const todosSeleccionados = filtrosEstados.length === ESTADOS_CASO.length;
 
   return (
-    <div style={{ background: darkMode ? "#0f172a" : "#f8fafc", border: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 11, color: darkMode ? "#8D93A1" : "#6B7180" }}>
+    <div style={{ background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 11, color: "var(--sub)" }}>
         <span>Filtro múltiple por estado:</span>
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "#C9A227", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>⚡ Solo activos</button>
+          <button onClick={seleccionarSoloActivos} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>Solo activos</button>
           <span>·</span>
-          <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "#3B6E9E", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>
+          <button onClick={todosSeleccionados ? limpiarEstados : seleccionarTodosLosEstados} style={{ background: "none", border: "none", color: "var(--info)", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>
             {todosSeleccionados ? "Ninguno" : "Todos"}
           </button>
         </div>
@@ -44,8 +45,8 @@ export default function FiltrosEstados({ filtrosEstados, setFiltrosEstados, allC
               style={{ 
                 flex: 1, 
                 minWidth: 58, 
-                background: active ? e.color + "28" : darkMode ? "#0a0f1e" : "#fff", 
-                border: `1px solid ${active ? e.color : darkMode ? "#1e293b" : "#e2e8f0"}`, 
+                background: active ? alpha(e.color, 16) : "var(--card)", 
+                border: `1px solid ${active ? e.color : "var(--border)"}`, 
                 borderRadius: 8, 
                 padding: "8px 4px", 
                 textAlign: "center", 
@@ -55,8 +56,8 @@ export default function FiltrosEstados({ filtrosEstados, setFiltrosEstados, allC
               }}
             >
               <div style={{ fontSize: 14 }}>{e.emoji}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "#334155" }}>{cnt}</div>
-              <div style={{ fontSize: 8, color: cnt > 0 ? e.color + "99" : "#334155", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "var(--border2)" }}>{cnt}</div>
+              <div style={{ fontSize: 11, color: cnt > 0 ? alpha(e.color, 60) : "var(--border2)", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
             </button>
           );
         })}

@@ -32,7 +32,6 @@ export default function LoginGate({ onUnlock }) {
         borderRadius: 16, padding: "40px 32px", textAlign: "center",
         boxShadow: "0 8px 32px #0002", maxWidth: 340, width: "100%",
       }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: COLORES.primaryGradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px" }}>📋</div>
         <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 4 }}>PAS Tracker</div>
         <div style={{ fontSize: 12, color: T.muted, marginBottom: 24 }}>Ingresá tu clave para continuar</div>
         <input
@@ -52,7 +51,7 @@ export default function LoginGate({ onUnlock }) {
         <button type="submit" style={{
           marginTop: 16, width: "100%", padding: "12px",
           background: COLORES.primaryGradient,
-          border: "none", borderRadius: 10, color: "#fff",
+          border: "none", borderRadius: 10, color: "var(--on-accent)",
           fontSize: 14, fontWeight: 700, cursor: "pointer",
         }}>Ingresar →</button>
       </form>

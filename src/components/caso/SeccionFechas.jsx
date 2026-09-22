@@ -15,7 +15,7 @@ export default function SeccionFechas({ formData, onChange, Th }) {
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 20, marginBottom: 20 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        📅 Fechas del expediente
+        Fechas del expediente
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
         {camposFechas.map(([label, key]) => (

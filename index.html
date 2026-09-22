@@ -1,10 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pas-tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F7F6F2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10151F" media="(prefers-color-scheme: dark)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
+    <title>PAS Tracker</title>
+    <script>
+      // Aplica el tema antes de pintar para evitar el parpadeo
+      (function () {
+        try {
+          var g = localStorage.getItem("pas_tracker_dark_mode");
+          var dark = g === null ? window.matchMedia("(prefers-color-scheme: dark)").matches : JSON.parse(g);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          var a = localStorage.getItem("pas_tracker_acento");
+          if (a) document.documentElement.dataset.accent = a;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

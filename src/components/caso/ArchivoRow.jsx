@@ -7,13 +7,12 @@ export default function ArchivoRow({ archivo, onDelete, Th }) {
   const ext = getExtension(archivo.nombre || archivo.name);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: Th?.card || "#1e293b", border: `1px solid ${Th?.border || "#334155"}`, borderRadius: 8, marginBottom: 8 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: Th?.card || "var(--border)", border: `1px solid ${Th?.border || "var(--border2)"}`, borderRadius: 8, marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, overflow: "hidden" }}>
-        <span style={{ fontSize: 18 }}>📄</span>
-        <div style={{ fontSize: 13, fontWeight: 500, color: Th?.text || "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: Th?.text || "var(--card2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {archivo.nombre || archivo.name}
         </div>
-        <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 4, background: "#334155", color: "#cbd5e1", textTransform: "uppercase" }}>
+        <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 4, background: "var(--border2)", color: "var(--border)", textTransform: "uppercase" }}>
           {ext.replace(".", "")}
         </span>
       </div>
@@ -21,16 +20,16 @@ export default function ArchivoRow({ archivo, onDelete, Th }) {
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <button 
           onClick={() => setShowPreview(true)}
-          style={{ background: "transparent", border: "1px solid #475569", borderRadius: 6, color: "#94a3b8", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
+          style={{ background: "transparent", border: "1px solid var(--muted)", borderRadius: 6, color: "var(--sub)", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
         >
-          👁️ Ver
+          Ver
         </button>
         {onDelete && (
           <button 
             onClick={() => onDelete(archivo)}
-            style={{ background: "transparent", border: "1px solid #ef444455", borderRadius: 6, color: "#ef4444", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
+            style={{ background: "transparent", border: "1px solid color-mix(in srgb, var(--bad) 33%, transparent)", borderRadius: 6, color: "var(--bad)", padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
           >
-            🗑️
+            
           </button>
         )}
       </div>

@@ -105,11 +105,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   };
 
   const handleCategorizarArchivo = async (archivo, tipo) => {
-    await categorizarArchivo({ pasId, casoId: caso.id, archivo, tipo, archivos, onSuccess: ({ nuevoNombre }) => { setToast({ msg: `✅ Renombrado como ${nuevoNombre}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
+    await categorizarArchivo({ pasId, casoId: caso.id, archivo, tipo, archivos, onSuccess: ({ nuevoNombre }) => { setToast({ msg: `Renombrado como ${nuevoNombre}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
   const handleRenombrarArchivo = async (archivo, nuevoNombre) => {
-    await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `✅ Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
+    await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
   const handleCrearAccion = async ({ fecha, descripcion }) => {
@@ -123,7 +123,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
       setToast({ msg: "Error al crear: " + error.message, type: "error" }); 
       return; 
     }
-    setToast({ msg: "✅ Acción registrada", type: "success" });
+    setToast({ msg: "Acción registrada", type: "success" });
     await cargarAcciones();
   };
 
@@ -137,7 +137,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
       setToast({ msg: "Error al actualizar: " + error.message, type: "error" }); 
       return; 
     }
-    setToast({ msg: "✅ Acción actualizada", type: "success" });
+    setToast({ msg: "Acción actualizada", type: "success" });
     await cargarAcciones();
   };
 
@@ -145,7 +145,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     if (!confirm("¿Eliminar esta acción?")) return;
     const { error } = await supabase.from("acciones").delete().eq("id", accionId);
     if (error) { setToast({ msg: "Error: " + error.message, type: "error" }); return; }
-    setToast({ msg: "✅ Acción eliminada", type: "success" });
+    setToast({ msg: "Acción eliminada", type: "success" });
     await cargarAcciones();
   };
 
@@ -179,11 +179,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   return (
     <>
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={onClose} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "auto", padding: 16 }}>
+      <div className="modal-panel" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "auto", padding: 16 }}>
         <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)" }}>
 
           {/* Header */}
-          <div style={{ position: "sticky", top: 0, background: Th.card, borderBottom: `1px solid ${Th.border}`, padding: "18px 24px", zIndex: 50 }}>
+          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "18px 24px", zIndex: 50 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: Th.text }}>{formData.asegurado}</div>

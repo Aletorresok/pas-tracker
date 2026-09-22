@@ -1,118 +1,161 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext.jsx";
+import Icono from "./ui/Icono.jsx";
 
-export default function SidebarNav({
-  pasCount,
-  mainTab,
-  setMainTab,
-  autobackupFecha,
-  onBackup,
-  onRestore,
-}) {
-  const { darkMode, toggleDarkMode, T, COLORES } = useTheme();
-  const [showBackupMenu, setShowBackupMenu] = useState(false);
+const TABS = [
+  { k: "dashboard", l: "Dashboard", icon: "inicio" },
+  { k: "casos", l: "Casos", icon: "casos" },
+  { k: "contactos", l: "Contactos", icon: "telefono" },
+  { k: "contactados", l: "Contactados", icon: "check" },
+  { k: "clientes", l: "Clientes", icon: "clientes" },
+  { k: "portal", l: "Portal", icon: "portal" },
+];
 
-  const TABS = [
-    { k: "dashboard", l: "Dashboard", icon: "📊" },
-    { k: "casos", l: "Casos", icon: "📂" },
-    { k: "contactos", l: "Contactos", icon: "📞" },
-    { k: "contactados", l: "Contactados", icon: "✓" },
-    { k: "clientes", l: "Clientes", icon: "🏠" },
-    { k: "portal", l: "Portal", icon: "🌐" },
-  ];
+// En celular entran 4 pestañas + "Más"
+const TABS_MOVIL = ["dashboard", "casos", "contactos", "clientes"];
+
+function SelectorAcento() {
+  const { acento, setAcento, ACENTOS } = useTheme();
+  return (
+    <div role="group" aria-label="Color de acento" style={{ display: "flex", gap: 8, padding: "4px 12px" }}>
+      {ACENTOS.map(a => (
+        <button
+          key={a.key || "dorado"}
+          type="button"
+          onClick={() => setAcento(a.key)}
+          title={a.label}
+          aria-label={`Color ${a.label}`}
+          aria-pressed={acento === a.key}
+          style={{
+            width: 22, height: 22, borderRadius: "50%", background: a.muestra, cursor: "pointer", padding: 0,
+            border: "2px solid var(--card)",
+            boxShadow: acento === a.key ? "0 0 0 2px var(--text)" : "0 0 0 1px var(--border2)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
+  const { darkMode, toggleDarkMode, T } = useTheme();
+  const item = { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", color: T.text, padding: "10px 12px", cursor: "pointer", fontSize: 14, textAlign: "left", borderRadius: 6 };
+  return (
+    <>
+      <button type="button" onClick={() => { onBackup(); onClose(); }} style={item}><Icono nombre="guardar" size={16} />Descargar backup</button>
+      <label style={{ ...item, margin: 0 }}>
+        <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestore(f); e.target.value = ""; onClose(); }} style={{ display: "none" }} />
+        <Icono nombre="recargar" size={16} />Restaurar backup
+      </label>
+      {autobackupFecha && <div style={{ fontSize: 12, color: T.muted, padding: "2px 12px 8px" }}>Último autoguardado: {new Date(autobackupFecha).toLocaleDateString("es-AR")}</div>}
+      <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
+      <button type="button" onClick={toggleDarkMode} style={item}><Icono nombre={darkMode ? "sol" : "luna"} size={16} />{darkMode ? "Modo claro" : "Modo oscuro"}</button>
+      <div style={{ fontSize: 12, color: T.muted, padding: "6px 12px 2px" }}>Color</div>
+      <SelectorAcento />
+    </>
+  );
+}
+
+export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFecha, onBackup, onRestore }) {
+  const { T } = useTheme();
+  const [showMenu, setShowMenu] = useState(false);
+  const [showMas, setShowMas] = useState(false);
+
+  const utilidades = { autobackupFecha, onBackup, onRestore };
 
   return (
-    <aside style={{
-      width: 240,
-      background: T.card,
-      borderRight: `1px solid ${T.border}`,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-      position: "fixed",
-      top: 0,
-      bottom: 0,
-      left: 0,
-      zIndex: 100,
-      padding: "20px 16px",
-    }}>
-      {/* SECCIÓN SUPERIOR: Logo y Navegación */}
-      <div>
-        {/* LOGO */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28, paddingLeft: 4 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: COLORES.brand, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: "#fff" }}>📋</div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.3, color: T.text }}>PAS Tracker</div>
-            {pasCount > 0 && <div style={{ fontSize: 11, color: T.muted, marginTop: -1 }}>{pasCount.toLocaleString()} contactos</div>}
+    <>
+      {/* ── MENÚ LATERAL (compu) ── */}
+      <aside className="sidebar" style={{
+        width: 232, background: T.card, borderRight: `1px solid ${T.border}`,
+        flexDirection: "column", justifyContent: "space-between",
+        position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 100, padding: "20px 12px",
+      }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24, paddingLeft: 8 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, fontFamily: "var(--mono)", color: T.onAccent }}>PT</div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>PAS Tracker</div>
+              {pasCount > 0 && <div style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
+            </div>
           </div>
+
+          <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {TABS.map(t => {
+              const active = mainTab === t.k;
+              return (
+                <button
+                  key={t.k}
+                  type="button"
+                  onClick={() => setMainTab(t.k)}
+                  aria-current={active ? "page" : undefined}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "9px 10px",
+                    borderRadius: 8, border: "none", background: active ? T.card2 : "transparent",
+                    color: active ? T.text : T.sub, fontSize: 14, fontWeight: active ? 600 : 500,
+                    cursor: "pointer", textAlign: "left",
+                  }}
+                >
+                  <span style={{ color: active ? T.accent : "inherit", display: "flex" }}><Icono nombre={t.icon} /></span>
+                  {t.l}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* TABS / MENÚ LATERAL */}
-        <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {TABS.map(t => {
-            const active = mainTab === t.k;
-            return (
-              <button
-                key={t.k}
-                onClick={() => setMainTab(t.k)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: active ? T.card2 : "transparent",
-                  color: active ? COLORES.brand : T.sub,
-                  fontSize: 13,
-                  fontWeight: active ? 700 : 500,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all .15s ease",
-                }}
-              >
-                <span style={{ fontSize: 16 }}>{t.icon}</span>
-                {t.l}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* SECCIÓN INFERIOR: Utilidades (Backup y DarkMode) */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
-        {/* BOTÓN BACKUP */}
-        <div style={{ position: "relative" }}>
-          <button 
-            onClick={() => setShowBackupMenu(v => !v)} 
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: T.card2, border: "none", borderRadius: 8, color: T.sub, padding: "9px 12px", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
+        <div style={{ position: "relative", borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+          <button
+            type="button"
+            onClick={() => setShowMenu(v => !v)}
+            aria-expanded={showMenu}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", borderRadius: 8, color: T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
           >
-            <span>💾</span> Copia de seguridad
+            <Icono nombre="paleta" /> Apariencia y backup
           </button>
-          {showBackupMenu && (
+          {showMenu && (
             <>
-              <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setShowBackupMenu(false)} />
-              <div style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, zIndex: 99, boxShadow: "0 8px 24px #0003", minWidth: 180 }}>
-                <button onClick={() => { onBackup(); setShowBackupMenu(false); }} style={{ width: "100%", background: "none", border: "none", color: T.text, padding: "8px 12px", cursor: "pointer", fontSize: 12, textAlign: "left", borderRadius: 6 }}>💾 Descargar backup</button>
-                <label style={{ display: "block" }}>
-                  <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestore(f); e.target.value = ""; setShowBackupMenu(false); }} style={{ display: "none" }} />
-                  <div style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, color: T.text, borderRadius: 6 }} onMouseEnter={e => e.currentTarget.style.background = T.card2} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>📥 Restaurar backup</div>
-                </label>
-                {autobackupFecha && <div style={{ fontSize: 10, color: T.muted, padding: "4px 12px", borderTop: `1px solid ${T.border}`, marginTop: 4, paddingTop: 8 }}>Auto: {new Date(autobackupFecha).toLocaleDateString("es-AR")}</div>}
+              <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setShowMenu(false)} />
+              <div style={{ position: "absolute", left: 0, right: 0, bottom: "100%", marginBottom: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, zIndex: 99, boxShadow: T.shadow }}>
+                <MenuUtilidades {...utilidades} onClose={() => setShowMenu(false)} />
               </div>
             </>
           )}
         </div>
+      </aside>
 
-        {/* BOTÓN MODO OSCURO / CLARO */}
-        <button 
-          onClick={toggleDarkMode} 
-          style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: T.card2, border: "none", borderRadius: 8, color: T.sub, padding: "9px 12px", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
-        >
-          <span>{darkMode ? "☀️" : "🌙"}</span> {darkMode ? "Modo Claro" : "Modo Oscuro"}
+      {/* ── BARRA INFERIOR (celular) ── */}
+      <nav className="bottom-nav" aria-label="Navegación">
+        {TABS.filter(t => TABS_MOVIL.includes(t.k)).map(t => {
+          const active = mainTab === t.k;
+          return (
+            <button key={t.k} type="button" onClick={() => { setMainTab(t.k); setShowMas(false); }} aria-current={active ? "page" : undefined}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: active ? T.accentInk : T.muted, fontSize: 11, fontWeight: active ? 600 : 500 }}>
+              <Icono nombre={t.icon} size={20} />{t.l}
+            </button>
+          );
+        })}
+        <button type="button" onClick={() => setShowMas(v => !v)} aria-expanded={showMas}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: ["contactados", "portal"].includes(mainTab) || showMas ? T.accentInk : T.muted, fontSize: 11, fontWeight: 500 }}>
+          <Icono nombre="mas" size={20} />Más
         </button>
-      </div>
-    </aside>
+      </nav>
+
+      {showMas && (
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 140, background: "color-mix(in srgb, #000 35%, transparent)" }} onClick={() => setShowMas(false)} />
+          <div style={{ position: "fixed", left: 8, right: 8, bottom: "calc(70px + env(safe-area-inset-bottom, 0px))", zIndex: 145, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 8, boxShadow: T.shadow }}>
+            {TABS.filter(t => !TABS_MOVIL.includes(t.k)).map(t => (
+              <button key={t.k} type="button" onClick={() => { setMainTab(t.k); setShowMas(false); }}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: mainTab === t.k ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: 8 }}>
+                <Icono nombre={t.icon} />{t.l}
+              </button>
+            ))}
+            <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
+            <MenuUtilidades {...utilidades} onClose={() => setShowMas(false)} />
+          </div>
+        </>
+      )}
+    </>
   );
 }

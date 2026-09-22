@@ -43,6 +43,18 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
+### 2026-09-22 — Etapa 1 del rediseño: base visual, temas y bugs (rama `claude/kind-carson-68fvrx`, en revisión)
+*   **Tokens de color en CSS:** `src/index.css` define `--bg, --card, --card2, --border, --border2, --text, --sub, --muted, --accent, --accent-ink, --on-accent, --ok, --warn, --bad, --info, --shadow`. `[data-theme="dark"]` y `[data-accent="marino|borgona|grafito"]` sobre `<html>` los redefinen. **Regla: no escribir colores hex en componentes**; usar `T.*` (de `THEME()`), `COLORES.*` o `var(--x)`. Para transparencias usar `alpha(color, pct)` de `utils/theme.js` (genera `color-mix`).
+*   `utils/theme.js`: `THEME()` devuelve `var(--x)` (el parámetro dark quedó por compatibilidad); `COLORES` semánticos; `ACENTOS` (Dorado, Marino, Borgoña, Grafito); `alpha()`; `FONT` (escala).
+*   `ThemeContext`: modo oscuro sigue al sistema si no hay elección guardada (`pas_tracker_dark_mode`); acento en `pas_tracker_acento`; expone `acento`, `setAcento`, `ACENTOS`. `index.html` aplica tema antes de pintar (sin parpadeo), carga IBM Plex Sans/Mono, `lang="es"`.
+*   **Estados unificados:** `ESTADOS_CASO` y `estadoInfo` viven solo en `constants.js` (con campo `etapa` 0–7); `portalTheme.js` los re-exporta. Colores de estado en orden de avance, tonos medios válidos en claro y oscuro. Sin emojis.
+*   **Componentes base nuevos** en `src/components/ui/`: `Icono.jsx` (íconos de línea SVG), `Boton.jsx` (primario/secundario/fantasma/peligro), `EstadoPill.jsx`, `BarraAvance.jsx` (portales; desistido no muestra avance).
+*   **Navegación:** `SidebarNav` con íconos, menú "Apariencia y backup" (modo, color, backup). En ≤900 px pasa a **barra inferior** (Dashboard, Casos, Contactos, Clientes, Más). Layout con clases `.app-main`/`.app-content`; grillas inline de 3–4 columnas se reacomodan en celular vía CSS.
+*   **Emojis eliminados** de la interfaz (títulos, botones, toasts); tamaños de letra mínimos 11 px.
+*   **Bugs arreglados:** filtro seleccionado de Contactos en gris; colores de modo oscuro en modo claro; contenido visible sobre el encabezado fijo del caso; "Mis pendientes" ahora ordena por `fecha_ultimo_movimiento` (más antiguo primero); barra de avance de casos desistidos en portal PAS y vista cliente.
+*   **Ficha del caso:** botonera sin colores arcoíris (una acción principal "Generar escrito"); en celular el modal ocupa toda la pantalla.
+*   **Portal PAS:** encabezado con marca ATG Lex Solutions, botones con íconos, layout apilado en celular, columna "Futuros pagos" oculta si está vacía.
+
 ### 2026-09-22 — Propuesta de rediseño visual (APROBADA en líneas generales)
 *   Documento (v2): https://claude.ai/artifact/3TGX6ipnw65AmWVFejXh3r (diagnóstico con capturas, maquetas de app, portal PAS y vista cliente, plan).
 *   **Diagnóstico principal:** 73 colores hex de 3 paletas (theme.js dorado/marfil, índigo `#6366f1` + pizarra `#1e293b` heredados, `portalTheme.js` con otros colores de estado); 20 tamaños de fuente (algunos de 8–9 px); Inter declarada pero nunca cargada; emojis como íconos; Dashboard de 11 bloques apilados; casos en tarjetas; ficha del caso con 7 secciones apiladas; sin versión celular; 51.048 contactos cargados en 52 pedidos secuenciales al abrir.

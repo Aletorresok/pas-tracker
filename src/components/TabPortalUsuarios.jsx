@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase.js";
-import { THEME, COLORES } from "../utils/theme.js";
+import { THEME, COLORES, alpha } from "../utils/theme.js";
 
 export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
   const T = THEME(darkMode);
@@ -68,7 +68,7 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
         return; 
       }
 
-      setMsg("✅ Usuario creado correctamente");
+      setMsg("Usuario creado correctamente");
       setSaving(false);
       setEmail("");
       setPwd("");
@@ -104,8 +104,8 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
           <div style={{ fontSize: 11, color: COLORES.brand, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4, fontWeight: 700 }}>URL del portal para PAS</div>
           <div style={{ fontSize: 13, color: T.sub, fontFamily: "monospace" }}>{portalUrl}</div>
         </div>
-        <button onClick={() => navigator.clipboard.writeText(portalUrl)} style={{ background: darkMode ? "#1E2738" : "#EFEFEA", border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, padding: "8px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>
-          📋 Copiar
+        <button onClick={() => navigator.clipboard.writeText(portalUrl)} style={{ background: "var(--card2)", border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, padding: "8px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>
+          Copiar
         </button>
       </div>
 
@@ -115,7 +115,6 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
 
       {derivadoresList.length === 0 && (
         <div style={{ textAlign: "center", padding: "48px 20px", background: T.card, borderRadius: 14, border: `1px solid ${T.border}` }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🤝</div>
           <div style={{ color: T.sub, fontSize: 14 }}>No tenés derivadores marcados aún</div>
         </div>
       )}
@@ -126,7 +125,7 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
         derivadoresList.map(p => {
           const tieneAcceso = withUser.has(Number(p.id));
           return (
-            <div key={p.id} style={{ background: T.card, border: `1px solid ${tieneAcceso ? COLORES.success + "66" : T.border}`, borderRadius: 12, padding: "14px 18px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+            <div key={p.id} style={{ background: T.card, border: `1px solid ${tieneAcceso ? alpha(COLORES.success, 40) : T.border}`, borderRadius: 12, padding: "14px 18px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{p.nombre}</div>
                 <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>{p.mail || "Sin mail registrado"}</div>
@@ -134,8 +133,8 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
               <div>
                 {tieneAcceso ? (
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontSize: 11, background: COLORES.success + "22", color: COLORES.success, borderRadius: 6, padding: "4px 10px", fontWeight: 700 }}>✅ Con acceso</span>
-                    <button onClick={() => handleEliminar(p.id)} style={{ background: COLORES.danger + "22", border: `1px solid ${COLORES.danger}44`, borderRadius: 6, color: COLORES.danger, padding: "4px 10px", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>Revocar</button>
+                    <span style={{ fontSize: 11, background: alpha(COLORES.success, 13), color: COLORES.success, borderRadius: 6, padding: "4px 10px", fontWeight: 700 }}>Con acceso</span>
+                    <button onClick={() => handleEliminar(p.id)} style={{ background: alpha(COLORES.danger, 13), border: `1px solid ${alpha(COLORES.danger, 27)}`, borderRadius: 6, color: COLORES.danger, padding: "4px 10px", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>Revocar</button>
                   </div>
                 ) : (
                   <button onClick={() => { setModal({ pas_id: p.id, nombre: p.nombre }); setEmail(p.mail || ""); setPwd(""); setMsg(""); setError(""); }} style={{ background: "transparent", border: `1px solid ${COLORES.brand}`, borderRadius: 8, color: COLORES.brand, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
@@ -151,7 +150,7 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
       {modal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setModal(null)}>
           <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 24px", width: "100%", maxWidth: 400, boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, marginBottom: 4 }}>🔑 Dar acceso al portal</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, marginBottom: 4 }}>Dar acceso al portal</div>
             <div style={{ fontSize: 13, color: T.sub, marginBottom: 20 }}>{modal.nombre}</div>
             
             <label style={{ display: "block", marginBottom: 14 }}>
@@ -165,12 +164,12 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
               <div style={{ fontSize: 11, color: T.muted, marginTop: 5 }}>El PAS podrá cambiarla desde el portal</div>
             </label>
             
-            {error && <div style={{ background: COLORES.danger + "22", border: `1px solid ${COLORES.danger}66`, borderRadius: 8, padding: "8px 12px", color: COLORES.danger, fontSize: 13, marginBottom: 14 }}>{error}</div>}
-            {msg   && <div style={{ background: COLORES.success + "22", border: `1px solid ${COLORES.success}66`, borderRadius: 8, padding: "8px 12px", color: COLORES.success, fontSize: 13, marginBottom: 14 }}>{msg}</div>}
+            {error && <div style={{ background: alpha(COLORES.danger, 13), border: `1px solid ${alpha(COLORES.danger, 40)}`, borderRadius: 8, padding: "8px 12px", color: COLORES.danger, fontSize: 13, marginBottom: 14 }}>{error}</div>}
+            {msg   && <div style={{ background: alpha(COLORES.success, 13), border: `1px solid ${alpha(COLORES.success, 40)}`, borderRadius: 8, padding: "8px 12px", color: COLORES.success, fontSize: 13, marginBottom: 14 }}>{msg}</div>}
             
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setModal(null)} style={{ flex: 1, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, color: T.sub, padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>Cancelar</button>
-              <button onClick={handleCrear} disabled={saving || !email.trim() || pwd.length < 6} style={{ flex: 2, background: saving ? T.muted : COLORES.brand, border: "none", borderRadius: 10, color: "#fff", padding: "10px", cursor: saving ? "default" : "pointer", fontSize: 14, fontWeight: 700 }}>
+              <button onClick={handleCrear} disabled={saving || !email.trim() || pwd.length < 6} style={{ flex: 2, background: saving ? T.muted : COLORES.brand, border: "none", borderRadius: 10, color: "var(--on-accent)", padding: "10px", cursor: saving ? "default" : "pointer", fontSize: 14, fontWeight: 700 }}>
                 {saving ? "Creando..." : "Crear acceso"}
               </button>
             </div>

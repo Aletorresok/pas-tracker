@@ -44,7 +44,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const misPendientes = useMemo(() => {
     return allCasos
       .filter(c => !["cobrado", "desistido"].includes(c.estado) && c.proxima_accion && c.proxima_accion.trim() !== "")
-      .sort((a, b) => (a.updated_at || "").localeCompare(b.updated_at || ""));
+      .sort((a, b) => (a.fecha_ultimo_movimiento || a.fecha_derivacion || "").localeCompare(b.fecha_ultimo_movimiento || b.fecha_derivacion || ""));
   }, [allCasos]);
 
   const facturacionMensual = useMemo(() => {
@@ -137,7 +137,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {allCasos.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>📊 Distribución de Casos por Estado</span>
+            <span>Distribución de Casos por Estado</span>
             <span style={{ fontSize: 11, color: T.muted, fontWeight: 400 }}>{allCasos.length} casos totales</span>
           </div>
           {/* Barra de progreso segmentada / Gráfico visual proporcional */}
