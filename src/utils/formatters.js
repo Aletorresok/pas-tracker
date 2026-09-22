@@ -10,10 +10,9 @@ export function fmtMoney(n) {
   return "$" + Number(n).toLocaleString("es-AR");
 }
 
+// Alias unificado para evitar duplicación de lógica con fmtDate
 export function formatoFecha(iso) {
-  if (!iso) return "—";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${String(y).slice(-2)}`;
+  return fmtDate(iso);
 }
 
 export function formatoFechaCarpeta(iso) {

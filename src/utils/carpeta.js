@@ -1,7 +1,8 @@
 import { supabase } from "../supabase.js";
+import { verificarPermiso } from "./formatters.js"; // <-- Importamos la función centralizada de permisos
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUPABASE STORAGE — sin cambios respecto al original
+// SUPABASE STORAGE
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function subirArchivo({ pasId, casoId, file, onSuccess, onError }) {
@@ -55,8 +56,7 @@ export async function cargarArchivos({ pasId, casoId, getExtension, onSuccess, o
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Abre el selector de carpeta del OS en modo readwrite (necesario para renombrar).
- * Devuelve el DirectoryHandle o null si el usuario cancela.
+ * Abre el selector de carpeta del OS en modo readwrite.
  */
 export async function elegirCarpeta() {
   if (!window.showDirectoryPicker) return null;
@@ -70,24 +70,14 @@ export async function elegirCarpeta() {
 }
 
 /**
- * Verifica o solicita permiso readwrite sobre un DirectoryHandle.
- * Devuelve true si tiene permiso, false si no.
+ * Verifica o solicita permiso readwrite reutilizando la función centralizada.
  */
 export async function verificarPermisoCarpeta(handle) {
-  try {
-    const perm = await handle.queryPermission({ mode: "readwrite" });
-    if (perm === "granted") return true;
-    const req = await handle.requestPermission({ mode: "readwrite" });
-    return req === "granted";
-  } catch {
-    return false;
-  }
+  return await verificarPermiso(handle, "readwrite");
 }
 
 /**
  * Lee todos los archivos de un DirectoryHandle.
- * Devuelve objetos con la misma forma que cargarArchivos,
- * más fileHandle (necesario para renombrar en disco después).
  */
 export async function leerArchivosCarpeta(dirHandle, getExtension) {
   const archivos = [];
@@ -95,7 +85,6 @@ export async function leerArchivosCarpeta(dirHandle, getExtension) {
   for await (const [nombre, fileHandle] of dirHandle.entries()) {
     if (fileHandle.kind !== "file") continue;
 
-    // Ignorar archivos del sistema
     if (
       nombre.startsWith(".") ||
       nombre === "Thumbs.db" ||
@@ -115,7 +104,7 @@ export async function leerArchivosCarpeta(dirHandle, getExtension) {
         fileHandle,
       });
     } catch {
-      // Archivo inaccesible, lo ignoramos
+      // Ignorar archivos inaccesibles
     }
   }
 
@@ -124,12 +113,6 @@ export async function leerArchivosCarpeta(dirHandle, getExtension) {
 
 /**
  * Renombra un archivo en disco.
- * La File System Access API no tiene rename nativo:
- * crea el archivo nuevo → copia el contenido → elimina el original.
- *
- * @param {FileSystemDirectoryHandle} dirHandle
- * @param {object}  archivo      - objeto con nombre y blob
- * @param {string}  nuevoNombre  - nombre final con extensión
  */
 export async function renombrarArchivoLocal(dirHandle, archivo, nuevoNombre) {
   if (archivo.nombre === nuevoNombre) return;
@@ -143,7 +126,6 @@ export async function renombrarArchivoLocal(dirHandle, archivo, nuevoNombre) {
 }
 
 export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) {
-  // Formatear fecha: "2026-03-23" → "23-03-2026"
   const fechaFormateada = fechaSiniestro
     ? fechaSiniestro.split("-").reverse().join("-")
     : "sin-fecha";
@@ -153,11 +135,9 @@ export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) 
     .filter(Boolean)
     .join(" - ");
 
-  // El usuario elige dónde crear la carpeta (carpeta padre)
   const padreHandle = await window.showDirectoryPicker({ mode: "readwrite" });
   if (!padreHandle) return null;
 
-  // Crear subcarpeta con el nombre del caso
   const nuevaHandle = await padreHandle.getDirectoryHandle(nombreCarpeta, { create: true });
   return { handle: nuevaHandle, nombre: nombreCarpeta };
 }
