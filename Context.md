@@ -43,6 +43,13 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
+### 2026-09-22 — Propuesta de rediseño visual (pendiente de aprobación)
+*   Documento: https://claude.ai/artifact/3TGX6ipnw65AmWVFejXh3r (diagnóstico con capturas, maquetas y plan).
+*   **Diagnóstico principal:** 73 colores hex escritos a mano de 3 paletas (theme.js dorado/marfil, índigo `#6366f1` + pizarra `#1e293b` heredados, `portalTheme.js` con otros colores de estado); 20 tamaños de fuente (algunos de 8–9 px); Inter declarada pero nunca cargada; emojis como íconos; Dashboard de 11 bloques apilados (~3 pantallas); casos en tarjetas; ficha del caso con 7 secciones apiladas y 5 botones de colores; sin versión celular; 51.048 contactos cargados en 52 pedidos secuenciales al abrir.
+*   **Bugs visuales detectados:** filtro seleccionado de Contactos sale gris (`VISTAS_C` sin `color`); colores de modo oscuro en modo claro (PASCard, FiltrosEstados, TabContactos); contenido que asoma sobre el encabezado fijo del modal del caso; "Mis pendientes" ordena por `updated_at`, columna inexistente.
+*   **Plan propuesto (6 etapas, un PR cada una):** 1) base visual + bugs, 2) carga rápida de contactos, 3) Dashboard "Hoy", 4) Casos en tabla, 5) ficha del caso con pestañas y stepper de etapas, 6) Prospección unificada + celular.
+*   **Decisiones pendientes del usuario:** dorado como marca, modo oscuro por defecto, tabla vs tarjetas, unificar Contactos/Contactados, pestañas vs página larga, uso desde celular.
+
 ## ✅ LOGROS RECIENTES (Sesión anterior)
 *   **Base de Datos Automatizada:** Trigger en PostgreSQL que sincroniza automáticamente la fecha `updated_at` del caso al registrarse movimientos en la bitácora.
 *   **Gestor de Tareas Integrado:** Incorporación y visualización del campo `proxima_accion` en `TabDashboard` bajo la grilla "📝 Mis Pendientes de Gestión".
