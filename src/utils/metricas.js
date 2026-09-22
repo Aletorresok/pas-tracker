@@ -79,8 +79,9 @@ export function cobrosPendientes(allCasos) {
     .sort((a, b) => (a.fechaEstimada || "9999").localeCompare(b.fechaEstimada || "9999"));
 }
 
-// Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final)
-export function tareasPendientes({ allCasos, recordatorios, todosLosPas, hoy = new Date() }) {
+// Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final).
+// Los cobros van en su propia tarjeta; los recordatorios de contactos ya no se usan.
+export function tareasPendientes({ allCasos, hoy = new Date() }) {
   const tareas = [];
   const hoyISO = fechaLocalISO(hoy);
   const enUnaSemana = sumarDias(hoyISO, 7);
@@ -91,23 +92,12 @@ export function tareasPendientes({ allCasos, recordatorios, todosLosPas, hoy = n
     }
   });
 
-  cobrosPendientes(allCasos).forEach(c => {
-    tareas.push({ id: `cobro-${c.id}`, tipo: "cobro", vence: c.fechaEstimada, titulo: c.asegurado || "Sin nombre", detalle: `Pago de ${c.compania_aseguradora || "la compañía"}`, monto: netoYo(c), caso: c });
-  });
-
   allCasos.forEach(c => {
     if (c.estado_honorarios === "FACTURADO" && c.fecha_factura && !c.fecha_cobro_honorarios) {
       const vence = sumarDias(String(c.fecha_factura).slice(0, 10), 30);
       if (vence && vence <= enUnaSemana) {
         tareas.push({ id: `hon-${c.id}`, tipo: "honorarios", vence, titulo: c.asegurado || "Sin nombre", detalle: "Honorarios facturados sin cobrar", monto: Number(c.monto_honorarios) || null, caso: c });
       }
-    }
-  });
-
-  const nombres = Object.fromEntries(todosLosPas.map(p => [String(p.id), p.nombre]));
-  Object.entries(recordatorios || {}).forEach(([pasId, fecha]) => {
-    if (fecha && fecha <= enUnaSemana) {
-      tareas.push({ id: `rec-${pasId}`, tipo: "llamar", vence: String(fecha).slice(0, 10), titulo: nombres[String(pasId)] || "PAS", detalle: "Volver a contactar" });
     }
   });
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { fmtMoney, fmtDate } from "../utils/formatters.js";
-import { aplanarCasos, kpis as calcularKpis, honorariosPorMes, tareasPendientes, casosPorTramo, netoYo } from "../utils/metricas.js";
+import { aplanarCasos, kpis as calcularKpis, honorariosPorMes, tareasPendientes, casosPorTramo, cobrosPendientes, netoYo } from "../utils/metricas.js";
+import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
@@ -30,12 +31,13 @@ function Kpi({ label, valor, pie, destacado }) {
 // Tonos del acento en orden de avance: de suave (arranque) a pleno (cobrado)
 const TONOS = [45, 60, 74, 87, 100];
 
-export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], recordatorios, onSaveCasos, onIrA }) {
+export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onSaveCasos, onIrA }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
   const porMes = useMemo(() => honorariosPorMes(allCasos), [allCasos]);
-  const tareas = useMemo(() => tareasPendientes({ allCasos, recordatorios, todosLosPas }), [allCasos, recordatorios, todosLosPas]);
+  const tareas = useMemo(() => tareasPendientes({ allCasos }), [allCasos]);
+  const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const { tramos, desistidos } = useMemo(() => casosPorTramo(allCasos), [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
 
@@ -52,7 +54,6 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const abrirTarea = (t) => {
     if (t.caso) setAbierto({ caso: t.caso, pasId: t.caso._pasId });
-    else if (t.tipo === "llamar") onIrA?.("contactados");
   };
 
   return (
@@ -71,7 +72,10 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       </section>
 
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-        <ParaHacer tareas={tareas} onAbrir={abrirTarea} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+          <ParaHacer tareas={tareas} onAbrir={abrirTarea} />
+          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
           {/* Casos por etapa */}

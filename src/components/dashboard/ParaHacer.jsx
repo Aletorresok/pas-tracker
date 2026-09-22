@@ -2,10 +2,10 @@ import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
 
-const TIPO = { accion: "Próxima acción", cobro: "Cobro", honorarios: "Honorarios", llamar: "Llamar" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios" };
 const VISIBLES = 8;
 
-// Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso (o Contactados).
+// Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso.
 export default function ParaHacer({ tareas, onAbrir }) {
   const [verTodas, setVerTodas] = useState(false);
   const lista = verTodas ? tareas : tareas.slice(0, VISIBLES);
