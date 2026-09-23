@@ -8,7 +8,7 @@
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
 *   **Librerías:** jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
 *   **Tres "apps" en el mismo sitio:** app del estudio (`/`), portal de productores (`/portal`) y vista del cliente (`/?vista=cliente`).
-*   **App instalable (PWA):** cada una se instala por separado en PC y Android (Chrome/Edge) con su manifiesto (`public/manifest*.webmanifest`, elegido en `index.html` según la ruta). `public/sw.js` no guarda la app en caché (siempre la última versión); solo muestra `public/offline.html` sin conexión. Íconos en `public/icons/` (**provisorios** "ATG"; al tener el logo se reemplazan esos archivos).
+*   **App instalable (PWA):** cada una se instala por separado en PC y Android (Chrome/Edge) con su manifiesto (`public/manifest*.webmanifest`, elegido en `index.html` según la ruta). `public/sw.js` no guarda la app en caché (siempre la última versión); solo muestra `public/offline.html` sin conexión. Íconos en `public/icons/`: monograma ATG dorado sobre azul noche (`icono.svg` es la fuente; los PNG se generan desde ahí).
 
 ## 📂 Estructura del código (`src/`)
 
@@ -47,7 +47,7 @@
 *   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
 *   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio, montos, "Mandanos tu documentación" (un mail por sesión), WhatsApp.
 
-**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`.
+**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`).
 
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `hooks/useInstalarApp.js` (botón "Instalar app": menú Apariencia y backup, cabecera del portal, vista del cliente), `context/ThemeContext.jsx` (tema y acento).
 
@@ -71,7 +71,8 @@
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
-- [ ] Logo definitivo (lo pide el usuario a Gemini): reemplazar `public/icons/*` (192, 512, maskable 512, apple-touch 180, favicon 32 y `icono.svg`).
+- [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
+- [ ] Logo en los PDF (escritos y ficha del caso) y encabezado de los mails.
 - [ ] Notificaciones (portal nuevo, documentación del cliente, mediación del día siguiente) ahora que la app es instalable.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
@@ -92,6 +93,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — Identidad visual: logo, íconos, vista previa del link e ilustraciones
+*   **Logo:** de las propuestas de Gemini se eligió el **ATG macizo**. Se redibujó en vector midiendo la imagen (el SVG que armó Gemini eran rectángulos encimados y no se leía ATG). `ui/Logo.jsx` (`MONOGRAMA_PATH`, viewBox 594×400) toma el color del acento. Reemplaza los cuadraditos "PT"/"ATG" en la barra lateral, el ingreso al estudio, el ingreso y la cabecera del portal, y la cabecera del cliente.
+*   **Íconos de la app** (`public/icons/`): monograma dorado `#C9A13A` sobre azul noche `#10151F`; los manifiestos usan el azul noche como color de tema y de fondo al abrir. La pantalla sin conexión también lleva el ícono.
+*   **Vista previa al compartir el link** (WhatsApp, etc.): `public/og.jpg` (la imagen "Seguí tu reclamo" de Gemini) + etiquetas Open Graph en `index.html`. Hay una sola para todo el sitio.
+*   **Ilustraciones** (`ui/Ilustracion.jsx`, redibujadas en el estilo de los íconos porque las de Gemini traían el cuadriculado dibujado y no se veían en modo oscuro): auto en el ingreso del cliente, celular con documento en "Mandanos tu documentación", taza y tilde en "Para hacer" vacío, carpeta en el portal sin casos y en Clientes sin PAS.
+*   Ingreso del portal: el rótulo sobre el título dice "ATG Lex Solutions".
 
 ### 2026-09-24 — Nuevo mensaje de WhatsApp para PAS
 *   `formatters.waLink`: "Hola {nombre}, cómo estás? Soy Alexis Torres Gaveglio, abogado (saqué tu número del padrón de la SSN). Trabajo con productores gestionando los reclamos de terceros de sus clientes. / Te hago una consulta rápida: cuando un asegurado tuyo choca, ¿el reclamo lo maneja el cliente por su cuenta, le das una mano vos, o lo derivás?"

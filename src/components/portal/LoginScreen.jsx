@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../supabase.js";
 import { theme } from "./portalTheme.js";
 import Icono from "../ui/Icono.jsx";
+import Logo from "../ui/Logo.jsx";
 
 export default function LoginScreen({ dark, onToggleDark }) {
   const T = theme(dark);
@@ -25,7 +26,8 @@ export default function LoginScreen({ dark, onToggleDark }) {
       </button>
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "40px 36px", width: "100%", maxWidth: 400, boxShadow: "var(--shadow)" }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 700 }}>PAS Tracker</div>
+          <Logo alto={44} style={{ margin: "0 auto 16px" }} />
+          <div style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 700 }}>ATG Lex Solutions</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: T.text, letterSpacing: -0.5 }}>Portal de Productores</div>
           <div style={{ fontSize: 14, color: T.muted, marginTop: 8 }}>Ingresá para ver el estado de tus casos</div>
         </div>

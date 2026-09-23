@@ -13,6 +13,7 @@ import CasoOverlay from "./caso/CasoOverlay.jsx";
 import EstadoPill from "./ui/EstadoPill.jsx";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || Number(c.monto_reclamado) || 0;
 const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
@@ -234,7 +235,8 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
       {error && <div role="alert" style={{ color: "var(--bad)", fontSize: 13 }}>{error}</div>}
 
       {clientes.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
+        <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
+          <Ilustracion nombre="carpeta" size={88} style={{ margin: "0 auto 8px" }} />
           Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Prospección o agregalo con "PAS manual".
         </div>
       )}
