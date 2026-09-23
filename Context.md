@@ -57,7 +57,7 @@
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda).
 *   **Prospección:** `pas_contactos` (~51 mil), `pas_historial`, `pas_derivadores`, `pas_descartados`, `pas_manuales`, `pas_recordatorios` (sin uso).
 *   **Portal y acceso:** `pas_lista`, `pas_portal_users`, `pas_admins`, `pas_cliente_intentos`, `pas_subidas_cliente`.
-*   **Funciones:** `es_admin`, `mi_pas_id`, `plazos_companias`, `consultar_caso_cliente`, `cliente_es_dueno`, `autorizar_subida_cliente`, `subida_autorizada`, `confirmar_subida_cliente`, `documentos_enviados_cliente`. **Triggers:** fecha del mensaje al cliente.
+*   **Funciones:** `es_admin`, `mi_pas_id`, `plazos_companias`, `consultar_caso_cliente`, `cliente_es_dueno`, `autorizar_subida_cliente`, `subida_autorizada`, `confirmar_subida_cliente`, `documentos_enviados_cliente`, `extras_cliente`. **Triggers:** fecha del mensaje al cliente.
 *   **Storage:** `adjuntos` (público por link; cada PAS sube a su carpeta) y `recepcion` (privado; buzón de paso de lo que sube el cliente).
 
 ## 🔄 Flujos principales
@@ -70,10 +70,10 @@
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
-- [ ] Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist.
+- [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [ ] Margen de "reclamo quieto" ajustable por compañía.
 - [ ] Plantilla de EmailJS aparte para la documentación del cliente (asunto propio).
-- [ ] Mostrar al PAS (portal) y al cliente la próxima mediación agendada.
+- [x] ✅ Mostrar al PAS (portal) y al cliente la próxima mediación/audiencia agendada (24/09, requiere SQL 13).
 - [ ] F10 · carga del caso desde la denuncia con IA: descartada por ahora (costo).
 
 **Código sin uso:**
@@ -83,12 +83,20 @@
 **Deuda técnica:**
 - [ ] Fechas guardadas como texto: `pas_casos.fecha_siniestro`, `fecha_derivacion`, `fecha_contacto_asegurado`, `fecha_inicio_reclamo`, `fecha_ultimo_movimiento`; `pas_historial.fecha`.
 - [ ] IDs de PAS inconsistentes: `pas_contactos.id` es texto; `pas_id` en el resto es integer.
-- [ ] ID de PAS manual aleatorio (`100000 + random`) en `clientes/ModalesCliente.jsx`: riesgo de choque; mejor secuencia o UUID.
-- [ ] Mail del administrador escrito en el código (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo; `PortalHome` lo usa para ver todos los casos — hoy lo decide RLS, se puede quitar).
+- [x] ✅ ID de PAS manual: se genera en `App.handleAddPasManual` y se descarta si ya existe (antes podía pisar a otro PAS manual).
+- [x] ✅ `PortalHome` ya no usa el mail del administrador: pregunta `es_admin()`. (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo.)
 - [ ] PIN 3934 en el código: aceptado como bloqueo rápido; la seguridad real es la cuenta + RLS.
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — Mejoras: "Ya lo tenemos", próxima mediación en portal y cliente, ID de PAS manual, admin sin mail (SQL 13 pendiente de ejecutar)
+*   **Cliente** (`PortalCliente.jsx`): los documentos que tildaste en el checklist del caso aparecen como "✓ Ya lo tenemos" (se puede agregar más igual). Si hay una **mediación o audiencia** agendada, la ve con día y hora ("te confirmamos los detalles por WhatsApp"; no ve link ni lugar). Todo sale de la función nueva `extras_cliente` (`utils/subidasCliente.extrasCliente`); sin el SQL 13 sigue funcionando como antes.
+*   **Portal PAS** (`PortalHome` → `PortalCasoCard`): cada tarjeta muestra la próxima mediación/audiencia del caso. El PAS solo **lee** la agenda de sus propios casos (política `pas_ve_eventos`).
+*   **Admin en el portal:** `PortalHome` decide "ver todos los casos" con `es_admin()` en vez del mail escrito en el código.
+*   **PAS manual:** el ID nuevo se genera al guardar y se descarta si ya lo usa otro PAS (el guardado pisa por ID).
+*   **SQL:** `sql/2026-09-24_13_extras_cliente_y_portal.sql` (función `extras_cliente` + política de lectura de `pas_eventos` para el PAS). Se puede correr más de una vez.
+*   **Limpieza** (mismo PR): borrado del código sin uso listado en "Pendientes".
 
 ### 2026-09-22 — Rama `claude/kind-carson-68fvrx`
 *   **Variables de entorno:** `src/supabase.js` y `src/utils/portalStorageUtils.js` leen credenciales de `import.meta.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_TEMPLATE_ID`, `VITE_EMAILJS_PUBLIC_KEY`). Plantilla en `.env.example`. Hay que cargarlas en `.env` local **y** en Vercel antes de deployar.

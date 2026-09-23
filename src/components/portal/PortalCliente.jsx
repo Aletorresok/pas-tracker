@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { DOCS_CLIENTE, subirDocumentoCliente, documentosEnviados, etiquetaDoc } from "../../utils/subidasCliente.js";
+import { DOCS_CLIENTE, subirDocumentoCliente, extrasCliente, etiquetaDoc } from "../../utils/subidasCliente.js";
 import { notificarSubidaCliente } from "../../utils/portalStorageUtils.js";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
@@ -143,16 +143,15 @@ function useAvisoDeSesion() {
   return { agregar, enviar, cantidad, avisados, eligiendo: (v = true) => { eligiendo.current = v; } };
 }
 
-function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion }) {
-  const [enviados, setEnviados] = useState(null);
+function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, onRecargar }) {
   const [subiendo, setSubiendo] = useState(null); // tipo en curso
   const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
   const inputRef = useRef(null);
   const tipoRef = useRef(null);
 
-  const cargar = () => documentosEnviados({ patente, dni, casoId: caso.id }).then(setEnviados);
-  useEffect(() => { cargar(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [caso.id]);
-  if (enviados === null) return null; // la función todavía no existe o falló: no mostramos nada
+  if (!extras) return null; // la función todavía no existe o falló: no mostramos nada
+  const { enviados, tenemos } = extras;
+  const cargar = onRecargar;
 
   const porTipo = {};
   enviados.forEach(e => { (porTipo[e.tipo] ||= []).push(e); });
@@ -184,20 +183,24 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion }) {
       <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple hidden onChange={alElegir} />
       {DOCS_CLIENTE.map((d, i) => {
         const env = porTipo[d.tipo] || [];
+        const loTenemos = Boolean(tenemos?.[d.tipo]);
+        const listo = env.length > 0 || loTenemos;
         const esteAviso = aviso && aviso.tipo === d.tipo ? aviso : null;
         return (
           <div key={d.tipo} style={{ padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, flex: "none", display: "grid", placeItems: "center", background: env.length ? "var(--ok)" : "transparent", border: `1.5px solid ${env.length ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
-                {env.length > 0 && <Icono nombre="check" size={12} />}
+              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, flex: "none", display: "grid", placeItems: "center", background: listo ? "var(--ok)" : "transparent", border: `1.5px solid ${listo ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
+                {listo && <Icono nombre="check" size={12} />}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{d.l}{d.requerido && !env.length && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · necesario</span>}</span>
-                {env.length > 0 && <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Enviado{env.length > 1 ? ` (${env.length})` : ""} · {new Date(env[0].creado).toLocaleDateString("es-AR")}</span>}
+                <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{d.l}{d.requerido && !listo && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · necesario</span>}</span>
+                {loTenemos
+                  ? <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Ya lo tenemos</span>
+                  : env.length > 0 && <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Enviado{env.length > 1 ? ` (${env.length})` : ""} · {new Date(env[0].creado).toLocaleDateString("es-AR")}</span>}
               </span>
               <button type="button" onClick={() => elegir(d.tipo)} disabled={!!subiendo}
-                style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "7px 12px", borderRadius: 8, cursor: subiendo ? "default" : "pointer", border: `1px solid ${env.length ? "var(--border2)" : "var(--accent)"}`, background: env.length ? "var(--card)" : "var(--accent)", color: env.length ? "var(--text)" : "var(--on-accent)", opacity: subiendo && subiendo !== d.tipo ? 0.5 : 1, whiteSpace: "nowrap" }}>
-                {subiendo === d.tipo ? "Subiendo…" : env.length ? "Agregar" : "Subir"}
+                style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "7px 12px", borderRadius: 8, cursor: subiendo ? "default" : "pointer", border: `1px solid ${listo ? "var(--border2)" : "var(--accent)"}`, background: listo ? "var(--card)" : "var(--accent)", color: listo ? "var(--text)" : "var(--on-accent)", opacity: subiendo && subiendo !== d.tipo ? 0.5 : 1, whiteSpace: "nowrap" }}>
+                {subiendo === d.tipo ? "Subiendo…" : listo ? "Agregar" : "Subir"}
               </button>
             </div>
             {esteAviso && <div role="status" style={{ marginTop: 6, fontSize: 13, color: esteAviso.ok ? "var(--ok)" : "var(--bad)" }}>{esteAviso.texto}</div>}
@@ -210,6 +213,10 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion }) {
 
 function TarjetaCaso({ caso, patente, dni, aviso }) {
   const cerrado = ["cobrado", "desistido"].includes(caso.estado);
+  const [extras, setExtras] = useState(null);
+  const cargarExtras = useCallback(() => extrasCliente({ patente, dni, casoId: caso.id }).then(setExtras), [patente, dni, caso.id]);
+  useEffect(() => { if (!cerrado) cargarExtras(); }, [cerrado, cargarExtras]);
+  const evento = extras?.proximoEvento;
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
   const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 };
@@ -229,6 +236,16 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
           ? <div style={{ background: "var(--card2)", borderRadius: 8, padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
           : <LineaDeTiempo caso={caso} />}
 
+        {evento && (
+          <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 10, padding: "10px 12px" }}>
+            <Icono nombre="calendario" size={18} />
+            <span style={{ fontSize: 14, lineHeight: 1.45 }}>
+              <b>{evento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> {new Date(evento.inicio).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, {new Date(evento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs.
+              <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>Te confirmamos los detalles por WhatsApp.</span>
+            </span>
+          </div>
+        )}
+
         {caso.fecha_ultimo_movimiento && !cerrado && (
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 14 }}>Último movimiento en tu caso: <span className="num">{fmtDate(caso.fecha_ultimo_movimiento)}</span></div>
         )}
@@ -245,7 +262,7 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
         </section>
       )}
 
-      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} />}
+      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} extras={extras} onRecargar={cargarExtras} />}
 
       {(cobras > 0 || (ofrecido > 0 && !cerrado)) && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>

@@ -56,6 +56,15 @@ export async function subirDocumentoCliente({ patente, dni, casoId, tipo, file }
   return { ok: true };
 }
 
+// Lo que ve el cliente además de su caso: documentos enviados, lo que el estudio ya tildó y la próxima mediación/audiencia.
+// Si la función nueva no existe todavía (falta el SQL 13), usa la anterior (solo enviados).
+export async function extrasCliente({ patente, dni, casoId }) {
+  const { data, error } = await supabase.rpc("extras_cliente", { p_patente: patente, p_dni: dni, p_caso_id: casoId });
+  if (!error && data) return { enviados: data.enviados || [], tenemos: data.tenemos || {}, proximoEvento: data.proximo_evento || null };
+  const enviados = await documentosEnviados({ patente, dni, casoId });
+  return enviados === null ? null : { enviados, tenemos: {}, proximoEvento: null };
+}
+
 export async function documentosEnviados({ patente, dni, casoId }) {
   const { data, error } = await supabase.rpc("documentos_enviados_cliente", { p_patente: patente, p_dni: dni, p_caso_id: casoId });
   if (error) return null;

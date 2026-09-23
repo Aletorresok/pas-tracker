@@ -50,6 +50,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [pestana, setPestana] = useState("curso"); // curso | cobrados | desistidos | todos
   const [estadoSel, setEstadoSel] = useState(null); // estado puntual dentro de la pestaña
   const [busqueda, setBusqueda] = useState("");
+  const [eventos, setEventos] = useState({}); // caso_id → próxima mediación/audiencia
 
   useEffect(() => {
     const loadData = async () => {
@@ -61,8 +62,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
       setPasInfo(pas);
       
+      // El admin (tabla pas_admins) ve todos los casos; cada PAS, solo los suyos
+      const { data: esAdmin } = await supabase.rpc("es_admin");
       let queryCasos = supabase.from("pas_casos").select("*");
-      if (session.user.email !== "atglexsolutions@gmail.com") {
+      if (esAdmin !== true) {
         queryCasos = queryCasos.eq("pas_id", link.pas_id);
       } else {
         queryCasos = queryCasos.order("created_at", { ascending: false }); 
@@ -83,6 +86,14 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           return { ...c, notas_log: [...dbAcciones, ...oldLog] };
         });
         setCasos(casosConAcciones);
+
+        // Próxima mediación/audiencia de cada caso (si falta el permiso del SQL 13, simplemente no se muestra)
+        const { data: evs } = await supabase.from("pas_eventos").select("caso_id, tipo, inicio")
+          .in("caso_id", casoIds).in("tipo", ["mediacion", "audiencia"])
+          .gte("inicio", new Date(Date.now() - 2 * 3600e3).toISOString()).order("inicio");
+        const prox = {};
+        (evs || []).forEach(e => { if (!prox[e.caso_id]) prox[e.caso_id] = e; });
+        setEventos(prox);
       } else {
         setCasos([DEMO_CASO]);
       }
@@ -241,7 +252,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
               {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (
-            lista.map(c => <PortalCasoCard key={c.id} caso={c} />)
+            lista.map(c => <PortalCasoCard key={c.id} caso={c} proximoEvento={eventos[c.id]} />)
           )}
 
           {todosLosCasos.length > 0 && (
