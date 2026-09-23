@@ -5,14 +5,14 @@
 alter table public.pas_casos add column if not exists mensaje_cliente_fecha timestamptz;
 
 create or replace function public.pas_casos_fecha_mensaje()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql as $fn$
 begin
-  if coalesce(new.mensaje_cliente, '') <> '' and
+  if coalesce(new.mensaje_cliente, '') != '' and
      ((tg_op = 'INSERT' and new.mensaje_cliente_fecha is null) or (tg_op = 'UPDATE' and new.mensaje_cliente is distinct from old.mensaje_cliente)) then
     new.mensaje_cliente_fecha := now();
   end if;
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists trg_pas_casos_fecha_mensaje on public.pas_casos;
 create trigger trg_pas_casos_fecha_mensaje
@@ -33,13 +33,13 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $fn$
 declare
   v_patente text := upper(regexp_replace(coalesce(p_patente, ''), '[^A-Za-z0-9]', '', 'g'));
   v_dni     text := right(regexp_replace(coalesce(p_dni, ''), '\D', '', 'g'), 3);
   v_casos   jsonb;
 begin
-  if length(v_patente) < 5 or length(v_dni) <> 3 then
+  if length(v_patente) < 5 or length(v_dni) != 3 then
     return '[]'::jsonb;
   end if;
 
@@ -76,7 +76,7 @@ begin
   end if;
 
   return v_casos;
-end $$;
+end $fn$;
 
 revoke all on function public.consultar_caso_cliente(text, text) from public;
 grant execute on function public.consultar_caso_cliente(text, text) to anon, authenticated;
