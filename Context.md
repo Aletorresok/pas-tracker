@@ -73,7 +73,7 @@
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
 - [x] ✅ Logo en los PDF (escrito y resumen del caso, en el pie). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
-- [ ] Notificaciones (portal nuevo, documentación del cliente, mediación del día siguiente) ahora que la app es instalable.
+- [ ] Notificaciones push: código listo (PR de notificaciones). Falta que el usuario corra el SQL 17, cree la función `notificar` con sus secretos, los 2 webhooks y el cron (pasos en el registro de cambios).
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
 - [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
@@ -85,7 +85,7 @@
 - [x] En la base: el código ya no usa `pas_casos.recordatorio` ni la tabla `pas_recordatorios`. ✅ Hecho el 24/09 con el SQL 15: copia en `backup_20260924`, notas de `notas_log` (47 casos) pasadas a `acciones`, y borradas esas columnas + `pas_recordatorios`, `aseguradoras`, `casos`, `gestiones_judiciales`. `schema.sql` actualizado (14 tablas).
 
 **Deuda técnica:**
-- [ ] Fechas guardadas como texto: `pas_casos.fecha_siniestro`, `fecha_derivacion`, `fecha_contacto_asegurado`, `fecha_inicio_reclamo`, `fecha_ultimo_movimiento`; `pas_historial.fecha`.
+- [ ] Fechas guardadas como texto → `sql/2026-09-24_16_fechas_reales.sql` listo (paso A diagnóstico, B copia + conversión, C control). Falta correrlo.
 - [ ] IDs de PAS inconsistentes: `pas_contactos.id` es texto; `pas_id` en el resto es integer.
 - [x] ✅ ID de PAS manual: se genera en `App.handleAddPasManual` y se descarta si ya existe (antes podía pisar a otro PAS manual).
 - [x] ✅ `PortalHome` ya no usa el mail del administrador: pregunta `es_admin()`. (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo.)
@@ -93,6 +93,16 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — Notificaciones push y fechas reales (pendientes de configurar/correr)
+*   **Notificaciones** (Web Push, llegan con la app cerrada; en iPhone solo con la app instalada, iOS 16.4+):
+    *   **Qué avisa:** caso nuevo derivado desde el portal · documentación que subió un cliente (uno por caso cada 30 min) · mediaciones/audiencias/eventos de **mañana** (cron diario 9:00 hs Argentina). Al tocarla abre la app.
+    *   **Función** `supabase/functions/notificar/index.ts` (Deno, `npm:web-push`): la llaman 2 webhooks de base de datos (`pas_casos` INSERT, `pas_subidas_cliente` UPDATE), el cron (`{"tipo":"agenda"}`) y la app (`{"tipo":"prueba"}`, solo admin). Verifica cada evento contra la base (origen portal, recién creado, etc.) y registra lo enviado en `pas_avisos` para no repetir. Borra los dispositivos que ya no existen (404/410).
+    *   **Secretos de la función:** `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. La clave pública también está en `utils/push.js` (no es secreta); la privada solo en Supabase.
+    *   **App:** `utils/push.js` (`useNotificaciones`: activar, desactivar, probar) y la sección "Notificaciones en este dispositivo" en **Apariencia y backup**. `public/sw.js` muestra la notificación (`push`) y abre/enfoca la app (`notificationclick`).
+    *   **SQL 17** (`sql/2026-09-24_17_notificaciones.sql`): `pas_push_suscripciones` (RLS admin) y `pas_avisos`.
+    *   Probado: la función corriendo en Deno contra el mock y un servicio de push falso que descifra el mensaje (caso nuevo, repetido, caso no-portal, subida, subida repetida, agenda de mañana, prueba sin login = 401). El cartel en sí no se puede ver en Chromium sin pantalla.
+*   **Fechas reales** (`sql/2026-09-24_16_fechas_reales.sql`): convierte a `date` las 5 fechas de texto de `pas_casos` y `pas_historial.fecha`, con copia en `backup_fechas`. Entiende AAAA-MM-DD (con o sin hora) y D/M/AAAA. La app ya escribe AAAA-MM-DD o vacío; `insertHistorialEntry` ahora manda `null` en vez de "".
 
 ### 2026-09-24 — "PAS dormido" sale de "Para hacer"
 *   A pedido del usuario, **"Para hacer" muestra solo tareas de casos** (próximas acciones, reclamos quietos, honorarios). El ritmo de cada PAS no es una tarea: se consulta en **Clientes**, columna "Ritmo" ("cada X d · hace Y d", con la etiqueta "Dormido" si pasó el doble de su ritmo), y en el detalle del PAS. Se borró `pasDormidos` y el botón "Escribirle" de Para hacer.

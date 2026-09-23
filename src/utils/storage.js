@@ -20,7 +20,7 @@ function generateCasoId() {
 export async function insertHistorialEntry(pasId, entry) {
   const row = {
     pas_id: parseInt(pasId, 10),
-    fecha: entry.fecha || "",
+    fecha: entry.fecha || null,
     resultados: entry.resultados || [],
     nota: entry.nota || "",
     ts: entry.ts || Date.now(),
