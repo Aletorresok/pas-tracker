@@ -154,7 +154,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     }
 
     // Pie con el logo y los datos del estudio, en todas las hojas
-    dibujarPie(doc, { margen: margin, ancho: pageW, extra: (i, total) => `${caso.asegurado || "Caso"} · Pág. ${i}/${total}` });
+    dibujarPie(doc, { margen: margin, ancho: pageW });
 
     const nombreArchivo = `Caso_${(caso.asegurado || "sin_nombre").replace(/\s+/g, "_")}.pdf`;
     doc.save(nombreArchivo);

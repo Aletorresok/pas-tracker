@@ -94,6 +94,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-24 — Pie de los PDF más simple
+*   A pedido del usuario, el pie queda solo con **línea dorada, monograma y "ATG Lex Solutions"** (sin abogado, matrícula, teléfono ni número de página). El encabezado de mail con matrícula y teléfono queda como está (aprobado por el usuario, no tocar).
+
 ### 2026-09-24 — PDF: el logo pasa al pie de página
 *   A pedido del usuario, el membrete de arriba se reemplazó por un **pie en todas las hojas** (`pdfMembrete.dibujarPie`): línea dorada, monograma, "ATG Lex Solutions" y en chico "Dr. Alexis Torres Gaveglio · T°142 F°636 CPACF · L°IV F°20 CAMGR · +54 9 11 3313-3259". El resumen del caso suma a la derecha "asegurado · Pág. n/N". Arriba queda solo el título. Los cortes de página del resumen se corrieron para no pisar el pie.
 
