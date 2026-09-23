@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { DOCS_CLIENTE, subirDocumentoCliente, documentosEnviados, etiquetaDoc } from "../../utils/subidasCliente.js";
 import { notificarSubidaCliente } from "../../utils/portalStorageUtils.js";
 import { supabase } from "../../supabase.js";
@@ -101,7 +101,49 @@ function LineaDeTiempo({ caso }) {
 }
 
 // "Mandanos tu documentación": el cliente sube fotos o PDF de lo que falta, desde el celular
-function SubirDocumentacion({ caso, patente, dni }) {
+// Junta lo que el cliente sube en esta sesión y manda UN solo mail al estudio: al tocar "Listo",
+// al salir o cerrar la página, al irse a otra app (no cuenta abrir la cámara o elegir un archivo),
+// o a los 10 minutos sin subir nada más.
+const ESPERA_AVISO = 10 * 60 * 1000;
+function useAvisoDeSesion() {
+  const pendientes = useRef([]);
+  const eligiendo = useRef(false);
+  const timer = useRef(null);
+  const [cantidad, setCantidad] = useState(0);
+  const [avisados, setAvisados] = useState(0);
+
+  const enviar = useCallback(() => {
+    clearTimeout(timer.current);
+    if (!pendientes.current.length) return;
+    notificarSubidaCliente(pendientes.current);
+    setAvisados(n => n + pendientes.current.length);
+    pendientes.current = [];
+    setCantidad(0);
+  }, []);
+
+  const agregar = useCallback((items) => {
+    pendientes.current.push(...items);
+    setCantidad(pendientes.current.length);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(enviar, ESPERA_AVISO);
+  }, [enviar]);
+
+  useEffect(() => {
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === "hidden") { if (!eligiendo.current) enviar(); }
+      else eligiendo.current = false; // volvió de la cámara / el selector de archivos
+    };
+    const alVolverFoco = () => { eligiendo.current = false; }; // cerró el selector de archivos sin elegir
+    document.addEventListener("visibilitychange", alCambiarVisibilidad);
+    window.addEventListener("pagehide", enviar);
+    window.addEventListener("focus", alVolverFoco);
+    return () => { document.removeEventListener("visibilitychange", alCambiarVisibilidad); window.removeEventListener("pagehide", enviar); window.removeEventListener("focus", alVolverFoco); clearTimeout(timer.current); };
+  }, [enviar]);
+
+  return { agregar, enviar, cantidad, avisados, eligiendo: (v = true) => { eligiendo.current = v; } };
+}
+
+function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion }) {
   const [enviados, setEnviados] = useState(null);
   const [subiendo, setSubiendo] = useState(null); // tipo en curso
   const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
@@ -115,10 +157,11 @@ function SubirDocumentacion({ caso, patente, dni }) {
   const porTipo = {};
   enviados.forEach(e => { (porTipo[e.tipo] ||= []).push(e); });
 
-  const elegir = (tipo) => { tipoRef.current = tipo; setAviso(null); inputRef.current?.click(); };
+  const elegir = (tipo) => { tipoRef.current = tipo; setAviso(null); avisoSesion?.eligiendo(); inputRef.current?.click(); };
   const alElegir = async (e) => {
     const archivos = Array.from(e.target.files || []);
     e.target.value = "";
+    avisoSesion?.eligiendo(false); // ya eligió: si ahora se va a otra app, sale el mail
     const tipo = tipoRef.current;
     if (!archivos.length || !tipo) return;
     setSubiendo(tipo);
@@ -128,7 +171,7 @@ function SubirDocumentacion({ caso, patente, dni }) {
       const r = await subirDocumentoCliente({ patente, dni, casoId: caso.id, tipo, file });
       if (r.ok) { ok++; subidos.push({ tipo: etiquetaDoc(tipo), nombre: file.name }); } else { error = r.error; break; }
     }
-    if (subidos.length) notificarSubidaCliente({ caso, archivos: subidos }); // aviso por mail al estudio (no hace esperar al cliente)
+    if (subidos.length) avisoSesion?.agregar(subidos.map(s => ({ ...s, caso }))); // el mail sale uno solo por sesión
     setSubiendo(null);
     setAviso(error ? { tipo, ok: false, texto: error } : { tipo, ok: true, texto: ok === 1 ? "¡Recibido! Gracias." : `¡Recibimos ${ok} archivos! Gracias.` });
     cargar();
@@ -165,7 +208,7 @@ function SubirDocumentacion({ caso, patente, dni }) {
   );
 }
 
-function TarjetaCaso({ caso, patente, dni }) {
+function TarjetaCaso({ caso, patente, dni, aviso }) {
   const cerrado = ["cobrado", "desistido"].includes(caso.estado);
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
@@ -202,7 +245,7 @@ function TarjetaCaso({ caso, patente, dni }) {
         </section>
       )}
 
-      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} />}
+      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} />}
 
       {(cobras > 0 || (ofrecido > 0 && !cerrado)) && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
@@ -227,6 +270,7 @@ function TarjetaCaso({ caso, patente, dni }) {
 // Vista pública del cliente: entra con patente + últimos 3 números del DNI.
 // La consulta pasa por la función consultar_caso_cliente (sql/2026-09-23_04), que solo devuelve datos si ambos coinciden.
 export default function PortalCliente() {
+  const aviso = useAvisoDeSesion();
   const { darkMode, toggleDarkMode } = useTheme();
   const [patente, setPatente] = useState(() => limpiarPatente(new URLSearchParams(window.location.search).get("patente") || ""));
   const [dni, setDni] = useState("");
@@ -257,7 +301,7 @@ export default function PortalCliente() {
     }
   };
 
-  const salir = () => { setCasos(null); setDni(""); setError(""); };
+  const salir = () => { aviso.enviar(); setCasos(null); setDni(""); setError(""); };
   const nombre = primerNombre(casos?.[0]?.asegurado || ""); // "APELLIDO NOMBRE" → Nombre
   const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 10, color: "var(--text)", padding: "13px 14px", fontSize: 18, width: "100%", boxSizing: "border-box", fontFamily: "var(--mono)", fontWeight: 600, letterSpacing: 1.5, textAlign: "center", outline: "none" };
   const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 };
@@ -313,8 +357,20 @@ export default function PortalCliente() {
               {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : "Así va tu reclamo."}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              {casos.map(c => <TarjetaCaso key={c.id} caso={c} patente={patente} dni={dni} />)}
+              {casos.map(c => <TarjetaCaso key={c.id} caso={c} patente={patente} dni={dni} aviso={aviso} />)}
             </div>
+            {(aviso.cantidad > 0 || aviso.avisados > 0) && (
+              <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                {aviso.cantidad > 0 ? (
+                  <>
+                    <span style={{ fontSize: 14, lineHeight: 1.45 }}>Recibimos {aviso.cantidad === 1 ? "1 archivo" : `${aviso.cantidad} archivos`}. Cuando termines de mandar todo, avisale al estudio.</span>
+                    <Boton variante="primario" onClick={aviso.enviar} style={{ width: "100%", padding: 12, fontSize: 15 }}>Listo, ya mandé todo</Boton>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 14, color: "var(--ok)", fontWeight: 600 }}>✓ Le avisamos al estudio. ¡Gracias!</span>
+                )}
+              </div>
+            )}
             <div style={{ marginTop: 24, textAlign: "center" }}>
               <BotonWhatsApp patente={casos[0]?.patente} texto="Consultar por WhatsApp" />
             </div>
