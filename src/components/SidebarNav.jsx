@@ -5,15 +5,14 @@ import Icono from "./ui/Icono.jsx";
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
   { k: "casos", l: "Casos", icon: "casos" },
-  { k: "contactos", l: "Contactos", icon: "telefono" },
-  { k: "contactados", l: "Contactados", icon: "check" },
+  { k: "prospeccion", l: "Prospección", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
   { k: "analisis", l: "Análisis", icon: "grafico" },
   { k: "portal", l: "Portal", icon: "portal" },
 ];
 
 // En celular entran 4 pestañas + "Más"
-const TABS_MOVIL = ["dashboard", "casos", "contactos", "clientes"];
+const TABS_MOVIL = ["dashboard", "casos", "prospeccion", "clientes"];
 
 function SelectorAcento() {
   const { acento, setAcento, ACENTOS } = useTheme();
@@ -137,7 +136,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           );
         })}
         <button type="button" onClick={() => setShowMas(v => !v)} aria-expanded={showMas}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: ["contactados", "analisis", "portal"].includes(mainTab) || showMas ? T.accentInk : T.muted, fontSize: 11, fontWeight: 500 }}>
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: ["analisis", "portal"].includes(mainTab) || showMas ? T.accentInk : T.muted, fontSize: 11, fontWeight: 500 }}>
           <Icono nombre="mas" size={20} />Más
         </button>
       </nav>

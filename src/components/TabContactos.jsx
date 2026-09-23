@@ -143,33 +143,15 @@ export default function TabContactos({
 
   return (
     <>
-      <div style={{ display: "flex", gap: 6, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 10, overflowX: "auto", paddingBottom: 2, alignItems: "center" }}>
         {VISTAS_C.map(v => {
           const activa = vista === v.key;
           return (
-            <button
-              key={v.key}
-              type="button"
-              onClick={() => { setVista(v.key); setBusqueda(""); }}
-              aria-pressed={activa}
-              style={{
-                flex: "1 0 auto",
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: `1px solid ${activa ? v.color : "var(--border)"}`,
-                background: activa ? alpha(v.color, 13) : "var(--card)",
-                color: activa ? "var(--text)" : "var(--sub)",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                textAlign: "center",
-              }}
-            >
-              {v.label}
-              <br />
-              <span className="num" style={{ fontSize: 14, fontWeight: 700 }}>
-                {conteos[v.key] != null ? conteos[v.key].toLocaleString("es-AR") : "…"}
-              </span>
+            <button key={v.key} type="button" onClick={() => { setVista(v.key); setBusqueda(""); }} aria-pressed={activa}
+              style={{ flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: 999, fontSize: 12, cursor: "pointer", fontWeight: activa ? 700 : 500,
+                border: `1px solid ${activa ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activa ? "var(--text)" : "var(--sub)" }}>
+              {v.label}{" "}
+              <span className="num" style={{ fontWeight: 700, color: "var(--text)" }}>{conteos[v.key] != null ? conteos[v.key].toLocaleString("es-AR") : "…"}</span>
             </button>
           );
         })}
@@ -221,6 +203,7 @@ export default function TabContactos({
         </div>
       )}
 
+      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
       {visibles.map(p => (
         <PASCard
           key={p.id}
@@ -237,6 +220,7 @@ export default function TabContactos({
           darkMode={darkMode}
         />
       ))}
+      </div>}
 
       {(hayMas || cargando) && (
         <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>

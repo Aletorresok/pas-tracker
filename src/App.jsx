@@ -20,8 +20,7 @@ import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
 import TabAnalisis from './components/TabAnalisis.jsx'
 import TabClientes from './components/TabClientes.jsx'
-import TabContactos from './components/TabContactos.jsx'
-import TabContactados from './components/TabContactados.jsx'
+import TabProspeccion from './components/TabProspeccion.jsx'
 import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import PortalCliente from './components/portal/PortalCliente.jsx';
@@ -101,19 +100,27 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   }, [reloadAllData]);
 
-  const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, recordatorio }) => {
+  // Registra el contacto y, según cómo quedó, lo marca como derivador o descartado
+  const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, decision }) => {
+    const id = modalPas.id;
     const entry = { fecha, resultados, nota, ts: Date.now() };
-    const updated = { ...historial, [modalPas.id]: [...(historial[modalPas.id] || []), entry] };
-    setHistorial(updated);
-    await insertHistorialEntry(modalPas.id, entry);
+    setHistorial(prev => ({ ...prev, [id]: [...(prev[id] || []), entry] }));
+    await insertHistorialEntry(id, entry);
 
-    if (recordatorio && resultados.includes("volver_contactar")) {
-      const updatedRec = { ...recordatorios, [modalPas.id]: recordatorio };
-      setRecordatorios(updatedRec);
-      await saveStorage("pas_recordatorios", updatedRec);
+    const quiereDerivador = decision === "deriva";
+    const quiereDescartado = decision === "descarta";
+    if (!!derivadores[id] !== quiereDerivador) {
+      const upd = { ...derivadores, [id]: quiereDerivador };
+      setDerivadores(upd);
+      await saveStorage("pas_derivadores", upd);
+    }
+    if (!!descartados[id] !== quiereDescartado) {
+      const upd = { ...descartados, [id]: quiereDescartado };
+      setDescartados(upd);
+      await saveStorage("pas_descartados", upd);
     }
     setModalPas(null);
-  }, [historial, modalPas, recordatorios]);
+  }, [modalPas, derivadores, descartados]);
 
   const handleSaveCasos = useCallback(async (pasId, list, pasNombre) => {
     const updated = { ...casos, [pasId]: list };
@@ -227,15 +234,14 @@ export default function App() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "contactados" && <TabContactados pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
           {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
       </main>
 
       {/* MODALES */}
-      {modalPas && <ContactModal pas={modalPas} onClose={() => setModalPas(null)} onSave={handleSaveContacto} darkMode={darkMode} />}
+      {modalPas && <ContactModal pas={modalPas} esDerivador={!!derivadores[modalPas.id]} esDescartado={!!descartados[modalPas.id]} onClose={() => setModalPas(null)} onSave={handleSaveContacto} />}
     </div>
   );
 }

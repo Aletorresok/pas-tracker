@@ -2,7 +2,6 @@ import { fmtMoney } from "../../utils/formatters.js";
 import { netoYo } from "../../utils/metricas.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
 
-const VISIBLES = 6;
 
 // Versión compacta de "Cobros pendientes" para la pantalla Hoy. El detalle completo está en Análisis.
 export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
@@ -14,7 +13,8 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Cobros pendientes</h2>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{cobros.length} · mi neto <b className="num" style={{ color: "var(--text)" }}>{fmtMoney(totalNeto)}</b></span>
       </div>
-      {cobros.slice(0, VISIBLES).map((c, i) => (
+      <div className="lista-scroll" style={{ maxHeight: 300, overflowY: "auto", marginRight: -8, paddingRight: 8 }}>
+      {cobros.map((c, i) => (
         <button key={c.id} type="button" onClick={() => onAbrir(c)}
           style={{
             width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "2px 10px", alignItems: "center",
@@ -27,9 +27,10 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
           <span>{c.fechaEstimada ? <PlazoChip vence={c.fechaEstimada} /> : <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin fecha</span>}</span>
         </button>
       ))}
+      </div>
       <button type="button" onClick={onVerTodos}
         style={{ marginTop: 4, background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", padding: "4px 0" }}>
-        {cobros.length > VISIBLES ? `Ver los ${cobros.length} en Análisis →` : "Ver detalle en Análisis →"}
+        Ver detalle en Análisis →
       </button>
     </section>
   );

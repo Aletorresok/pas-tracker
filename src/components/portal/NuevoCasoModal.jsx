@@ -102,8 +102,8 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#000000aa", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "0 10px 25px #00000033" }}>
+    <div className="modal-portal" style={{ position: "fixed", inset: 0, background: "color-mix(in srgb, #000 60%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>Derivar Nuevo Caso</div>
