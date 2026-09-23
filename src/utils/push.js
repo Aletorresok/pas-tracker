@@ -2,8 +2,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabase.js";
 
-// Clave pública VAPID (no es secreta). La privada vive solo en los secretos de la función en Supabase.
-const VAPID_PUBLICA = "BG56lmu7ADA639x4dh0CZhxLOLDHyIVm9pNoy2cNX2TgL93_gNFYr_dzvvYugjoMZTy1FxSFhLbqYeQsQsRUOKw";
+// La clave pública VAPID la da la función (la genera ella misma la primera vez; la privada nunca sale de Supabase)
+async function clavePublica() {
+  const { data, error } = await supabase.functions.invoke("notificar", { body: { tipo: "clave" } });
+  if (error || !data?.clave) throw new Error("sin-funcion");
+  return data.clave;
+}
 
 const aBytes = b64 => {
   const s = atob((b64 + "=".repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/"));
@@ -37,7 +41,12 @@ export function useNotificaciones() {
     try {
       if ((await Notification.requestPermission()) !== "granted") return revisar();
       const reg = await navigator.serviceWorker.ready;
-      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(VAPID_PUBLICA) });
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        let clave;
+        try { clave = await clavePublica(); } catch { setError("La función \"notificar\" no respondió (¿está creada en Supabase?)."); return revisar(); }
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(clave) });
+      }
       const j = sub.toJSON();
       const { error: err } = await supabase.from("pas_push_suscripciones").upsert({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, dispositivo: nombreDispositivo() }, { onConflict: "endpoint" });
       if (err) { console.error("[push] guardar:", err); setError("No se pudo guardar en la base (¿falta el SQL 17?)."); await sub.unsubscribe(); }

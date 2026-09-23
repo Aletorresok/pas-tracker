@@ -135,6 +135,12 @@ create table public.pas_avisos (
   creado  timestamp with time zone not null default now()
 );
 
+-- Configuración interna de la función "notificar" (sus claves VAPID). RLS sin políticas (SQL 17)
+create table public.pas_config (
+  clave  text primary key,
+  valor  text not null
+);
+
 -- Margen de "reclamo quieto" por compañía; '*' = general (SQL 14)
 create table public.pas_margen_companias (
   compania  text primary key,

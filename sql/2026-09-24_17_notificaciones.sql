@@ -1,5 +1,5 @@
 -- Notificaciones en el celular / la PC (Web Push).
--- Crea dos tablas nuevas; no toca datos existentes. Se puede volver a correr sin problema.
+-- Crea tres tablas nuevas; no toca datos existentes. Se puede volver a correr sin problema.
 
 -- 1) Cada dispositivo donde activaste las notificaciones (lo guarda la app al tocar "Activar")
 create table if not exists public.pas_push_suscripciones (
@@ -22,6 +22,13 @@ create table if not exists public.pas_avisos (
 );
 alter table public.pas_avisos enable row level security;
 
+-- 3) Configuración interna de la función (sus claves VAPID, que genera sola la primera vez). Sin permisos para la app.
+create table if not exists public.pas_config (
+  clave  text primary key,
+  valor  text not null
+);
+alter table public.pas_config enable row level security;
+
 -- Control
 select count(*) as tablas from information_schema.tables
- where table_schema = 'public' and table_name in ('pas_push_suscripciones', 'pas_avisos');
+ where table_schema = 'public' and table_name in ('pas_push_suscripciones', 'pas_avisos', 'pas_config');
