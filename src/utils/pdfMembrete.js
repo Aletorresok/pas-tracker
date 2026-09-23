@@ -1,6 +1,5 @@
 // Membrete de ATG Lex Solutions para los PDF (jsPDF, unidades en mm).
 // El monograma se dibuja en vector con los mismos polígonos que ui/Logo.jsx (viewBox 594×400), así sale nítido al imprimir.
-import { FIRMA } from "./mensajes.js";
 
 const MONOGRAMA = [
   [[149.4, 0], [458.3, 0], [499, 55], [128.8, 55]],
@@ -23,31 +22,20 @@ export function dibujarMonograma(doc, x, y, alto, color = DORADO) {
   return 594 * k;
 }
 
-export const MATRICULA = "T°142 F°636 CPACF · L°IV F°20 CAMGR";
-export const TELEFONO = "+54 9 11 3313-3259";
-
-// Pie de página en todas las hojas: línea dorada, monograma, estudio, abogado, matrícula y teléfono.
-// `extra` (opcional) va a la derecha, por ejemplo "Pág. 1/2".
-export function dibujarPie(doc, { margen = 20, ancho = 170, extra } = {}) {
+// Pie de página en todas las hojas: línea dorada, monograma y "ATG Lex Solutions".
+export function dibujarPie(doc, { margen = 20, ancho = 170 } = {}) {
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    const y = 272;
+    const y = 274;
     doc.setDrawColor(DORADO);
     doc.setLineWidth(0.3);
     doc.line(margen, y, margen + ancho, y);
-    const w = dibujarMonograma(doc, margen, y + 4, 8);
-    const x = margen + w + 3.5;
+    const w = dibujarMonograma(doc, margen, y + 4, 7);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(9.5);
     doc.setTextColor(AZUL);
-    doc.text("ATG Lex Solutions", x, y + 7);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor("#5B6272");
-    doc.text(`${FIRMA} · ${MATRICULA} · ${TELEFONO}`, x, y + 11.2);
-    const derecha = typeof extra === "function" ? extra(i, total) : extra;
-    if (derecha) doc.text(derecha, margen + ancho, y + 7, { align: "right" });
+    doc.text("ATG Lex Solutions", margen + w + 3.5, y + 9.4);
   }
   doc.setTextColor("#000000");
   doc.setDrawColor("#000000");
