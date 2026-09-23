@@ -4,6 +4,7 @@ import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 import BarraAvance from "../ui/BarraAvance.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import Boton from "../ui/Boton.jsx";
+import Icono from "../ui/Icono.jsx";
 
 const FECHAS = [
   { k: "fecha_derivacion", l: "Derivación" },
@@ -20,7 +21,7 @@ const MONTOS = [
 ];
 
 // Tarjeta de un caso en el portal del PAS: lo esencial arriba, el detalle al tocar
-export default function PortalCasoCard({ caso }) {
+export default function PortalCasoCard({ caso, proximoEvento }) {
   const [open, setOpen] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
   const [aviso, setAviso] = useState(null); // { tipo, texto }
@@ -74,6 +75,13 @@ export default function PortalCasoCard({ caso }) {
         </div>
 
         <BarraAvance estado={caso.estado} conPill={false} conEtiquetas />
+
+        {proximoEvento && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text)", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 8, padding: "8px 10px" }}>
+            <Icono nombre="calendario" size={16} />
+            <span><b>{proximoEvento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> <span className="num">{new Date(proximoEvento.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}, {new Date(proximoEvento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs</span></span>
+          </div>
+        )}
 
         {caso.origen === "portal" && (
           <div style={{ fontSize: 12, color: caso.revisado_en ? "var(--ok)" : "var(--muted)" }}>

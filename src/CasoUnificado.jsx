@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { formatoFecha, getExtension } from "./utils/formatters.js";
+import { formatoFecha } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
-import { cargarArchivos } from "./utils/carpeta.js";
-import { categorizarArchivo, renombrarArchivo } from "./utils/categorizarArchivo.js";
 import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
 
@@ -54,8 +52,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
-  const [archivos, setArchivos] = useState([]);
-  const [archivosActualizando, setArchivosActualizando] = useState(false);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [toast, setToast] = useState(null);
   const [guardando, setGuardando] = useState(false);
@@ -95,7 +91,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [formData]);
 
-  useEffect(() => { recargarArchivos(); cargarAcciones(); }, [caso.id]);
+  useEffect(() => { cargarAcciones(); }, [caso.id]);
 
   // Documentación que mandó el cliente desde su vista y todavía está en la nube
   const [recepcion, setRecepcion] = useState([]);
@@ -110,26 +106,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   useRealtimeSync("pas_casos", "id", caso.id, (dato) => { setCaso(dato); setFormData(p => ({ ...p, ...dato })); });
   useRealtimeAcciones(caso.id, () => { cargarAcciones(); });
 
-  const recargarArchivos = async () => {
-    setArchivosActualizando(true);
-    await cargarArchivos({ pasId, casoId: caso.id, getExtension, onSuccess: setArchivos, onError: msg => setToast({ msg, type: "error" }) });
-    setArchivosActualizando(false);
-  };
-
   const cargarAcciones = async () => {
     if (!caso.id) return;
     setLoadingAcciones(true);
     const { data, error } = await supabase.from("acciones").select("*").eq("caso_id", caso.id).order("fecha", { ascending: false });
     if (!error) setAcciones(data || []);
     setLoadingAcciones(false);
-  };
-
-  const handleCategorizarArchivo = async (archivo, tipo) => {
-    await categorizarArchivo({ pasId, casoId: caso.id, archivo, tipo, archivos, onSuccess: ({ nuevoNombre }) => { setToast({ msg: `Renombrado como ${nuevoNombre}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
-  };
-
-  const handleRenombrarArchivo = async (archivo, nuevoNombre) => {
-    await renombrarArchivo({ pasId, casoId: caso.id, archivo, nuevoNombre, onSuccess: ({ nuevoNombre: n }) => { setToast({ msg: `Renombrado como ${n}`, type: "success" }); recargarArchivos(); }, onError: msg => setToast({ msg, type: "error" }) });
   };
 
   const handleCrearAccion = async ({ fecha, descripcion }) => {
@@ -228,7 +210,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     { k: "resumen", l: "Resumen" },
     { k: "datos", l: "Datos" },
     { k: "montos", l: "Montos y honorarios" },
-    { k: "documentos", l: recepcion.length ? `Documentos · ${recepcion.length} nuevo${recepcion.length > 1 ? "s" : ""}` : "Documentos", n: recepcion.length ? undefined : archivos.length },
+    { k: "documentos", l: recepcion.length ? `Documentos · ${recepcion.length} nuevo${recepcion.length > 1 ? "s" : ""}` : "Documentos" },
     { k: "bitacora", l: "Bitácora", n: acciones.length },
   ];
   const TEXTO_GUARDADO = { guardado: "✓ Guardado", pendiente: "Sin guardar…", guardando: "Guardando…", error: "No se guardó · reintentar" };
@@ -308,11 +290,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div {...panel("documentos")}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
-                <Boton tamaño="sm" icono="recargar" onClick={recargarArchivos} disabled={archivosActualizando}>{archivosActualizando ? "Actualizando…" : "Actualizar archivos"}</Boton>
               </div>
               <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <div style={{ marginBottom: 16 }}><ChecklistDocumental documentacion={formData.documentacion} onChange={v => handleFormChange("documentacion", v)} Th={Th} /></div>
-              <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
+              <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>
             <div {...panel("bitacora")}>
               <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th} />
@@ -323,7 +304,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
-      <ModalGenerarEscrito dniInicial={formData.dni_asegurado} onDniNuevo={v => handleFormChange("dni_asegurado", v)} isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") recargarArchivos(); }} onError={msg => setToast({ msg, type: "error" })} />
+      <ModalGenerarEscrito dniInicial={formData.dni_asegurado} onDniNuevo={v => handleFormChange("dni_asegurado", v)} isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") setVersionCarpeta(v => v + 1); }} onError={msg => setToast({ msg, type: "error" })} />
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </>
   );

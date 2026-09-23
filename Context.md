@@ -15,7 +15,7 @@
 *   `main.jsx` — monta la app con `ThemeProvider` y rutas: `/portal/*` → `Portal.jsx`; el resto → `App.jsx`.
 *   `App.jsx` — si la URL es `?vista=cliente` muestra `PortalCliente`; si no, `LoginGate` → `AppPrincipal`: carga datos (`usePASData`), pestañas, buscador (Ctrl+K), ficha abierta desde el buscador, Realtime de casos nuevos, handlers (`handleCasoLocal`, `handleQuitarCaso`, contactos, backup).
 *   `Portal.jsx` — sesión de Supabase Auth del PAS → `LoginScreen` o `PortalHome`.
-*   `supabase.js` (cliente) · `constants.js` (`ESTADOS_CASO`, `estadoInfo`, vistas de contactos) · `index.css` (tokens, temas, reglas de celular).
+*   `supabase.js` (cliente) · `constants.js` (`ESTADOS_CASO`, `estadoInfo`, `TIPOS_DOC`, `DOCS_REQUERIDOS_RECLAMO`, estados de honorarios, vistas de contactos) · `index.css` (tokens, temas, reglas de celular).
 
 **Acceso**
 *   `components/LoginGate.jsx` — cuenta de Supabase (una vez por navegador, solo cuentas en `pas_admins`) + PIN por pestaña; 5 PIN mal = cierra sesión. Exporta `cerrarSesion`.
@@ -39,7 +39,7 @@
 *   `caso/CasoOverlay.jsx` — abre la ficha encima de cualquier pantalla (marca revisados los casos del portal).
 *   Resumen: `caso/ResumenCaso.jsx` (próxima acción `CasoProximaAccion.jsx`, mensaje al cliente + "Copiar link del cliente" + `AvisarWhatsApp.jsx`, últimos movimientos, `AgendaCaso.jsx`, números).
 *   Datos: `SeccionInfo.jsx` (asegurado, patente, compañía `CompaniaSelector.jsx`, DNI, teléfono) · `SeccionFechas.jsx`. Montos: `SeccionMontos.jsx` · `SeccionHonorarios.jsx`.
-*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access) · `ArchivoRow.jsx`.
+*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access).
 *   Bitácora: `SeccionTimeline.jsx`. Otros: `ModalGenerarEscrito.jsx`, `PreviewModal.jsx`, `Toast.jsx`, `EstadoSelector.jsx`.
 
 **Portal PAS y vista del cliente** (`components/portal/`)
@@ -51,13 +51,13 @@
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `context/ThemeContext.jsx` (tema y acento).
 
 **Utilidades** (`utils/`)
-*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` / `categorizarArchivo.js` (archivos; ver pendientes).
+*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda).
 *   **Prospección:** `pas_contactos` (~51 mil), `pas_historial`, `pas_derivadores`, `pas_descartados`, `pas_manuales`, `pas_recordatorios` (sin uso).
 *   **Portal y acceso:** `pas_lista`, `pas_portal_users`, `pas_admins`, `pas_cliente_intentos`, `pas_subidas_cliente`.
-*   **Funciones:** `es_admin`, `mi_pas_id`, `plazos_companias`, `consultar_caso_cliente`, `cliente_es_dueno`, `autorizar_subida_cliente`, `subida_autorizada`, `confirmar_subida_cliente`, `documentos_enviados_cliente`. **Triggers:** fecha del mensaje al cliente.
+*   **Funciones:** `es_admin`, `mi_pas_id`, `plazos_companias`, `consultar_caso_cliente`, `cliente_es_dueno`, `autorizar_subida_cliente`, `subida_autorizada`, `confirmar_subida_cliente`, `documentos_enviados_cliente`, `extras_cliente`. **Triggers:** fecha del mensaje al cliente.
 *   **Storage:** `adjuntos` (público por link; cada PAS sube a su carpeta) y `recepcion` (privado; buzón de paso de lo que sube el cliente).
 
 ## 🔄 Flujos principales
@@ -70,28 +70,33 @@
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
-- [ ] Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist.
+- [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [ ] Margen de "reclamo quieto" ajustable por compañía.
 - [ ] Plantilla de EmailJS aparte para la documentación del cliente (asunto propio).
-- [ ] Mostrar al PAS (portal) y al cliente la próxima mediación agendada.
+- [x] ✅ Mostrar al PAS (portal) y al cliente la próxima mediación/audiencia agendada (24/09, requiere SQL 13).
 - [ ] F10 · carga del caso desde la denuncia con IA: descartada por ahora (costo).
 
-**Código sin uso (se puede borrar):**
-- [ ] `components/clientes/ClienteCards.jsx`, `components/caso/FiltrosEstados.jsx`, `components/dashboard/MisPendientesCard.jsx`, `components/dashboard/StatCard.jsx` (nadie los importa).
-- [ ] `main.js` en la raíz (copia vieja de `src/main.jsx`; `index.html` usa `src/main.jsx`).
-- [ ] Bucket `casos` inexistente: `utils/carpeta.js` (`subirArchivo`, `cargarArchivos`), `categorizarArchivo.js` (mover/renombrar en Storage) y el botón "Actualizar archivos" de Documentos lo usan y fallan sin avisar. Decisión del usuario: los documentos van solo a la PC.
-- [ ] `pas_casos.notas_log` y `recordatorio`, tabla `pas_recordatorios`, `RESULTADOS_CONTACTO` en `constants.js` (sin uso visible).
-- [ ] Tablas de otra versión: `aseguradoras`, `casos`, `gestiones_judiciales`.
+**Código sin uso:**
+- [x] ✅ Borrado el 24/09: `ClienteCards.jsx`, `FiltrosEstados.jsx`, `MisPendientesCard.jsx`, `StatCard.jsx`, `ArchivoRow.jsx`, `utils/categorizarArchivo.js`, `main.js` de la raíz, las funciones de Storage de `utils/carpeta.js`, la lista de archivos "de Supabase" y el botón "Actualizar archivos" de Documentos, `RESULTADOS_CONTACTO` y `EXTENSIONES_VALIDAS`. `TIPOS_DOC` y `DOCS_REQUERIDOS_RECLAMO` viven ahora en `constants.js`.
+- [ ] En la base (requiere SQL, a decidir): `pas_casos.notas_log` (lo usa todavía `PortalCasoCard` para "último movimiento") y `recordatorio`, tabla `pas_recordatorios`; tablas de otra versión `aseguradoras`, `casos`, `gestiones_judiciales`.
 
 **Deuda técnica:**
 - [ ] Fechas guardadas como texto: `pas_casos.fecha_siniestro`, `fecha_derivacion`, `fecha_contacto_asegurado`, `fecha_inicio_reclamo`, `fecha_ultimo_movimiento`; `pas_historial.fecha`.
 - [ ] IDs de PAS inconsistentes: `pas_contactos.id` es texto; `pas_id` en el resto es integer.
-- [ ] ID de PAS manual aleatorio (`100000 + random`) en `clientes/ModalesCliente.jsx`: riesgo de choque; mejor secuencia o UUID.
-- [ ] Mail del administrador escrito en el código (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo; `PortalHome` lo usa para ver todos los casos — hoy lo decide RLS, se puede quitar).
+- [x] ✅ ID de PAS manual: se genera en `App.handleAddPasManual` y se descarta si ya existe (antes podía pisar a otro PAS manual).
+- [x] ✅ `PortalHome` ya no usa el mail del administrador: pregunta `es_admin()`. (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo.)
 - [ ] PIN 3934 en el código: aceptado como bloqueo rápido; la seguridad real es la cuenta + RLS.
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — Mejoras: "Ya lo tenemos", próxima mediación en portal y cliente, ID de PAS manual, admin sin mail (SQL 13 pendiente de ejecutar)
+*   **Cliente** (`PortalCliente.jsx`): los documentos que tildaste en el checklist del caso aparecen como "✓ Ya lo tenemos" (se puede agregar más igual). Si hay una **mediación o audiencia** agendada, la ve con día y hora ("te confirmamos los detalles por WhatsApp"; no ve link ni lugar). Todo sale de la función nueva `extras_cliente` (`utils/subidasCliente.extrasCliente`); sin el SQL 13 sigue funcionando como antes.
+*   **Portal PAS** (`PortalHome` → `PortalCasoCard`): cada tarjeta muestra la próxima mediación/audiencia del caso. El PAS solo **lee** la agenda de sus propios casos (política `pas_ve_eventos`).
+*   **Admin en el portal:** `PortalHome` decide "ver todos los casos" con `es_admin()` en vez del mail escrito en el código.
+*   **PAS manual:** el ID nuevo se genera al guardar y se descarta si ya lo usa otro PAS (el guardado pisa por ID).
+*   **SQL:** `sql/2026-09-24_13_extras_cliente_y_portal.sql` (función `extras_cliente` + política de lectura de `pas_eventos` para el PAS). Se puede correr más de una vez.
+*   **Limpieza** (mismo PR): borrado del código sin uso listado en "Pendientes".
 
 ### 2026-09-22 — Rama `claude/kind-carson-68fvrx`
 *   **Variables de entorno:** `src/supabase.js` y `src/utils/portalStorageUtils.js` leen credenciales de `import.meta.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_TEMPLATE_ID`, `VITE_EMAILJS_PUBLIC_KEY`). Plantilla en `.env.example`. Hay que cargarlas en `.env` local **y** en Vercel antes de deployar.

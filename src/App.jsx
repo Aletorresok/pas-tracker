@@ -180,11 +180,18 @@ function AppPrincipal() {
     await saveStorage("pas_descartados", updated);
   }, [descartados]);
 
-  const handleAddPasManual = useCallback(async (nuevoPas) => {
+  const handleAddPasManual = useCallback(async (datos) => {
+    // PAS nuevo: número libre en el rango de los manuales (el guardado pisa por id, así que no puede repetirse)
+    let id = datos.id;
+    if (id == null) {
+      const usados = new Set([...pas, ...pasManuales].map(p => String(p.id)));
+      do { id = 100000 + Math.floor(Math.random() * 1900000); } while (usados.has(String(id)));
+    }
+    const nuevoPas = { ...datos, id };
     const updated = [...pasManuales.filter(p => p.id !== nuevoPas.id), nuevoPas];
     setPasManuales(updated);
     await upsertPasManual(nuevoPas);
-  }, [pasManuales]);
+  }, [pas, pasManuales]);
 
   const handleBackup = useCallback(() => {
     const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, recordatorios, descartados };
