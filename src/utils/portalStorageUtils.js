@@ -43,3 +43,24 @@ export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, arch
   await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
   return linksAdjuntos;
 }
+/**
+ * Avisa por mail (mismo servicio y plantilla que las derivaciones) que un cliente subió documentación
+ * desde su vista. No lleva links: los archivos están en una carpeta privada y se guardan desde PAS Tracker.
+ */
+export async function notificarSubidaCliente({ caso, archivos }) {
+  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !archivos?.length) return;
+  const lista = archivos.map(a => `📎 ${a.tipo}: ${a.nombre}`).join("\n");
+  const templateParams = {
+    pas_nombre: "Cliente, desde su vista de seguimiento",
+    asegurado: `${caso.asegurado || "Cliente"} (DOCUMENTACIÓN DEL CLIENTE)`,
+    telefono: caso.patente ? `Patente ${caso.patente}` : "N/D",
+    fecha_siniestro: "—",
+    compania: caso.compania_aseguradora || "N/D",
+    links_archivos: `${lista}\n\nEstán esperando en PAS Tracker → Hoy → "Documentación recibida" (Guardar en el caso).`,
+  };
+  try {
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
+  } catch (e) {
+    console.error("[notificarSubidaCliente] no se pudo mandar el mail:", e);
+  }
+}
