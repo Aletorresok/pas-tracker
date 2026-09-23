@@ -43,7 +43,13 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-24 — Etapa 15: El cliente sube su documentación (✅ publicada, PR #17; falta correr SQL 11)
+### 2026-09-24 — Checklist de documentación manual (✅ publicada, PR #20; falta correr SQL 12)
+*   **Pedido del usuario:** el checklist de documentación es **manual**: solo el abogado, desde la ficha del caso, tilda qué documentación ya tiene (antes contaba archivos del bucket `casos`, que no existe, y siempre decía que faltaba todo).
+*   **SQL `2026-09-24_12_checklist_manual.sql`:** columna `pas_casos.documentacion jsonb` (tipo → fecha en que se tildó, ej. `{"DNI": "2026-09-24"}`).
+*   Ficha → **Documentos**: casillas para DNI, Licencia, Cédula, Fotos, Escrito, Denuncia, Certificado de cobertura, Presupuesto, Info del tercero; al tildar muestra "Lo tengo · fecha"; se guarda solo (autoguardado de la ficha). "Faltan para el reclamo" se calcula con los necesarios sin tildar (DNI, Denuncia, Certificado, Presupuesto, marcados con *). Si la columna no existe todavía, la ficha no la manda al guardar y el checklist avisa que falta el SQL.
+*   No se tilda nada automáticamente (ni al guardar lo que manda el cliente).
+
+### 2026-09-24 — Etapa 15: El cliente sube su documentación (✅ publicada, PR #17 + #18 + #19; SQL 11 ejecutado el 24/09)
 *   **Idea:** Supabase como **buzón de paso**. El cliente sube desde su vista; el estudio lo guarda en la carpeta local del caso y se **borra de la nube** (el usuario no quiere pagar espacio).
 *   **SQL `2026-09-24_11_subidas_cliente.sql`:** bucket **privado `recepcion`** (15 MB por archivo, solo JPG/PNG/WEBP/HEIC/PDF); tabla **`pas_subidas_cliente`** (caso, tipo, nombre original, ruta, estado autorizada → subida → guardada, vence a los 15 min) con RLS de administrador; funciones `cliente_es_dueno` (interna), **`autorizar_subida_cliente`** (valida patente + DNI del caso, tipo permitido, máx. 40 por caso por día; devuelve la ruta), `subida_autorizada` (usada por la política de Storage: el anónimo solo puede subir a una ruta autorizada y vigente), `confirmar_subida_cliente` y `documentos_enviados_cliente`.
 *   **Vista del cliente** (`PortalCliente` → "Mandanos tu documentación", solo casos en curso): DNI, cédula, licencia, denuncia, certificado de cobertura, fotos, presupuesto, otro (los "necesarios" marcados). Botón **Subir** (cámara o PDF, varios a la vez); las fotos grandes se achican en el celular (máx. 2000 px, JPG) antes de subir. Muestra "✓ Enviado · fecha (n)" por tipo.

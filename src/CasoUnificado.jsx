@@ -36,7 +36,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente", "telefono_asegurado"
+  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -79,7 +79,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
-    patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
+    documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || ""
   });
 
@@ -177,6 +177,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       const fila = pickCols(updated);
       // Si la columna del plazo todavía no existe en la base, no la mandamos (evita error al guardar)
       if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;
+      // Checklist manual: solo se manda si la columna ya existe en la base
+      if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) { setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated); }
       else { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + (error.message || "error desconocido"), type: "error" }); }
@@ -309,7 +311,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 <Boton tamaño="sm" icono="recargar" onClick={recargarArchivos} disabled={archivosActualizando}>{archivosActualizando ? "Actualizando…" : "Actualizar archivos"}</Boton>
               </div>
               <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
-              <div style={{ marginBottom: 16 }}><ChecklistDocumental archivos={archivos} Th={Th} /></div>
+              <div style={{ marginBottom: 16 }}><ChecklistDocumental documentacion={formData.documentacion} onChange={v => handleFormChange("documentacion", v)} Th={Th} /></div>
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
             </div>
             <div {...panel("bitacora")}>
