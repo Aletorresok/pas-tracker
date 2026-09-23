@@ -72,7 +72,7 @@
 
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
-- [ ] Logo en los PDF (escritos y ficha del caso) y encabezado de los mails.
+- [x] ✅ Logo en los PDF (escrito y resumen del caso). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
 - [ ] Notificaciones (portal nuevo, documentación del cliente, mediación del día siguiente) ahora que la app es instalable.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
@@ -93,6 +93,10 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — Logo en los PDF y encabezado para los mails
+*   **PDF** (`utils/pdfMembrete.js`): membrete con el monograma dibujado en vector (mismos polígonos que `ui/Logo.jsx`), "ATG Lex Solutions", "Dr. Alexis Torres Gaveglio · Abogado" y una línea dorada. Lo usan el escrito de reclamo (`generarEscrito`) y el resumen del caso (`exportarCasoPDF`, cuyo pie ahora dice "ATG Lex Solutions" en vez de "PAS Tracker").
+*   **Mails:** `public/mail/encabezado.png` (1200×240, se muestra a 600 px) queda publicado en `https://pas-tracker20.vercel.app/mail/encabezado.png` para pegarlo arriba de las plantillas de EmailJS (derivaciones y documentación del cliente).
 
 ### 2026-09-24 — Identidad visual: logo, íconos, vista previa del link e ilustraciones
 *   **Logo:** de las propuestas de Gemini se eligió el **ATG macizo**. Se redibujó en vector midiendo la imagen (el SVG que armó Gemini eran rectángulos encimados y no se leía ATG). `ui/Logo.jsx` (`MONOGRAMA_PATH`, viewBox 594×400) toma el color del acento. Reemplaza los cuadraditos "PT"/"ATG" en la barra lateral, el ingreso al estudio, el ingreso y la cabecera del portal, y la cabecera del cliente.

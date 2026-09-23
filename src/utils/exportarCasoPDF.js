@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { dibujarMembrete } from "./pdfMembrete.js";
 
 function fmt(iso) {
   if (!iso) return "—";
@@ -59,6 +60,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     };
 
     // Header
+    y = dibujarMembrete(doc, { margen: margin, ancho: pageW });
     addLine(18, "bold", "Resumen del caso");
     addLine(10, "normal", `Generado el ${fmt(new Date().toISOString())}`, "#888888");
     y += 3;
@@ -158,7 +160,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor("#aaaaaa");
-      doc.text(`PAS Tracker — ${caso.asegurado || "Caso"} — Pág. ${i}/${totalPages}`, margin, 290);
+      doc.text(`ATG Lex Solutions — ${caso.asegurado || "Caso"} — Pág. ${i}/${totalPages}`, margin, 290);
     }
 
     const nombreArchivo = `Caso_${(caso.asegurado || "sin_nombre").replace(/\s+/g, "_")}.pdf`;
