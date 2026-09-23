@@ -43,7 +43,14 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-23 — Etapa 5: Ficha del caso con pestañas (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-23 — Etapa 6: Prospección (rama `claude/kind-carson-68fvrx`, en revisión)
+*   **Nueva pestaña "Prospección"** (`TabProspeccion`) reemplaza a Contactos y Contactados. Chips arriba: *Sin contactar* (la lista paginada de `TabContactos`, con sub-filtros Todos / Con teléfono / Varios teléfonos / Sin teléfono) y, para los ya contactados (`prospeccion/ListaContactados.jsx`): Volver a llamar, Positivos, Neutros, Negativos, No respondió, Derivadores, Todos los contactados, con cantidades.
+*   **Criterio de filtros**: se usa el **último** resultado registrado de cada PAS (su estado actual), no "alguna vez". Orden: contacto más reciente / hace más tiempo / nombre. "Mostrar más" de a 40 y "Ver descartados".
+*   **`PASCard` rediseñado** como fila compacta: nombre + etiqueta derivador/descartado, teléfono, último resultado y hace cuánto; botón de WhatsApp gris que se pone verde al pasar el mouse. Al tocar: interruptores "Deriva casos" / "Descartado", mail, teléfonos (llamar o WhatsApp), historial y "Registrar contacto". Se quitaron las marcas de recordatorios (en desuso).
+*   **`ContactModal` ahora guarda resultado y nota**: antes solo confirmaba la fecha y guardaba `resultados: []`, por eso los filtros de resultados solo tenían datos viejos. Ahora: chips de resultado (varios), nota opcional y fecha editable.
+*   Menú: "Contactos" y "Contactados" pasan a "Prospección" (también en la barra del celular). Se eliminó `TabContactados.jsx`.
+
+### 2026-09-23 — Etapa 5: Ficha del caso con pestañas (✅ publicada, PR #6)
 *   **`CasoUnificado` reorganizado**: encabezado fijo con nombre, patente, compañía, PAS y fecha de derivación; indicador de guardado ("✓ Guardado / Sin guardar… / Guardando… / No se guardó · reintentar"); botones PDF y **Generar escrito** (principal); cerrar arriba a la derecha. Al cerrar con cambios pendientes, guarda antes.
 *   **Línea de etapas** (`caso/EtapasCaso.jsx`): clic en una etapa cambia el estado; "Desistir"/"reactivar" aparte; "Deshacer" 6 s al pasar a Cobrado o Desistido.
 *   **Pestañas**: Resumen (`caso/ResumenCaso.jsx`: próxima acción con plazo, mensaje al cliente, números del caso, últimos 3 movimientos con agregado rápido), Datos (`SeccionInfo` sin estado ni mensaje + `SeccionFechas`), Montos y honorarios (`SeccionMontos` con `CampoMonto` + `SeccionHonorarios`), Documentos (ahora con `ChecklistDocumental`, que existía pero no se mostraba), Bitácora (agregado rápido "movimiento de hoy + Enter"; "Con otra fecha…" abre el formulario). Todas las pestañas quedan montadas y ocultas para no perder la carpeta local vinculada.
