@@ -16,7 +16,7 @@
 --   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
 --   · Storage: 'adjuntos' (público por link; subida solo a <pas_id>/ propio) y 'recepcion'
 --     (privado; lo que sube el cliente, con autorización de 15 minutos).
---   · Copias de seguridad: esquemas backup_20260922 y backup_20260924 (limpieza del SQL 15).
+--   · Copias de seguridad: esquemas backup_20260922, backup_20260924 (limpieza, SQL 15) y backup_fechas (SQL 16).
 -- ============================================================
 
 
@@ -31,7 +31,7 @@ create table public.pas_casos (
   estado                    text,                   -- doc_pendiente | iniciado | reclamado | con_ofrecimiento | en_mediacion | en_juicio | esperando_pago | cobrado | desistido
   nota                      text,
   nro_siniestro             text,
-  fecha_siniestro           text,                   -- ⚠ fecha guardada como texto (YYYY-MM-DD)
+  fecha_siniestro           date,                   -- era texto hasta el SQL 16
   ubicacion                 text,
   presupuesto               numeric,
   tercero_nombre            text,
@@ -44,10 +44,10 @@ create table public.pas_casos (
   dominio_tercero           text,
   relato                    text,
   comentarios               text,
-  fecha_derivacion          text,                   -- ⚠ texto
-  fecha_contacto_asegurado  text,                   -- ⚠ texto
-  fecha_inicio_reclamo      text,                   -- ⚠ texto
-  fecha_ultimo_movimiento   text,                   -- ⚠ texto
+  fecha_derivacion          date,
+  fecha_contacto_asegurado  date,
+  fecha_inicio_reclamo      date,
+  fecha_ultimo_movimiento   date,
   monto_ofrecimiento        numeric,
   monto_cobro_asegurado     numeric,
   monto_cobro_yo            numeric,
@@ -166,7 +166,7 @@ create table public.pas_contactos (
 create table public.pas_historial (
   id          uuid not null default gen_random_uuid(),   -- PK?
   pas_id      integer not null,
-  fecha       text,                    -- ⚠ texto
+  fecha       date,                    -- era texto hasta el SQL 16
   resultados  jsonb,                   -- tipos de respuesta viejos (ya no se muestran)
   nota        text,
   ts          bigint,                  -- Date.now()

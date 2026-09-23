@@ -85,7 +85,7 @@
 - [x] En la base: el código ya no usa `pas_casos.recordatorio` ni la tabla `pas_recordatorios`. ✅ Hecho el 24/09 con el SQL 15: copia en `backup_20260924`, notas de `notas_log` (47 casos) pasadas a `acciones`, y borradas esas columnas + `pas_recordatorios`, `aseguradoras`, `casos`, `gestiones_judiciales`. `schema.sql` actualizado (14 tablas).
 
 **Deuda técnica:**
-- [ ] Fechas guardadas como texto → `sql/2026-09-24_16_fechas_reales.sql` listo (paso A diagnóstico, B copia + conversión, C control). Falta correrlo.
+- [x] ✅ Fechas reales: SQL 16 ejecutado el 24/09 (las 6 columnas quedaron `date`; 0 valores sin convertir; copia en `backup_fechas`).
 - [ ] IDs de PAS inconsistentes: `pas_contactos.id` es texto; `pas_id` en el resto es integer.
 - [x] ✅ ID de PAS manual: se genera en `App.handleAddPasManual` y se descarta si ya existe (antes podía pisar a otro PAS manual).
 - [x] ✅ `PortalHome` ya no usa el mail del administrador: pregunta `es_admin()`. (`LoginGate.MAIL_ADMIN` solo precarga el campo, sin riesgo.)
@@ -102,7 +102,7 @@
     *   **App:** `utils/push.js` (`useNotificaciones`: activar, desactivar, probar) y la sección "Notificaciones en este dispositivo" en **Apariencia y backup**. `public/sw.js` muestra la notificación (`push`) y abre/enfoca la app (`notificationclick`).
     *   **SQL 17** (`sql/2026-09-24_17_notificaciones.sql`): `pas_push_suscripciones` (RLS admin), `pas_avisos` y `pas_config`.
     *   Probado: la función corriendo en Deno contra el mock y un servicio de push falso que descifra el mensaje (caso nuevo, repetido, caso no-portal, subida, subida repetida, agenda de mañana, prueba sin login = 401). El cartel en sí no se puede ver en Chromium sin pantalla.
-*   **Fechas reales** (`sql/2026-09-24_16_fechas_reales.sql`): convierte a `date` las 5 fechas de texto de `pas_casos` y `pas_historial.fecha`, con copia en `backup_fechas`. Entiende AAAA-MM-DD (con o sin hora) y D/M/AAAA. La app ya escribe AAAA-MM-DD o vacío; `insertHistorialEntry` ahora manda `null` en vez de "".
+*   **Fechas reales** (`sql/2026-09-24_16_fechas_reales.sql`, ✅ ejecutado: 36/86/50/92/50 fechas de casos y 845 del historial convertidas, ninguna falló): convierte a `date` las 5 fechas de texto de `pas_casos` y `pas_historial.fecha`, con copia en `backup_fechas`. Entiende AAAA-MM-DD (con o sin hora) y D/M/AAAA. La app ya escribe AAAA-MM-DD o vacío; `insertHistorialEntry` ahora manda `null` en vez de "".
 
 ### 2026-09-24 — "PAS dormido" sale de "Para hacer"
 *   A pedido del usuario, **"Para hacer" muestra solo tareas de casos** (próximas acciones, reclamos quietos, honorarios). El ritmo de cada PAS no es una tarea: se consulta en **Clientes**, columna "Ritmo" ("cada X d · hace Y d", con la etiqueta "Dormido" si pasó el doble de su ritmo), y en el detalle del PAS. Se borró `pasDormidos` y el botón "Escribirle" de Para hacer.
