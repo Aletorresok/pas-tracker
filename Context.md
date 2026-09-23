@@ -702,5 +702,5 @@ Markdown
 - [x] **✅ RLS activado (etapa 9, 23/09).** Antes: Salvo `pas_portal_users`, ninguna tabla tiene Row Level Security. Como la anon key viaja en el bundle, cualquiera puede leer/modificar/borrar todos los datos vía API. Asegurar el PIN no sirve sin RLS.
 - [x] **✅ `monto_reclamado` migrado a `numeric` (23/09).** Antes: el resto de montos ya son `numeric` (el casting de `TabCasos` sobre `monto_acordado` es inocuo). Migrar `monto_reclamado` a `numeric` tras revisar formatos existentes.
 - [ ] **Tipos inconsistentes de IDs de PAS:** `pas_contactos.id` es `text`, pero `pas_casos.pas_id` y `pas_derivadores.pas_id` son `integer`.
-- [ ] **Borrar columnas viejas** `dominio` y `compania` + trigger puente (paso 5 de `sql/2026-09-22_02_unificar_columnas.sql`) cuando la versión nueva esté estable.
+- [x] **✅ Borradas (23/09): columnas viejas** `dominio` y `compania` + trigger puente (paso 5 de `sql/2026-09-22_02_unificar_columnas.sql`) cuando la versión nueva esté estable.
 - [x] **✅ `schema.sql` regenerado desde producción (23/09).**
