@@ -4,8 +4,8 @@ import emailjs from "@emailjs/browser";
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-// Plantilla propia para lo que sube el cliente (asunto y texto propios). Si no está cargada, usa la de derivaciones.
-const TEMPLATE_CLIENTE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_CLIENTE_ID || TEMPLATE_ID;
+// Plantilla propia para lo que sube el cliente (asunto y texto propios). El ID no es secreto: viaja igual en la página.
+const TEMPLATE_CLIENTE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_CLIENTE_ID || "template_beake0i";
 const LINK_APP = "https://pas-tracker20.vercel.app";
 
 /**

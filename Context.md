@@ -72,7 +72,7 @@
 **Funcionalidades (ideas):**
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
-- [ ] Plantilla de EmailJS aparte para la documentación del cliente: código listo (`VITE_EMAILJS_TEMPLATE_CLIENTE_ID`); falta crear la plantilla y cargar la variable en Vercel.
+- [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
 - [x] ✅ Mostrar al PAS (portal) y al cliente la próxima mediación/audiencia agendada (24/09, requiere SQL 13).
 - [ ] F10 · carga del caso desde la denuncia con IA: descartada por ahora (costo).
 
@@ -92,7 +92,7 @@
 
 ### 2026-09-24 — Margen por compañía, plantilla de mail del cliente (preparada) y limpieza de código (SQL 14 pendiente)
 *   **Reclamo quieto:** ahora avisa a los **14 días** sin respuesta (antes: el promedio de la compañía o 30). En **Análisis → "Reclamo quieto: margen por compañía"** cambiás el general o ponés uno propio por compañía (se guarda al salir del campo). Muestra de referencia cuánto suele tardar cada compañía en ofrecer. `utils/margenes.js` (`useMargenes`, `margenPara`), `components/MargenCompanias.jsx`; `metricas.reclamosQuietos` recibe los márgenes. Sin el SQL 14 usa 14 días para todas.
-*   **Mail de documentación del cliente:** si existe `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` usa esa plantilla, con las variables `asegurados`, `patentes`, `cantidad`, `documentos`, `link_app`; si no, sigue con la de derivaciones.
+*   **Mail de documentación del cliente:** plantilla propia `template_beake0i` (o la de `VITE_EMAILJS_TEMPLATE_CLIENTE_ID`), con las variables `asegurados`, `patentes`, `cantidad`, `documentos`, `link_app`.
 *   **Código sin uso:** se quitaron los recordatorios de contactos (`pas_recordatorios`, también del backup JSON) y `recordatorio`/`notas_log` del guardado del caso. En el portal la lista se llama `movimientos` y sale solo de `acciones`.
 *   **SQL:** `sql/2026-09-24_14_margen_companias.sql` (✅ ejecutado el 24/09). `sql/2026-09-24_15_limpieza_tablas.sql` (✅ ejecutado el 24/09; quedan 14 tablas).
 
