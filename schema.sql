@@ -1,152 +1,218 @@
 -- ============================================================
--- PAS Tracker - Schema de Supabase
--- Generado desde el código fuente (storage.js, hooks, components)
+-- PAS Tracker · Esquema de Supabase (esquema public)
+-- Regenerado el 2026-09-23 desde information_schema de la base de producción:
+-- columnas, tipos, NOT NULL y valores por defecto son los reales.
+-- No incluye claves primarias/foráneas ni índices (no se exportaron);
+-- las marcadas "-- PK?" son las probables según el uso.
+--
+-- Seguridad (ver sql/):
+--   · RLS activado en TODAS las tablas (2026-09-23_06_activar_rls.sql).
+--     Política admin_todo: el administrador (tabla pas_admins, función es_admin()) puede todo.
+--     Portal: cada PAS ve/deriva solo sus pas_casos, ve sus acciones, su pas_portal_users y su pas_lista.
+--   · Funciones: es_admin(), mi_pas_id(), plazos_companias(), consultar_caso_cliente(patente, dni).
+--   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
+--   · Storage: solo existe el bucket 'adjuntos' (público por link; subida solo a <pas_id>/ propio).
 -- ============================================================
 
--- PAS importados desde Excel
-CREATE TABLE pas_contactos (
-  id            BIGINT PRIMARY KEY,
-  nombre        TEXT,
-  mail          TEXT,
-  telefonos     TEXT,          -- teléfonos separados por coma
-  contacto      TEXT,
-  respuesta     TEXT,
-  seguimiento   TEXT,
-  prioridad     TEXT           -- agendado | multi | sin_tel
+
+-- ── Casos ────────────────────────────────────────────────────
+
+create table public.pas_casos (
+  id                        uuid not null default gen_random_uuid(),   -- PK?
+  pas_id                    integer not null,       -- PAS que derivó (pas_contactos.id / pas_manuales.id)
+  caso_id                   bigint not null,        -- número legible (Date.now() al crear)
+  asegurado                 text,
+  dni_asegurado             text,                   -- el cliente entra con patente + últimos 3 dígitos
+  estado                    text,                   -- doc_pendiente | iniciado | reclamado | con_ofrecimiento | en_mediacion | en_juicio | esperando_pago | cobrado | desistido
+  nota                      text,
+  nro_siniestro             text,
+  fecha_siniestro           text,                   -- ⚠ fecha guardada como texto (YYYY-MM-DD)
+  ubicacion                 text,
+  presupuesto               numeric,
+  tercero_nombre            text,
+  tercero_dni               text,
+  tercero_contacto          text,                   -- ⚠ el portal guarda acá el teléfono del asegurado
+  vehiculo                  text,
+  motor                     text,
+  chasis                    text,
+  vehiculo_tercero          text,
+  dominio_tercero           text,
+  relato                    text,
+  comentarios               text,
+  fecha_derivacion          text,                   -- ⚠ texto
+  fecha_contacto_asegurado  text,                   -- ⚠ texto
+  fecha_inicio_reclamo      text,                   -- ⚠ texto
+  fecha_ultimo_movimiento   text,                   -- ⚠ texto
+  monto_ofrecimiento        numeric,
+  monto_cobro_asegurado     numeric,
+  monto_cobro_yo            numeric,
+  monto_comision_pas        numeric,
+  recordatorio              text,                   -- sin uso
+  notas_log                 jsonb default '[]'::jsonb,  -- bitácora vieja (hoy se usa la tabla acciones)
+  created_at                timestamp without time zone default now(),
+  carpeta_path              text,
+  primer_ofrecimiento       numeric,
+  segundo_ofrecimiento      numeric,
+  fecha_carga               date,
+  fecha_reclamo             date,
+  fecha_ultimo_reclamo      date,
+  fecha_ofrecimiento        date,
+  fecha_reconsideracion     date,
+  fecha_aceptacion          date,
+  fecha_firma               date,
+  fecha_pago                date,
+  fecha_cobro               date,
+  fecha_mediacion           date,
+  fecha_inicio_juicio       date,
+  monto_acordado            numeric,
+  plazo_pago                integer,
+  porcentaje_honorarios     numeric,
+  monto_honorarios          numeric,
+  estado_honorarios         text not null default 'NO_FACTURADO'::text,
+  fecha_factura             date,
+  fecha_cobro_honorarios    date,
+  compania_aseguradora      text,                   -- reemplazó a "compania" (borrada 2026-09-23)
+  monto_reclamado           numeric,                -- era texto hasta 2026-09-23
+  proxima_accion            text,
+  mensaje_cliente           text,                   -- lo ven el PAS (portal) y el cliente
+  patente                   text,                   -- reemplazó a "dominio" (borrada 2026-09-23)
+  proxima_accion_vence      date,
+  mensaje_cliente_fecha     timestamp with time zone  -- la completa un trigger
 );
 
--- Log de contactos realizados a cada PAS
-CREATE TABLE pas_historial (
-  pas_id        BIGINT NOT NULL REFERENCES pas_contactos(id),
-  fecha         TEXT,
-  resultados    JSONB DEFAULT '[]',  -- array de keys de RESULTADOS_CONTACTO
-  nota          TEXT,
-  ts            BIGINT NOT NULL,     -- timestamp (Date.now())
-  PRIMARY KEY (pas_id, ts)
+-- Movimientos / bitácora de cada caso
+create table public.acciones (
+  id           uuid not null default gen_random_uuid(),   -- PK?
+  caso_id      text not null,          -- pas_casos.id (uuid guardado como texto)
+  tipo         text not null,
+  descripcion  text,
+  fecha        timestamp with time zone not null default now(),
+  created_at   timestamp with time zone not null default now()
 );
 
--- Casos legales (tabla principal, ~45 campos)
-CREATE TABLE pas_casos (
-  id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  caso_id                   BIGINT,
-  pas_id                    BIGINT NOT NULL,
 
-  -- Datos del asegurado
-  asegurado                 TEXT,
-  dni_asegurado             TEXT,
+-- ── Prospección de PAS ───────────────────────────────────────
 
-  -- Estado y seguimiento
-  estado                    TEXT,    -- doc_pendiente|iniciado|reclamado|con_ofrecimiento|en_mediacion|en_juicio|esperando_pago|cobrado|desistido
-  estado_honorarios         TEXT DEFAULT 'NO_FACTURADO',  -- NO_FACTURADO|FACTURADO|COBRADO
-  nota                      TEXT,
-  notas_log                 TEXT,
-  comentarios               TEXT,
-  recordatorio              TEXT,
-
-  -- Compañía y siniestro
-  compania                  TEXT,
-  nro_siniestro             TEXT,
-  ubicacion                 TEXT,
-  relato                    TEXT,
-
-  -- Vehículo asegurado
-  vehiculo                  TEXT,
-  dominio                   TEXT,
-  motor                     TEXT,
-  chasis                    TEXT,
-
-  -- Tercero
-  tercero_nombre            TEXT,
-  tercero_dni               TEXT,
-  tercero_contacto          TEXT,
-  vehiculo_tercero          TEXT,
-  dominio_tercero           TEXT,
-
-  -- Montos
-  presupuesto               NUMERIC,
-  monto_ofrecimiento        NUMERIC,
-  monto_cobro_asegurado     NUMERIC,
-  monto_cobro_yo            NUMERIC,
-  monto_comision_pas        NUMERIC,
-  monto_acordado            NUMERIC,
-  monto_honorarios          NUMERIC,
-  primer_ofrecimiento       NUMERIC,
-  segundo_ofrecimiento      NUMERIC,
-  porcentaje_honorarios     NUMERIC,
-  plazo_pago                TEXT,
-
-  -- Fechas
-  fecha_siniestro           TEXT,
-  fecha_derivacion          TEXT,
-  fecha_contacto_asegurado  TEXT,
-  fecha_inicio_reclamo      TEXT,
-  fecha_ultimo_movimiento   TEXT,
-  fecha_carga               TEXT,
-  fecha_reclamo             TEXT,
-  fecha_ultimo_reclamo      TEXT,
-  fecha_ofrecimiento        TEXT,
-  fecha_reconsideracion     TEXT,
-  fecha_aceptacion          TEXT,
-  fecha_firma               TEXT,
-  fecha_pago                TEXT,
-  fecha_cobro               TEXT,
-  fecha_mediacion           TEXT,
-  fecha_inicio_juicio       TEXT,
-  fecha_factura             TEXT,
-  fecha_cobro_honorarios    TEXT,
-
-  -- Archivos
-  carpeta_path              TEXT
+-- PAS importados desde Excel (~51 mil)
+create table public.pas_contactos (
+  id           text not null,          -- PK?  ⚠ texto; en el resto de las tablas pas_id es integer
+  nombre       text not null,
+  mail         text,
+  telefonos    text,                   -- separados por coma
+  contacto     text,
+  respuesta    text,
+  seguimiento  text,
+  prioridad    text default 'otros'::text   -- agendado | multi | sin_tel | otros
 );
 
--- PAS marcados como derivadores (pueden tener casos)
-CREATE TABLE pas_derivadores (
-  pas_id        BIGINT PRIMARY KEY REFERENCES pas_contactos(id),
-  activo        BOOLEAN DEFAULT TRUE
+-- Cada contacto registrado con un PAS
+create table public.pas_historial (
+  id          uuid not null default gen_random_uuid(),   -- PK?
+  pas_id      integer not null,
+  fecha       text,                    -- ⚠ texto
+  resultados  jsonb,                   -- tipos de respuesta viejos (ya no se muestran)
+  nota        text,
+  ts          bigint,                  -- Date.now()
+  created_at  timestamp without time zone default now()
 );
 
--- Recordatorios de seguimiento
-CREATE TABLE pas_recordatorios (
-  pas_id              BIGINT PRIMARY KEY REFERENCES pas_contactos(id),
-  fecha_recordatorio  TEXT
+-- PAS que derivan casos
+create table public.pas_derivadores (
+  pas_id      integer not null,        -- PK?
+  activo      boolean default true,
+  created_at  timestamp without time zone default now()
 );
 
--- PAS descartados/archivados
-CREATE TABLE pas_descartados (
-  pas_id        BIGINT PRIMARY KEY REFERENCES pas_contactos(id),
-  activo        BOOLEAN DEFAULT TRUE
+-- PAS descartados
+create table public.pas_descartados (
+  pas_id  integer not null,            -- PK?
+  activo  boolean default true
 );
 
--- PAS creados manualmente (no vienen de Excel)
-CREATE TABLE pas_manuales (
-  id            TEXT PRIMARY KEY,   -- UUID generado en frontend
-  nombre        TEXT,
-  mail          TEXT,
-  telefonos     TEXT,
-  contacto      TEXT,
-  respuesta     TEXT,
-  seguimiento   TEXT
+-- Recordatorios (obsoletos: ya no se muestran)
+create table public.pas_recordatorios (
+  pas_id              integer not null,
+  fecha_recordatorio  text
 );
 
--- Mapeo usuario de portal → PAS
-CREATE TABLE pas_portal_users (
-  user_id       UUID PRIMARY KEY REFERENCES auth.users(id),
-  pas_id        BIGINT NOT NULL
+-- PAS cargados a mano (no vienen del Excel)
+create table public.pas_manuales (
+  id          text not null,           -- PK?
+  nombre      text not null,
+  mail        text,
+  telefonos   jsonb default '[]'::jsonb,
+  created_at  timestamp with time zone default now()
 );
 
--- Info de PAS para el portal
-CREATE TABLE pas_lista (
-  pas_id        BIGINT PRIMARY KEY,
-  nombre        TEXT,
-  mail          TEXT,
-  telefonos     TEXT
+
+-- ── Portal de productores ────────────────────────────────────
+
+-- Ficha del PAS que ve el portal
+create table public.pas_lista (
+  id           integer not null default nextval('pas_lista_id_seq'::regclass),   -- PK?
+  pas_id       integer not null,
+  nombre       text,
+  mail         text,
+  telefonos    text[],
+  contacto     text,
+  respuesta    text,
+  seguimiento  text,
+  prioridad    text
 );
 
--- Timeline de acciones por caso
-CREATE TABLE acciones (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  caso_id       BIGINT NOT NULL,
-  descripcion   TEXT,
-  fecha         TEXT,
-  tipo          TEXT
+-- Usuario de Supabase Auth ↔ PAS
+create table public.pas_portal_users (
+  id          uuid not null default gen_random_uuid(),   -- PK?
+  user_id     uuid,                    -- auth.users.id
+  pas_id      integer not null,
+  created_at  timestamp without time zone default now()
+);
+
+
+-- ── Seguridad ────────────────────────────────────────────────
+
+-- Administradores de la app (sql/2026-09-23_05)
+create table public.pas_admins (
+  user_id  uuid not null               -- PK, references auth.users(id) on delete cascade
+);
+
+-- Intentos fallidos de la vista del cliente (sql/2026-09-23_04)
+create table public.pas_cliente_intentos (
+  patente  text not null,
+  creado   timestamp with time zone not null default now()
+);
+
+
+-- ── Tablas que la app NO usa (de una versión anterior; solo accesibles para el administrador) ──
+
+create table public.aseguradoras (
+  id             uuid not null default gen_random_uuid(),
+  nombre_social  text not null,
+  created_at     timestamp with time zone default timezone('utc'::text, now())
+);
+
+create table public.casos (
+  id                 text not null,
+  caratula           text,
+  fuero              text,
+  juzgado            text,
+  secretaria         text,
+  expediente         text,
+  cliente            text,
+  cliente_tel        text,
+  contraparte        text,
+  abogado_contrario  text,
+  estado_expediente  text,
+  fecha_inicio       date,
+  notas              text
+);
+
+create table public.gestiones_judiciales (
+  id                         uuid not null default gen_random_uuid(),
+  apellido_nombre_asegurado  text not null,
+  dni_asegurado              text not null,
+  fecha_del_siniestro        date not null,
+  aseguradora_id             uuid,
+  estado                     text default 'Iniciado'::text,
+  created_at                 timestamp with time zone default timezone('utc'::text, now())
 );
