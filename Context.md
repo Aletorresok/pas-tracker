@@ -43,13 +43,14 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-23 — Etapa 8: Vista del cliente (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-23 — Etapa 8: Vista del cliente (✅ publicada, PR #8)
 *   **`PortalCliente` reescrito** (`/?vista=cliente`): encabezado ATG Lex Solutions; el cliente entra con **patente + últimos 3 números del DNI**; ve "Hola, {nombre}", la compañía, una **línea de tiempo de 5 pasos** en palabras simples (con fecha de cada paso y una explicación de qué está pasando ahora según el estado), el **mensaje del estudio con su fecha** y firma, el ofrecimiento / lo que va a cobrar, y un botón de **WhatsApp** a +54 9 11 3313-3259 con el mensaje ya escrito (incluye la patente). Pensado para celular; modo oscuro según el sistema.
 *   **Seguridad:** la vista ya no lee la tabla `pas_casos` directamente. Usa la función `consultar_caso_cliente(patente, dni)` (`sql/2026-09-23_04_acceso_cliente.sql`, *security definer*) que solo devuelve los campos que ve el cliente y solo si patente y DNI coinciden. Tras **5 intentos fallidos en 15 minutos** para una patente, se bloquea un rato (tabla `pas_cliente_intentos`). Los links viejos `?caso=<id>` ya no muestran el caso: piden patente y DNI.
 *   Nueva columna `pas_casos.mensaje_cliente_fecha`, que un trigger completa solo cada vez que cambia el mensaje al cliente. Los mensajes anteriores quedan sin fecha.
 *   **Ficha del caso:** campo **DNI del asegurado** en Datos (antes no se podía editar); en Resumen, botón **"Copiar link del cliente"** (`/?vista=cliente&patente=…`) y aviso si falta el DNI. El modal "Generar escrito" completa el DNI solo y, si el caso no lo tenía, lo guarda.
 *   **SQL `2026-09-23_04` ejecutado** (23/09; hubo que cambiar `$$` por `$fn$` porque el editor de Supabase cortaba la función). Resultado: **43 casos en curso sin DNI**.
 *   **Para cargarlos rápido:** en Casos, chip **"Sin DNI"** (casos en curso sin al menos 3 números de DNI) y campo **DNI del asegurado** en la fila desplegable, con guardado automático.
+*   **Escrito con DNI con puntos:** el DNI se carga sin puntos (38554155) y en el escrito sale `38.554.155` (7 dígitos: `5.123.456`); si no tiene 7 u 8 números queda como se escribió (`generarEscrito.formatearDni`).
 *   Nota: mientras RLS siga apagado en `pas_casos`, la tabla sigue siendo legible con la clave pública; la función deja lista la vista del cliente para cuando se active RLS (tarea del PIN seguro).
 
 ### 2026-09-23 — Etapa 7: Portal PAS para celular + ajustes (✅ publicada junto con la etapa 6, PR #7)

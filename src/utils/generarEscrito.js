@@ -14,6 +14,13 @@ const DOCUMENTAL_FIJA = [
   "Cédula / Título"
 ];
 
+// 38554155 → 38.554.155 · 5123456 → 5.123.456 (si no son 7 u 8 números, queda como se escribió)
+export const formatearDni = (dni) => {
+  const digitos = String(dni || "").replace(/\D/g, "");
+  if (digitos.length !== 7 && digitos.length !== 8) return String(dni || "").trim();
+  return digitos.replace(/\B(?=(\d{3})+$)/g, ".");
+};
+
 export async function generarEscrito({ 
   caso, 
   dni, 
@@ -59,7 +66,7 @@ export async function generarEscrito({
     y += 12;
 
     // Cuerpo con alineación justificada
-    const textoBase = `Alexis Torres Gaveglio, abogado, inscripto al T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R, responsable monotributo CUIT 20-39340318-8 en representación de ${nombreCompleto}, DNI ${dni.trim()}, constituyendo domicilio en Pte. Saenz Peña 943, Depto 76 piso 7, CABA, vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.`;
+    const textoBase = `Alexis Torres Gaveglio, abogado, inscripto al T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R, responsable monotributo CUIT 20-39340318-8 en representación de ${nombreCompleto}, DNI ${formatearDni(dni)}, constituyendo domicilio en Pte. Saenz Peña 943, Depto 76 piso 7, CABA, vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.`;
 
     const lineasCuerpo = doc.splitTextToSize(textoBase, contentWidth);
     doc.text(lineasCuerpo, margin, y, { align: "justify", maxWidth: contentWidth });
