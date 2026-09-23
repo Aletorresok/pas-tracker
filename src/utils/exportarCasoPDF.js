@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { dibujarMembrete } from "./pdfMembrete.js";
+import { dibujarPie } from "./pdfMembrete.js";
 
 function fmt(iso) {
   if (!iso) return "—";
@@ -36,7 +36,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
       doc.setFont("helvetica", weight);
       doc.setTextColor(color);
       const lines = doc.splitTextToSize(text, pageW);
-      if (y + lines.length * (size * 0.4) > 275) { doc.addPage(); y = 20; }
+      if (y + lines.length * (size * 0.4) > 262) { doc.addPage(); y = 20; }
       doc.text(lines, margin, y);
       y += lines.length * (size * 0.45) + 1;
     };
@@ -60,7 +60,6 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     };
 
     // Header
-    y = dibujarMembrete(doc, { margen: margin, ancho: pageW });
     addLine(18, "bold", "Resumen del caso");
     addLine(10, "normal", `Generado el ${fmt(new Date().toISOString())}`, "#888888");
     y += 3;
@@ -133,7 +132,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
       acciones
         .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""))
         .forEach(a => {
-          if (y > 265) { doc.addPage(); y = 20; }
+          if (y > 255) { doc.addPage(); y = 20; }
           doc.setFontSize(9);
           doc.setFont("helvetica", "bold");
           doc.setTextColor("#6366f1");
@@ -154,14 +153,8 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
       addLine(10, "normal", caso.nota);
     }
 
-    // Footer
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor("#aaaaaa");
-      doc.text(`ATG Lex Solutions — ${caso.asegurado || "Caso"} — Pág. ${i}/${totalPages}`, margin, 290);
-    }
+    // Pie con el logo y los datos del estudio, en todas las hojas
+    dibujarPie(doc, { margen: margin, ancho: pageW, extra: (i, total) => `${caso.asegurado || "Caso"} · Pág. ${i}/${total}` });
 
     const nombreArchivo = `Caso_${(caso.asegurado || "sin_nombre").replace(/\s+/g, "_")}.pdf`;
     doc.save(nombreArchivo);

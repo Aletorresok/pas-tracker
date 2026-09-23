@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { dibujarMembrete } from "./pdfMembrete.js";
+import { dibujarPie } from "./pdfMembrete.js";
 
 function formatoFecha(iso) {
   if (!iso) return "—";
@@ -50,7 +50,7 @@ export async function generarEscrito({
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const margin = 20;
     const contentWidth = 170; // 210mm - (20mm * 2)
-    let y = dibujarMembrete(doc, { margen: margin, ancho: contentWidth });
+    let y = 25;
 
     // Encabezado
     doc.setFont("helvetica", "bold");
@@ -84,6 +84,8 @@ export async function generarEscrito({
       doc.text(`${index + 1}. ${item}`, margin + 4, y);
       y += 6;
     });
+
+    dibujarPie(doc, { margen: margin, ancho: contentWidth });
 
     // Descarga / Guardado
     const nombreArchivo = `Reclamo_${nombreCompleto.replace(/\s+/g, "_")}.pdf`;

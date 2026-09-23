@@ -23,22 +23,33 @@ export function dibujarMonograma(doc, x, y, alto, color = DORADO) {
   return 594 * k;
 }
 
-// Encabezado de página: monograma, nombre del estudio y del abogado, y una línea dorada. Devuelve la y donde sigue el texto.
-export function dibujarMembrete(doc, { margen = 20, ancho = 170, y = 14 } = {}) {
-  const w = dibujarMonograma(doc, margen, y, 10);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(AZUL);
-  doc.text("ATG Lex Solutions", margen + w + 4, y + 4.6);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor("#5B6272");
-  doc.text(`${FIRMA} · Abogado`, margen + w + 4, y + 9.2);
-  doc.setDrawColor(DORADO);
-  doc.setLineWidth(0.4);
-  doc.line(margen, y + 14, margen + ancho, y + 14);
+export const MATRICULA = "T°142 F°636 CPACF · L°IV F°20 CAMGR";
+export const TELEFONO = "+54 9 11 3313-3259";
+
+// Pie de página en todas las hojas: línea dorada, monograma, estudio, abogado, matrícula y teléfono.
+// `extra` (opcional) va a la derecha, por ejemplo "Pág. 1/2".
+export function dibujarPie(doc, { margen = 20, ancho = 170, extra } = {}) {
+  const total = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    const y = 272;
+    doc.setDrawColor(DORADO);
+    doc.setLineWidth(0.3);
+    doc.line(margen, y, margen + ancho, y);
+    const w = dibujarMonograma(doc, margen, y + 4, 8);
+    const x = margen + w + 3.5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(AZUL);
+    doc.text("ATG Lex Solutions", x, y + 7);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor("#5B6272");
+    doc.text(`${FIRMA} · ${MATRICULA} · ${TELEFONO}`, x, y + 11.2);
+    const derecha = typeof extra === "function" ? extra(i, total) : extra;
+    if (derecha) doc.text(derecha, margen + ancho, y + 7, { align: "right" });
+  }
   doc.setTextColor("#000000");
   doc.setDrawColor("#000000");
   doc.setLineWidth(0.2);
-  return y + 24;
 }
