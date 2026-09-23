@@ -1,13 +1,3 @@
-// ── RESULTADOS DE CONTACTO ────────────────────────────────────────────────────────
-export const RESULTADOS_CONTACTO = [
-  { key: "respondio_positivo", label: "Respondió positivo", color: "#3A9163" },
-  { key: "respondio_negativo", label: "Respondió negativo", color: "#B9503F" },
-  { key: "respondio_neutro",   label: "Respondió neutro",   color: "#B8952A" },
-  { key: "no_respondio",       label: "No respondió",       color: "#8F8E89" },
-  { key: "numero_incorrecto",  label: "Número incorrecto",  color: "#C77B3A" },
-  { key: "volver_contactar",   label: "Volver a contactar", color: "#4F84B8" },
-];
-
 // ── ESTADOS DE CASO ───────────────────────────────────────────────────────────────
 // Fuente única para la app, el portal PAS y la vista del cliente.
 // Colores en orden de avance: fríos (arranque) → cálidos (negociación) → verde (cobrado).
@@ -26,10 +16,12 @@ export const ESTADOS_CASO = [
 
 export const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { key, label: key || "—", color: "#7A879C", emoji: "", etapa: 0 };
 
-// ── TIPOS DE DOCUMENTOS (CasoDetalle) ─────────────────────────────────────────────
-export const TIPOS_DOC = ["DNI", "CEDULA", "DENUNCIA", "CERTIFICADO", "LICENCIA", "PRESUPUESTO", "ESCRITO", "FOTO"];
+// ── TIPOS DE DOCUMENTOS ───────────────────────────────────────────────────────────
+// Checklist de la ficha y categorías de la carpeta local (DNI_1.jpg, FOTOS_2.jpg…). El orden es el que se muestra.
+export const TIPOS_DOC = ["DNI", "LICENCIA", "CEDULA", "FOTOS", "ESCRITO", "DENUNCIA", "CERTIFICADO", "PRESUPUESTO", "INFO TERCERO"];
+// Mínimos para considerar el caso listo para iniciar el reclamo
+export const DOCS_REQUERIDOS_RECLAMO = ["DNI", "DENUNCIA", "CERTIFICADO", "PRESUPUESTO"];
 
-export const EXTENSIONES_VALIDAS = [".jpg", ".jpeg", ".png", ".pdf"];
 
 export const ESTADOS_HONORARIOS = ["NO_FACTURADO", "FACTURADO", "COBRADO"];
 

@@ -15,7 +15,7 @@
 *   `main.jsx` — monta la app con `ThemeProvider` y rutas: `/portal/*` → `Portal.jsx`; el resto → `App.jsx`.
 *   `App.jsx` — si la URL es `?vista=cliente` muestra `PortalCliente`; si no, `LoginGate` → `AppPrincipal`: carga datos (`usePASData`), pestañas, buscador (Ctrl+K), ficha abierta desde el buscador, Realtime de casos nuevos, handlers (`handleCasoLocal`, `handleQuitarCaso`, contactos, backup).
 *   `Portal.jsx` — sesión de Supabase Auth del PAS → `LoginScreen` o `PortalHome`.
-*   `supabase.js` (cliente) · `constants.js` (`ESTADOS_CASO`, `estadoInfo`, vistas de contactos) · `index.css` (tokens, temas, reglas de celular).
+*   `supabase.js` (cliente) · `constants.js` (`ESTADOS_CASO`, `estadoInfo`, `TIPOS_DOC`, `DOCS_REQUERIDOS_RECLAMO`, estados de honorarios, vistas de contactos) · `index.css` (tokens, temas, reglas de celular).
 
 **Acceso**
 *   `components/LoginGate.jsx` — cuenta de Supabase (una vez por navegador, solo cuentas en `pas_admins`) + PIN por pestaña; 5 PIN mal = cierra sesión. Exporta `cerrarSesion`.
@@ -39,7 +39,7 @@
 *   `caso/CasoOverlay.jsx` — abre la ficha encima de cualquier pantalla (marca revisados los casos del portal).
 *   Resumen: `caso/ResumenCaso.jsx` (próxima acción `CasoProximaAccion.jsx`, mensaje al cliente + "Copiar link del cliente" + `AvisarWhatsApp.jsx`, últimos movimientos, `AgendaCaso.jsx`, números).
 *   Datos: `SeccionInfo.jsx` (asegurado, patente, compañía `CompaniaSelector.jsx`, DNI, teléfono) · `SeccionFechas.jsx`. Montos: `SeccionMontos.jsx` · `SeccionHonorarios.jsx`.
-*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access) · `ArchivoRow.jsx`.
+*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access).
 *   Bitácora: `SeccionTimeline.jsx`. Otros: `ModalGenerarEscrito.jsx`, `PreviewModal.jsx`, `Toast.jsx`, `EstadoSelector.jsx`.
 
 **Portal PAS y vista del cliente** (`components/portal/`)
@@ -51,7 +51,7 @@
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `context/ThemeContext.jsx` (tema y acento).
 
 **Utilidades** (`utils/`)
-*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` / `categorizarArchivo.js` (archivos; ver pendientes).
+*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda).
@@ -76,12 +76,9 @@
 - [ ] Mostrar al PAS (portal) y al cliente la próxima mediación agendada.
 - [ ] F10 · carga del caso desde la denuncia con IA: descartada por ahora (costo).
 
-**Código sin uso (se puede borrar):**
-- [ ] `components/clientes/ClienteCards.jsx`, `components/caso/FiltrosEstados.jsx`, `components/dashboard/MisPendientesCard.jsx`, `components/dashboard/StatCard.jsx` (nadie los importa).
-- [ ] `main.js` en la raíz (copia vieja de `src/main.jsx`; `index.html` usa `src/main.jsx`).
-- [ ] Bucket `casos` inexistente: `utils/carpeta.js` (`subirArchivo`, `cargarArchivos`), `categorizarArchivo.js` (mover/renombrar en Storage) y el botón "Actualizar archivos" de Documentos lo usan y fallan sin avisar. Decisión del usuario: los documentos van solo a la PC.
-- [ ] `pas_casos.notas_log` y `recordatorio`, tabla `pas_recordatorios`, `RESULTADOS_CONTACTO` en `constants.js` (sin uso visible).
-- [ ] Tablas de otra versión: `aseguradoras`, `casos`, `gestiones_judiciales`.
+**Código sin uso:**
+- [x] ✅ Borrado el 24/09: `ClienteCards.jsx`, `FiltrosEstados.jsx`, `MisPendientesCard.jsx`, `StatCard.jsx`, `ArchivoRow.jsx`, `utils/categorizarArchivo.js`, `main.js` de la raíz, las funciones de Storage de `utils/carpeta.js`, la lista de archivos "de Supabase" y el botón "Actualizar archivos" de Documentos, `RESULTADOS_CONTACTO` y `EXTENSIONES_VALIDAS`. `TIPOS_DOC` y `DOCS_REQUERIDOS_RECLAMO` viven ahora en `constants.js`.
+- [ ] En la base (requiere SQL, a decidir): `pas_casos.notas_log` (lo usa todavía `PortalCasoCard` para "último movimiento") y `recordatorio`, tabla `pas_recordatorios`; tablas de otra versión `aseguradoras`, `casos`, `gestiones_judiciales`.
 
 **Deuda técnica:**
 - [ ] Fechas guardadas como texto: `pas_casos.fecha_siniestro`, `fecha_derivacion`, `fecha_contacto_asegurado`, `fecha_inicio_reclamo`, `fecha_ultimo_movimiento`; `pas_historial.fecha`.

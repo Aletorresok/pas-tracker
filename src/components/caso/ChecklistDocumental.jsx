@@ -1,4 +1,4 @@
-import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../../utils/categorizarArchivo.js";
+import { TIPOS_DOC, DOCS_REQUERIDOS_RECLAMO } from "../../constants.js";
 import { fechaLocalISO, fmtDate } from "../../utils/formatters.js";
 
 const NOMBRES = {

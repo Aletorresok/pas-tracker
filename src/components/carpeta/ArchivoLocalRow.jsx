@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { renombrarArchivoLocal } from "../../utils/carpeta.js";
-import { TIPOS_DOC } from "../../utils/categorizarArchivo.js";
+import { TIPOS_DOC } from "../../constants.js";
 
 export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, onToast, onPreview }) {
   const [menuOpen, setMenuOpen]        = useState(false);
