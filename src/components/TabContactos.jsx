@@ -27,7 +27,6 @@ export default function TabContactos({
   pas,
   historial,
   derivadores,
-  recordatorios,
   descartados,
   darkMode,
   onContactar,
@@ -210,7 +209,6 @@ export default function TabContactos({
           pas={p}
           historial={historial}
           derivadores={derivadores}
-          recordatorios={recordatorios}
           onContactar={contactar}
           onToggleDerivador={toggleDerivador}
           onToggleDescartado={onToggleDescartado}

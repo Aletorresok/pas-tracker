@@ -45,7 +45,6 @@ function AppPrincipal() {
     historial, setHistorial,
     casos, setCasos,
     derivadores, setDerivadores,
-    recordatorios, setRecordatorios,
     descartados, setDescartados,
     pasManuales, setPasManuales,
     loading,
@@ -64,7 +63,7 @@ function AppPrincipal() {
   // ── HANDLERS
   const autoBackup = useCallback((casosData) => {
     try {
-      const backup = { version: 1, fecha: new Date().toISOString(), historial, casos: casosData, derivadores, recordatorios, descartados };
+      const backup = { version: 1, fecha: new Date().toISOString(), historial, casos: casosData, derivadores, descartados };
       localStorage.setItem('pastracker_autobackup', JSON.stringify(backup));
       const fecha = new Date().toISOString();
       localStorage.setItem('pastracker_autobackup_fecha', fecha);
@@ -72,7 +71,7 @@ function AppPrincipal() {
     } catch (e) {
       console.warn('[autobackup] error:', e);
     }
-  }, [historial, derivadores, recordatorios, descartados]);
+  }, [historial, derivadores, descartados]);
 
   const handleFile = useCallback(e => {
     const file = e.target.files[0];
@@ -194,23 +193,23 @@ function AppPrincipal() {
   }, [pas, pasManuales]);
 
   const handleBackup = useCallback(() => {
-    const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, recordatorios, descartados };
+    const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, descartados };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `pastracker_backup_${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }, [historial, casos, derivadores, recordatorios, descartados]);
+  }, [historial, casos, derivadores, descartados]);
 
   const handleRestore = useCallback(async (file) => {
     const text = await file.text();
     const data = JSON.parse(text);
     if (data.version === 1) {
       setHistorial(data.historial || {}); setCasos(data.casos || {}); setDerivadores(data.derivadores || {});
-      setRecordatorios(data.recordatorios || {}); setDescartados(data.descartados || {});
+      setDescartados(data.descartados || {});
       await Promise.all([
         saveStorage("pas_historial", data.historial || {}), saveStorage("pas_casos", data.casos || {}),
-        saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_recordatorios", data.recordatorios || {}), saveStorage("pas_descartados", data.descartados || {}),
+        saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_descartados", data.descartados || {}),
       ]);
     }
   }, []);
@@ -274,7 +273,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirCliente={p => { setMainTab("clientes"); setClienteFoco({ id: p.id, nombre: p.nombre, t: Date.now() }); }} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
