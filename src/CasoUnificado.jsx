@@ -18,6 +18,8 @@ import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
+import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
+import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
 import ResumenCaso from "./components/caso/ResumenCaso.jsx";
 import Boton from "./components/ui/Boton.jsx";
 import Icono from "./components/ui/Icono.jsx";
@@ -48,7 +50,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -61,7 +63,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const [loadingAcciones, setLoadingAcciones] = useState(false);
   const [modalEscrito, setModalEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
-  const [pestana, setPestana] = useState("resumen");
+  const [pestana, setPestana] = useState(pestanaInicial || "resumen");
   const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
   const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
   const dirHandleRef = useRef(null);
@@ -94,6 +96,16 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   }, [formData]);
 
   useEffect(() => { recargarArchivos(); cargarAcciones(); }, [caso.id]);
+
+  // Documentación que mandó el cliente desde su vista y todavía está en la nube
+  const [recepcion, setRecepcion] = useState([]);
+  const [versionCarpeta, setVersionCarpeta] = useState(0);
+  useEffect(() => {
+    if (!caso.id) return;
+    const cargar = () => pendientesRecepcion(caso.id).then(d => setRecepcion(d || []));
+    cargar();
+    return escucharRecepcion(cargar);
+  }, [caso.id]);
 
   useRealtimeSync("pas_casos", "id", caso.id, (dato) => { setCaso(dato); setFormData(p => ({ ...p, ...dato })); });
   useRealtimeAcciones(caso.id, () => { cargarAcciones(); });
@@ -214,7 +226,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     { k: "resumen", l: "Resumen" },
     { k: "datos", l: "Datos" },
     { k: "montos", l: "Montos y honorarios" },
-    { k: "documentos", l: "Documentos", n: archivos.length },
+    { k: "documentos", l: recepcion.length ? `Documentos · ${recepcion.length} nuevo${recepcion.length > 1 ? "s" : ""}` : "Documentos", n: recepcion.length ? undefined : archivos.length },
     { k: "bitacora", l: "Bitácora", n: acciones.length },
   ];
   const TEXTO_GUARDADO = { guardado: "✓ Guardado", pendiente: "Sin guardar…", guardando: "Guardando…", error: "No se guardó · reintentar" };
@@ -281,7 +293,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
           <div style={{ padding: 20 }}>
             {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
             <div {...panel("resumen")}>
-              <ResumenCaso casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
+              <ResumenCaso recepcionNuevos={recepcion.length} casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
             </div>
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
@@ -296,8 +308,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
                 <Boton tamaño="sm" icono="recargar" onClick={recargarArchivos} disabled={archivosActualizando}>{archivosActualizando ? "Actualizando…" : "Actualizar archivos"}</Boton>
               </div>
+              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <div style={{ marginBottom: 16 }}><ChecklistDocumental archivos={archivos} Th={Th} /></div>
-              <CasoDocumentos Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
+              <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
             </div>
             <div {...panel("bitacora")}>
               <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th} />

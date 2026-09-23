@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { DOCS_CLIENTE, subirDocumentoCliente, documentosEnviados } from "../../utils/subidasCliente.js";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
 import { primerNombre } from "../../utils/formatters.js";
@@ -98,7 +99,70 @@ function LineaDeTiempo({ caso }) {
   );
 }
 
-function TarjetaCaso({ caso }) {
+// "Mandanos tu documentación": el cliente sube fotos o PDF de lo que falta, desde el celular
+function SubirDocumentacion({ caso, patente, dni }) {
+  const [enviados, setEnviados] = useState(null);
+  const [subiendo, setSubiendo] = useState(null); // tipo en curso
+  const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
+  const inputRef = useRef(null);
+  const tipoRef = useRef(null);
+
+  const cargar = () => documentosEnviados({ patente, dni, casoId: caso.id }).then(setEnviados);
+  useEffect(() => { cargar(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [caso.id]);
+  if (enviados === null) return null; // la función todavía no existe o falló: no mostramos nada
+
+  const porTipo = {};
+  enviados.forEach(e => { (porTipo[e.tipo] ||= []).push(e); });
+
+  const elegir = (tipo) => { tipoRef.current = tipo; setAviso(null); inputRef.current?.click(); };
+  const alElegir = async (e) => {
+    const archivos = Array.from(e.target.files || []);
+    e.target.value = "";
+    const tipo = tipoRef.current;
+    if (!archivos.length || !tipo) return;
+    setSubiendo(tipo);
+    let ok = 0, error = "";
+    for (const file of archivos) {
+      const r = await subirDocumentoCliente({ patente, dni, casoId: caso.id, tipo, file });
+      if (r.ok) ok++; else { error = r.error; break; }
+    }
+    setSubiendo(null);
+    setAviso(error ? { tipo, ok: false, texto: error } : { tipo, ok: true, texto: ok === 1 ? "¡Recibido! Gracias." : `¡Recibimos ${ok} archivos! Gracias.` });
+    cargar();
+  };
+
+  return (
+    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</div>
+      <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Podés sacar la foto con el celular o elegir un PDF. Si preferís, mandalo por WhatsApp.</p>
+      <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple hidden onChange={alElegir} />
+      {DOCS_CLIENTE.map((d, i) => {
+        const env = porTipo[d.tipo] || [];
+        const esteAviso = aviso && aviso.tipo === d.tipo ? aviso : null;
+        return (
+          <div key={d.tipo} style={{ padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, flex: "none", display: "grid", placeItems: "center", background: env.length ? "var(--ok)" : "transparent", border: `1.5px solid ${env.length ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
+                {env.length > 0 && <Icono nombre="check" size={12} />}
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{d.l}{d.requerido && !env.length && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · necesario</span>}</span>
+                {env.length > 0 && <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Enviado{env.length > 1 ? ` (${env.length})` : ""} · {new Date(env[0].creado).toLocaleDateString("es-AR")}</span>}
+              </span>
+              <button type="button" onClick={() => elegir(d.tipo)} disabled={!!subiendo}
+                style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "7px 12px", borderRadius: 8, cursor: subiendo ? "default" : "pointer", border: `1px solid ${env.length ? "var(--border2)" : "var(--accent)"}`, background: env.length ? "var(--card)" : "var(--accent)", color: env.length ? "var(--text)" : "var(--on-accent)", opacity: subiendo && subiendo !== d.tipo ? 0.5 : 1, whiteSpace: "nowrap" }}>
+                {subiendo === d.tipo ? "Subiendo…" : env.length ? "Agregar" : "Subir"}
+              </button>
+            </div>
+            {esteAviso && <div role="status" style={{ marginTop: 6, fontSize: 13, color: esteAviso.ok ? "var(--ok)" : "var(--bad)" }}>{esteAviso.texto}</div>}
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
+function TarjetaCaso({ caso, patente, dni }) {
   const cerrado = ["cobrado", "desistido"].includes(caso.estado);
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
@@ -134,6 +198,8 @@ function TarjetaCaso({ caso }) {
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
         </section>
       )}
+
+      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} />}
 
       {(cobras > 0 || (ofrecido > 0 && !cerrado)) && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
@@ -244,7 +310,7 @@ export default function PortalCliente() {
               {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : "Así va tu reclamo."}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              {casos.map(c => <TarjetaCaso key={c.id} caso={c} />)}
+              {casos.map(c => <TarjetaCaso key={c.id} caso={c} patente={patente} dni={dni} />)}
             </div>
             <div style={{ marginTop: 24, textAlign: "center" }}>
               <BotonWhatsApp patente={casos[0]?.patente} texto="Consultar por WhatsApp" />

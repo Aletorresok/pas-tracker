@@ -3,7 +3,7 @@ import { CarpetaLocal } from "../CarpetaLocal.jsx";
 import { ArchivoRow } from "../casoDetalleComponents.jsx";
 
 export default function CasoDocumentos({ 
-  Th, caso, archivos, archivosActualizando, setToast, setPreviewArchivo, 
+  versionCarpeta, Th, caso, archivos, archivosActualizando, setToast, setPreviewArchivo, 
   dirHandleRef, handleCategorizarArchivo, handleRenombrarArchivo 
 }) {
   return (
@@ -16,6 +16,7 @@ export default function CasoDocumentos({
         onPreview={arch => setPreviewArchivo(arch)} 
         caso={caso} 
         onDirHandleChange={h => { dirHandleRef.current = h; }} 
+        version={versionCarpeta}
       />
       
       <div style={{ borderTop: `1px solid ${Th.border}`, marginTop: 16, paddingTop: 16 }}>

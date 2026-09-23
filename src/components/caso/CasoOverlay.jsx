@@ -5,7 +5,7 @@ import { marcarRevisado } from "../../utils/storage.js";
 
 // Abre la ficha de un caso por encima de cualquier pantalla. La ficha ya guarda su caso en Supabase;
 // acá solo se refleja el cambio en memoria (sin volver a guardar todos los casos).
-export default function CasoOverlay({ caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, darkMode }) {
+export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 
   // Abrir un caso nuevo del portal lo saca de la bandeja "Nuevos del portal"
@@ -25,7 +25,7 @@ export default function CasoOverlay({ caso, pasId, casos, todosLosPas, onCasoLoc
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: "var(--bg)" }}>
       <CasoDetalle
-        caso={caso} pasId={pasId} pasNombre={pasNombre} pasTelefono={(pas?.telefonos || [])[0] || ""} darkMode={darkMode}
+        pestanaInicial={pestanaInicial} caso={caso} pasId={pasId} pasNombre={pasNombre} pasTelefono={(pas?.telefonos || [])[0] || ""} darkMode={darkMode}
         companias={companias} onAgregarCompania={agregarCompania}
         onUpdate={updated => {
           const { _pasId, _pasNombre, ...limpio } = updated;
