@@ -1,6 +1,7 @@
 -- ============================================================
 -- PAS Tracker · Esquema de Supabase (esquema public)
--- Regenerado el 2026-09-23 desde information_schema de la base de producción:
+-- Regenerado el 2026-09-23 desde information_schema de la base de producción
+-- y actualizado a mano con los SQL 09 a 15 (2026-09-24):
 -- columnas, tipos, NOT NULL y valores por defecto son los reales.
 -- No incluye claves primarias/foráneas ni índices (no se exportaron);
 -- las marcadas "-- PK?" son las probables según el uso.
@@ -9,9 +10,13 @@
 --   · RLS activado en TODAS las tablas (2026-09-23_06_activar_rls.sql).
 --     Política admin_todo: el administrador (tabla pas_admins, función es_admin()) puede todo.
 --     Portal: cada PAS ve/deriva solo sus pas_casos, ve sus acciones, su pas_portal_users y su pas_lista.
---   · Funciones: es_admin(), mi_pas_id(), plazos_companias(), consultar_caso_cliente(patente, dni).
+--   · Funciones: es_admin(), mi_pas_id(), plazos_companias(), consultar_caso_cliente(patente, dni),
+--     cliente_es_dueno, autorizar_subida_cliente, subida_autorizada, confirmar_subida_cliente,
+--     documentos_enviados_cliente, extras_cliente.
 --   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
---   · Storage: solo existe el bucket 'adjuntos' (público por link; subida solo a <pas_id>/ propio).
+--   · Storage: 'adjuntos' (público por link; subida solo a <pas_id>/ propio) y 'recepcion'
+--     (privado; lo que sube el cliente, con autorización de 15 minutos).
+--   · Copias de seguridad: esquemas backup_20260922 y backup_20260924 (limpieza del SQL 15).
 -- ============================================================
 
 
@@ -47,8 +52,6 @@ create table public.pas_casos (
   monto_cobro_asegurado     numeric,
   monto_cobro_yo            numeric,
   monto_comision_pas        numeric,
-  recordatorio              text,                   -- sin uso
-  notas_log                 jsonb default '[]'::jsonb,  -- bitácora vieja (hoy se usa la tabla acciones)
   created_at                timestamp without time zone default now(),
   carpeta_path              text,
   primer_ofrecimiento       numeric,
@@ -77,7 +80,11 @@ create table public.pas_casos (
   mensaje_cliente           text,                   -- lo ven el PAS (portal) y el cliente
   patente                   text,                   -- reemplazó a "dominio" (borrada 2026-09-23)
   proxima_accion_vence      date,
-  mensaje_cliente_fecha     timestamp with time zone  -- la completa un trigger
+  mensaje_cliente_fecha     timestamp with time zone, -- la completa un trigger
+  origen                    text,                   -- 'portal' | 'estudio' (SQL 09)
+  revisado_en               timestamp with time zone, -- cuándo lo tomaste; vacío = sin revisar (SQL 09)
+  telefono_asegurado        text,                   -- SQL 09
+  documentacion             jsonb not null default '{}'::jsonb  -- checklist manual {TIPO: 'YYYY-MM-DD'} (SQL 12)
 );
 
 -- Movimientos / bitácora de cada caso
@@ -88,6 +95,36 @@ create table public.acciones (
   descripcion  text,
   fecha        timestamp with time zone not null default now(),
   created_at   timestamp with time zone not null default now()
+);
+
+-- Agenda: mediaciones, audiencias, etc. (SQL 10; el PAS lee las de sus casos, SQL 13)
+create table public.pas_eventos (
+  id            uuid primary key default gen_random_uuid(),
+  caso_id       uuid not null references public.pas_casos(id) on delete cascade,
+  tipo          text not null default 'mediacion', -- mediacion | audiencia | vencimiento | reunion | otro
+  inicio        timestamp with time zone not null,
+  duracion_min  integer,
+  link          text,
+  lugar         text,
+  notas         text
+);
+
+-- Lo que sube el cliente desde su vista (SQL 11): autorizada → subida → guardada
+create table public.pas_subidas_cliente (
+  id              uuid primary key default gen_random_uuid(),
+  caso_id         uuid not null references public.pas_casos(id) on delete cascade,
+  tipo            text not null,
+  nombre_original text,
+  ruta            text not null unique,
+  estado          text not null default 'autorizada',
+  creado          timestamp with time zone not null default now(),
+  expira          timestamp with time zone not null default now() + interval '15 minutes'
+);
+
+-- Margen de "reclamo quieto" por compañía; '*' = general (SQL 14)
+create table public.pas_margen_companias (
+  compania  text primary key,
+  dias      integer not null check (dias between 1 and 365)
 );
 
 
@@ -127,12 +164,6 @@ create table public.pas_derivadores (
 create table public.pas_descartados (
   pas_id  integer not null,            -- PK?
   activo  boolean default true
-);
-
--- Recordatorios (obsoletos: ya no se muestran)
-create table public.pas_recordatorios (
-  pas_id              integer not null,
-  fecha_recordatorio  text
 );
 
 -- PAS cargados a mano (no vienen del Excel)
@@ -180,39 +211,4 @@ create table public.pas_admins (
 create table public.pas_cliente_intentos (
   patente  text not null,
   creado   timestamp with time zone not null default now()
-);
-
-
--- ── Tablas que la app NO usa (de una versión anterior; solo accesibles para el administrador) ──
-
-create table public.aseguradoras (
-  id             uuid not null default gen_random_uuid(),
-  nombre_social  text not null,
-  created_at     timestamp with time zone default timezone('utc'::text, now())
-);
-
-create table public.casos (
-  id                 text not null,
-  caratula           text,
-  fuero              text,
-  juzgado            text,
-  secretaria         text,
-  expediente         text,
-  cliente            text,
-  cliente_tel        text,
-  contraparte        text,
-  abogado_contrario  text,
-  estado_expediente  text,
-  fecha_inicio       date,
-  notas              text
-);
-
-create table public.gestiones_judiciales (
-  id                         uuid not null default gen_random_uuid(),
-  apellido_nombre_asegurado  text not null,
-  dni_asegurado              text not null,
-  fecha_del_siniestro        date not null,
-  aseguradora_id             uuid,
-  estado                     text default 'Iniciado'::text,
-  created_at                 timestamp with time zone default timezone('utc'::text, now())
 );
