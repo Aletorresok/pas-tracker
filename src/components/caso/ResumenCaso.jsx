@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { fmtMoney, formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
+import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
 // Pestaña "Resumen": lo que se mira todos los días
-export default function ResumenCaso({ formData, onChange, acciones, onCrearAccion, irA, Th }) {
+export default function ResumenCaso({ pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
   const [copiado, setCopiado] = useState(false);
@@ -49,6 +50,11 @@ export default function ResumenCaso({ formData, onChange, acciones, onCrearAccio
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 8, fontSize: 12, color: Th.muted }}>
             {formData.patente && <button type="button" onClick={copiarLink} style={link}>{copiado ? "✓ Link copiado" : "Copiar link del cliente"}</button>}
             {!tieneDni && <span>Sin DNI cargado: el cliente no puede entrar. <button type="button" onClick={() => irA("datos")} style={{ ...link, fontSize: 12 }}>Cargar DNI</button></span>}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <AvisarWhatsApp caso={{ ...formData, tercero_contacto }} pasNombre={pasNombre} pasTelefono={pasTelefono}
+              onTelefonoCliente={v => onChange("telefono_asegurado", v)}
+              onUsarComoMensaje={t => onChange("mensaje_cliente", t)} />
           </div>
         </div>
 

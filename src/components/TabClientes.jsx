@@ -126,7 +126,7 @@ export default function TabClientes({ pas, casos, derivadores, onCasoLocal, dark
   // Alta de un caso: se guarda solo ese caso y se abre su ficha para completarlo
   const crearCaso = async (p, datos) => {
     setError("");
-    const fila = { ...datos, pas_id: parseInt(p.id, 10) };
+    const fila = { ...datos, pas_id: parseInt(p.id, 10), origen: "estudio", revisado_en: new Date().toISOString() };
     const { error: err } = await supabase.from("pas_casos").insert([fila]);
     if (err) { console.error("[TabClientes] alta de caso:", err); setError("No se pudo crear el caso: " + (err.message || "error desconocido")); return; }
     onCasoLocal(String(p.id), fila);

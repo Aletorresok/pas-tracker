@@ -9,27 +9,27 @@ const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
  * Sube múltiples archivos al bucket de Supabase y notifica por EmailJS.
  */
 export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, archivos }) {
-  const linksAdjuntos = [];
-  
+  const subidos = []; // { nombre, link }
+  const fallidos = [];
+
   if (archivos && archivos.length > 0) {
     for (let file of archivos) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      const filePath = `${pasId}/${fileName}`;
+      // Se guarda con su nombre original (sin tildes ni símbolos, que Storage no acepta) para que el link se entienda
+      const limpio = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9._-]+/g, "_").replace(/_+/g, "_").slice(-80);
+      const filePath = `${pasId}/${Date.now()}_${limpio || "archivo"}`;
 
       const { error: uploadError } = await supabase.storage.from("adjuntos").upload(filePath, file);
-      if (!uploadError) {
-        const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
-        if (linkData?.publicUrl) {
-          linksAdjuntos.push(linkData.publicUrl);
-        }
-      }
+      if (uploadError) { console.error("[adjuntos] no se pudo subir", file.name, uploadError); fallidos.push(file.name); continue; }
+      const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
+      if (linkData?.publicUrl) subidos.push({ nombre: file.name, link: linkData.publicUrl });
     }
   }
+  const linksAdjuntos = subidos.map(s => s.link);
 
-  const textoLinks = linksAdjuntos.length > 0
-    ? linksAdjuntos.map((link, i) => `🔗 Archivo ${i + 1}: ${link}`).join('\n')
-    : "No se adjuntaron archivos.";
+  const textoLinks = [
+    ...subidos.map(s => `📎 ${s.nombre}\n${s.link}`),
+    ...fallidos.map(n => `⚠️ No se pudo subir: ${n}`),
+  ].join("\n\n") || "No se adjuntaron archivos.";
 
   const templateParams = {
     pas_nombre: pasNombre || "Productor",

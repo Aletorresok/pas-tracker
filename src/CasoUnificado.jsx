@@ -34,7 +34,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente"
+  "patente", "mensaje_cliente", "telefono_asegurado"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -48,7 +48,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -77,7 +77,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
-    patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "",
+    patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || ""
   });
 
@@ -281,7 +281,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
           <div style={{ padding: 20 }}>
             {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
             <div {...panel("resumen")}>
-              <ResumenCaso formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
+              <ResumenCaso pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
             </div>
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />

@@ -120,6 +120,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
     <FilaExpandida
       key={`exp-${c.id}`}
       caso={c}
+      pas={todosLosPas.find(p => String(p.id) === String(c._pasId))}
       onCasoLocal={casoEditado(c._pasId)}
       onAbrirFicha={() => setFicha({ caso: c, pasId: c._pasId })}
       onEliminar={() => handleDelete(c)}

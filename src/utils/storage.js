@@ -1,4 +1,5 @@
 import { supabase } from "../supabase.js";
+import { fechaLocalISO } from "./formatters.js";
 
 // ── GENERADOR DE UUID ──────────────────────────────────────────────────────────
 function generateUUID() {
@@ -207,4 +208,15 @@ export async function deletePasManual(id) {
     .eq("id", id);
 
   if (error) console.error("[deletePasManual] error:", error);
+}
+// Marca un caso del portal como revisado (sale de la bandeja "Nuevos del portal").
+// Con `contactado`, además guarda hoy como fecha de primer contacto con el asegurado.
+// Devuelve los campos guardados, o null si falló.
+export async function marcarRevisado(id, { contactado = false } = {}) {
+  const hoy = new Date();
+  const cambios = { revisado_en: hoy.toISOString() };
+  if (contactado) cambios.fecha_contacto_asegurado = fechaLocalISO(hoy);
+  const { error } = await supabase.from("pas_casos").update(cambios).eq("id", id);
+  if (error) { console.error("[marcarRevisado] error:", error); return null; }
+  return cambios;
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from './supabase.js'
 
@@ -130,6 +130,17 @@ function AppPrincipal() {
       return next;
     });
   }, [setCasos, autoBackup]);
+
+  // Casos nuevos que llegan desde el portal mientras la app está abierta
+  useEffect(() => {
+    const canal = supabase
+      .channel("admin-pas-casos-nuevos")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pas_casos" }, ({ new: caso }) => {
+        if (caso?.id) handleCasoLocal(String(caso.pas_id), caso);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(canal); };
+  }, [handleCasoLocal]);
 
   // Saca un caso de memoria (quien llama ya lo borró de Supabase)
   const handleQuitarCaso = useCallback((pasId, id) => {

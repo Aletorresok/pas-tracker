@@ -6,9 +6,10 @@ import { alpha } from "../../utils/theme.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
 import Boton from "../ui/Boton.jsx";
+import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 
 // Campos que se editan desde la fila desplegada de la tabla
-const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado"];
+const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_ofrecimiento", l: "Ofrecido" },
@@ -26,7 +27,7 @@ const aFila = (k, v) => {
   return v;
 };
 
-export default function FilaExpandida({ caso, onCasoLocal, onAbrirFicha, onEliminar }) {
+export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, onEliminar }) {
   const [borrador, setBorrador] = useState(() => aBorrador(caso));
   const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
   const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
@@ -133,6 +134,10 @@ export default function FilaExpandida({ caso, onCasoLocal, onAbrirFicha, onElimi
           <label htmlFor={`mc-${caso.id}`} style={etiqueta}>Mensaje para el cliente <span style={{ color: "var(--muted)" }}>· lo ven el PAS y el cliente</span></label>
           <textarea id={`mc-${caso.id}`} rows={2} value={borrador.mensaje_cliente} onChange={e => cambiar("mensaje_cliente", e.target.value)} placeholder="Ej: El reclamo está en la compañía. Estimamos respuesta en 15 días." style={area} />
         </div>
+
+        <AvisarWhatsApp caso={{ ...caso, ...borrador }} pasNombre={pas?.nombre || caso._pasNombre || ""} pasTelefono={(pas?.telefonos || [])[0] || ""}
+          onTelefonoCliente={v => cambiar("telefono_asegurado", v)}
+          onUsarComoMensaje={t => cambiar("mensaje_cliente", t)} />
       </div>
 
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>

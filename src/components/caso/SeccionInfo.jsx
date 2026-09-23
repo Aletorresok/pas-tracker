@@ -45,6 +45,11 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
           <input type="text" inputMode="numeric" value={formData.dni_asegurado || ""} onChange={e => onChange("dni_asegurado", e.target.value)} placeholder="Ej: 25123456" style={inputStyle} />
           <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>El cliente consulta su caso con la patente y los últimos 3 números.</span>
         </label>
+        <label>
+          <span style={labelStyle}>Teléfono del asegurado</span>
+          <input type="tel" value={formData.telefono_asegurado || ""} onChange={e => onChange("telefono_asegurado", e.target.value)} placeholder="Ej: 11 3313 3259" style={inputStyle} />
+          <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>Para avisarle por WhatsApp desde el caso.</span>
+        </label>
       </div>
 
 
