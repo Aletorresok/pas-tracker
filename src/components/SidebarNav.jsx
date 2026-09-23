@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext.jsx";
 import Icono from "./ui/Icono.jsx";
 import { cerrarSesion } from "./LoginGate.jsx";
 import { useInstalarApp } from "../hooks/useInstalarApp.js";
+import { useNotificaciones } from "../utils/push.js";
 import Logo from "./ui/Logo.jsx";
 
 const TABS = [
@@ -43,11 +44,24 @@ function SelectorAcento() {
 function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
   const { darkMode, toggleDarkMode, T } = useTheme();
   const app = useInstalarApp();
+  const push = useNotificaciones();
   const item = { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", color: T.text, padding: "10px 12px", cursor: "pointer", fontSize: 14, textAlign: "left", borderRadius: 6 };
   return (
     <>
       {app.puede && <>
         <button type="button" onClick={() => { app.instalar(); onClose(); }} style={{ ...item, fontWeight: 600 }}><Icono nombre="instalar" size={16} />Instalar app</button>
+        <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
+      </>}
+      {push.estado !== "no-soportado" && push.estado !== "cargando" && <>
+        <div style={{ fontSize: 12, color: T.muted, padding: "6px 12px 2px" }}>Notificaciones en este dispositivo</div>
+        {push.estado === "activo" ? <>
+          <div style={{ ...item, cursor: "default", color: "var(--ok)", fontWeight: 600 }}><Icono nombre="campana" size={16} />Activadas</div>
+          <button type="button" onClick={push.probar} style={item}><Icono nombre="check" size={16} />Mandar una de prueba</button>
+          <button type="button" onClick={push.desactivar} style={{ ...item, color: T.sub }}><Icono nombre="cerrar" size={16} />Desactivar</button>
+        </> : push.estado === "bloqueado"
+          ? <div style={{ fontSize: 12, color: "var(--warn)", padding: "4px 12px 8px", lineHeight: 1.4 }}>Bloqueadas en el navegador. Habilitalas desde el candado de la barra de direcciones.</div>
+          : <button type="button" onClick={push.activar} style={{ ...item, fontWeight: 600 }}><Icono nombre="campana" size={16} />Activar notificaciones</button>}
+        {push.error && <div style={{ fontSize: 12, color: "var(--bad)", padding: "2px 12px 6px", lineHeight: 1.4 }}>{push.error}</div>}
         <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
       </>}
       <button type="button" onClick={() => { onBackup(); onClose(); }} style={item}><Icono nombre="guardar" size={16} />Descargar backup</button>

@@ -121,6 +121,20 @@ create table public.pas_subidas_cliente (
   expira          timestamp with time zone not null default now() + interval '15 minutes'
 );
 
+-- Notificaciones push (SQL 17): dispositivos activados y avisos ya enviados (los usa la función "notificar")
+create table public.pas_push_suscripciones (
+  endpoint     text primary key,
+  p256dh       text not null,
+  auth         text not null,
+  user_id      uuid default auth.uid(),
+  dispositivo  text,
+  creado       timestamp with time zone not null default now()
+);
+create table public.pas_avisos (
+  clave   text primary key,             -- caso:<id> | subida:<caso>:<media hora> | agenda:<evento>:<fecha>
+  creado  timestamp with time zone not null default now()
+);
+
 -- Margen de "reclamo quieto" por compañía; '*' = general (SQL 14)
 create table public.pas_margen_companias (
   compania  text primary key,
