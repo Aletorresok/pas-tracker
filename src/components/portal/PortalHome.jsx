@@ -80,12 +80,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           if (!accionesPorCaso[a.caso_id]) accionesPorCaso[a.caso_id] = [];
           accionesPorCaso[a.caso_id].push({ texto: a.descripcion, fecha: a.fecha, ts: new Date(a.fecha).getTime() });
         });
-        // Movimientos = tabla acciones + la bitácora vieja (notas_log) mientras esa columna exista
-        const casosConAcciones = casosData.map(c => {
-          const dbAcciones = accionesPorCaso[c.id] || [];
-          const viejos = (c.notas_log || []).filter(n => !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha));
-          return { ...c, movimientos: [...dbAcciones, ...viejos] };
-        });
+        const casosConAcciones = casosData.map(c => ({ ...c, movimientos: accionesPorCaso[c.id] || [] }));
         setCasos(casosConAcciones);
 
         // Próxima mediación/audiencia de cada caso (si falta el permiso del SQL 13, simplemente no se muestra)
