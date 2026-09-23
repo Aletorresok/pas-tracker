@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
+import { linkWhatsApp } from "../../utils/mensajes.js";
+import { primerNombre } from "../../utils/formatters.js";
 
-const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", dormido: "PAS dormido" };
 
 // Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso.
 export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
@@ -45,7 +47,10 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
                   style={{ font: "inherit", fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", cursor: "pointer", whiteSpace: "nowrap" }}>
                   {reiterando === t.id ? "Guardando…" : "Reiteré hoy"}
                 </button>
-              : <span className="num" style={{ fontSize: 13, color: "var(--sub)", whiteSpace: "nowrap" }}>{t.monto ? fmtMoney(t.monto) : ""}</span>}
+              : t.tipo === "dormido" && linkWhatsApp((t.pas.telefonos || [])[0], "x")
+                ? <a href={linkWhatsApp(t.pas.telefonos[0], `Hola ${primerNombre(t.pas.nombre)}, ¿cómo estás? Hace un tiempo que no hablamos. ¿Cómo viene todo? Cualquier siniestro que tengas, acá estoy para darte una mano.`)} target="_blank" rel="noreferrer"
+                    style={{ fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap" }}>Escribirle</a>
+                : <span className="num" style={{ fontSize: 13, color: "var(--sub)", whiteSpace: "nowrap" }}>{t.monto ? fmtMoney(t.monto) : ""}</span>}
           </div>
         ))}
       </div>
