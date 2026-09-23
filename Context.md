@@ -43,6 +43,12 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
+### 2026-09-23 — Propuesta de funcionalidades nuevas (en charla)
+*   Propuesta visual: https://claude.ai/artifact/XLFaQMEZxqakvkrKsid99B (F1–F10).
+*   **Elegidas por el usuario:** F1 Mensajes con un toque · F2 Buscador rápido · F3 Reclamos quietos por compañía · F4 El cliente sube su documentación (pensarla bien) · F5 Bandeja "Nuevos del portal" ("re necesario") · F7 Resumen del mes para cada PAS · F8 Agenda en el calendario (mediaciones y fechas importantes: "clave") · F9 PAS dormidos + **estadísticas por PAS** (cada cuánto deriva, % desistidos, etc.) · F10 Carga desde la denuncia con IA (pidió más explicación). Descartada: F6.
+*   Pedido extra: que los mails de derivación muestren el **nombre del archivo** en vez del link pelado de Supabase.
+*   Plan propuesto (pendiente de confirmar): Etapa 11 = F5 + F1 + nombres en los mails · 12 = F2 + F3 · 13 = F9 estadísticas + F7 · 14 = F8 · 15 = F4 · F10 a decidir.
+
 ### 2026-09-23 — Etapa 10: Clientes en tabla + archivos seguros + limpieza de la base (✅ publicada, PR #11; SQL 07 y 08 ejecutados)
 *   **`TabClientes` reescrito** como tabla de PAS clientes (derivadores + manuales): columnas PAS, En curso, Cobrados, Mis honorarios (neto de comisión, casos cobrados), Último caso; ordenables; buscador. Fila desplegable con mail, teléfonos (WhatsApp), "Editar PAS" (manuales), **"Nuevo caso"** y la lista de sus casos (activos primero); tocar un caso abre la ficha (`CasoOverlay`). En celular, filas de dos líneas.
 *   **Fin del guardado masivo de casos:** el alta de caso desde Clientes inserta solo ese caso y abre su ficha; borrar un caso en Casos borra solo ese caso. `App.handleSaveCasos` y `handleDeletePasManual` se eliminaron; `handleCasoLocal` ahora también agrega casos nuevos y hay `handleQuitarCaso`. (`saveStorage("pas_casos")` queda solo para restaurar un backup.)
