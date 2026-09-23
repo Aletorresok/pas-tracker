@@ -281,7 +281,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
           <div style={{ padding: 20 }}>
             {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
             <div {...panel("resumen")}>
-              <ResumenCaso pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
+              <ResumenCaso casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
             </div>
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
