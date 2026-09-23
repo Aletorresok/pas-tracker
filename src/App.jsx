@@ -25,9 +25,16 @@ import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import PortalCliente from './components/portal/PortalCliente.jsx';
 
+// Vista pública del cliente (sin login) o la app, que primero pide cuenta + PIN.
+// Los datos se cargan recién después de entrar (AppPrincipal).
 export default function App() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("caso") || params.get("vista") === "cliente") return <PortalCliente />;
+  return <LoginGate><AppPrincipal /></LoginGate>;
+}
+
+function AppPrincipal() {
   const { darkMode, T } = useTheme();
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("pas_unlocked") === "1");
 
   const {
     pas, setPas, agregarPas,
@@ -47,15 +54,6 @@ export default function App() {
   const [modalPas, setModalPas] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [autobackupFecha, setAutobackupFecha] = useState(() => localStorage.getItem('pastracker_autobackup_fecha') || null);
-
-  // --- INTERCEPTOR PARA EL PORTAL DEL CLIENTE --- 
-  const params = new URLSearchParams(window.location.search);
-  const isClienteView = params.has("caso") || params.get("vista") === "cliente";
-
-  if (isClienteView) {
-    return <PortalCliente />;
-  }
-  // ------------------------------------------------ 
 
   // ── HANDLERS
   const autoBackup = useCallback((casosData) => {
@@ -188,8 +186,6 @@ export default function App() {
   }, []);
 
   // ── RENDER
-  if (!unlocked) return <LoginGate onUnlock={() => setUnlocked(true)} />;
-
   return (
     <div style={{ background: T.bg, color: T.text, minHeight: "100vh", display: "flex" }}>
       {/* SIDEBAR DE NAVEGACIÓN */}

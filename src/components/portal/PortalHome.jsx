@@ -90,8 +90,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     };
     loadData();
 
-    supabase.from("pas_casos").select("compania_aseguradora,fecha_inicio_reclamo,fecha_ofrecimiento,fecha_cobro,monto_cobro_asegurado,monto_reclamado").then(({ data }) => {
-      if (data) setTodosLosCasos(data);
+    // Datos de todas las compañías sin nombres ni patentes (función plazos_companias en Supabase)
+    supabase.rpc("plazos_companias").then(({ data }) => {
+      if (Array.isArray(data)) setTodosLosCasos(data);
     });
   }, [session]);
 

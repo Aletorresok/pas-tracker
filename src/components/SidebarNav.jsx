@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import Icono from "./ui/Icono.jsx";
+import { cerrarSesion } from "./LoginGate.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
@@ -52,6 +53,8 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
       <button type="button" onClick={toggleDarkMode} style={item}><Icono nombre={darkMode ? "sol" : "luna"} size={16} />{darkMode ? "Modo claro" : "Modo oscuro"}</button>
       <div style={{ fontSize: 12, color: T.muted, padding: "6px 12px 2px" }}>Color</div>
       <SelectorAcento />
+      <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
+      <button type="button" onClick={() => { if (window.confirm("¿Cerrar sesión en este navegador? La próxima vez te va a pedir mail y contraseña.")) cerrarSesion(); }} style={item}><Icono nombre="salir" size={16} />Cerrar sesión</button>
     </>
   );
 }
