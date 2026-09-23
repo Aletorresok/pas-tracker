@@ -7,6 +7,7 @@ import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
+import { pasDormidos } from "../utils/estadisticasPas.js";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
 
@@ -33,12 +34,18 @@ function Kpi({ label, valor, pie, destacado }) {
 // Tonos del acento en orden de avance: de suave (arranque) a pleno (cobrado)
 const TONOS = [45, 60, 74, 87, 100];
 
-export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onCasoLocal, onIrA }) {
+export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onCasoLocal, onIrA, onAbrirCliente }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
   const porMes = useMemo(() => honorariosPorMes(allCasos), [allCasos]);
-  const tareas = useMemo(() => tareasPendientes({ allCasos }), [allCasos]);
+  // Tareas de los casos + PAS clientes que dejaron de derivar
+  const tareas = useMemo(() => {
+    const manualesIds = new Set(pasManuales.map(p => String(p.id)));
+    const clientes = [...pas.filter(p => derivadores[String(p.id)] && !manualesIds.has(String(p.id))), ...pasManuales];
+    return [...tareasPendientes({ allCasos }), ...pasDormidos(clientes, casos)]
+      .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31"));
+  }, [allCasos, pas, pasManuales, derivadores, casos]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const { tramos, desistidos } = useMemo(() => casosPorTramo(allCasos), [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
@@ -59,6 +66,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
   const abrirTarea = (t) => {
     if (t.caso) setAbierto({ caso: t.caso, pasId: t.caso._pasId });
+    else if (t.pas) onAbrirCliente?.(t.pas);
   };
 
   return (
