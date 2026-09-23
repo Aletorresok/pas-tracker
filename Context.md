@@ -43,7 +43,7 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-23 — Etapa 9: Acceso seguro + RLS (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-23 — Etapa 9: Acceso seguro + RLS (✅ publicada, PR #9; SQL 05 y 06 ejecutados)
 *   **Entrada a la app en dos pasos** (`LoginGate.jsx`): (1) **una vez por navegador**, mail + contraseña de la cuenta de Supabase Auth (`atglexsolutions@gmail.com`); la sesión queda guardada en el navegador. (2) Cada vez que abrís la app en una pestaña nueva, el **PIN 3934** de siempre. A los **5 PIN incorrectos** se cierra la sesión y vuelve a pedir contraseña. Solo entran las cuentas de la tabla `pas_admins` (función `es_admin()`).
 *   **Los datos se cargan recién después de entrar** (`App` → `LoginGate` → `AppPrincipal`); antes se descargaba todo aunque no pusieras el PIN.
 *   Menú "Apariencia y backup" / "Más": **Cerrar sesión** (en este navegador).
@@ -51,6 +51,7 @@
 *   Portal PAS: "Plazos por compañía" ahora sale de la función `plazos_companias()` (solo compañía, fechas y montos; sin nombres ni patentes), porque con RLS un PAS ya no puede leer casos ajenos.
 *   **SQL:** `sql/2026-09-23_05_admin_y_funciones.sql` (paso 1: tabla `pas_admins`, funciones `es_admin`, `mi_pas_id`, `plazos_companias`; no cambia permisos) y `sql/2026-09-23_06_activar_rls.sql` (paso 2: **RLS en todas las tablas** de `public`, borra políticas viejas; administrador puede todo; cada PAS ve y deriva solo sus casos, ve los movimientos de sus casos, su usuario y su ficha de `pas_lista`). Al final del 06 está el script para volver atrás.
 *   **Orden:** correr 05 → probar la preview → publicar → entrar con mail y contraseña en cada navegador (Chrome y celular) → recién ahí correr 06.
+*   **RLS activo desde el 23/09** en las 15 tablas de `public` (incluye `aseguradoras`, `casos` y `gestiones_judiciales`, que la app no usa y quedaron solo para el administrador). El esquema `backup_20260922` no se expone por la API.
 *   Nota honesta: el PIN sigue estando en el código (es un bloqueo rápido); la seguridad real la da la cuenta + RLS. **Pendiente:** revisar los permisos de Storage (buckets `casos` y `adjuntos`).
 
 ### 2026-09-23 — Etapa 8: Vista del cliente (✅ publicada, PR #8)
@@ -61,7 +62,7 @@
 *   **SQL `2026-09-23_04` ejecutado** (23/09; hubo que cambiar `$$` por `$fn$` porque el editor de Supabase cortaba la función). Resultado: **43 casos en curso sin DNI**.
 *   **Para cargarlos rápido:** en Casos, chip **"Sin DNI"** (casos en curso sin al menos 3 números de DNI) y campo **DNI del asegurado** en la fila desplegable, con guardado automático.
 *   **Escrito con DNI con puntos:** el DNI se carga sin puntos (38554155) y en el escrito sale `38.554.155` (7 dígitos: `5.123.456`); si no tiene 7 u 8 números queda como se escribió (`generarEscrito.formatearDni`).
-*   Nota: mientras RLS siga apagado en `pas_casos`, la tabla sigue siendo legible con la clave pública; la función deja lista la vista del cliente para cuando se active RLS (tarea del PIN seguro).
+*   ~~Nota: mientras RLS siga apagado…~~ Resuelto en la etapa 9 (RLS activo).
 
 ### 2026-09-23 — Etapa 7: Portal PAS para celular + ajustes (✅ publicada junto con la etapa 6, PR #7)
 *   **`PortalHome` rediseñado** (celular primero): encabezado ATG Lex Solutions con íconos; columna izquierda con resumen (tu comisión cobrada, próximo cobro, en curso / cobrados / total, lo que cobraron tus asegurados) y "Próximos cobros" con scroll; a la derecha pestañas **En curso / Cobrados / Todos**, buscador (si hay más de 5 casos) y tarjetas. Se quitaron los 9 filtros de estado y la columna fija "Futuros pagos". En celular todo va en una columna y hay un botón fijo **"+ Derivar caso"**; el formulario de derivar ocupa toda la pantalla.
@@ -687,7 +688,7 @@ Markdown
 - [x] **(Resuelto 2026-09-22)** **Duplicidad de lógica de patentes/dominios:** Al igual que se vio en `CasoUnificado.jsx`, en `SeccionInfo.jsx` se vuelve a parchar la sincronización manual de `patente` y `dominio` (`onChange("patente", val); onChange("dominio", val);`)[cite: 20, 54]. Esto es un claro indicio de deuda técnica a nivel de base de datos: tener dos columnas separadas para el mismo dato en Supabase obliga al frontend a duplicar validaciones constantemente.
 - [ ] **`src/components/clientes/ModalesCliente.jsx` (Tech Debt de IDs):** Al crear un nuevo PAS manual, se genera un ID aleatorio mediante una operación matemática (`100000 + Math.floor(Math.random() * 1900000)`)[cite: 60]. Esto representa una mala práctica y un riesgo latente de colisión de IDs en la base de datos comparado con el uso robusto de UUIDs que se implementa para los casos.
 - [ ] **`src/components/portal/PortalHome.jsx` (Excepción de Seguridad / Hardcode):** En la carga inicial de datos se incluye una validación por correo electrónico hardcodeada (`if (session.user.email === "atglexsolutions@gmail.com")`) para otorgar privilegios especiales o vista global de casos[cite: 71]. Esto representa una deuda técnica y un riesgo de seguridad al depender de un string estricto en el frontend en lugar de un sistema de roles/permisos robusto en la base de datos.
-- [ ] **🔴 RLS desactivado (CRÍTICO):** Salvo `pas_portal_users`, ninguna tabla tiene Row Level Security. Como la anon key viaja en el bundle, cualquiera puede leer/modificar/borrar todos los datos vía API. Asegurar el PIN no sirve sin RLS.
+- [x] **✅ RLS activado (etapa 9, 23/09).** Antes: Salvo `pas_portal_users`, ninguna tabla tiene Row Level Security. Como la anon key viaja en el bundle, cualquiera puede leer/modificar/borrar todos los datos vía API. Asegurar el PIN no sirve sin RLS.
 - [ ] **`pas_casos.monto_reclamado` es `text`:** el resto de montos ya son `numeric` (el casting de `TabCasos` sobre `monto_acordado` es inocuo). Migrar `monto_reclamado` a `numeric` tras revisar formatos existentes.
 - [ ] **Tipos inconsistentes de IDs de PAS:** `pas_contactos.id` es `text`, pero `pas_casos.pas_id` y `pas_derivadores.pas_id` son `integer`.
 - [ ] **Borrar columnas viejas** `dominio` y `compania` + trigger puente (paso 5 de `sql/2026-09-22_02_unificar_columnas.sql`) cuando la versión nueva esté estable.
