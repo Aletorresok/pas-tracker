@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "../supabase.js";
+
+// Cliente aparte para crear usuarios del portal: así el alta no reemplaza tu sesión de administrador
+const clienteAltas = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false, storageKey: "pas_altas_portal" },
+});
 import { THEME, COLORES, alpha } from "../utils/theme.js";
 
 export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
@@ -39,7 +45,7 @@ export default function TabPortalUsuarios({ pas, derivadores, darkMode }) {
     setError("");
 
     try {
-      const { data: signData, error: signErr } = await supabase.auth.signUp({ 
+      const { data: signData, error: signErr } = await clienteAltas.auth.signUp({ 
         email: email.trim(), 
         password: pwd 
       });
