@@ -8,8 +8,7 @@ export default function TabProspeccion(props) {
   const [filtro, setFiltro] = useState("sin_contactar");
 
   const conteos = useMemo(() => {
-    const contactados = pas.filter(p => historial[p.id]?.length > 0 && !descartados[p.id]);
-    return Object.fromEntries(FILTROS_CONTACTADOS.map(f => [f.k, contactados.filter(p => f.test(p, historial, derivadores)).length]));
+    return Object.fromEntries(FILTROS_CONTACTADOS.map(f => [f.k, pas.filter(p => f.test(p, historial, derivadores, descartados)).length]));
   }, [pas, historial, derivadores, descartados]);
 
   const chip = (k, l, n) => {

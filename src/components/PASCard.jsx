@@ -1,10 +1,8 @@
-import { RESULTADOS_CONTACTO } from "../constants.js";
 import { fmtDate, waLink, diasDesde } from "../utils/formatters.js";
 import { alpha } from "../utils/theme.js";
 import Icono from "./ui/Icono.jsx";
 import Boton from "./ui/Boton.jsx";
 
-const resultado = k => RESULTADOS_CONTACTO.find(r => r.key === k);
 
 function Etiqueta({ color, children }) {
   return (
@@ -35,7 +33,6 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
   const ultimo = contactos[contactos.length - 1];
   const esDerivador = !!derivadores[pas.id];
   const esDescartado = !!descartados?.[pas.id];
-  const ultimosResultados = ultimo?.resultados || (ultimo?.resultado ? [ultimo.resultado] : []);
   const telefonos = pas.telefonos || [];
   const hace = ultimo?.fecha ? diasDesde(ultimo.fecha) : null;
 
@@ -51,8 +48,7 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
           </span>
           <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 3, fontSize: 12, color: "var(--sub)" }}>
             <span className="num">{telefonos.length === 1 ? telefonos[0] : telefonos.length > 1 ? `${telefonos.length} teléfonos` : "Sin teléfono"}</span>
-            {ultimosResultados.slice(0, 2).map(k => resultado(k) && <Etiqueta key={k} color={resultado(k).color}>{resultado(k).label}</Etiqueta>)}
-            {ultimo && <span style={{ color: "var(--muted)" }}>{hace === 0 ? "hoy" : hace !== null ? `hace ${hace} d` : fmtDate(ultimo.fecha)}{contactos.length > 1 ? ` · ${contactos.length} contactos` : ""}</span>}
+            {ultimo && <span style={{ color: "var(--muted)" }}>contactado {hace === 0 ? "hoy" : hace !== null ? `hace ${hace} d` : fmtDate(ultimo.fecha)}{contactos.length > 1 ? ` · ${contactos.length} veces` : ""}</span>}
           </span>
         </button>
         {telefonos[0] && (
@@ -89,23 +85,9 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
           </div>
 
           {contactos.length > 0 && (
-            <div>
-              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>Historial</div>
-              {[...contactos].reverse().map((c, i) => {
-                const keys = c.resultados || (c.resultado ? [c.resultado] : []);
-                return (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "70px minmax(0, 1fr)", gap: 8, padding: "6px 0", borderTop: i ? "1px solid var(--border)" : "none", fontSize: 13 }}>
-                    <span className="num" style={{ color: "var(--muted)" }}>{fmtDate(c.fecha)}</span>
-                    <span>
-                      <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {keys.map(k => resultado(k) && <Etiqueta key={k} color={resultado(k).color}>{resultado(k).label}</Etiqueta>)}
-                        {!keys.length && <span style={{ color: "var(--muted)" }}>Contacto sin resultado</span>}
-                      </span>
-                      {c.nota && <span style={{ display: "block", color: "var(--sub)", marginTop: 3 }}>{c.nota}</span>}
-                    </span>
-                  </div>
-                );
-              })}
+            <div style={{ fontSize: 13, color: "var(--sub)" }}>
+              <span style={{ color: "var(--muted)" }}>Contactos: </span>
+              <span className="num">{[...contactos].reverse().map(c => fmtDate(c.fecha)).join(" · ")}</span>
             </div>
           )}
 

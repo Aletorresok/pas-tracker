@@ -1,14 +1,11 @@
-import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
 
 const TIPO = { accion: "Próxima acción", honorarios: "Honorarios" };
-const VISIBLES = 8;
 
 // Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso.
 export default function ParaHacer({ tareas, onAbrir }) {
-  const [verTodas, setVerTodas] = useState(false);
-  const lista = verTodas ? tareas : tareas.slice(0, VISIBLES);
+  const lista = tareas;
   const vencidas = tareas.filter(t => t.vence && t.vence < fechaLocalISO()).length;
 
   return (
@@ -26,7 +23,7 @@ export default function ParaHacer({ tareas, onAbrir }) {
         </div>
       )}
 
-      <div>
+      <div className="lista-scroll" style={{ maxHeight: 440, overflowY: "auto", marginRight: -8, paddingRight: 8 }}>
         {lista.map((t, i) => (
           <button key={t.id} type="button" onClick={() => onAbrir(t)} className="tarea"
             style={{
@@ -46,12 +43,6 @@ export default function ParaHacer({ tareas, onAbrir }) {
         ))}
       </div>
 
-      {tareas.length > VISIBLES && (
-        <button type="button" onClick={() => setVerTodas(v => !v)}
-          style={{ marginTop: 6, background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", padding: "6px 4px" }}>
-          {verTodas ? "Ver menos" : `Ver las ${tareas.length}`}
-        </button>
-      )}
     </section>
   );
 }

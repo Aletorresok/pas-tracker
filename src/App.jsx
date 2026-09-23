@@ -100,19 +100,27 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   }, [reloadAllData]);
 
-  const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, recordatorio }) => {
+  // Registra el contacto y, según cómo quedó, lo marca como derivador o descartado
+  const handleSaveContacto = useCallback(async ({ fecha, resultados, nota, decision }) => {
+    const id = modalPas.id;
     const entry = { fecha, resultados, nota, ts: Date.now() };
-    const updated = { ...historial, [modalPas.id]: [...(historial[modalPas.id] || []), entry] };
-    setHistorial(updated);
-    await insertHistorialEntry(modalPas.id, entry);
+    setHistorial(prev => ({ ...prev, [id]: [...(prev[id] || []), entry] }));
+    await insertHistorialEntry(id, entry);
 
-    if (recordatorio && resultados.includes("volver_contactar")) {
-      const updatedRec = { ...recordatorios, [modalPas.id]: recordatorio };
-      setRecordatorios(updatedRec);
-      await saveStorage("pas_recordatorios", updatedRec);
+    const quiereDerivador = decision === "deriva";
+    const quiereDescartado = decision === "descarta";
+    if (!!derivadores[id] !== quiereDerivador) {
+      const upd = { ...derivadores, [id]: quiereDerivador };
+      setDerivadores(upd);
+      await saveStorage("pas_derivadores", upd);
+    }
+    if (!!descartados[id] !== quiereDescartado) {
+      const upd = { ...descartados, [id]: quiereDescartado };
+      setDescartados(upd);
+      await saveStorage("pas_descartados", upd);
     }
     setModalPas(null);
-  }, [historial, modalPas, recordatorios]);
+  }, [modalPas, derivadores, descartados]);
 
   const handleSaveCasos = useCallback(async (pasId, list, pasNombre) => {
     const updated = { ...casos, [pasId]: list };
@@ -233,7 +241,7 @@ export default function App() {
       </main>
 
       {/* MODALES */}
-      {modalPas && <ContactModal pas={modalPas} onClose={() => setModalPas(null)} onSave={handleSaveContacto} darkMode={darkMode} />}
+      {modalPas && <ContactModal pas={modalPas} esDerivador={!!derivadores[modalPas.id]} esDescartado={!!descartados[modalPas.id]} onClose={() => setModalPas(null)} onSave={handleSaveContacto} />}
     </div>
   );
 }

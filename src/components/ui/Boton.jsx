@@ -8,12 +8,13 @@ const VARIANTES = {
   peligro:    { background: "transparent", color: "var(--bad)", border: "1px solid color-mix(in srgb, var(--bad) 45%, transparent)" },
 };
 
-export default function Boton({ variante = "secundario", icono, children, style, disabled, tamaño = "md", ...rest }) {
+export default function Boton({ variante = "secundario", icono, children, style, disabled, tamaño = "md", className, ...rest }) {
   const pad = tamaño === "sm" ? "6px 10px" : "10px 16px";
   return (
     <button
       type="button"
       disabled={disabled}
+      className={className}
       {...rest}
       style={{
         ...VARIANTES[variante],

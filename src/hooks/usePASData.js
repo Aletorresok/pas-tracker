@@ -91,7 +91,8 @@ export function usePASData() {
       casosData.forEach(r => ids.add(String(r.pas_id)));
       (derivadoresData || []).forEach(r => r.activo && ids.add(String(r.pas_id)));
       (recordatoriosData || []).forEach(r => ids.add(String(r.pas_id)));
-      const contactos = await traerContactosPorId([...ids].filter(id => !diccDescartados[id]));
+      Object.keys(diccDescartados).forEach(id => ids.add(id));
+      const contactos = await traerContactosPorId([...ids]);
       setPas(contactos.map(normalizarContacto));
 
       // Procesamiento de Historial

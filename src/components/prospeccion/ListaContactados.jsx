@@ -4,42 +4,32 @@ import Boton from "../ui/Boton.jsx";
 
 const POR_TANDA = 40;
 export const ultimoContacto = (historial, id) => { const h = historial[id] || []; return h[h.length - 1]; };
-const ultimosResultados = (historial, id) => {
-  const u = ultimoContacto(historial, id);
-  return u?.resultados || (u?.resultado ? [u.resultado] : []);
-};
 
-// Filtros por el ÚLTIMO resultado registrado (el estado actual de la relación con el PAS)
+// Contactados = con al menos un contacto, que no derivan ni están descartados
 export const FILTROS_CONTACTADOS = [
-  { k: "volver", l: "Volver a llamar", test: (p, h) => ultimosResultados(h, p.id).includes("volver_contactar") },
-  { k: "positivo", l: "Positivos", test: (p, h) => ultimosResultados(h, p.id).includes("respondio_positivo") },
-  { k: "neutro", l: "Neutros", test: (p, h) => ultimosResultados(h, p.id).includes("respondio_neutro") },
-  { k: "negativo", l: "Negativos", test: (p, h) => ultimosResultados(h, p.id).includes("respondio_negativo") },
-  { k: "no_respondio", l: "No respondió", test: (p, h) => ultimosResultados(h, p.id).includes("no_respondio") },
-  { k: "derivadores", l: "Derivadores", test: (p, h, d) => !!d[p.id] },
-  { k: "contactados", l: "Todos los contactados", test: () => true },
+  { k: "contactados", l: "Contactados", test: (p, h, d, x) => h[p.id]?.length > 0 && !d[p.id] && !x[p.id] },
+  { k: "derivadores", l: "Derivadores", test: (p, h, d, x) => !!d[p.id] && !x[p.id] },
+  { k: "descartados", l: "Descartados", test: (p, h, d, x) => !!x[p.id] },
 ];
 
 export default function ListaContactados({ pas, historial, derivadores, descartados, filtro, onContactar, onToggleDerivador, onToggleDescartado }) {
   const [busqueda, setBusqueda] = useState("");
   const [orden, setOrden] = useState("recientes");
   const [mostrar, setMostrar] = useState(POR_TANDA);
-  const [verDescartados, setVerDescartados] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
 
   const def = FILTROS_CONTACTADOS.find(f => f.k === filtro) || FILTROS_CONTACTADOS[FILTROS_CONTACTADOS.length - 1];
-  const nDescartados = useMemo(() => pas.filter(p => historial[p.id]?.length && descartados[p.id]).length, [pas, historial, descartados]);
 
   const lista = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     const fecha = p => ultimoContacto(historial, p.id)?.fecha || "";
+    // sin contactos quedan al final en "más reciente" y al principio en "hace más tiempo"
     return pas
-      .filter(p => historial[p.id]?.length > 0 && (verDescartados || !descartados[p.id]))
-      .filter(p => def.test(p, historial, derivadores))
+      .filter(p => def.test(p, historial, derivadores, descartados))
       .filter(p => !q || (p.nombre || "").toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q) || (p.telefonos || []).join(" ").includes(q))
       .sort((a, b) => orden === "nombre" ? (a.nombre || "").localeCompare(b.nombre || "")
         : orden === "antiguos" ? fecha(a).localeCompare(fecha(b)) : fecha(b).localeCompare(fecha(a)));
-  }, [pas, historial, derivadores, descartados, def, busqueda, orden, verDescartados]);
+  }, [pas, historial, derivadores, descartados, def, busqueda, orden]);
 
   const chipOrden = (k, l) => (
     <button key={k} type="button" onClick={() => setOrden(k)} aria-pressed={orden === k}
@@ -72,7 +62,6 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
 
       <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
         {lista.length > mostrar && <Boton onClick={() => setMostrar(m => m + POR_TANDA)}>Mostrar más</Boton>}
-        {nDescartados > 0 && <Boton variante="fantasma" onClick={() => setVerDescartados(v => !v)}>{verDescartados ? "Ocultar descartados" : `Ver descartados (${nDescartados})`}</Boton>}
       </div>
     </div>
   );

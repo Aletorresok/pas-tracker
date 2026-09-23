@@ -132,16 +132,21 @@ input:focus, select:focus, textarea:focus {
   .hide-mobile { display: none !important; }
 }
 
-/* ── PORTAL PAS en celular ── */
+/* ── PORTAL PAS ── */
+.fab-derivar { display: none; }
 @media (max-width: 900px) {
-  .portal-layout { flex-direction: column; padding: 12px 12px 32px !important; gap: 12px !important; }
-  .portal-side { position: static !important; height: auto !important; width: 100%; flex-direction: column; }
-  .portal-col { width: 100% !important; }
-  .portal-col > div { height: auto !important; }
-  .portal-filtros { display: flex !important; overflow-x: auto; gap: 6px !important; padding-bottom: 4px; }
-  .portal-filtros > button { flex: none; padding: 8px 10px !important; }
-  .portal-kpis[style] { gap: 8px !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-  .portal-kpis > div { padding: 14px 8px !important; }
+  .portal-grid[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 12px 12px 96px !important; gap: 12px !important; }
+  .portal-resumen[style] { position: static !important; }
+  .stats-3[style] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .fab-derivar {
+    display: inline-flex; align-items: center; gap: 8px; position: fixed; z-index: 20;
+    right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 18px; border-radius: 999px; border: none; cursor: pointer;
+    background: var(--accent); color: var(--on-accent); font: inherit; font-size: 15px; font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+  .modal-portal[style] { padding: 0 !important; align-items: stretch !important; }
+  .modal-portal[style] > div { max-width: none !important; border-radius: 0 !important; min-height: 100%; overflow-y: auto; }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
