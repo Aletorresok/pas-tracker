@@ -230,7 +230,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMod
       {ficha && (
         <CasoOverlay
           caso={ficha.caso} pasId={ficha.pasId} casos={casos} todosLosPas={todosLosPas}
-          onSaveCasos={onSaveCasos} darkMode={darkMode}
+          onCasoLocal={onCasoLocal} darkMode={darkMode}
           onCambio={updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))}
           onClose={() => { setFicha(null); setAbiertoId(null); }}
         />

@@ -120,6 +120,7 @@ input:focus, select:focus, textarea:focus {
   .tarea[style] { grid-template-columns: minmax(0, 1fr) auto !important; row-gap: 4px !important; }
   .tarea-plazo { grid-column: 1 / -1; }
   .fila-exp[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 0 12px 14px !important; }
+  .resumen-caso[style] { grid-template-columns: minmax(0, 1fr) !important; }
   .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; }
   .kpis[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .kpis[style] > div:nth-child(n+3) { border-top: 1px solid var(--border); }

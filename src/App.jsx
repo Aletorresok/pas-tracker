@@ -124,11 +124,12 @@ export default function App() {
 
   // Actualiza un caso en memoria (ya guardado en Supabase por quien llama)
   const handleCasoLocal = useCallback((pasId, caso) => {
-    setCasos(prev => ({
-      ...prev,
-      [pasId]: (prev[pasId] || []).map(c => (c.id === caso.id ? { ...c, ...caso } : c)),
-    }));
-  }, [setCasos]);
+    setCasos(prev => {
+      const next = { ...prev, [pasId]: (prev[pasId] || []).map(c => (c.id === caso.id ? { ...c, ...caso } : c)) };
+      autoBackup(next);
+      return next;
+    });
+  }, [setCasos, autoBackup]);
 
   const handleToggleDerivador = useCallback(async (pasId) => {
     const updated = { ...derivadores, [pasId]: !derivadores[pasId] };
@@ -223,7 +224,7 @@ export default function App() {
           )}
 
           {/* TABS CONTENT */}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onSaveCasos={handleSaveCasos} onIrA={setMainTab} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "contactos" && <TabContactos pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}

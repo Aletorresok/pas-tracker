@@ -31,7 +31,7 @@ function Kpi({ label, valor, pie, destacado }) {
 // Tonos del acento en orden de avance: de suave (arranque) a pleno (cobrado)
 const TONOS = [45, 60, 74, 87, 100];
 
-export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onSaveCasos, onIrA }) {
+export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onCasoLocal, onIrA }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
@@ -145,7 +145,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       {abierto && (
         <CasoOverlay
           caso={abierto.caso} pasId={abierto.pasId} casos={casos} todosLosPas={todosLosPas}
-          onSaveCasos={onSaveCasos} darkMode={darkMode}
+          onCasoLocal={onCasoLocal} darkMode={darkMode}
           onCambio={updated => setAbierto(a => ({ ...a, caso: { ...updated, _pasId: a.pasId } }))}
           onClose={() => setAbierto(null)}
         />
