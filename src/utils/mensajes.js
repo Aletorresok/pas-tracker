@@ -29,7 +29,8 @@ export const linkWhatsApp = (tel, texto) => {
 export const linkVistaCliente = (patente) =>
   `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent(String(patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
 
-const nombreCliente = (c) => (c.asegurado || "").trim().split(/\s+/)[0] || "";
+// Los asegurados se cargan como "APELLIDO NOMBRE": el saludo usa la segunda palabra
+const nombreCliente = (c) => primerNombre(c.asegurado || "");
 const cia = (c) => c.compania_aseguradora || "la compañía";
 const monto = (v) => (Number(v) > 0 ? fmtMoney(Number(v)) : "");
 

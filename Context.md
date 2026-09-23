@@ -43,13 +43,14 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-23 — Etapa 11: Nuevos del portal + mensajes con un toque + nombres en los mails (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-23 — Etapa 11: Nuevos del portal + mensajes con un toque + nombres en los mails (✅ publicada, PR #13; SQL 09 ejecutado: 2 de 95 casos con teléfono)
 *   **SQL `2026-09-23_09_bandeja_y_mensajes.sql`** (correr ANTES de publicar): columnas `origen` ('portal' | 'estudio'), `revisado_en` y `telefono_asegurado`; copia a `telefono_asegurado` el `tercero_contacto` de los casos sin tercero cargado.
 *   **F5 · Bandeja "Nuevos del portal"** (`dashboard/NuevosPortal.jsx`, arriba de todo en Hoy): casos con `origen = 'portal'` y sin `revisado_en`, del más nuevo al más viejo, con "derivado hace N h". Botones: WhatsApp de primer contacto (si hay teléfono), **Ya lo contacté** (guarda `revisado_en` + `fecha_contacto_asegurado` = hoy) y **Abrir**. Abrir la ficha de un caso nuevo del portal (desde cualquier lado, `CasoOverlay`) lo marca revisado (`storage.marcarRevisado`). Solo aparece si hay alguno.
 *   **Casos nuevos en vivo:** `App` escucha los INSERT de `pas_casos` (Realtime) y los suma a memoria sin recargar.
 *   **Portal:** al derivar guarda `origen = 'portal'` y el teléfono en `telefono_asegurado` (antes `tercero_contacto`). La tarjeta del caso muestra "✓ El estudio tomó el caso el dd/mm" o "Recibido · el estudio todavía no lo abrió". Los casos creados desde Clientes quedan `origen = 'estudio'` y revisados.
 *   **F1 · Avisar por WhatsApp** (`caso/AvisarWhatsApp.jsx` + `utils/mensajes.js`), en la fila desplegable de Casos y en Resumen de la ficha: al cliente (primer contacto, pedir documentación, reclamo presentado, llegó un ofrecimiento, acuerdo firmado, pago acreditado, link para seguir el caso) o al PAS (ya tomé el caso, novedad según el estado). Sugiere la plantilla según el estado; el texto se puede editar; abre `wa.me`. Opción "Usar también como mensaje del estudio" (guarda el cuerpo sin saludo ni firma en `mensaje_cliente`; se desactiva si editaste el texto). Si falta el teléfono del asegurado se carga ahí mismo (ofrece el `tercero_contacto` si parece un teléfono). Teléfonos normalizados a formato celular argentino (54 9 …, sin 0 ni 15).
 *   Campo **Teléfono del asegurado** en Datos de la ficha.
+*   **Nombres:** los asegurados se cargan como "APELLIDO NOMBRE"; el saludo de WhatsApp y el "Hola, …" de la vista del cliente usan la **segunda palabra** (`primerNombre`, con mayúscula inicial).
 *   **Mails de derivación / documentación:** cada archivo aparece con su **nombre original** (`📎 DNI frente.jpg` + link) y se guarda en Storage con ese nombre (sin tildes ni símbolos); los que no se pudieron subir aparecen como "⚠️ No se pudo subir".
 
 ### 2026-09-23 — Propuesta de funcionalidades nuevas (en charla)

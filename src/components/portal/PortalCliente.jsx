@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
+import { primerNombre } from "../../utils/formatters.js";
 import { estadoInfo } from "../../constants.js";
 import { PASOS_SIMPLES } from "../ui/BarraAvance.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
@@ -188,7 +189,7 @@ export default function PortalCliente() {
   };
 
   const salir = () => { setCasos(null); setDni(""); setError(""); };
-  const nombre = casos?.[0]?.asegurado?.trim().split(/\s+/)[0];
+  const nombre = primerNombre(casos?.[0]?.asegurado || ""); // "APELLIDO NOMBRE" → Nombre
   const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 10, color: "var(--text)", padding: "13px 14px", fontSize: 18, width: "100%", boxSizing: "border-box", fontFamily: "var(--mono)", fontWeight: 600, letterSpacing: 1.5, textAlign: "center", outline: "none" };
   const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 };
 
