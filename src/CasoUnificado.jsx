@@ -77,7 +77,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", notas_log: casoProp.notas_log || [], proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
-    patente: casoProp.patente || "",
+    patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || ""
   });
 
@@ -308,7 +308,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
-      <ModalGenerarEscrito isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") recargarArchivos(); }} onError={msg => setToast({ msg, type: "error" })} />
+      <ModalGenerarEscrito dniInicial={formData.dni_asegurado} onDniNuevo={v => handleFormChange("dni_asegurado", v)} isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") recargarArchivos(); }} onError={msg => setToast({ msg, type: "error" })} />
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </>
   );
