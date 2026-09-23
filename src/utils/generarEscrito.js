@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { dibujarMembrete } from "./pdfMembrete.js";
 
 function formatoFecha(iso) {
   if (!iso) return "—";
@@ -49,7 +50,7 @@ export async function generarEscrito({
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const margin = 20;
     const contentWidth = 170; // 210mm - (20mm * 2)
-    let y = 25;
+    let y = dibujarMembrete(doc, { margen: margin, ancho: contentWidth });
 
     // Encabezado
     doc.setFont("helvetica", "bold");
