@@ -8,6 +8,7 @@
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
 *   **Librerías:** jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
 *   **Tres "apps" en el mismo sitio:** app del estudio (`/`), portal de productores (`/portal`) y vista del cliente (`/?vista=cliente`).
+*   **App instalable (PWA):** cada una se instala por separado en PC y Android (Chrome/Edge) con su manifiesto (`public/manifest*.webmanifest`, elegido en `index.html` según la ruta). `public/sw.js` no guarda la app en caché (siempre la última versión); solo muestra `public/offline.html` sin conexión. Íconos en `public/icons/` (**provisorios** "ATG"; al tener el logo se reemplazan esos archivos).
 
 ## 📂 Estructura del código (`src/`)
 
@@ -48,7 +49,7 @@
 
 **UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`.
 
-**Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `context/ThemeContext.jsx` (tema y acento).
+**Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `hooks/useInstalarApp.js` (botón "Instalar app": menú Apariencia y backup, cabecera del portal, vista del cliente), `context/ThemeContext.jsx` (tema y acento).
 
 **Utilidades** (`utils/`)
 *   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
@@ -70,6 +71,8 @@
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
+- [ ] Logo definitivo (lo pide el usuario a Gemini): reemplazar `public/icons/*` (192, 512, maskable 512, apple-touch 180, favicon 32 y `icono.svg`).
+- [ ] Notificaciones (portal nuevo, documentación del cliente, mediación del día siguiente) ahora que la app es instalable.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
 - [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
@@ -89,6 +92,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — App instalable en PC y Android (PWA)
+*   **Instalar:** Chrome/Edge ofrecen "Instalar" (ícono en la barra de direcciones o menú ⋮ → "Instalar app"). Además hay un botón **"Instalar app"** que aparece solo cuando el navegador lo permite: en el estudio dentro de **Apariencia y backup**, en el portal como ícono en la cabecera y en la vista del cliente debajo del botón de WhatsApp.
+*   **Tres apps separadas:** "PAS Tracker" (estudio), "Portal PAS" (abre en `/portal`) y "Mi reclamo" (abre en la vista del cliente). El título de la pestaña cambia según cuál sea.
+*   **Cliente:** la patente queda recordada en su celular (el DNI no), así la app instalada la trae completa.
+*   **Sin conexión:** pantalla "Sin conexión" con "Reintentar". Las actualizaciones siguen llegando solas.
+*   Probado con Chromium: las tres pasan el control de instalación de Chrome sin errores, el service worker se registra y la pantalla sin conexión funciona.
 
 ### 2026-09-24 — Margen por compañía, plantilla de mail del cliente (preparada) y limpieza de código (SQL 14 pendiente)
 *   **Reclamo quieto:** ahora avisa a los **14 días** sin respuesta (antes: el promedio de la compañía o 30). En **Análisis → "Reclamo quieto: margen por compañía"** cambiás el general o ponés uno propio por compañía (se guarda al salir del campo). Muestra de referencia cuánto suele tardar cada compañía en ofrecer. `utils/margenes.js` (`useMargenes`, `margenPara`), `components/MargenCompanias.jsx`; `metricas.reclamosQuietos` recibe los márgenes. Sin el SQL 14 usa 14 días para todas.

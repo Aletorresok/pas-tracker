@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sin conexión</title>
+<style>
+  :root { --bg: #F7F6F2; --text: #1B2130; --sub: #5B6272; --accent: #A6821F; --on-accent: #FFFFFF; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #10151F; --text: #E8EAF0; --sub: #A3A9B7; --accent: #D4AF37; --on-accent: #10151F; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; text-align: center; padding: 16px; box-sizing: border-box; }
+  svg { display: block; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 16px 0 6px; }
+  p { color: var(--sub); margin: 0 0 20px; line-height: 1.5; }
+  button { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 10px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div>
+    <svg width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <rect width="512" height="512" rx="112" fill="#A6821F"/>
+      <text x="256" y="300" text-anchor="middle" font-family="IBM Plex Sans, Helvetica, Arial, sans-serif" font-weight="700" font-size="168" letter-spacing="-4" fill="#FFFFFF">ATG</text>
+      <rect x="136" y="342" width="240" height="14" rx="7" fill="#FFFFFF" opacity="0.55"/>
+    </svg>
+    <h1>Sin conexión</h1>
+    <p>Revisá el wifi o los datos del celular y probá de nuevo.</p>
+    <button onclick="location.reload()">Reintentar</button>
+  </div>
+</body>
+</html>

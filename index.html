@@ -2,7 +2,22 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icono.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <script>
+      // Cada parte se instala como una app distinta: estudio, portal del PAS y vista del cliente
+      (function () {
+        var p = location.pathname, q = new URLSearchParams(location.search);
+        var m = p.indexOf("/portal") === 0 ? "manifest-portal" : (q.get("vista") === "cliente" || q.has("caso")) ? "manifest-cliente" : "manifest";
+        var l = document.createElement("link");
+        l.rel = "manifest"; l.href = "/" + m + ".webmanifest";
+        document.head.appendChild(l);
+        document.title = m === "manifest-portal" ? "Portal PAS" : m === "manifest-cliente" ? "Mi reclamo · ATG Lex Solutions" : "PAS Tracker";
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#F7F6F2" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#10151F" media="(prefers-color-scheme: dark)" />

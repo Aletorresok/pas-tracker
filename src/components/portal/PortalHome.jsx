@@ -7,6 +7,7 @@ import PortalCasoCard from "./PortalCasoCard.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
+import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
 import { alpha } from "../../utils/theme.js";
 
@@ -51,6 +52,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [estadoSel, setEstadoSel] = useState(null); // estado puntual dentro de la pestaña
   const [busqueda, setBusqueda] = useState("");
   const [eventos, setEventos] = useState({}); // caso_id → próxima mediación/audiencia
+  const app = useInstalarApp();
 
   useEffect(() => {
     const loadData = async () => {
@@ -167,6 +169,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         </div>
         <div style={{ display: "flex", gap: 4, alignItems: "center", flex: "none" }}>
           <Boton variante="primario" icono="agregar" tamaño="sm" className="hide-mobile" onClick={() => setModalNuevoCaso(true)}>Derivar caso</Boton>
+          {app.puede && <Boton variante="fantasma" tamaño="sm" icono="instalar" onClick={app.instalar} aria-label="Instalar app" title="Instalar app" />}
           <Boton variante="fantasma" tamaño="sm" icono={dark ? "sol" : "luna"} onClick={onToggleDark} aria-label={dark ? "Modo claro" : "Modo oscuro"} />
           <Boton variante="fantasma" tamaño="sm" icono="candado" onClick={() => setCambPwd(true)} aria-label="Cambiar contraseña" />
           <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={onLogout} aria-label="Salir" />
