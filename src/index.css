@@ -103,11 +103,17 @@ input:focus, select:focus, textarea:focus {
 .app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }
 .sidebar { display: flex; }
 .bottom-nav { display: none; }
+.buscar-movil { display: none; }
 
 @media (max-width: 900px) {
   .app-main { margin-left: 0; }
   .app-content { padding: 16px 16px calc(88px + env(safe-area-inset-bottom, 0px)); }
   .sidebar { display: none !important; }
+  .buscar-movil { display: grid; place-items: center; position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 120; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+  .buscador-fondo[style] { padding: 0 !important; }
+  .buscador-panel[style] { max-width: none !important; max-height: none !important; height: 100%; border-radius: 0 !important; border: none !important; padding-top: env(safe-area-inset-top, 0px); }
+  .buscador-ayuda { display: none !important; }
+  .fade-in > header, .fade-in > h1 { padding-right: 52px; } /* lugar para el botón de buscar */
   .bottom-nav {
     display: grid; grid-template-columns: repeat(5, 1fr);
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;

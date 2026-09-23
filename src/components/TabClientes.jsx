@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo } from "react";
+import { Fragment, useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
@@ -90,7 +90,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular }) {
 
 // Clientes = los PAS que derivan casos (marcados como derivadores o cargados a mano).
 // Cada caso se guarda solo (la ficha lo guarda en Supabase); acá no hay guardado masivo.
-export default function TabClientes({ pas, casos, derivadores, onCasoLocal, darkMode, pasManuales, onAddPasManual }) {
+export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal, darkMode, pasManuales, onAddPasManual }) {
   const esCelular = useEsCelular();
   const { companias, agregarCompania } = useCompanias(casos);
   const [busqueda, setBusqueda] = useState("");
@@ -102,6 +102,13 @@ export default function TabClientes({ pas, casos, derivadores, onCasoLocal, dark
   const [error, setError] = useState("");
 
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
+
+  // Llegar desde el buscador: muestra ese PAS abierto
+  useEffect(() => {
+    if (!foco) return;
+    setBusqueda(foco.nombre || "");
+    setAbiertoId(foco.id);
+  }, [foco]);
 
   const clientes = useMemo(() => {
     const manualesIds = new Set(pasManuales.map(p => String(p.id)));

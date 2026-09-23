@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from './supabase.js'
 
@@ -23,6 +23,9 @@ import TabClientes from './components/TabClientes.jsx'
 import TabProspeccion from './components/TabProspeccion.jsx'
 import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import TabCasos from './components/TabCasos.jsx'
+import BuscadorGlobal from './components/BuscadorGlobal.jsx'
+import CasoOverlay from './components/caso/CasoOverlay.jsx'
+import { aplanarCasos } from './utils/metricas.js'
 import PortalCliente from './components/portal/PortalCliente.jsx';
 
 // Vista pública del cliente (sin login) o la app, que primero pide cuenta + PIN.
@@ -53,6 +56,9 @@ function AppPrincipal() {
   const [mainTab, setMainTab] = useState("dashboard");
   const [modalPas, setModalPas] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
+  const [buscando, setBuscando] = useState(false);
+  const [casoBuscado, setCasoBuscado] = useState(null); // { caso, pasId } abierto desde el buscador
+  const [clienteFoco, setClienteFoco] = useState(null); // PAS a mostrar en Clientes
   const [autobackupFecha, setAutobackupFecha] = useState(() => localStorage.getItem('pastracker_autobackup_fecha') || null);
 
   // ── HANDLERS
@@ -131,6 +137,17 @@ function AppPrincipal() {
     });
   }, [setCasos, autoBackup]);
 
+  // Buscador: Ctrl + K (o Cmd + K) desde cualquier pantalla
+  useEffect(() => {
+    const alTeclear = e => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setBuscando(true); }
+    };
+    window.addEventListener("keydown", alTeclear);
+    return () => window.removeEventListener("keydown", alTeclear);
+  }, []);
+  const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
+  const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
+
   // Casos nuevos que llegan desde el portal mientras la app está abierta
   useEffect(() => {
     const canal = supabase
@@ -202,7 +219,21 @@ function AppPrincipal() {
         autobackupFecha={autobackupFecha}
         onBackup={handleBackup}
         onRestore={handleRestore}
+        onBuscar={() => setBuscando(true)}
       />
+
+      <BuscadorGlobal abierto={buscando} onCerrar={() => setBuscando(false)}
+        allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores}
+        onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })}
+        onAbrirCliente={p => { setMainTab("clientes"); setClienteFoco({ id: p.id, nombre: p.nombre, t: Date.now() }); }}
+        onContactar={(p, remoto) => { if (remoto) agregarPas(p); setModalPas(p); }} />
+
+      {casoBuscado && (
+        <CasoOverlay caso={casoBuscado.caso} pasId={casoBuscado.pasId} casos={casos} todosLosPas={todosLosPas}
+          onCasoLocal={handleCasoLocal} darkMode={darkMode}
+          onCambio={updated => setCasoBuscado(b => ({ ...b, caso: { ...updated, _pasId: b.pasId } }))}
+          onClose={() => setCasoBuscado(null)} />
+      )}
 
       {/* CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO PARA EL SIDEBAR Y ANCHO MÁXIMO AMPLIADO */}
       <main className="app-main">
@@ -237,7 +268,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
       </main>

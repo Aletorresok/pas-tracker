@@ -220,3 +220,16 @@ export async function marcarRevisado(id, { contactado = false } = {}) {
   if (error) { console.error("[marcarRevisado] error:", error); return null; }
   return cambios;
 }
+
+// Registra que reiteraste el reclamo hoy: deja el movimiento en la bitácora y reinicia la cuenta de "reclamo quieto".
+// Devuelve los campos guardados del caso, o null si falló.
+export async function registrarReiteracion(caso) {
+  const hoy = fechaLocalISO();
+  const cia = caso.compania_aseguradora ? ` a ${caso.compania_aseguradora}` : "";
+  const { error: errAcc } = await supabase.from("acciones").insert({ caso_id: caso.id, tipo: "nota", fecha: new Date().toISOString(), descripcion: `Se reiteró el reclamo${cia}` });
+  if (errAcc) { console.error("[registrarReiteracion] acción:", errAcc); return null; }
+  const cambios = { fecha_ultimo_reclamo: hoy, fecha_ultimo_movimiento: hoy };
+  const { error } = await supabase.from("pas_casos").update(cambios).eq("id", caso.id);
+  if (error) { console.error("[registrarReiteracion] caso:", error); return null; }
+  return cambios;
+}

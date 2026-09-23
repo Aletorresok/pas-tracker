@@ -6,6 +6,7 @@ import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
+import { registrarReiteracion } from "../utils/storage.js";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
 
@@ -79,7 +80,10 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <ParaHacer tareas={tareas} onAbrir={abrirTarea} />
+          <ParaHacer tareas={tareas} onAbrir={abrirTarea} onReiterar={async c => {
+            const cambios = await registrarReiteracion(c);
+            if (cambios) { const { _pasId, _pasNombre, ...limpio } = c; onCasoLocal(_pasId, { ...limpio, ...cambios }); }
+          }} />
           <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
         </div>
 

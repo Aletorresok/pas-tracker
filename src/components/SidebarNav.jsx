@@ -59,7 +59,7 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
   );
 }
 
-export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFecha, onBackup, onRestore }) {
+export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFecha, onBackup, onRestore, onBuscar }) {
   const { T } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
   const [showMas, setShowMas] = useState(false);
@@ -82,6 +82,12 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
               {pasCount > 0 && <div style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
             </div>
           </div>
+
+          <button type="button" onClick={onBuscar}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 12, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.muted, fontSize: 14, cursor: "pointer", textAlign: "left", font: "inherit" }}>
+            <Icono nombre="buscar" size={16} /><span style={{ flex: 1 }}>Buscar</span>
+            <span style={{ fontSize: 11, border: `1px solid ${T.border2 || T.border}`, borderRadius: 4, padding: "0 5px" }}>Ctrl K</span>
+          </button>
 
           <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {TABS.map(t => {
@@ -126,6 +132,11 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           )}
         </div>
       </aside>
+
+      {/* ── BUSCAR (celular) ── */}
+      <button type="button" className="buscar-movil" onClick={onBuscar} aria-label="Buscar">
+        <Icono nombre="buscar" size={20} />
+      </button>
 
       {/* ── BARRA INFERIOR (celular) ── */}
       <nav className="bottom-nav" aria-label="Navegación">

@@ -81,10 +81,60 @@ export function cobrosPendientes(allCasos) {
 
 // Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final).
 // Los cobros van en su propia tarjeta; los recordatorios de contactos ya no se usan.
+// ── Reclamos quietos ──────────────────────────────────────────────────────────
+// Cuánto tarda cada compañía en responder un reclamo (inicio del reclamo → ofrecimiento), con tus datos.
+export const DIAS_RESPUESTA_SIN_DATOS = 30; // si la compañía tiene menos de 2 casos con fechas
+const MIN_DIAS_AVISO = 10;
+const aISO = v => (v ? String(v).slice(0, 10) : "");
+const diasEntre = (a, b) => {
+  if (!a || !b) return null;
+  const d = Math.round((new Date(aISO(b) + "T12:00:00") - new Date(aISO(a) + "T12:00:00")) / 86400000);
+  return Number.isFinite(d) ? d : null;
+};
+
+export function plazosRespuesta(allCasos) {
+  const porCia = {};
+  allCasos.forEach(c => {
+    const d = diasEntre(c.fecha_inicio_reclamo, c.fecha_ofrecimiento);
+    if (!c.compania_aseguradora || d === null || d < 0 || d > 730) return;
+    (porCia[c.compania_aseguradora] ||= []).push(d);
+  });
+  return Object.fromEntries(Object.entries(porCia).map(([cia, ds]) => [cia, { promedio: Math.round(ds.reduce((s, x) => s + x, 0) / ds.length), n: ds.length }]));
+}
+
+// Casos "Reclamado" en los que la compañía ya tardó más de lo que suele tardar en responder
+export function reclamosQuietos(allCasos, hoy = new Date()) {
+  const plazos = plazosRespuesta(allCasos);
+  const hoyISO = fechaLocalISO(hoy);
+  return allCasos
+    .filter(c => c.estado === "reclamado")
+    .map(c => {
+      const desde = aISO(c.fecha_ultimo_reclamo || c.fecha_reclamo || c.fecha_inicio_reclamo || c.fecha_ultimo_movimiento);
+      const dias = diasEntre(desde, hoyISO);
+      if (!desde || dias === null) return null;
+      const p = plazos[c.compania_aseguradora];
+      const conDatos = p && p.n >= 2;
+      const umbral = Math.max(conDatos ? p.promedio : DIAS_RESPUESTA_SIN_DATOS, MIN_DIAS_AVISO);
+      return { caso: c, desde, dias, umbral, conDatos, vence: sumarDias(desde, umbral) };
+    })
+    .filter(q => q && q.dias > q.umbral);
+}
+
 export function tareasPendientes({ allCasos, hoy = new Date() }) {
   const tareas = [];
   const hoyISO = fechaLocalISO(hoy);
   const enUnaSemana = sumarDias(hoyISO, 7);
+
+  // Reclamos quietos (salvo que ya tengan una próxima acción con plazo vigente: ya lo estás siguiendo)
+  reclamosQuietos(allCasos, hoy).forEach(q => {
+    const c = q.caso;
+    if (c.proxima_accion?.trim() && c.proxima_accion_vence && c.proxima_accion_vence >= hoyISO) return;
+    const cia = c.compania_aseguradora || "La compañía";
+    tareas.push({
+      id: `quieto-${c.id}`, tipo: "quieto", vence: q.vence, titulo: c.asegurado || "Sin nombre", caso: c,
+      detalle: `${cia}: sin respuesta hace ${q.dias} d (${q.conDatos ? `suele tardar ${q.umbral}` : `sin datos, aviso a los ${q.umbral}`})`,
+    });
+  });
 
   allCasos.filter(esActivo).forEach(c => {
     if (c.proxima_accion?.trim()) {
