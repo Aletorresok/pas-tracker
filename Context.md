@@ -73,7 +73,7 @@
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
 - [x] ✅ Logo en los PDF (escrito y resumen del caso, en el pie). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
-- [ ] Notificaciones push: código listo (PR de notificaciones). Falta que el usuario corra el SQL 17, cree la función `notificar` con sus secretos, los 2 webhooks y el cron (pasos en el registro de cambios).
+- [ ] Notificaciones push: código listo (PR de notificaciones). Falta que el usuario corra el SQL 17, cree la función `notificar`, los 2 webhooks y el cron (pasos en el registro de cambios).
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
 - [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
@@ -98,9 +98,9 @@
 *   **Notificaciones** (Web Push, llegan con la app cerrada; en iPhone solo con la app instalada, iOS 16.4+):
     *   **Qué avisa:** caso nuevo derivado desde el portal · documentación que subió un cliente (uno por caso cada 30 min) · mediaciones/audiencias/eventos de **mañana** (cron diario 9:00 hs Argentina). Al tocarla abre la app.
     *   **Función** `supabase/functions/notificar/index.ts` (Deno, `npm:web-push`): la llaman 2 webhooks de base de datos (`pas_casos` INSERT, `pas_subidas_cliente` UPDATE), el cron (`{"tipo":"agenda"}`) y la app (`{"tipo":"prueba"}`, solo admin). Verifica cada evento contra la base (origen portal, recién creado, etc.) y registra lo enviado en `pas_avisos` para no repetir. Borra los dispositivos que ya no existen (404/410).
-    *   **Secretos de la función:** `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. La clave pública también está en `utils/push.js` (no es secreta); la privada solo en Supabase.
+    *   **Sin secretos que cargar:** la función genera su par de claves VAPID la primera vez y lo guarda en `pas_config` (RLS sin políticas: solo la función la lee). La app pide la clave pública con `{"tipo":"clave"}` al activar un dispositivo.
     *   **App:** `utils/push.js` (`useNotificaciones`: activar, desactivar, probar) y la sección "Notificaciones en este dispositivo" en **Apariencia y backup**. `public/sw.js` muestra la notificación (`push`) y abre/enfoca la app (`notificationclick`).
-    *   **SQL 17** (`sql/2026-09-24_17_notificaciones.sql`): `pas_push_suscripciones` (RLS admin) y `pas_avisos`.
+    *   **SQL 17** (`sql/2026-09-24_17_notificaciones.sql`): `pas_push_suscripciones` (RLS admin), `pas_avisos` y `pas_config`.
     *   Probado: la función corriendo en Deno contra el mock y un servicio de push falso que descifra el mensaje (caso nuevo, repetido, caso no-portal, subida, subida repetida, agenda de mañana, prueba sin login = 401). El cartel en sí no se puede ver en Chromium sin pantalla.
 *   **Fechas reales** (`sql/2026-09-24_16_fechas_reales.sql`): convierte a `date` las 5 fechas de texto de `pas_casos` y `pas_historial.fecha`, con copia en `backup_fechas`. Entiende AAAA-MM-DD (con o sin hora) y D/M/AAAA. La app ya escribe AAAA-MM-DD o vacío; `insertHistorialEntry` ahora manda `null` en vez de "".
 

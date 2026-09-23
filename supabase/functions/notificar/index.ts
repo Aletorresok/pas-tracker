@@ -4,13 +4,31 @@
 //   · Webhook de base de datos en pas_subidas_cliente (UPDATE)  → "El cliente mandó documentación"
 //   · Cron diario ({"tipo":"agenda"})                            → mediaciones/audiencias de mañana
 //   · La app ({"tipo":"prueba"}, solo el administrador)          → notificación de prueba
-// Secretos necesarios: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:…).
-// SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los pone Supabase solo.
+//   · La app ({"tipo":"clave"})                                  → clave pública para activar un dispositivo
+// No hace falta cargar secretos: la primera vez genera su par de claves VAPID y lo guarda en pas_config
+// (tabla sin permisos para la app; solo la lee esta función). SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los pone Supabase.
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT")!, Deno.env.get("VAPID_PUBLIC_KEY")!, Deno.env.get("VAPID_PRIVATE_KEY")!);
+
+// Claves VAPID propias del estudio: se generan una sola vez y quedan en la base
+let claves: { publicKey: string; privateKey: string } | null = null;
+async function vapid() {
+  if (claves) return claves;
+  const { data } = await sb.from("pas_config").select("valor").eq("clave", "vapid").maybeSingle();
+  if (data?.valor) claves = JSON.parse(data.valor);
+  else {
+    const nuevas = webpush.generateVAPIDKeys();
+    const { error } = await sb.from("pas_config").insert({ clave: "vapid", valor: JSON.stringify(nuevas) });
+    if (error) { // otra llamada las creó al mismo tiempo: usar esas
+      const { data: otra } = await sb.from("pas_config").select("valor").eq("clave", "vapid").maybeSingle();
+      claves = JSON.parse(otra!.valor);
+    } else claves = nuevas;
+  }
+  webpush.setVapidDetails("https://pas-tracker20.vercel.app", claves!.publicKey, claves!.privateKey);
+  return claves!;
+}
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +49,7 @@ async function unaVez(clave: string) {
 }
 
 async function enviar(aviso: Aviso) {
+  await vapid();
   const { data: subs } = await sb.from("pas_push_suscripciones").select("endpoint, p256dh, auth");
   let enviados = 0;
   for (const s of subs || []) {
@@ -122,6 +141,8 @@ Deno.serve(async (req) => {
       return responder({ enviados: await subidaCliente(body.record?.id) });
     // Cron
     if (body.tipo === "agenda") return responder({ enviados: await agendaDeManana() });
+    // Clave pública para que la app active un dispositivo (no es secreta)
+    if (body.tipo === "clave") return responder({ clave: (await vapid()).publicKey });
     // Prueba desde la app
     if (body.tipo === "prueba") {
       if (!(await esAdmin(req))) return responder({ error: "no autorizado" }, 401);
