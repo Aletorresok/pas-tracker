@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import Icono from "./ui/Icono.jsx";
 import { cerrarSesion } from "./LoginGate.jsx";
+import { useInstalarApp } from "../hooks/useInstalarApp.js";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
@@ -40,9 +41,14 @@ function SelectorAcento() {
 
 function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
   const { darkMode, toggleDarkMode, T } = useTheme();
+  const app = useInstalarApp();
   const item = { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", color: T.text, padding: "10px 12px", cursor: "pointer", fontSize: 14, textAlign: "left", borderRadius: 6 };
   return (
     <>
+      {app.puede && <>
+        <button type="button" onClick={() => { app.instalar(); onClose(); }} style={{ ...item, fontWeight: 600 }}><Icono nombre="instalar" size={16} />Instalar app</button>
+        <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
+      </>}
       <button type="button" onClick={() => { onBackup(); onClose(); }} style={item}><Icono nombre="guardar" size={16} />Descargar backup</button>
       <label style={{ ...item, margin: 0 }}>
         <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestore(f); e.target.value = ""; onClose(); }} style={{ display: "none" }} />

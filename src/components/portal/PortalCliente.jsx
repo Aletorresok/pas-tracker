@@ -10,6 +10,7 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { alpha } from "../../utils/theme.js";
 import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
+import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 
 const WHATSAPP = "5491133133259";
 const ABOGADO = "Dr. Alexis Torres Gaveglio";
@@ -286,10 +287,18 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
 
 // Vista pública del cliente: entra con patente + últimos 3 números del DNI.
 // La consulta pasa por la función consultar_caso_cliente (sql/2026-09-23_04), que solo devuelve datos si ambos coinciden.
+const PATENTE_GUARDADA = "pas_cliente_patente";
+
 export default function PortalCliente() {
   const aviso = useAvisoDeSesion();
   const { darkMode, toggleDarkMode } = useTheme();
-  const [patente, setPatente] = useState(() => limpiarPatente(new URLSearchParams(window.location.search).get("patente") || ""));
+  // La patente queda recordada en este celular (el DNI no), así la app instalada la trae lista
+  const [patente, setPatente] = useState(() => {
+    let guardada = "";
+    try { guardada = localStorage.getItem(PATENTE_GUARDADA) || ""; } catch { /* sin almacenamiento */ }
+    return limpiarPatente(new URLSearchParams(window.location.search).get("patente") || guardada);
+  });
+  const app = useInstalarApp();
   const [dni, setDni] = useState("");
   const [casos, setCasos] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -307,7 +316,10 @@ export default function PortalCliente() {
       if (err) throw err;
       const lista = Array.isArray(data) ? data : [];
       if (lista.length === 0) setError("No encontramos un reclamo con esa patente y DNI. Revisá los datos o escribinos por WhatsApp.");
-      else setCasos(lista);
+      else {
+        setCasos(lista);
+        try { localStorage.setItem(PATENTE_GUARDADA, patente); } catch { /* sin almacenamiento */ }
+      }
     } catch (err) {
       console.error("[PortalCliente]", err);
       setError(String(err?.message || "").includes("demasiados_intentos")
@@ -391,6 +403,12 @@ export default function PortalCliente() {
             <div style={{ marginTop: 24, textAlign: "center" }}>
               <BotonWhatsApp patente={casos[0]?.patente} texto="Consultar por WhatsApp" />
             </div>
+            {app.puede && (
+              <div style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: "var(--sub)" }}>
+                <p style={{ margin: "0 0 8px" }}>¿Querés tenerlo a mano? Instalalo en tu celular y entrás con un toque.</p>
+                <Boton variante="secundario" icono="instalar" onClick={app.instalar}>Instalar app</Boton>
+              </div>
+            )}
           </>
         )}
       </main>
