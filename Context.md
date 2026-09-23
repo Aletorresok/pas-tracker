@@ -48,6 +48,7 @@
 *   **`PortalCasoCard` rediseñado**: nombre, compañía, patente, fecha de derivación, estado, **barra de 5 pasos** con nombres (Documentación → Reclamo → Negociación → Pago → Cobrado), mensaje del estudio y último movimiento. "Ver detalle" muestra montos (ofrecimiento, cobró el asegurado, tu comisión), fechas, movimientos y **Adjuntar documentación** (fotos o PDF) con aviso en la página en lugar de `alert()`.
 *   `ui/BarraAvance.jsx` pasa a 5 pasos simples (`PASOS_SIMPLES`); también la usa la vista del cliente.
 *   **Hoy**: "Para hacer" y "Cobros pendientes" ahora tienen **scroll propio** (sin "Ver las N"), a pedido del usuario.
+*   **Filtros del portal** (pedido del usuario: con solo En curso / Cobrados / Todos no se podían ver los desistidos): pestañas **En curso / Cobrados / Desistidos / Todos** y, debajo, chips por estado con su cantidad (solo los estados presentes en la pestaña, ej. "En juicio 1"), con scroll horizontal en celular. Se quitó el estado viejo `filtrosEstados` que ya no se usaba.
 
 ### 2026-09-23 — Etapa 6: Prospección (en revisión, sin publicar)
 *   **Nueva pestaña "Prospección"** (`TabProspeccion`) reemplaza a Contactos y Contactados. Filtros: **Sin contactar** (lista paginada de `TabContactos`, con sub-filtros Todos / Con teléfono / Varios teléfonos / Sin teléfono), **Contactados** (con contacto, no derivan ni descartados), **Derivadores** y **Descartados** (`prospeccion/ListaContactados.jsx`, orden por contacto más reciente / hace más tiempo / nombre, "Mostrar más" de a 40).

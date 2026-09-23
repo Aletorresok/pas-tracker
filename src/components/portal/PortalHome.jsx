@@ -45,11 +45,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [cambPwd, setCambPwd] = useState(false);
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
   
-  const [filtrosEstados, setFiltrosEstados] = useState(() => ESTADOS_CASO.map(e => e.key));
-  
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState([]);
-  const [pestana, setPestana] = useState("curso"); // curso | cobrados | todos
+  const [pestana, setPestana] = useState("curso"); // curso | cobrados | desistidos | todos
+  const [estadoSel, setEstadoSel] = useState(null); // estado puntual dentro de la pestaña
   const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
@@ -110,13 +109,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
   useRealtimeCasos(pasId, handleRealtimeUpdate);
 
-  const toggleFiltroEstado = (key) => setFiltrosEstados(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
-  const seleccionarTodosLosEstados = () => setFiltrosEstados(ESTADOS_CASO.map(e => e.key));
-  const limpiarEstados = () => setFiltrosEstados([]);
-  const seleccionarSoloActivos = () => setFiltrosEstados(ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.key)).map(e => e.key));
-  
-  const todosSeleccionados = filtrosEstados.length === ESTADOS_CASO.length;
-  const casosFiltrados = casos.filter(c => filtrosEstados.includes(c.estado));
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
@@ -127,9 +119,16 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     .sort((a, b) => new Date(a.fecha_pago || "2099-01-01") - new Date(b.fecha_pago || "2099-01-01"));
 
   const enCurso = casos.filter(c => !["cobrado", "desistido"].includes(c.estado));
-  const baseLista = pestana === "curso" ? enCurso : pestana === "cobrados" ? casosCobrados : casos;
+  const casosDesistidos = casos.filter(c => c.estado === "desistido");
+  const baseLista = { curso: enCurso, cobrados: casosCobrados, desistidos: casosDesistidos }[pestana] || casos;
+  // Estados presentes en la pestaña, para filtrar por uno puntual (ej. "En juicio")
+  const estadosPestana = ESTADOS_CASO
+    .map(e => ({ ...e, n: baseLista.filter(c => c.estado === e.key).length }))
+    .filter(e => e.n > 0);
+  const estadoActivo = estadosPestana.some(e => e.key === estadoSel) ? estadoSel : null;
   const q = busqueda.trim().toLowerCase();
   const lista = baseLista
+    .filter(c => !estadoActivo || c.estado === estadoActivo)
     .filter(c => !q || (c.asegurado || "").toLowerCase().includes(q) || (c.patente || "").toLowerCase().includes(q) || (c.compania_aseguradora || "").toLowerCase().includes(q))
     .sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
   const proximo = pagosPendientes[0];
@@ -140,7 +139,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const pestanaBtn = (k, l, n) => {
     const activa = pestana === k;
     return (
-      <button key={k} type="button" role="tab" aria-selected={activa} onClick={() => setPestana(k)}
+      <button key={k} type="button" role="tab" aria-selected={activa} onClick={() => { setPestana(k); setEstadoSel(null); }}
         style={{ flex: "none", background: "none", border: "none", borderBottom: `2px solid ${activa ? "var(--accent)" : "transparent"}`, padding: "8px 0 10px", cursor: "pointer", font: "inherit", fontSize: 14, fontWeight: activa ? 600 : 500, color: activa ? T.text : T.sub }}>
         {l} <span className="num" style={{ color: T.muted, fontSize: 12 }}>{n}</span>
       </button>
@@ -211,8 +210,25 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           <div role="tablist" aria-label="Mis casos" style={{ display: "flex", gap: 20, borderBottom: `1px solid ${T.border}`, overflowX: "auto" }}>
             {pestanaBtn("curso", "En curso", enCurso.length)}
             {pestanaBtn("cobrados", "Cobrados", casosCobrados.length)}
+            {pestanaBtn("desistidos", "Desistidos", casosDesistidos.length)}
             {pestanaBtn("todos", "Todos", casos.length)}
           </div>
+
+          {estadosPestana.length > 1 && (
+            <div role="group" aria-label="Filtrar por estado" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
+              {[{ key: null, label: "Todos los estados", n: baseLista.length }, ...estadosPestana].map(e => {
+                const activo = estadoActivo === e.key;
+                return (
+                  <button key={e.key || "todos"} type="button" aria-pressed={activo} onClick={() => setEstadoSel(e.key)}
+                    style={{ font: "inherit", flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: 999, fontSize: 12, cursor: "pointer", fontWeight: activo ? 700 : 500,
+                      border: `1px solid ${activo ? T.text : T.border}`, background: T.card, color: activo ? T.text : T.sub }}>
+                    {e.key && <span aria-hidden="true" style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: e.color, marginRight: 6 }} />}
+                    {e.label} <span className="num" style={{ fontWeight: 700, color: T.text }}>{e.n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {casos.length > 5 && (
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por asegurado, patente o compañía…" aria-label="Buscar casos"
@@ -221,7 +237,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
           {lista.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 16px", color: T.sub, fontSize: 14 }}>
-              {q ? "Ningún caso coincide con la búsqueda." : pestana === "cobrados" ? "Todavía no hay casos cobrados." : "No hay casos en curso."}
+              {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (
             lista.map(c => <PortalCasoCard key={c.id} caso={c} />)
