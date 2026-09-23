@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { DOCS_CLIENTE, subirDocumentoCliente, documentosEnviados } from "../../utils/subidasCliente.js";
+import { DOCS_CLIENTE, subirDocumentoCliente, documentosEnviados, etiquetaDoc } from "../../utils/subidasCliente.js";
+import { notificarSubidaCliente } from "../../utils/portalStorageUtils.js";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
 import { primerNombre } from "../../utils/formatters.js";
@@ -122,10 +123,12 @@ function SubirDocumentacion({ caso, patente, dni }) {
     if (!archivos.length || !tipo) return;
     setSubiendo(tipo);
     let ok = 0, error = "";
+    const subidos = [];
     for (const file of archivos) {
       const r = await subirDocumentoCliente({ patente, dni, casoId: caso.id, tipo, file });
-      if (r.ok) ok++; else { error = r.error; break; }
+      if (r.ok) { ok++; subidos.push({ tipo: etiquetaDoc(tipo), nombre: file.name }); } else { error = r.error; break; }
     }
+    if (subidos.length) notificarSubidaCliente({ caso, archivos: subidos }); // aviso por mail al estudio (no hace esperar al cliente)
     setSubiendo(null);
     setAviso(error ? { tipo, ok: false, texto: error } : { tipo, ok: true, texto: ok === 1 ? "¡Recibido! Gracias." : `¡Recibimos ${ok} archivos! Gracias.` });
     cargar();
