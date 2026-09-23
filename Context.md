@@ -48,7 +48,8 @@
 *   **Seguridad:** la vista ya no lee la tabla `pas_casos` directamente. Usa la función `consultar_caso_cliente(patente, dni)` (`sql/2026-09-23_04_acceso_cliente.sql`, *security definer*) que solo devuelve los campos que ve el cliente y solo si patente y DNI coinciden. Tras **5 intentos fallidos en 15 minutos** para una patente, se bloquea un rato (tabla `pas_cliente_intentos`). Los links viejos `?caso=<id>` ya no muestran el caso: piden patente y DNI.
 *   Nueva columna `pas_casos.mensaje_cliente_fecha`, que un trigger completa solo cada vez que cambia el mensaje al cliente. Los mensajes anteriores quedan sin fecha.
 *   **Ficha del caso:** campo **DNI del asegurado** en Datos (antes no se podía editar); en Resumen, botón **"Copiar link del cliente"** (`/?vista=cliente&patente=…`) y aviso si falta el DNI. El modal "Generar escrito" completa el DNI solo y, si el caso no lo tenía, lo guarda.
-*   **Pendiente del usuario:** correr `sql/2026-09-23_04_acceso_cliente.sql` en Supabase y cargar el DNI en los casos en curso (la última consulta del script dice cuántos faltan).
+*   **SQL `2026-09-23_04` ejecutado** (23/09; hubo que cambiar `$$` por `$fn$` porque el editor de Supabase cortaba la función). Resultado: **43 casos en curso sin DNI**.
+*   **Para cargarlos rápido:** en Casos, chip **"Sin DNI"** (casos en curso sin al menos 3 números de DNI) y campo **DNI del asegurado** en la fila desplegable, con guardado automático.
 *   Nota: mientras RLS siga apagado en `pas_casos`, la tabla sigue siendo legible con la clave pública; la función deja lista la vista del cliente para cuando se active RLS (tarea del PIN seguro).
 
 ### 2026-09-23 — Etapa 7: Portal PAS para celular + ajustes (✅ publicada junto con la etapa 6, PR #7)

@@ -8,7 +8,7 @@ import PlazoChip from "../ui/PlazoChip.jsx";
 import Boton from "../ui/Boton.jsx";
 
 // Campos que se editan desde la fila desplegada de la tabla
-const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas"];
+const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_ofrecimiento", l: "Ofrecido" },
@@ -121,6 +121,12 @@ export default function FilaExpandida({ caso, onCasoLocal, onAbrirFicha, onElimi
               </>
             )}
           </div>
+        </div>
+
+        <div>
+          <label htmlFor={`dni-${caso.id}`} style={etiqueta}>DNI del asegurado <span style={{ color: "var(--muted)" }}>· con la patente, el cliente consulta su caso</span></label>
+          <input id={`dni-${caso.id}`} inputMode="numeric" value={borrador.dni_asegurado} onChange={e => cambiar("dni_asegurado", e.target.value)} placeholder="Ej: 25123456"
+            style={{ ...area, maxWidth: 200, minHeight: 0 }} />
         </div>
 
         <div>
