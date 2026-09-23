@@ -72,7 +72,7 @@
 
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
-- [x] ✅ Logo en los PDF (escrito y resumen del caso). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
+- [x] ✅ Logo en los PDF (escrito y resumen del caso, en el pie). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
 - [ ] Notificaciones (portal nuevo, documentación del cliente, mediación del día siguiente) ahora que la app es instalable.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
@@ -93,6 +93,9 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-24 — PDF: el logo pasa al pie de página
+*   A pedido del usuario, el membrete de arriba se reemplazó por un **pie en todas las hojas** (`pdfMembrete.dibujarPie`): línea dorada, monograma, "ATG Lex Solutions" y en chico "Dr. Alexis Torres Gaveglio · T°142 F°636 CPACF · L°IV F°20 CAMGR · +54 9 11 3313-3259". El resumen del caso suma a la derecha "asegurado · Pág. n/N". Arriba queda solo el título. Los cortes de página del resumen se corrieron para no pisar el pie.
 
 ### 2026-09-24 — Logo en los PDF y encabezado para los mails
 *   **PDF** (`utils/pdfMembrete.js`): membrete con el monograma dibujado en vector (mismos polígonos que `ui/Logo.jsx`), "ATG Lex Solutions", "Dr. Alexis Torres Gaveglio · Abogado" y una línea dorada. Lo usan el escrito de reclamo (`generarEscrito`) y el resumen del caso (`exportarCasoPDF`, cuyo pie ahora dice "ATG Lex Solutions" en vez de "PAS Tracker").
