@@ -43,6 +43,13 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
+### 2026-09-23 — Etapa 10: Clientes en tabla + archivos seguros + limpieza de la base
+*   **`TabClientes` reescrito** como tabla de PAS clientes (derivadores + manuales): columnas PAS, En curso, Cobrados, Mis honorarios (neto de comisión, casos cobrados), Último caso; ordenables; buscador. Fila desplegable con mail, teléfonos (WhatsApp), "Editar PAS" (manuales), **"Nuevo caso"** y la lista de sus casos (activos primero); tocar un caso abre la ficha (`CasoOverlay`). En celular, filas de dos líneas.
+*   **Fin del guardado masivo de casos:** el alta de caso desde Clientes inserta solo ese caso y abre su ficha; borrar un caso en Casos borra solo ese caso. `App.handleSaveCasos` y `handleDeletePasManual` se eliminaron; `handleCasoLocal` ahora también agrega casos nuevos y hay `handleQuitarCaso`. (`saveStorage("pas_casos")` queda solo para restaurar un backup.)
+*   `monto_reclamado` se guarda como número desde la fila desplegable; `CampoMonto` redondea montos con decimales que vengan de la base.
+*   **SQL `2026-09-23_07_storage.sql`:** bucket `casos` pasa a **privado** (solo administrador); `adjuntos` sigue público para que anden los links de los mails, pero cada PAS solo puede **subir** a su carpeta `<pas_id>/` y nadie más que el administrador puede listar, modificar o borrar. Borra las políticas anteriores de Storage.
+*   **SQL `2026-09-23_08_limpieza.sql`:** borra `dominio`, `compania` y el trigger puente; convierte `monto_reclamado` a `numeric` (entiende 800000, 800.000, 800.000,50, etc.; si hay un valor raro, frena y lo muestra); devuelve el esquema para regenerar `schema.sql`.
+
 ### 2026-09-23 — Etapa 9: Acceso seguro + RLS (✅ publicada, PR #9; SQL 05 y 06 ejecutados)
 *   **Entrada a la app en dos pasos** (`LoginGate.jsx`): (1) **una vez por navegador**, mail + contraseña de la cuenta de Supabase Auth (`atglexsolutions@gmail.com`); la sesión queda guardada en el navegador. (2) Cada vez que abrís la app en una pestaña nueva, el **PIN 3934** de siempre. A los **5 PIN incorrectos** se cierra la sesión y vuelve a pedir contraseña. Solo entran las cuentas de la tabla `pas_admins` (función `es_admin()`).
 *   **Los datos se cargan recién después de entrar** (`App` → `LoginGate` → `AppPrincipal`); antes se descargaba todo aunque no pusieras el PIN.

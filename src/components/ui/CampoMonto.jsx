@@ -1,7 +1,11 @@
 import { useState } from "react";
 
 // Campo de pesos: muestra 840.000 y guarda el número sin separadores
-const soloDigitos = v => String(v ?? "").replace(/[^\d]/g, "");
+// Un número de la base (800000 o "800000.50"; "800.000" se toma como miles) se redondea; lo que se escribe queda solo con dígitos
+const soloDigitos = v => {
+  if (typeof v === "number" || /^\d+\.\d{1,2}$/.test(String(v ?? ""))) return String(Math.round(Number(v)));
+  return String(v ?? "").replace(/[^\d]/g, "");
+};
 const conMiles = v => (soloDigitos(v) ? Number(soloDigitos(v)).toLocaleString("es-AR") : "");
 
 export default function CampoMonto({ id, value, onChange, style, ...rest }) {

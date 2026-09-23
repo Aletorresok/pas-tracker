@@ -41,7 +41,7 @@ function Movimiento({ caso }) {
 // Caso en curso sin DNI cargado: el cliente no puede consultar su reclamo
 const sinDni = c => esActivo(c) && !/\d{3}/.test(String(c.dni_asegurado || "").replace(/\D/g, ""));
 
-export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMode, pasManuales = [] }) {
+export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMode, pasManuales = [] }) {
   const esCelular = useEsCelular();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("activos"); // activos | todos | sin_dni | <estado>
@@ -84,11 +84,11 @@ export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMod
 
   const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k === "mov" || k === "monto" }));
 
-  const handleDelete = (caso) => {
+  const handleDelete = async (caso) => {
     if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
-    deleteCaso(caso.id);
+    await deleteCaso(caso.id);
     setAbiertoId(null);
-    onSaveCasos(caso._pasId, (casos[String(caso._pasId)] || []).filter(c => c.id !== caso.id), caso._pasNombre);
+    onQuitarCaso(caso._pasId, caso.id);
   };
 
   // Guarda en memoria el caso editado desde la fila (ya se guardó en Supabase)

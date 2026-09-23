@@ -22,7 +22,7 @@ const aBorrador = c => Object.fromEntries(CAMPOS.map(k => [k, c[k] ?? ""]));
 // "" se guarda como null; los montos numéricos como número
 const aFila = (k, v) => {
   if (v === "" || v === undefined) return null;
-  if (k.startsWith("monto_") && k !== "monto_reclamado") return Number(v);
+  if (k.startsWith("monto_")) return Number(v);
   return v;
 };
 
