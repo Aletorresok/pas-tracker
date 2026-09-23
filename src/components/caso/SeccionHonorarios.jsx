@@ -9,7 +9,7 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
 
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: Th.text, marginBottom: 14 }}>Honorarios (facturación)</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 14 }}>Honorarios (facturación)</div>
       <label style={{ marginBottom: 12, display: "block" }}>
         <span style={labelStyle}>Monto de honorarios ($)</span>
         <input type="number" value={formData.monto_honorarios} onChange={e => onChange("monto_honorarios", e.target.value)} style={inputStyle} />

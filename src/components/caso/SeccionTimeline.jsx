@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { formatoFecha } from "../../utils/formatters.js";
+import { formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
 
 export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, Th }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -8,13 +8,15 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   const [descripcion, setDescripcion] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [editandoId, setEditandoId] = useState(null); // Guardamos solo el ID, no todo el objeto
+  const [rapida, setRapida] = useState("");
+  const [guardandoRapida, setGuardandoRapida] = useState(false);
 
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
 
   const abrirNueva = () => { 
     setEditandoId(null); 
-    setFecha(new Date().toISOString().slice(0, 10)); 
+    setFecha(fechaLocalISO()); 
     setDescripcion(""); 
     setModalOpen(true); 
   };
@@ -51,11 +53,18 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: Th.text }}>Historial de acciones</div>
-        <button onClick={abrirNueva} style={{ background: "var(--accent)", border: "none", borderRadius: 8, color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-          Agregar acción
+        <div style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Bitácora</div>
+        <button onClick={abrirNueva} style={{ background: "none", border: "none", color: "var(--accent-ink)", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+          Con otra fecha…
         </button>
       </div>
+      <form onSubmit={async e => { e.preventDefault(); if (!rapida.trim()) return; setGuardandoRapida(true); await onCrear({ fecha: fechaLocalISO(), descripcion: rapida.trim() }); setRapida(""); setGuardandoRapida(false); }}
+        style={{ display: "flex", gap: 8 }}>
+        <input value={rapida} onChange={e => setRapida(e.target.value)} placeholder="Agregar movimiento de hoy y Enter…" aria-label="Nuevo movimiento" style={{ ...inputStyle, padding: "8px 12px" }} />
+        <button type="submit" disabled={guardandoRapida || !rapida.trim()} style={{ flex: "none", padding: "0 14px", borderRadius: 8, border: "none", background: "var(--accent)", color: "var(--on-accent)", fontWeight: 600, cursor: "pointer", opacity: guardandoRapida || !rapida.trim() ? 0.5 : 1 }}>
+          {guardandoRapida ? "…" : "Agregar"}
+        </button>
+      </form>
 
       {loading && <div style={{ color: Th.muted, fontSize: 13 }}>Cargando...</div>}
       {!loading && acciones.length === 0 && (

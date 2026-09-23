@@ -16,7 +16,12 @@ import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
-import CasoFooter from "./components/caso/CasoFooter.jsx";
+import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
+import EtapasCaso from "./components/caso/EtapasCaso.jsx";
+import ResumenCaso from "./components/caso/ResumenCaso.jsx";
+import Boton from "./components/ui/Boton.jsx";
+import Icono from "./components/ui/Icono.jsx";
+import { ESTADOS_CASO } from "./constants.js";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","nro_siniestro",
@@ -56,6 +61,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
   const [loadingAcciones, setLoadingAcciones] = useState(false);
   const [modalEscrito, setModalEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
+  const [pestana, setPestana] = useState("resumen");
+  const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
+  const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
   const dirHandleRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -151,15 +159,16 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
   const guardarCaso = useCallback(async () => {
     setGuardando(true);
+    setEstadoGuardado("guardando");
     try {
       const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: formData.estado_honorarios || "NO_FACTURADO" };
       const fila = pickCols(updated);
       // Si la columna del plazo todavía no existe en la base, no la mandamos (evita error al guardar)
       if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;
       const { error } = await supabase.from("pas_casos").upsert([fila]);
-      if (!error) { setCaso(updated); setToast({ msg: "✓ Caso guardado", type: "success" }); onUpdate?.(updated); }
-      else setToast({ msg: "Error: " + (error.message || "desconocido"), type: "error" });
-    } catch (e) { setToast({ msg: "Error: " + e.message, type: "error" }); }
+      if (!error) { setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated); }
+      else { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + (error.message || "error desconocido"), type: "error" }); }
+    } catch (e) { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + e.message, type: "error" }); }
     setGuardando(false);
   }, [caso, formData, onUpdate, pasId]);
 
@@ -167,6 +176,28 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
 
   const handleFormChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    setEstadoGuardado("pendiente");
+  };
+
+  // Cambiar estado desde la línea de etapas; Cobrado/Desistido se pueden deshacer 6 s
+  const cambiarEstado = (nuevo) => {
+    if (nuevo === formData.estado) return;
+    if (["cobrado", "desistido"].includes(nuevo)) setDeshacer({ anterior: formData.estado, nuevo });
+    handleFormChange("estado", nuevo);
+  };
+  useEffect(() => {
+    if (!deshacer) return;
+    const t = setTimeout(() => setDeshacer(null), 6000);
+    return () => clearTimeout(t);
+  }, [deshacer]);
+
+  // Al cerrar con cambios sin guardar, guarda primero
+  const cerrar = async () => {
+    if (estadoGuardado === "pendiente" || estadoGuardado === "error") {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      await guardarCasoRef.current?.();
+    }
+    onClose();
   };
 
   const handleExportarPDF = async () => {
@@ -179,46 +210,98 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, darkMo
     setExportandoPDF(false);
   };
 
+  const PESTANAS = [
+    { k: "resumen", l: "Resumen" },
+    { k: "datos", l: "Datos" },
+    { k: "montos", l: "Montos y honorarios" },
+    { k: "documentos", l: "Documentos", n: archivos.length },
+    { k: "bitacora", l: "Bitácora", n: acciones.length },
+  ];
+  const TEXTO_GUARDADO = { guardado: "✓ Guardado", pendiente: "Sin guardar…", guardando: "Guardando…", error: "No se guardó · reintentar" };
+  const COLOR_GUARDADO = { guardado: "var(--ok)", pendiente: "var(--muted)", guardando: "var(--muted)", error: "var(--warn)" };
+  const panel = (k) => ({ hidden: pestana !== k, role: "tabpanel", id: `panel-${k}`, "aria-labelledby": `tab-${k}` });
+
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={onClose} />
-      <div className="modal-panel" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)" }}>
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={cerrar} />
+      <div className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
+        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
+        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
 
-          {/* Header */}
-          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "18px 24px", zIndex: 50 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: Th.text }}>{formData.asegurado}</div>
-                <div style={{ fontSize: 13, color: Th.muted, marginTop: 4 }}>
-                  {formData.compania_aseguradora && `${formData.compania_aseguradora} • `}
-                  {caso.fecha_derivacion && `Derivado ${formatoFecha(caso.fecha_derivacion)}`}
+          {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
+          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
+            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
+              <Icono nombre="cerrar" size={16} />
+            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
+              <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: Th.text, letterSpacing: -0.3, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
+                <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
+                  {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: 4, padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
+                  {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
+                  {pasNombre && <span>PAS {pasNombre}</span>}
+                  {caso.fecha_derivacion && <span>derivado {formatoFecha(caso.fecha_derivacion)}</span>}
                 </div>
               </div>
-              <button onClick={onClose} style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "8px 12px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>✕</button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <span role="status" style={{ fontSize: 12, fontWeight: 600, color: COLOR_GUARDADO[estadoGuardado], marginRight: 4 }}>
+                  {estadoGuardado === "error"
+                    ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
+                    : TEXTO_GUARDADO[estadoGuardado]}
+                </span>
+                <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
+                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <EtapasCaso estado={formData.estado} onChange={cambiarEstado} />
+              {deshacer && (
+                <div role="status" style={{ marginTop: 10, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>
+                  Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
+                  <button type="button" onClick={() => { handleFormChange("estado", deshacer.anterior); setDeshacer(null); }}
+                    style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
+                </div>
+              )}
+            </div>
+
+            <div role="tablist" aria-label="Secciones del caso" style={{ display: "flex", gap: 20, marginTop: 14, overflowX: "auto" }}>
+              {PESTANAS.map(t => {
+                const activa = pestana === t.k;
+                return (
+                  <button key={t.k} type="button" role="tab" id={`tab-${t.k}`} aria-selected={activa} aria-controls={`panel-${t.k}`} onClick={() => setPestana(t.k)}
+                    style={{ flex: "none", background: "none", border: "none", borderBottom: `2px solid ${activa ? "var(--accent)" : "transparent"}`, padding: "8px 0 10px", cursor: "pointer", font: "inherit", fontSize: 14, fontWeight: activa ? 600 : 500, color: activa ? Th.text : Th.sub, whiteSpace: "nowrap" }}>
+                    {t.l}{t.n ? <span className="num" style={{ marginLeft: 6, fontSize: 12, color: Th.muted }}>{t.n}</span> : null}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div style={{ padding: 24 }}>
-            <CasoProximaAccion formData={formData} onChange={handleFormChange} Th={Th} />
-            <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
-            
-            <CasoDocumentos Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
-
-            <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
-            <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
-            <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} />
-            
-            <SeccionTimeline 
-              acciones={acciones} 
-              loading={loadingAcciones} 
-              onCrear={handleCrearAccion} 
-              onActualizar={handleActualizarAccion} 
-              onEliminar={handleEliminarAccion} 
-              Th={Th} 
-            />
-
-            <CasoFooter Th={Th} setModalEscrito={setModalEscrito} handleExportarPDF={handleExportarPDF} exportandoPDF={exportandoPDF} recargarArchivos={recargarArchivos} archivosActualizando={archivosActualizando} onClose={onClose} guardarCaso={guardarCaso} guardando={guardando} />
+          <div style={{ padding: 20 }}>
+            {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
+            <div {...panel("resumen")}>
+              <ResumenCaso formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
+            </div>
+            <div {...panel("datos")}>
+              <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
+              <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} />
+            </div>
+            <div {...panel("montos")}>
+              <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
+              <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+            </div>
+            <div {...panel("documentos")}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
+                <Boton tamaño="sm" icono="recargar" onClick={recargarArchivos} disabled={archivosActualizando}>{archivosActualizando ? "Actualizando…" : "Actualizar archivos"}</Boton>
+              </div>
+              <div style={{ marginBottom: 16 }}><ChecklistDocumental archivos={archivos} Th={Th} /></div>
+              <CasoDocumentos Th={Th} caso={caso} archivos={archivos} archivosActualizando={archivosActualizando} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} handleCategorizarArchivo={handleCategorizarArchivo} handleRenombrarArchivo={handleRenombrarArchivo} />
+            </div>
+            <div {...panel("bitacora")}>
+              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th} />
+            </div>
           </div>
         </div>
       </div>
