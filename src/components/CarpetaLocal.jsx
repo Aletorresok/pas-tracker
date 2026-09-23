@@ -9,7 +9,7 @@ import {
 } from "../utils/carpeta.js";
 import ArchivoLocalRow from "./carpeta/ArchivoLocalRow.jsx";
 
-export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }) {
+export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, version }) {
   const [dirHandle, setDirHandle]         = useState(null);
   const [archivos, setArchivos]           = useState([]);
   const [cargando, setCargando]           = useState(false);
@@ -84,6 +84,9 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange }
     }
     setCargando(false);
   };
+
+  // Al guardar archivos desde afuera (ej: lo que mandó el cliente), se relee la carpeta
+  useEffect(() => { if (version) recargarCarpeta(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [version]);
 
   const desvincularCarpeta = () => {
     setDirHandle(null);

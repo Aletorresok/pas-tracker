@@ -7,7 +7,7 @@ import AgendaCaso from "./AgendaCaso.jsx";
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
 // Pestaña "Resumen": lo que se mira todos los días
-export default function ResumenCaso({ casoId, nroSiniestro, pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
+export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro, pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
   const [copiado, setCopiado] = useState(false);
@@ -39,6 +39,13 @@ export default function ResumenCaso({ casoId, nroSiniestro, pasNombre, pasTelefo
   return (
     <div className="resumen-caso" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.5fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+        {recepcionNuevos > 0 && (
+          <button type="button" onClick={() => irA("documentos")}
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))", background: "color-mix(in srgb, var(--accent) 8%, var(--card))", color: Th.text, font: "inherit", fontSize: 14, cursor: "pointer", textAlign: "left" }}>
+            <span><b>El cliente mandó {recepcionNuevos === 1 ? "1 archivo" : `${recepcionNuevos} archivos`}</b> desde su vista</span>
+            <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>Guardar →</span>
+          </button>
+        )}
         <CasoProximaAccion formData={formData} onChange={onChange} Th={Th} />
 
         <div style={caja}>

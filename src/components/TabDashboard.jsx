@@ -6,6 +6,7 @@ import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
+import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
 import { pasDormidos } from "../utils/estadisticasPas.js";
@@ -76,6 +77,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Hoy</h1>
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
       </header>
+
+      <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
       <NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
 
@@ -165,7 +168,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       {abierto && (
         <CasoOverlay
-          caso={abierto.caso} pasId={abierto.pasId} casos={casos} todosLosPas={todosLosPas}
+          caso={abierto.caso} pasId={abierto.pasId} pestanaInicial={abierto.pestana} casos={casos} todosLosPas={todosLosPas}
           onCasoLocal={onCasoLocal} darkMode={darkMode}
           onCambio={updated => setAbierto(a => ({ ...a, caso: { ...updated, _pasId: a.pasId } }))}
           onClose={() => setAbierto(null)}
