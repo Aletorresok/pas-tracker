@@ -78,7 +78,7 @@
 
 **Código sin uso:**
 - [x] ✅ Borrado el 24/09: `ClienteCards.jsx`, `FiltrosEstados.jsx`, `MisPendientesCard.jsx`, `StatCard.jsx`, `ArchivoRow.jsx`, `utils/categorizarArchivo.js`, `main.js` de la raíz, las funciones de Storage de `utils/carpeta.js`, la lista de archivos "de Supabase" y el botón "Actualizar archivos" de Documentos, `RESULTADOS_CONTACTO` y `EXTENSIONES_VALIDAS`. `TIPOS_DOC` y `DOCS_REQUERIDOS_RECLAMO` viven ahora en `constants.js`.
-- [ ] En la base: el código ya no usa `pas_casos.recordatorio` ni la tabla `pas_recordatorios` (el portal todavía lee `notas_log` si existe). Falta el SQL que copia, pasa `notas_log` a `acciones` y borra esas + `aseguradoras`, `casos`, `gestiones_judiciales` (pendiente de confirmación).
+- [ ] En la base: el código ya no usa `pas_casos.recordatorio` ni la tabla `pas_recordatorios` (el portal todavía lee `notas_log` si existe). SQL 15 (`sql/2026-09-24_15_limpieza_tablas.sql`) listo: copia a `backup_20260924`, pasa las notas de `notas_log` (47 casos) a `acciones` y borra esas + `aseguradoras`, `casos`, `gestiones_judiciales` (vacías). Falta correrlo y regenerar `schema.sql`.
 
 **Deuda técnica:**
 - [ ] Fechas guardadas como texto: `pas_casos.fecha_siniestro`, `fecha_derivacion`, `fecha_contacto_asegurado`, `fecha_inicio_reclamo`, `fecha_ultimo_movimiento`; `pas_historial.fecha`.
@@ -94,7 +94,7 @@
 *   **Reclamo quieto:** ahora avisa a los **14 días** sin respuesta (antes: el promedio de la compañía o 30). En **Análisis → "Reclamo quieto: margen por compañía"** cambiás el general o ponés uno propio por compañía (se guarda al salir del campo). Muestra de referencia cuánto suele tardar cada compañía en ofrecer. `utils/margenes.js` (`useMargenes`, `margenPara`), `components/MargenCompanias.jsx`; `metricas.reclamosQuietos` recibe los márgenes. Sin el SQL 14 usa 14 días para todas.
 *   **Mail de documentación del cliente:** si existe `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` usa esa plantilla, con las variables `asegurados`, `patentes`, `cantidad`, `documentos`, `link_app`; si no, sigue con la de derivaciones.
 *   **Código sin uso:** se quitaron los recordatorios de contactos (`pas_recordatorios`, también del backup JSON) y `recordatorio`/`notas_log` del guardado del caso. En el portal la lista se llama `movimientos` (acciones + `notas_log` viejo mientras exista la columna).
-*   **SQL:** `sql/2026-09-24_14_margen_companias.sql`.
+*   **SQL:** `sql/2026-09-24_14_margen_companias.sql` (✅ ejecutado el 24/09). `sql/2026-09-24_15_limpieza_tablas.sql` (limpieza de tablas, pendiente de ejecutar).
 
 ### 2026-09-24 — Mejoras: "Ya lo tenemos", próxima mediación en portal y cliente, ID de PAS manual, admin sin mail (SQL 13 pendiente de ejecutar)
 *   **Cliente** (`PortalCliente.jsx`): los documentos que tildaste en el checklist del caso aparecen como "✓ Ya lo tenemos" (se puede agregar más igual). Si hay una **mediación o audiencia** agendada, la ve con día y hora ("te confirmamos los detalles por WhatsApp"; no ve link ni lugar). Todo sale de la función nueva `extras_cliente` (`utils/subidasCliente.extrasCliente`); sin el SQL 13 sigue funcionando como antes.
