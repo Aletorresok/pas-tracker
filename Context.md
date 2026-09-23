@@ -93,6 +93,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-24 — Nuevo mensaje de WhatsApp para PAS
+*   `formatters.waLink`: "Hola {nombre}, cómo estás? Soy Alexis Torres Gaveglio, abogado (saqué tu número del padrón de la SSN). Trabajo con productores gestionando los reclamos de terceros de sus clientes. / Te hago una consulta rápida: cuando un asegurado tuyo choca, ¿el reclamo lo maneja el cliente por su cuenta, le das una mano vos, o lo derivás?"
+
 ### 2026-09-24 — App instalable en PC y Android (PWA)
 *   **Instalar:** Chrome/Edge ofrecen "Instalar" (ícono en la barra de direcciones o menú ⋮ → "Instalar app"). Además hay un botón **"Instalar app"** que aparece solo cuando el navegador lo permite: en el estudio dentro de **Apariencia y backup**, en el portal como ícono en la cabecera y en la vista del cliente debajo del botón de WhatsApp.
 *   **Tres apps separadas:** "PAS Tracker" (estudio), "Portal PAS" (abre en `/portal`) y "Mi reclamo" (abre en la vista del cliente). El título de la pestaña cambia según cuál sea.
