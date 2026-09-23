@@ -73,7 +73,7 @@
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
 - [x] ✅ Logo en los PDF (escrito y resumen del caso, en el pie). Encabezado de mail listo en `public/mail/encabezado.png`; falta pegarlo en las plantillas de EmailJS (lo hace el usuario).
-- [ ] Notificaciones push: SQL 17 y función `notificar` ✅ (responde la clave, 24/09). Los webhooks del panel fallaron ("schema supabase_functions does not exist"), así que los avisos y el cron van por `sql/2026-09-24_18_avisos_y_cron.sql` (pg_net + pg_cron, con la URL del proyecto). Falta confirmar la prueba en los dispositivos.
+- [ ] Notificaciones push: SQL 17 y función `notificar` ✅ (responde la clave, 24/09). Los webhooks del panel fallaron ("schema supabase_functions does not exist"), así que los avisos y el cron van por `sql/2026-09-24_18_avisos_y_cron.sql` (pg_net + pg_cron, con la URL del proyecto). ✅ Prueba recibida en el celular (24/09). SQL 18 corrido con la URL real del proyecto.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
 - [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
