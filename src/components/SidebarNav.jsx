@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext.jsx";
 import Icono from "./ui/Icono.jsx";
 import { cerrarSesion } from "./LoginGate.jsx";
 import { useInstalarApp } from "../hooks/useInstalarApp.js";
+import Logo from "./ui/Logo.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
@@ -82,7 +83,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
       }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24, paddingLeft: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, fontFamily: "var(--mono)", color: T.onAccent }}>PT</div>
+            <Logo alto={24} />
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>PAS Tracker</div>
               {pasCount > 0 && <div style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}

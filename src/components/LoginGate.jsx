@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase.js";
 import Boton from "./ui/Boton.jsx";
+import Logo from "./ui/Logo.jsx";
 
 const APP_PIN = "3934";
 const MAIL_ADMIN = "atglexsolutions@gmail.com";
@@ -92,7 +93,7 @@ export default function LoginGate({ children }) {
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "32px 24px", maxWidth: 360, width: "100%", boxShadow: "var(--shadow)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: "var(--accent)", color: "var(--on-accent)", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 700, fontFamily: "var(--mono)" }}>PT</div>
+          <Logo alto={26} />
           <div>
             <div style={{ fontSize: 17, fontWeight: 700 }}>PAS Tracker</div>
             <div style={{ fontSize: 12, color: "var(--muted)" }}>ATG Lex Solutions</div>

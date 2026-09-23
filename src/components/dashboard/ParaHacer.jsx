@@ -3,6 +3,7 @@ import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
 import { linkWhatsApp } from "../../utils/mensajes.js";
 import { primerNombre } from "../../utils/formatters.js";
+import Ilustracion from "../ui/Ilustracion.jsx";
 
 const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", dormido: "PAS dormido" };
 
@@ -23,7 +24,8 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
       </div>
 
       {tareas.length === 0 && (
-        <div style={{ padding: "24px 0", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
+        <div style={{ padding: "20px 0", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
+          <Ilustracion nombre="listo" size={88} style={{ margin: "0 auto 8px" }} />
           Nada pendiente. Cargá una "Próxima acción" con plazo en un caso y aparece acá.
         </div>
       )}

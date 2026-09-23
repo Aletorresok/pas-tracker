@@ -10,6 +10,8 @@ import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
 import { alpha } from "../../utils/theme.js";
+import Logo from "../ui/Logo.jsx";
+import Ilustracion from "../ui/Ilustracion.jsx";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -161,7 +163,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       {/* Encabezado */}
       <header style={{ background: T.card, borderBottom: `1px solid ${T.border}`, padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: T.accent, color: T.onAccent, display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--mono)", flex: "none" }}>ATG</div>
+          <Logo alto={26} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>ATG Lex Solutions · Portal de productores</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pasInfo?.nombre || "Portal"}</div>
@@ -247,7 +249,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           )}
 
           {lista.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 16px", color: T.sub, fontSize: 14 }}>
+            <div style={{ textAlign: "center", padding: "32px 16px", color: T.sub, fontSize: 14 }}>
+              <Ilustracion nombre="carpeta" size={88} style={{ margin: "0 auto 8px" }} />
               {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (

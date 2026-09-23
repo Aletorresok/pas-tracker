@@ -11,6 +11,8 @@ import { alpha } from "../../utils/theme.js";
 import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
+import Logo from "../ui/Logo.jsx";
+import Ilustracion from "../ui/Ilustracion.jsx";
 
 const WHATSAPP = "5491133133259";
 const ABOGADO = "Dr. Alexis Torres Gaveglio";
@@ -179,8 +181,13 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
 
   return (
     <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</div>
-      <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Podés sacar la foto con el celular o elegir un PDF. Si preferís, mandalo por WhatsApp.</p>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</div>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Podés sacar la foto con el celular o elegir un PDF. Si preferís, mandalo por WhatsApp.</p>
+        </div>
+        <Ilustracion nombre="foto" size={64} />
+      </div>
       <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple hidden onChange={alElegir} />
       {DOCS_CLIENTE.map((d, i) => {
         const env = porTipo[d.tipo] || [];
@@ -339,7 +346,7 @@ export default function PortalCliente() {
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", flexDirection: "column" }}>
       <header style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: "var(--accent)", color: "var(--on-accent)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--mono)", flex: "none" }}>ATG</div>
+          <Logo alto={26} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}>ATG Lex Solutions</div>
             <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Seguimiento de tu reclamo</div>
@@ -354,7 +361,8 @@ export default function PortalCliente() {
       <main style={{ flex: 1, width: "100%", maxWidth: 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
         {!casos ? (
           <>
-            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "8px 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
+            <Ilustracion nombre="auto" size={96} style={{ margin: "0 0 4px -8px" }} />
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
 
             <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
