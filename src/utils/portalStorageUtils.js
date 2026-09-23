@@ -44,22 +44,39 @@ export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, arch
   return linksAdjuntos;
 }
 /**
- * Avisa por mail (mismo servicio y plantilla que las derivaciones) que un cliente subió documentación
- * desde su vista. No lleva links: los archivos están en una carpeta privada y se guardan desde PAS Tracker.
+ * Avisa por mail (mismo servicio y plantilla que las derivaciones) lo que subió un cliente en una sesión,
+ * todo junto en un solo mail. Sin links: los archivos están en una carpeta privada y se guardan desde PAS Tracker.
+ * Usa la API de EmailJS con `keepalive`, así el envío sale aunque la página se esté cerrando.
+ * @param items [{ caso, tipo, nombre }]
  */
-export async function notificarSubidaCliente({ caso, archivos }) {
-  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !archivos?.length) return;
-  const lista = archivos.map(a => `📎 ${a.tipo}: ${a.nombre}`).join("\n");
+export function notificarSubidaCliente(items) {
+  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !items?.length) return;
+  const porCaso = new Map();
+  items.forEach(it => {
+    if (!porCaso.has(it.caso.id)) porCaso.set(it.caso.id, { caso: it.caso, archivos: [] });
+    porCaso.get(it.caso.id).archivos.push(it);
+  });
+  const grupos = [...porCaso.values()];
+  const primero = grupos[0].caso;
+  const lista = grupos.map(g =>
+    (grupos.length > 1 ? `${g.caso.asegurado || "Caso"} (${g.caso.patente || "sin patente"}):\n` : "") +
+    g.archivos.map(a => `📎 ${a.tipo}: ${a.nombre}`).join("\n")
+  ).join("\n\n");
   const templateParams = {
     pas_nombre: "Cliente, desde su vista de seguimiento",
-    asegurado: `${caso.asegurado || "Cliente"} (DOCUMENTACIÓN DEL CLIENTE)`,
-    telefono: caso.patente ? `Patente ${caso.patente}` : "N/D",
+    asegurado: `${grupos.map(g => g.caso.asegurado || "Cliente").join(" / ")} (DOCUMENTACIÓN DEL CLIENTE · ${items.length} ${items.length === 1 ? "archivo" : "archivos"})`,
+    telefono: primero.patente ? `Patente ${primero.patente}` : "N/D",
     fecha_siniestro: "—",
-    compania: caso.compania_aseguradora || "N/D",
+    compania: [...new Set(grupos.map(g => g.caso.compania_aseguradora).filter(Boolean))].join(" / ") || "N/D",
     links_archivos: `${lista}\n\nEstán esperando en PAS Tracker → Hoy → "Documentación recibida" (Guardar en el caso).`,
   };
   try {
-    await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
+    fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ service_id: SERVICE_ID, template_id: TEMPLATE_ID, user_id: PUBLIC_KEY, template_params: templateParams }),
+      keepalive: true,
+    }).catch(e => console.error("[notificarSubidaCliente] no se pudo mandar el mail:", e));
   } catch (e) {
     console.error("[notificarSubidaCliente] no se pudo mandar el mail:", e);
   }
