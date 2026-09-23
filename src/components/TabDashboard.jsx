@@ -5,6 +5,7 @@ import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
+import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
 import { pasDormidos } from "../utils/estadisticasPas.js";
@@ -96,6 +97,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+          <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
+
           {/* Casos por etapa */}
           <section style={{ ...card, padding: "14px 16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>

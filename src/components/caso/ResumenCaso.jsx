@@ -2,11 +2,12 @@ import { useState } from "react";
 import { fmtMoney, formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
+import AgendaCaso from "./AgendaCaso.jsx";
 
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
 // Pestaña "Resumen": lo que se mira todos los días
-export default function ResumenCaso({ pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
+export default function ResumenCaso({ casoId, nroSiniestro, pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
   const [copiado, setCopiado] = useState(false);
@@ -81,6 +82,9 @@ export default function ResumenCaso({ pasNombre, pasTelefono, tercero_contacto, 
         </div>
       </div>
 
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+      <AgendaCaso casoId={casoId} caso={{ ...formData, nro_siniestro: nroSiniestro }} onChange={onChange} Th={Th} />
+
       <div style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>Números del caso</span>
@@ -101,6 +105,7 @@ export default function ResumenCaso({ pasNombre, pasTelefono, tercero_contacto, 
         {formData.estado_honorarios && formData.estado_honorarios !== "NO_FACTURADO" && (
           <div style={{ fontSize: 12, color: Th.muted, marginTop: 4 }}>Honorarios: {formData.estado_honorarios === "COBRADO" ? "cobrados" : "facturados"}</div>
         )}
+      </div>
       </div>
     </div>
   );
