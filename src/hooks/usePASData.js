@@ -37,14 +37,13 @@ async function traerContactosPorId(ids) {
 
 export function usePASData() {
   // `pas` guarda solo los contactos que la app usa siempre: los que tienen historial,
-  // casos, recordatorio o son derivadores. El resto (miles, sin contactar) se pide
+  // casos o son derivadores. El resto (miles, sin contactar) se pide
   // paginado desde la pestaña Contactos.
   const [pas, setPas] = useState([]);
   const [totalContactos, setTotalContactos] = useState(0);
   const [historial, setHistorial] = useState({});
   const [casos, setCasos] = useState({});
   const [derivadores, setDerivadores] = useState({});
-  const [recordatorios, setRecordatorios] = useState({});
   const [descartados, setDescartados] = useState({});
   const [pasManuales, setPasManuales] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +62,6 @@ export function usePASData() {
         historialData,
         casosData,
         { data: derivadoresData },
-        { data: recordatoriosData },
         { data: manualesData }
       ] = await Promise.all([
         supabase.from("pas_contactos").select("id", { count: "exact", head: true }),
@@ -71,7 +69,6 @@ export function usePASData() {
         traerTodo(() => supabase.from("pas_historial").select("*").order("fecha", { ascending: true })),
         traerTodo(() => supabase.from("pas_casos").select("*").order("id")),
         supabase.from("pas_derivadores").select("*"),
-        supabase.from("pas_recordatorios").select("*"),
         supabase.from("pas_manuales").select("*"),
       ]);
       setTotalContactos(total || 0);
@@ -90,7 +87,6 @@ export function usePASData() {
       historialData.forEach(r => ids.add(String(r.pas_id)));
       casosData.forEach(r => ids.add(String(r.pas_id)));
       (derivadoresData || []).forEach(r => r.activo && ids.add(String(r.pas_id)));
-      (recordatoriosData || []).forEach(r => ids.add(String(r.pas_id)));
       Object.keys(diccDescartados).forEach(id => ids.add(id));
       const contactos = await traerContactosPorId([...ids]);
       setPas(contactos.map(normalizarContacto));
@@ -132,16 +128,6 @@ export function usePASData() {
         setDerivadores(d);
       }
 
-      // Procesamiento de Recordatorios
-      if (recordatoriosData?.length) {
-        const r = {};
-        recordatoriosData.forEach(row => {
-          if (row.fecha_recordatorio) {
-            r[String(row.pas_id)] = row.fecha_recordatorio;
-          }
-        });
-        setRecordatorios(r);
-      }
 
       // Procesamiento de Manuales
       if (manualesData?.length) {
@@ -173,7 +159,6 @@ export function usePASData() {
     historial, setHistorial,
     casos, setCasos,
     derivadores, setDerivadores,
-    recordatorios, setRecordatorios,
     descartados, setDescartados,
     pasManuales, setPasManuales,
     loading,

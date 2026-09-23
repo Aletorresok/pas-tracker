@@ -32,7 +32,7 @@ const DEMO_CASO = {
   monto_comision_pas: "",
   nota: "Este es un caso de ejemplo.",
   mensaje_cliente: "El reclamo ya fue ingresado a la compañía.",
-  notas_log: [],
+  movimientos: [],
   _demo: true,
 };
 
@@ -80,10 +80,11 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           if (!accionesPorCaso[a.caso_id]) accionesPorCaso[a.caso_id] = [];
           accionesPorCaso[a.caso_id].push({ texto: a.descripcion, fecha: a.fecha, ts: new Date(a.fecha).getTime() });
         });
+        // Movimientos = tabla acciones + la bitácora vieja (notas_log) mientras esa columna exista
         const casosConAcciones = casosData.map(c => {
           const dbAcciones = accionesPorCaso[c.id] || [];
-          const oldLog = (c.notas_log || []).filter(n => !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha));
-          return { ...c, notas_log: [...dbAcciones, ...oldLog] };
+          const viejos = (c.notas_log || []).filter(n => !dbAcciones.some(a => a.texto === n.texto && a.fecha === n.fecha));
+          return { ...c, movimientos: [...dbAcciones, ...viejos] };
         });
         setCasos(casosConAcciones);
 
@@ -112,7 +113,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       const index = prev.findIndex(c => c.id === casoActualizado.id);
       if (index !== -1) {
         const nuevo = [...prev];
-        nuevo[index] = casoActualizado;
+        nuevo[index] = { ...casoActualizado, movimientos: prev[index].movimientos };
         return nuevo;
       }
       return [...prev, casoActualizado];

@@ -30,7 +30,7 @@ export async function insertHistorialEntry(pasId, entry) {
 }
 
 // ── SAVE STORAGE ──────────────────────────────────────────────────────────────
-// Guarda casos, derivadores, recordatorios, descartados en Supabase
+// Guarda casos, derivadores y descartados en Supabase
 
 export async function saveStorage(tabla, data) {
   try {
@@ -80,8 +80,6 @@ export async function saveStorage(tabla, data) {
             monto_cobro_asegurado: caso.monto_cobro_asegurado || null,
             monto_cobro_yo: caso.monto_cobro_yo || null,
             monto_comision_pas: caso.monto_comision_pas || null,
-            recordatorio: caso.recordatorio || null,
-            notas_log: caso.notas_log || null,
             carpeta_path: caso.carpeta_path || null,
             primer_ofrecimiento: caso.primer_ofrecimiento || null,
             segundo_ofrecimiento: caso.segundo_ofrecimiento || null,
@@ -127,20 +125,6 @@ export async function saveStorage(tabla, data) {
         .from("pas_derivadores")
         .upsert(rows, { onConflict: "pas_id" });
       if (error) console.error("[saveStorage] pas_derivadores error:", error);
-
-    } else if (tabla === "pas_recordatorios") {
-      // data = { [pas_id]: "fecha" }
-      const rows = Object.entries(data).map(([pas_id, fecha]) => ({
-        pas_id: parseInt(pas_id, 10),
-        fecha_recordatorio: fecha,
-      }));
-
-      if (!rows.length) return;
-
-      const { error } = await supabase
-        .from("pas_recordatorios")
-        .upsert(rows, { onConflict: "pas_id" });
-      if (error) console.error("[saveStorage] pas_recordatorios error:", error);
 
     } else if (tabla === "pas_descartados") {
       // data = { [pas_id]: true/false }

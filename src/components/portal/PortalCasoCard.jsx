@@ -27,7 +27,7 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
   const [aviso, setAviso] = useState(null); // { tipo, texto }
   const fileInputRef = useRef(null);
 
-  const historial = [...(caso.notas_log || [])].sort((a, b) => b.ts - a.ts);
+  const historial = [...(caso.movimientos || [])].sort((a, b) => b.ts - a.ts);
   const ultima = historial[0];
   const fechas = FECHAS.filter(f => caso[f.k]);
   const montos = MONTOS.filter(f => Number(caso[f.k]) > 0);

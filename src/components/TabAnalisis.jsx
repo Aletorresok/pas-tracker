@@ -3,6 +3,7 @@ import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
 import { ESTADOS_CASO } from "../constants.js";
 import GraficoCompanias from "./GraficoCompanias.jsx";
+import MargenCompanias from "./MargenCompanias.jsx";
 import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
 import RankingPASCard from "./dashboard/RankingPASCard.jsx";
 
@@ -61,6 +62,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [] }) 
       <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
       <RankingPASCard ranking={ranking} darkMode={darkMode} />
       <GraficoCompanias allCasos={allCasos} darkMode={darkMode} cardBg="var(--card)" cardBorder="var(--border)" textColor="var(--text)" subColor="var(--sub)" />
+      <MargenCompanias allCasos={allCasos} />
     </div>
   );
 }

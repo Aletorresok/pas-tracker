@@ -1,5 +1,6 @@
 // Cálculos del Dashboard y de Análisis. Funciones puras sobre la lista de casos.
 import { fechaLocalISO, sumarDias } from "./formatters.js";
+import { margenPara } from "./margenes.js";
 
 export const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const INACTIVOS = ["cobrado", "desistido"];
@@ -79,12 +80,7 @@ export function cobrosPendientes(allCasos) {
     .sort((a, b) => (a.fechaEstimada || "9999").localeCompare(b.fechaEstimada || "9999"));
 }
 
-// Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final).
-// Los cobros van en su propia tarjeta; los recordatorios de contactos ya no se usan.
 // ── Reclamos quietos ──────────────────────────────────────────────────────────
-// Cuánto tarda cada compañía en responder un reclamo (inicio del reclamo → ofrecimiento), con tus datos.
-export const DIAS_RESPUESTA_SIN_DATOS = 30; // si la compañía tiene menos de 2 casos con fechas
-const MIN_DIAS_AVISO = 10;
 const aISO = v => (v ? String(v).slice(0, 10) : "");
 const diasEntre = (a, b) => {
   if (!a || !b) return null;
@@ -92,6 +88,7 @@ const diasEntre = (a, b) => {
   return Number.isFinite(d) ? d : null;
 };
 
+// Cuánto tarda cada compañía en responder un reclamo (inicio del reclamo → ofrecimiento), con tus datos. Solo informativo.
 export function plazosRespuesta(allCasos) {
   const porCia = {};
   allCasos.forEach(c => {
@@ -102,9 +99,8 @@ export function plazosRespuesta(allCasos) {
   return Object.fromEntries(Object.entries(porCia).map(([cia, ds]) => [cia, { promedio: Math.round(ds.reduce((s, x) => s + x, 0) / ds.length), n: ds.length }]));
 }
 
-// Casos "Reclamado" en los que la compañía ya tardó más de lo que suele tardar en responder
-export function reclamosQuietos(allCasos, hoy = new Date()) {
-  const plazos = plazosRespuesta(allCasos);
+// Casos "Reclamado" sin respuesta hace más que el margen de su compañía (Análisis → Reclamo quieto)
+export function reclamosQuietos(allCasos, hoy = new Date(), margenes = {}) {
   const hoyISO = fechaLocalISO(hoy);
   return allCasos
     .filter(c => c.estado === "reclamado")
@@ -112,27 +108,26 @@ export function reclamosQuietos(allCasos, hoy = new Date()) {
       const desde = aISO(c.fecha_ultimo_reclamo || c.fecha_reclamo || c.fecha_inicio_reclamo || c.fecha_ultimo_movimiento);
       const dias = diasEntre(desde, hoyISO);
       if (!desde || dias === null) return null;
-      const p = plazos[c.compania_aseguradora];
-      const conDatos = p && p.n >= 2;
-      const umbral = Math.max(conDatos ? p.promedio : DIAS_RESPUESTA_SIN_DATOS, MIN_DIAS_AVISO);
-      return { caso: c, desde, dias, umbral, conDatos, vence: sumarDias(desde, umbral) };
+      const umbral = margenPara(margenes, c.compania_aseguradora);
+      return { caso: c, desde, dias, umbral, vence: sumarDias(desde, umbral) };
     })
     .filter(q => q && q.dias > q.umbral);
 }
 
-export function tareasPendientes({ allCasos, hoy = new Date() }) {
+// Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final). Los cobros van en su propia tarjeta.
+export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) {
   const tareas = [];
   const hoyISO = fechaLocalISO(hoy);
   const enUnaSemana = sumarDias(hoyISO, 7);
 
   // Reclamos quietos (salvo que ya tengan una próxima acción con plazo vigente: ya lo estás siguiendo)
-  reclamosQuietos(allCasos, hoy).forEach(q => {
+  reclamosQuietos(allCasos, hoy, margenes).forEach(q => {
     const c = q.caso;
     if (c.proxima_accion?.trim() && c.proxima_accion_vence && c.proxima_accion_vence >= hoyISO) return;
     const cia = c.compania_aseguradora || "La compañía";
     tareas.push({
       id: `quieto-${c.id}`, tipo: "quieto", vence: q.vence, titulo: c.asegurado || "Sin nombre", caso: c,
-      detalle: `${cia}: sin respuesta hace ${q.dias} d (${q.conDatos ? `suele tardar ${q.umbral}` : `sin datos, aviso a los ${q.umbral}`})`,
+      detalle: `${cia}: sin respuesta hace ${q.dias} d (margen ${q.umbral} d)`,
     });
   });
 

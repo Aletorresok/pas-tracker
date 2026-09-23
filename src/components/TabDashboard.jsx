@@ -10,6 +10,7 @@ import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
 import { pasDormidos } from "../utils/estadisticasPas.js";
+import { useMargenes } from "../utils/margenes.js";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
 
@@ -41,13 +42,14 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
   const porMes = useMemo(() => honorariosPorMes(allCasos), [allCasos]);
+  const margenes = useMargenes();
   // Tareas de los casos + PAS clientes que dejaron de derivar
   const tareas = useMemo(() => {
     const manualesIds = new Set(pasManuales.map(p => String(p.id)));
     const clientes = [...pas.filter(p => derivadores[String(p.id)] && !manualesIds.has(String(p.id))), ...pasManuales];
-    return [...tareasPendientes({ allCasos }), ...pasDormidos(clientes, casos)]
+    return [...tareasPendientes({ allCasos, margenes: margenes || {} }), ...pasDormidos(clientes, casos)]
       .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31"));
-  }, [allCasos, pas, pasManuales, derivadores, casos]);
+  }, [allCasos, pas, pasManuales, derivadores, casos, margenes]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const { tramos, desistidos } = useMemo(() => casosPorTramo(allCasos), [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
