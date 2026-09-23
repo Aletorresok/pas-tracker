@@ -61,6 +61,7 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
         </> : push.estado === "bloqueado"
           ? <div style={{ fontSize: 12, color: "var(--warn)", padding: "4px 12px 8px", lineHeight: 1.4 }}>Bloqueadas en el navegador. Habilitalas desde el candado de la barra de direcciones.</div>
           : <button type="button" onClick={push.activar} style={{ ...item, fontWeight: 600 }}><Icono nombre="campana" size={16} />Activar notificaciones</button>}
+        {push.aviso && <div style={{ fontSize: 12, color: "var(--ok)", padding: "2px 12px 6px", lineHeight: 1.4 }}>{push.aviso}</div>}
         {push.error && <div style={{ fontSize: 12, color: "var(--bad)", padding: "2px 12px 6px", lineHeight: 1.4 }}>{push.error}</div>}
         <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
       </>}
