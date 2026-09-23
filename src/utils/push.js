@@ -26,6 +26,7 @@ function nombreDispositivo() {
 export function useNotificaciones() {
   const [estado, setEstado] = useState("cargando");
   const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
 
   const revisar = useCallback(async () => {
     if (!soportado()) return setEstado("no-soportado");
@@ -69,11 +70,20 @@ export function useNotificaciones() {
 
   // Manda una notificación de prueba a todos tus dispositivos activados
   const probar = async () => {
-    setError("");
+    setError(""); setAviso("Enviando…");
     const { data, error: err } = await supabase.functions.invoke("notificar", { body: { tipo: "prueba" } });
-    if (err) { console.error("[push] probar:", err); setError("La función \"notificar\" no respondió (¿está creada en Supabase?)."); return; }
-    if (!data?.enviados) setError("No hay dispositivos activados.");
+    if (err) {
+      let detalle = "";
+      try { detalle = JSON.stringify(await err.context?.json?.()); } catch { /* sin detalle */ }
+      console.error("[push] probar:", err, detalle);
+      setAviso("");
+      setError(`La función "notificar" respondió con error${err.context?.status ? ` (${err.context.status})` : ""}${detalle ? `: ${detalle}` : ""}.`);
+      return;
+    }
+    const n = data?.enviados || 0;
+    setAviso(n ? `Enviada a ${n} ${n === 1 ? "dispositivo" : "dispositivos"}. Si no aparece, revisá que el sistema permita notificaciones del navegador.` : "");
+    if (!n) setError("La función respondió, pero no llegó a ningún dispositivo (ver Logs de la función).");
   };
 
-  return { estado, error, activar, desactivar, probar };
+  return { estado, error, aviso, activar, desactivar, probar };
 }
