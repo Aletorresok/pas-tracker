@@ -43,7 +43,13 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-24 — Checklist de documentación manual (✅ publicada, PR #20; falta correr SQL 12)
+### 2026-09-24 — Estado al cierre de la sesión
+*   **Todo publicado** (PR #7 a #20) y **todos los SQL ejecutados** (01 a 12).
+*   **Para probar en uso real:** (1) subida del cliente de punta a punta: foto desde el celular → mail único → Hoy "Documentación recibida" → guardar en la **carpeta vinculada** (esto último no se pudo probar en el entorno de prueba); (2) derivar un caso desde el portal con un PAS de prueba y ver que aparezca en "Nuevos del portal" sin recargar; (3) un evento de agenda con "Google Calendar".
+*   **Ideas que quedaron sin hacer:** que el cliente vea en su vista lo que ya tildaste como recibido; margen de "reclamo quieto" ajustable por compañía; plantilla de EmailJS aparte para las subidas del cliente (asunto propio); F10 (carga desde la denuncia con IA) descartada por costo.
+*   **Deuda técnica** (ver ⚠ en `schema.sql`): fechas guardadas como texto en `pas_casos`/`pas_historial`; `pas_contactos.id` texto vs `pas_id` integer; tablas sin uso (`aseguradoras`, `casos`, `gestiones_judiciales`); código que usa el bucket `casos` inexistente (`utils/carpeta.js`, `categorizarArchivo.js`, pestaña Documentos "Actualizar archivos"); `notas_log`/`recordatorio` sin uso.
+
+### 2026-09-24 — Checklist de documentación manual (✅ publicada, PR #20; SQL 12 ejecutado el 24/09)
 *   **Pedido del usuario:** el checklist de documentación es **manual**: solo el abogado, desde la ficha del caso, tilda qué documentación ya tiene (antes contaba archivos del bucket `casos`, que no existe, y siempre decía que faltaba todo).
 *   **SQL `2026-09-24_12_checklist_manual.sql`:** columna `pas_casos.documentacion jsonb` (tipo → fecha en que se tildó, ej. `{"DNI": "2026-09-24"}`).
 *   Ficha → **Documentos**: casillas para DNI, Licencia, Cédula, Fotos, Escrito, Denuncia, Certificado de cobertura, Presupuesto, Info del tercero; al tildar muestra "Lo tengo · fecha"; se guarda solo (autoguardado de la ficha). "Faltan para el reclamo" se calcula con los necesarios sin tildar (DNI, Denuncia, Certificado, Presupuesto, marcados con *). Si la columna no existe todavía, la ficha no la manda al guardar y el checklist avisa que falta el SQL.
