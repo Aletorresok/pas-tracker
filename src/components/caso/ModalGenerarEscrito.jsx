@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generarEscrito } from "../../utils/generarEscrito.js";
 
-export default function ModalGenerarEscrito({ isOpen, onClose, caso, pasId, dirHandle, onSuccess, onError, Th }) {
+export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpen, onClose, caso, pasId, dirHandle, onSuccess, onError, Th }) {
   const [dniEscrito, setDniEscrito] = useState("");
   const [opcionesDoc, setOpcionesDoc] = useState({
     licencia: true,
@@ -10,6 +10,9 @@ export default function ModalGenerarEscrito({ isOpen, onClose, caso, pasId, dirH
     cartaFranquicia: false,
   });
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
+
+  // Si el caso ya tiene DNI cargado, se completa solo
+  useEffect(() => { if (isOpen) setDniEscrito(dniInicial || ""); }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isOpen) return null;
 
@@ -22,6 +25,8 @@ export default function ModalGenerarEscrito({ isOpen, onClose, caso, pasId, dirH
       dirHandle,
       opcionesDoc,
       onSuccess: (res) => {
+        // Si el caso no tenía DNI, queda guardado (lo usa el acceso del cliente)
+        if (!String(dniInicial || "").trim() && dniEscrito.trim()) onDniNuevo?.(dniEscrito.trim());
         setDniEscrito("");
         onSuccess(res);
         onClose();

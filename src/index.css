@@ -96,6 +96,8 @@ input:focus, select:focus, textarea:focus {
 .modal-sticky { top: -16px; }
 .btn-wa { flex: none; width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--sub); border: 1px solid var(--border); background: var(--card); text-decoration: none; }
 .btn-wa:hover { color: #fff; background: #25d366; border-color: #25d366; }
+.btn-wa-grande { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 10px; background: #0e7a6d; color: #fff; font-weight: 600; font-size: 15px; text-decoration: none; }
+.btn-wa-grande:hover { background: #0b6358; }
 .fila-caso:hover td { background: var(--card2); }
 .app-main { margin-left: 232px; flex: 1; min-height: 100vh; min-width: 0; }
 .app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }

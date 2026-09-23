@@ -1,177 +1,260 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "../../supabase.js";
-import { ESTADOS_CASO, estadoInfo, fmtDate, fmtMoney, theme } from "./portalTheme.js";
+import { fmtDate, fmtMoney } from "./portalTheme.js";
+import { estadoInfo } from "../../constants.js";
+import { PASOS_SIMPLES } from "../ui/BarraAvance.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import { alpha } from "../../utils/theme.js";
 import Icono from "../ui/Icono.jsx";
-import BarraAvance from "../ui/BarraAvance.jsx";
+import Boton from "../ui/Boton.jsx";
 
+const WHATSAPP = "5491133133259";
+const ABOGADO = "Dr. Alexis Torres Gaveglio";
 
-export default function PortalCliente({ dark, onToggleDark }) {
-  const T = theme(dark);
-  const [patente, setPatente] = useState("");
-  const [casos, setCasos] = useState([]);
-  const [loading, setLoading] = useState(false);
+const limpiarPatente = v => v.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+
+// Paso actual (1 a 5) según la etapa del estado
+const pasoDe = estado => {
+  const etapa = estadoInfo(estado).etapa;
+  return etapa <= 0 ? 0 : etapa <= 2 ? 1 : etapa === 3 ? 2 : etapa <= 5 ? 3 : etapa === 6 ? 4 : 5;
+};
+
+// Qué significa cada paso, en palabras simples
+const PASOS_TEXTO = [
+  "Juntamos las fotos, la denuncia y los papeles del siniestro.",
+  "Presentamos el reclamo ante la compañía.",
+  "La compañía responde y negociamos el monto.",
+  "Con el acuerdo firmado, la compañía paga.",
+  "Recibís tu dinero.",
+];
+
+// Qué está pasando ahora con tu caso
+const ahora = caso => {
+  const cia = caso.compania_aseguradora || "la compañía";
+  switch (caso.estado) {
+    case "doc_pendiente": return "Estamos reuniendo la documentación de tu siniestro. Si te pedimos algo, mandalo cuanto antes así avanzamos.";
+    case "iniciado": return "Ya tenemos tu caso y estamos preparando el reclamo.";
+    case "reclamado": return `Presentamos el reclamo ante ${cia}. Ahora esperamos su respuesta.`;
+    case "con_ofrecimiento": return `${cia} hizo un ofrecimiento. Lo estamos analizando para conseguir el mejor monto posible.`;
+    case "en_mediacion": return `El caso está en mediación: una reunión formal para llegar a un acuerdo con ${cia}.`;
+    case "en_juicio": return "Iniciamos una demanda judicial para defender tu reclamo. Estos procesos llevan más tiempo; te vamos a ir contando.";
+    case "esperando_pago": return `Hay acuerdo. Ahora ${cia} tiene que pagar${caso.fecha_pago ? ` (fecha estimada: ${fmtDate(caso.fecha_pago)})` : ""}.`;
+    case "cobrado": return "¡Listo! Tu reclamo está cobrado.";
+    case "desistido": return "Este reclamo quedó cerrado. Si tenés dudas, escribinos.";
+    default: return "";
+  }
+};
+
+// Fecha que acompaña a cada paso, si la hay
+const fechaPaso = (caso, i) => [caso.fecha_derivacion, caso.fecha_inicio_reclamo, caso.fecha_ofrecimiento, caso.fecha_pago, null][i];
+
+const linkWhatsApp = patente => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola ${ABOGADO}, te escribo por mi reclamo${patente ? ` (patente ${patente})` : ""}.`)}`;
+
+function BotonWhatsApp({ patente, texto = "Escribinos por WhatsApp" }) {
+  return (
+    <a className="btn-wa-grande" href={linkWhatsApp(patente)} target="_blank" rel="noopener noreferrer">
+      <Icono nombre="mensaje" size={18} /> {texto}
+    </a>
+  );
+}
+
+function LineaDeTiempo({ caso }) {
+  const paso = pasoDe(caso.estado);
+  const color = paso === 5 ? "var(--ok)" : "var(--accent)";
+  return (
+    <ol style={{ listStyle: "none", margin: 0, padding: 0 }} aria-label="Avance del reclamo">
+      {PASOS_SIMPLES.map((nombre, i) => {
+        const hecho = i < paso - 1 || paso === 5;
+        const actual = i === paso - 1 && paso !== 5;
+        const fecha = fechaPaso(caso, i);
+        const ultimo = i === PASOS_SIMPLES.length - 1;
+        return (
+          <li key={nombre} aria-current={actual ? "step" : undefined} style={{ display: "grid", gridTemplateColumns: "24px 1fr", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <span style={{
+                width: 24, height: 24, boxSizing: "border-box", borderRadius: "50%", flex: "none", display: "grid", placeItems: "center",
+                background: hecho ? color : "var(--card)",
+                border: `2px solid ${hecho || actual ? color : "var(--border2)"}`,
+                color: "var(--on-accent)",
+              }}>
+                {hecho ? <Icono nombre="check" size={13} /> : actual ? <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }} /> : null}
+              </span>
+              {!ultimo && <span style={{ width: 2, flex: 1, minHeight: 14, background: hecho ? color : "var(--border)" }} />}
+            </div>
+            <div style={{ paddingBottom: ultimo ? 0 : 16, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                <span style={{ fontSize: 15, fontWeight: actual ? 700 : 600, color: hecho || actual ? "var(--text)" : "var(--muted)" }}>{nombre}</span>
+                {fecha && (hecho || actual) && <span className="num" style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}{i === 3 && !hecho ? " (estimada)" : ""}</span>}
+              </div>
+              {actual
+                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: 8, padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{ahora(caso)}</div>
+                : <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{PASOS_TEXTO[i]}</div>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function TarjetaCaso({ caso }) {
+  const cerrado = ["cobrado", "desistido"].includes(caso.estado);
+  const ofrecido = Number(caso.monto_ofrecimiento) || 0;
+  const cobras = Number(caso.monto_cobro_asegurado) || 0;
+  const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 };
+
+  return (
+    <article style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={caja}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 16 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: "var(--sub)" }}>Reclamo ante</div>
+            <div style={{ fontSize: 19, fontWeight: 700 }}>{caso.compania_aseguradora || "la compañía"}</div>
+          </div>
+          {caso.patente && <span style={{ flex: "none", fontFamily: "var(--mono)", fontWeight: 600, fontSize: 13, border: "1.5px solid var(--text)", borderRadius: 4, padding: "1px 7px", letterSpacing: 0.5 }}>{caso.patente}</span>}
+        </div>
+
+        {caso.estado === "desistido"
+          ? <div style={{ background: "var(--card2)", borderRadius: 8, padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
+          : <LineaDeTiempo caso={caso} />}
+
+        {caso.fecha_ultimo_movimiento && !cerrado && (
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 14 }}>Último movimiento en tu caso: <span className="num">{fmtDate(caso.fecha_ultimo_movimiento)}</span></div>
+        )}
+      </section>
+
+      {caso.mensaje_cliente && (
+        <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>Mensaje del estudio</span>
+            {caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
+          </div>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{caso.mensaje_cliente}</p>
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
+        </section>
+      )}
+
+      {(cobras > 0 || (ofrecido > 0 && !cerrado)) && (
+        <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
+          {ofrecido > 0 && !cerrado && (
+            <div>
+              <div style={{ fontSize: 13, color: "var(--sub)" }}>Ofrecimiento de la compañía</div>
+              <div className="num" style={{ fontSize: 22, fontWeight: 700 }}>{fmtMoney(ofrecido)}</div>
+            </div>
+          )}
+          {cobras > 0 && (
+            <div>
+              <div style={{ fontSize: 13, color: "var(--sub)" }}>{caso.estado === "cobrado" ? "Cobraste" : "Vas a cobrar"}</div>
+              <div className="num" style={{ fontSize: 22, fontWeight: 700, color: "var(--ok)" }}>{fmtMoney(cobras)}</div>
+            </div>
+          )}
+        </section>
+      )}
+    </article>
+  );
+}
+
+// Vista pública del cliente: entra con patente + últimos 3 números del DNI.
+// La consulta pasa por la función consultar_caso_cliente (sql/2026-09-23_04), que solo devuelve datos si ambos coinciden.
+export default function PortalCliente() {
+  const { darkMode, toggleDarkMode } = useTheme();
+  const [patente, setPatente] = useState(() => limpiarPatente(new URLSearchParams(window.location.search).get("patente") || ""));
+  const [dni, setDni] = useState("");
+  const [casos, setCasos] = useState(null);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
 
-  // Leer la URL por si ingresaron mediante link directo (ej: /cliente?caso=12345)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const casoId = params.get("caso");
-    if (casoId) {
-      buscarPorFiltro("id", casoId);
-    }
-  }, []);
+  const puedeBuscar = patente.length >= 5 && dni.length === 3 && !cargando;
 
-  const buscarPorFiltro = async (columna, valor) => {
-    if (!valor.trim()) return;
-    setLoading(true);
+  const buscar = async (e) => {
+    e.preventDefault();
+    if (!puedeBuscar) return;
+    setCargando(true);
     setError("");
-    setSearched(true);
-
     try {
-      const valorLimpio = valor.trim().toUpperCase();
-      let query = supabase
-        .from("pas_casos")
-        .select("id, asegurado, compania_aseguradora, estado, fecha_inicio_reclamo, fecha_ofrecimiento, fecha_pago, monto_ofrecimiento, monto_cobro_asegurado, mensaje_cliente, patente");
-
-      query = query.eq(columna, valorLimpio);
-
-      const { data, error: err } = await query;
-
+      const { data, error: err } = await supabase.rpc("consultar_caso_cliente", { p_patente: patente, p_dni: dni });
       if (err) throw err;
-      if (!data || data.length === 0) {
-        setError("No encontramos ningún caso con esos datos. Verificá la información.");
-        setCasos([]);
-      } else {
-        setCasos(data);
-      }
-    } catch (e) {
-      console.error(e);
-      setError("Ocurrió un error al buscar el caso. Intentá nuevamente más tarde.");
+      const lista = Array.isArray(data) ? data : [];
+      if (lista.length === 0) setError("No encontramos un reclamo con esa patente y DNI. Revisá los datos o escribinos por WhatsApp.");
+      else setCasos(lista);
+    } catch (err) {
+      console.error("[PortalCliente]", err);
+      setError(String(err?.message || "").includes("demasiados_intentos")
+        ? "Hiciste varios intentos seguidos. Esperá 15 minutos y probá de nuevo, o escribinos por WhatsApp."
+        : "No pudimos consultar tu caso en este momento. Probá de nuevo en un rato.");
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
-  const FECHAS = [
-    { k: "fecha_inicio_reclamo", l: "Inicio del Reclamo" },
-    { k: "fecha_ofrecimiento", l: "Fecha Ofrecimiento" },
-    { k: "fecha_pago", l: "Pago Estimado" },
-  ];
-
-  const MONTOS = [
-    { k: "monto_ofrecimiento", l: "Indemnización Ofrecida", c: "var(--warn)" },
-    { k: "monto_cobro_asegurado", l: "Monto a Cobrar Neto", c: "var(--ok)" },
-  ];
+  const salir = () => { setCasos(null); setDni(""); setError(""); };
+  const nombre = casos?.[0]?.asegurado?.trim().split(/\s+/)[0];
+  const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 10, color: "var(--text)", padding: "13px 14px", fontSize: 18, width: "100%", boxSizing: "border-box", fontFamily: "var(--mono)", fontWeight: 600, letterSpacing: 1.5, textAlign: "center", outline: "none" };
+  const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 };
 
   return (
-    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 20px", transition: "background .3s" }}>
-      
-      {/* Botón Dark Mode Opcional */}
-      <button onClick={onToggleDark} style={{ position: "absolute", top: 16, right: 16, background: T.card, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, color: T.sub }}>
-        <Icono nombre={dark ? "sol" : "luna"} size={16} />
-      </button>
-
-      {/* Cabecera Pública */}
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 12, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 800 }}>Seguimiento en línea</div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: T.text, letterSpacing: -0.5 }}>Estado de tu Reclamo</div>
-      </div>
-
-      {/* Si no hay casos cargados, mostramos el buscador */}
-      {casos.length === 0 && !loading && (
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "40px 32px", width: "100%", maxWidth: 420, boxShadow: "var(--shadow)" }}>
-          <label style={{ display: "block", marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: T.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, fontWeight: 700 }}>Ingresá tu patente</div>
-            <input 
-              type="text" 
-              value={patente} 
-              onChange={e => setPatente(e.target.value.toUpperCase())} 
-              onKeyDown={e => e.key === "Enter" && buscarPorFiltro("patente", patente)} 
-              placeholder="Ej: AB123CD" 
-              style={{ ...T.input, textTransform: "uppercase", fontSize: 18, padding: "14px", textAlign: "center", letterSpacing: 2, fontWeight: 700 }} 
-            />
-          </label>
-
-          {error && <div style={{ background: "color-mix(in srgb, var(--bad) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--bad) 20%, transparent)", borderRadius: 10, padding: "12px", color: "var(--bad)", fontSize: 13, marginBottom: 20, textAlign: "center", fontWeight: 500 }}>{error}</div>}
-
-          <button onClick={() => buscarPorFiltro("patente", patente)} disabled={!patente.trim()} style={{ width: "100%", background: patente.trim() ? "var(--accent)" : ("var(--border)"), border: "none", borderRadius: 12, color: patente.trim() ? "white" : T.muted, padding: "14px", cursor: patente.trim() ? "pointer" : "default", fontSize: 15, fontWeight: 800, transition: "all .2s" }}>
-            Buscar mi caso 
-          </button>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", flexDirection: "column" }}>
+      <header style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: "var(--accent)", color: "var(--on-accent)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--mono)", flex: "none" }}>ATG</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}>ATG Lex Solutions</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Seguimiento de tu reclamo</div>
+          </div>
         </div>
-      )}
-
-      {loading && <div style={{ color: T.muted, fontSize: 16, marginTop: 40, fontWeight: 600 }}>Buscando información...</div>}
-
-      {/* Listado de Casos Encontrados */}
-      {casos.length > 0 && (
-        <div style={{ width: "100%", maxWidth: 600, display: "flex", flexDirection: "column", gap: 20 }}>
-          
-          {casos.length > 1 && (
-            <div style={{ fontSize: 13, color: T.muted, textAlign: "center", marginBottom: -10 }}>
-              Encontramos {casos.length} trámites asociados a la patente <b>{patente}</b>:
-            </div>
-          )}
-
-          {casos.map(caso => (
-            <div key={caso.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "24px", boxShadow: "var(--shadow)" }}>
-              
-              <div style={{ borderBottom: `1px solid ${T.border}`, paddingBottom: 16, marginBottom: 20 }}>
-                <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 700, marginBottom: 6 }}>
-                  Reclamo contra {caso.compania_aseguradora || "Aseguradora"}
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: T.text }}>{caso.asegurado}</div>
-              </div>
-
-              <BarraAvance estado={caso.estado} />
-
-              {/* Mensaje del PAS para el cliente */}
-              {caso.mensaje_cliente && (
-                <div style={{ marginTop: 20, background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 27%, transparent)", borderRadius: 12, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, color: "var(--info)", textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 800, marginBottom: 6 }}>Novedades de tu asesor</div>
-                  <div style={{ fontSize: 14, color: T.text, fontWeight: 500, lineHeight: 1.5 }}>{caso.mensaje_cliente}</div>
-                </div>
-              )}
-
-              {/* Grilla de Fechas */}
-              {FECHAS.filter(f => caso[f.k]).length > 0 && (
-                <div style={{ marginTop: 24 }}>
-                  <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700, marginBottom: 10 }}>Fechas Clave</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-                    {FECHAS.filter(f => caso[f.k]).map(f => (
-                      <div key={f.k} style={{ background: T.card2, borderRadius: 10, padding: "12px", border: `1px solid ${T.border}` }}>
-                        <div style={{ fontSize: 11, color: T.muted, marginBottom: 4 }}>{f.l}</div>
-                        <div style={{ fontSize: 15, color: T.text, fontWeight: 800 }}>{fmtDate(caso[f.k])}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Grilla de Montos (Netos para el cliente) */}
-              {MONTOS.filter(f => Number(caso[f.k]) > 0).length > 0 && (
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700, marginBottom: 10 }}>Liquidación</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                    {MONTOS.filter(f => Number(caso[f.k]) > 0).map(f => (
-                      <div key={f.k} style={{ background: T.card2, borderRadius: 10, padding: "14px 16px", border: `1px solid ${alpha(f.c, 27)}` }}>
-                        <div style={{ fontSize: 11, color: f.c, marginBottom: 4, fontWeight: 600 }}>{f.l}</div>
-                        <div style={{ fontSize: 20, color: f.c, fontWeight: 900 }}>{fmtMoney(caso[f.k])}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-          ))}
-
-          <button onClick={() => { setCasos([]); setPatente(""); }} style={{ background: "transparent", border: `1px solid ${T.border}`, borderRadius: 12, color: T.sub, padding: "12px", cursor: "pointer", fontSize: 14, fontWeight: 700, marginTop: 10 }}>
-            Volver a buscar
-          </button>
+        <div style={{ display: "flex", gap: 4 }}>
+          {casos && <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={salir}>Salir</Boton>}
+          <Boton variante="fantasma" tamaño="sm" icono={darkMode ? "sol" : "luna"} onClick={toggleDarkMode} aria-label={darkMode ? "Modo claro" : "Modo oscuro"} />
         </div>
-      )}
+      </header>
+
+      <main style={{ flex: 1, width: "100%", maxWidth: 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
+        {!casos ? (
+          <>
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "8px 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
+            <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
+
+            <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+              <label>
+                <span style={etiqueta}>Patente</span>
+                <input value={patente} onChange={e => setPatente(limpiarPatente(e.target.value).slice(0, 8))} placeholder="AB123CD" autoComplete="off" autoCapitalize="characters" style={campo} />
+              </label>
+              <label>
+                <span style={etiqueta}>Últimos 3 números del DNI</span>
+                <input value={dni} onChange={e => setDni(e.target.value.replace(/\D/g, "").slice(0, 3))} placeholder="•••" inputMode="numeric" autoComplete="off" style={{ ...campo, maxWidth: 140, letterSpacing: 6 }} />
+              </label>
+
+              {error && <div role="alert" style={{ background: alpha("var(--bad)", 9), border: `1px solid ${alpha("var(--bad)", 25)}`, borderRadius: 8, padding: "10px 12px", color: "var(--bad)", fontSize: 14, lineHeight: 1.45 }}>{error}</div>}
+
+              <Boton variante="primario" type="submit" disabled={!puedeBuscar} style={{ width: "100%", padding: 13, fontSize: 15 }}>
+                {cargando ? "Buscando…" : "Ver mi reclamo"}
+              </Boton>
+            </form>
+
+            <div style={{ marginTop: 24, textAlign: "center", fontSize: 14, color: "var(--sub)" }}>
+              <p style={{ margin: "0 0 10px" }}>¿Tenés dudas o no podés entrar?</p>
+              <BotonWhatsApp patente={patente} />
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "4px 0 4px", letterSpacing: -0.3 }}>Hola{nombre ? `, ${nombre}` : ""}</h1>
+            <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 18px" }}>
+              {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : "Así va tu reclamo."}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              {casos.map(c => <TarjetaCaso key={c.id} caso={c} />)}
+            </div>
+            <div style={{ marginTop: 24, textAlign: "center" }}>
+              <BotonWhatsApp patente={casos[0]?.patente} texto="Consultar por WhatsApp" />
+            </div>
+          </>
+        )}
+      </main>
+
+      <footer style={{ textAlign: "center", fontSize: 12, color: "var(--muted)", padding: "16px 16px calc(16px + env(safe-area-inset-bottom, 0px))" }}>
+        ATG Lex Solutions · {ABOGADO}
+      </footer>
     </div>
   );
 }

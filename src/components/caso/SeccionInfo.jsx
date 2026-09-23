@@ -40,6 +40,11 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
           <span style={labelStyle}>Fecha del siniestro</span>
           <input type="date" value={formData.fecha_siniestro || ""} onChange={e => onChange("fecha_siniestro", e.target.value)} style={inputStyle} />
         </label>
+        <label>
+          <span style={labelStyle}>DNI del asegurado</span>
+          <input type="text" inputMode="numeric" value={formData.dni_asegurado || ""} onChange={e => onChange("dni_asegurado", e.target.value)} placeholder="Ej: 25123456" style={inputStyle} />
+          <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>El cliente consulta su caso con la patente y los últimos 3 números.</span>
+        </label>
       </div>
 
 

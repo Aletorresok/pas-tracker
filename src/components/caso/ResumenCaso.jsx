@@ -8,6 +8,14 @@ const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 export default function ResumenCaso({ formData, onChange, acciones, onCrearAccion, irA, Th }) {
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const tieneDni = /\d{3}/.test(String(formData.dni_asegurado || "").replace(/\D/g, ""));
+  const copiarLink = async () => {
+    const url = `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent((formData.patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
+    try { await navigator.clipboard.writeText(url); } catch { window.prompt("Copiá el link:", url); }
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2500);
+  };
   const reclamado = num(formData.monto_reclamado), ofrecido = num(formData.monto_ofrecimiento);
   const filas = [
     ["Reclamado", reclamado],
@@ -38,6 +46,10 @@ export default function ResumenCaso({ formData, onChange, acciones, onCrearAccio
           <textarea id="mensaje-cliente" value={formData.mensaje_cliente || ""} onChange={e => onChange("mensaje_cliente", e.target.value)}
             placeholder="Ej: El reclamo está en la compañía. Estimamos novedades en 10 días."
             style={{ ...Th.input, minHeight: 60, resize: "vertical" }} />
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 8, fontSize: 12, color: Th.muted }}>
+            {formData.patente && <button type="button" onClick={copiarLink} style={link}>{copiado ? "✓ Link copiado" : "Copiar link del cliente"}</button>}
+            {!tieneDni && <span>Sin DNI cargado: el cliente no puede entrar. <button type="button" onClick={() => irA("datos")} style={{ ...link, fontSize: 12 }}>Cargar DNI</button></span>}
+          </div>
         </div>
 
         <div style={caja}>

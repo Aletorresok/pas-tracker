@@ -53,7 +53,7 @@ export default function App() {
   const isClienteView = params.has("caso") || params.get("vista") === "cliente";
 
   if (isClienteView) {
-    return <PortalCliente dark={darkMode} onToggleDark={() => window.location.reload()} />;
+    return <PortalCliente />;
   }
   // ------------------------------------------------ 
 

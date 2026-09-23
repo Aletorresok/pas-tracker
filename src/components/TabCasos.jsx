@@ -38,10 +38,13 @@ function Movimiento({ caso }) {
   );
 }
 
+// Caso en curso sin DNI cargado: el cliente no puede consultar su reclamo
+const sinDni = c => esActivo(c) && !/\d{3}/.test(String(c.dni_asegurado || "").replace(/\D/g, ""));
+
 export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMode, pasManuales = [] }) {
   const esCelular = useEsCelular();
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState("activos"); // activos | todos | <estado>
+  const [filtro, setFiltro] = useState("activos"); // activos | todos | sin_dni | <estado>
   const [orden, setOrden] = useState({ k: "mov", desc: true });
   const [abiertoId, setAbiertoId] = useState(null);
   const [ficha, setFicha] = useState(null); // { caso, pasId }
@@ -50,7 +53,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMod
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
 
   const conteos = useMemo(() => {
-    const c = { todos: allCasos.length, activos: allCasos.filter(esActivo).length };
+    const c = { todos: allCasos.length, activos: allCasos.filter(esActivo).length, sin_dni: allCasos.filter(sinDni).length };
     ESTADOS_CASO.forEach(e => { c[e.key] = allCasos.filter(x => x.estado === e.key).length; });
     return c;
   }, [allCasos]);
@@ -58,7 +61,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMod
   const filtrados = useMemo(() => {
     let lista = allCasos.filter(c =>
       c.id === abiertoId || // la fila abierta no desaparece aunque le cambies el estado
-      (filtro === "todos" ? true : filtro === "activos" ? esActivo(c) : c.estado === filtro)
+      (filtro === "todos" ? true : filtro === "activos" ? esActivo(c) : filtro === "sin_dni" ? sinDni(c) : c.estado === filtro)
     );
     const q = busqueda.trim().toLowerCase();
     if (q) {
@@ -140,6 +143,7 @@ export default function TabCasos({ pas, casos, onSaveCasos, onCasoLocal, darkMod
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
         {chip("activos", "Activos", conteos.activos)}
         {chip("todos", "Todos", conteos.todos)}
+        {conteos.sin_dni > 0 && chip("sin_dni", "Sin DNI", conteos.sin_dni)}
         {ESTADOS_CASO.filter(e => conteos[e.key] > 0).map(e => chip(e.key, e.label, conteos[e.key]))}
       </div>
 
