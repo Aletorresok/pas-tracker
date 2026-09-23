@@ -4,6 +4,7 @@ import { aplanarCasos, kpis as calcularKpis, honorariosPorMes, tareasPendientes,
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import GraficoBarraMensual from "./dashboard/GraficoBarraMensual.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
+import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
@@ -40,6 +41,9 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const { tramos, desistidos } = useMemo(() => casosPorTramo(allCasos), [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
+  const nuevos = useMemo(() => allCasos
+    .filter(c => c.origen === "portal" && !c.revisado_en)
+    .sort((a, b) => String(b.created_at || b.fecha_derivacion || "").localeCompare(String(a.created_at || a.fecha_derivacion || ""))), [allCasos]);
 
   const [mesSeleccionado, setMesSeleccionado] = useState(null);
   const [abierto, setAbierto] = useState(null); // { caso, pasId }
@@ -62,6 +66,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Hoy</h1>
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
       </header>
+
+      <NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
 
       {/* KPIs */}
       <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr 1fr" }}>

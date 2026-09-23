@@ -63,7 +63,8 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       const nuevoCaso = {
         pas_id: pasId,
         asegurado: formData.asegurado,
-        tercero_contacto: formData.telefono,
+        telefono_asegurado: formData.telefono,
+        origen: "portal",
         patente: valorPatente,
         fecha_siniestro: formData.fecha_siniestro,
         compania_aseguradora: formData.compania,

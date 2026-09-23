@@ -42,7 +42,7 @@ export default function PortalCasoCard({ caso }) {
         pasNombre: caso.pas_nombre || "Productor",
         casoData: {
           asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",
-          telefono: caso.tercero_contacto || "Ya registrado",
+          telefono: caso.telefono_asegurado || caso.tercero_contacto || "Ya registrado",
           fecha_siniestro: caso.fecha_siniestro || "Ya registrada",
           compania: caso.compania_aseguradora,
         },
@@ -74,6 +74,12 @@ export default function PortalCasoCard({ caso }) {
         </div>
 
         <BarraAvance estado={caso.estado} conPill={false} conEtiquetas />
+
+        {caso.origen === "portal" && (
+          <div style={{ fontSize: 12, color: caso.revisado_en ? "var(--ok)" : "var(--muted)" }}>
+            {caso.revisado_en ? `✓ El estudio tomó el caso el ${fmtDate(String(caso.revisado_en).slice(0, 10))}` : "Recibido · el estudio todavía no lo abrió"}
+          </div>
+        )}
 
         {caso.mensaje_cliente && (
           <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: 8, padding: "10px 12px" }}>
