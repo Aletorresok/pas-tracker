@@ -43,7 +43,7 @@
     *   ✅ **Publicado en producción** vía PR #1 (https://github.com/Aletorresok/pas-tracker/pull/1). Uso real: la app se usa solo desde Chrome (Vercel, `pas-tracker20.vercel.app`); no se corre localmente, así que no hace falta `.env` en la PC.
 *   **Limpieza del repo:** se sacaron `dist-electron/` y `dist-electron.zip` del control de versiones (quedan en `.gitignore`).
 
-### 2026-09-23 — Etapa 9: Acceso seguro + RLS (rama `claude/kind-carson-68fvrx`, en revisión)
+### 2026-09-23 — Etapa 9: Acceso seguro + RLS (✅ publicada, PR #9; SQL 05 y 06 ejecutados)
 *   **Entrada a la app en dos pasos** (`LoginGate.jsx`): (1) **una vez por navegador**, mail + contraseña de la cuenta de Supabase Auth (`atglexsolutions@gmail.com`); la sesión queda guardada en el navegador. (2) Cada vez que abrís la app en una pestaña nueva, el **PIN 3934** de siempre. A los **5 PIN incorrectos** se cierra la sesión y vuelve a pedir contraseña. Solo entran las cuentas de la tabla `pas_admins` (función `es_admin()`).
 *   **Los datos se cargan recién después de entrar** (`App` → `LoginGate` → `AppPrincipal`); antes se descargaba todo aunque no pusieras el PIN.
 *   Menú "Apariencia y backup" / "Más": **Cerrar sesión** (en este navegador).
@@ -51,6 +51,7 @@
 *   Portal PAS: "Plazos por compañía" ahora sale de la función `plazos_companias()` (solo compañía, fechas y montos; sin nombres ni patentes), porque con RLS un PAS ya no puede leer casos ajenos.
 *   **SQL:** `sql/2026-09-23_05_admin_y_funciones.sql` (paso 1: tabla `pas_admins`, funciones `es_admin`, `mi_pas_id`, `plazos_companias`; no cambia permisos) y `sql/2026-09-23_06_activar_rls.sql` (paso 2: **RLS en todas las tablas** de `public`, borra políticas viejas; administrador puede todo; cada PAS ve y deriva solo sus casos, ve los movimientos de sus casos, su usuario y su ficha de `pas_lista`). Al final del 06 está el script para volver atrás.
 *   **Orden:** correr 05 → probar la preview → publicar → entrar con mail y contraseña en cada navegador (Chrome y celular) → recién ahí correr 06.
+*   **RLS activo desde el 23/09** en las 15 tablas de `public` (incluye `aseguradoras`, `casos` y `gestiones_judiciales`, que la app no usa y quedaron solo para el administrador). El esquema `backup_20260922` no se expone por la API.
 *   Nota honesta: el PIN sigue estando en el código (es un bloqueo rápido); la seguridad real la da la cuenta + RLS. **Pendiente:** revisar los permisos de Storage (buckets `casos` y `adjuntos`).
 
 ### 2026-09-23 — Etapa 8: Vista del cliente (✅ publicada, PR #8)
