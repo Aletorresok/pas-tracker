@@ -96,7 +96,7 @@
 
 ### 2026-09-24 — Logo en los PDF y encabezado para los mails
 *   **PDF** (`utils/pdfMembrete.js`): membrete con el monograma dibujado en vector (mismos polígonos que `ui/Logo.jsx`), "ATG Lex Solutions", "Dr. Alexis Torres Gaveglio · Abogado" y una línea dorada. Lo usan el escrito de reclamo (`generarEscrito`) y el resumen del caso (`exportarCasoPDF`, cuyo pie ahora dice "ATG Lex Solutions" en vez de "PAS Tracker").
-*   **Mails:** `public/mail/encabezado.png` (1200×240, se muestra a 600 px) queda publicado en `https://pas-tracker20.vercel.app/mail/encabezado.png` para pegarlo arriba de las plantillas de EmailJS (derivaciones y documentación del cliente).
+*   **Mails:** `public/mail/encabezado.png` (1200×300, se muestra a 600 px; con matrícula T°142 F°636 CPACF · L°IV F°20 CAMGR y teléfono +54 9 11 3313-3259) queda publicado en `https://pas-tracker20.vercel.app/mail/encabezado.png` para pegarlo arriba de las plantillas de EmailJS (derivaciones y documentación del cliente).
 
 ### 2026-09-24 — Identidad visual: logo, íconos, vista previa del link e ilustraciones
 *   **Logo:** de las propuestas de Gemini se eligió el **ATG macizo**. Se redibujó en vector midiendo la imagen (el SVG que armó Gemini eran rectángulos encimados y no se leía ATG). `ui/Logo.jsx` (`MONOGRAMA_PATH`, viewBox 594×400) toma el color del acento. Reemplaza los cuadraditos "PT"/"ATG" en la barra lateral, el ingreso al estudio, el ingreso y la cabecera del portal, y la cabecera del cliente.
