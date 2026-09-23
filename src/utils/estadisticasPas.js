@@ -1,5 +1,5 @@
-// Estadísticas por PAS (a partir de sus casos), PAS "dormidos" y el resumen del mes para mandarle.
-import { fechaLocalISO, sumarDias, fmtMoney, fmtDate, primerNombre } from "./formatters.js";
+// Estadísticas por PAS (a partir de sus casos) y el resumen del mes para mandarle.
+import { fechaLocalISO, sumarDias, fmtMoney, primerNombre } from "./formatters.js";
 import { esActivo, netoYo } from "./metricas.js";
 
 const aISO = v => (v ? String(v).slice(0, 10) : "");
@@ -61,19 +61,6 @@ export function estadisticasPas(casos, hoy = new Date()) {
     companias: Object.entries(cias).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([nombre, n]) => ({ nombre, n })),
     ult6, prev6,
   };
-}
-
-// PAS clientes que dejaron de derivar, para "Para hacer"
-export function pasDormidos(clientes, casosPorPas, hoy = new Date()) {
-  return clientes
-    .map(p => ({ pas: p, est: estadisticasPas(casosPorPas[String(p.id)] || [], hoy) }))
-    .filter(x => x.est.dormido)
-    .map(({ pas, est }) => ({
-      id: `dormido-${pas.id}`, tipo: "dormido", pas,
-      vence: sumarDias(est.ultimo, est.umbralDormido),
-      titulo: pas.nombre,
-      detalle: `Te derivaba cada ~${est.ritmo} d · último caso hace ${est.diasDesdeUltimo} d (${fmtDate(est.ultimo)})`,
-    }));
 }
 
 // ── Resumen del mes para el PAS ─────────────────────────────────────────────

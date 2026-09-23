@@ -94,6 +94,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-24 — "PAS dormido" sale de "Para hacer"
+*   A pedido del usuario, **"Para hacer" muestra solo tareas de casos** (próximas acciones, reclamos quietos, honorarios). El ritmo de cada PAS no es una tarea: se consulta en **Clientes**, columna "Ritmo" ("cada X d · hace Y d", con la etiqueta "Dormido" si pasó el doble de su ritmo), y en el detalle del PAS. Se borró `pasDormidos` y el botón "Escribirle" de Para hacer.
+
 ### 2026-09-24 — Pie de los PDF más simple
 *   A pedido del usuario, el pie queda solo con **línea dorada, monograma y "ATG Lex Solutions"** (sin abogado, matrícula, teléfono ni número de página). El encabezado de mail con matrícula y teléfono queda como está (aprobado por el usuario, no tocar).
 
