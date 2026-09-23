@@ -7,7 +7,7 @@ import { useTheme } from "./context/ThemeContext.jsx";
 
 // ── IMPORTS: UTILIDADES
 import { parsePAS } from "./utils/formatters.js";
-import { saveStorage, upsertPasManual, deletePasManual, insertHistorialEntry } from "./utils/storage.js";
+import { saveStorage, upsertPasManual, insertHistorialEntry } from "./utils/storage.js";
 
 // ── IMPORTS: HOOKS
 import { usePASData } from "./hooks/usePASData.js";
@@ -120,17 +120,21 @@ function AppPrincipal() {
     setModalPas(null);
   }, [modalPas, derivadores, descartados]);
 
-  const handleSaveCasos = useCallback(async (pasId, list, pasNombre) => {
-    const updated = { ...casos, [pasId]: list };
-    setCasos(updated);
-    await saveStorage("pas_casos", updated);
-    autoBackup(updated);
-  }, [casos, autoBackup]);
-
-  // Actualiza un caso en memoria (ya guardado en Supabase por quien llama)
+  // Actualiza (o agrega, si es nuevo) un caso en memoria; quien llama ya lo guardó en Supabase
   const handleCasoLocal = useCallback((pasId, caso) => {
     setCasos(prev => {
-      const next = { ...prev, [pasId]: (prev[pasId] || []).map(c => (c.id === caso.id ? { ...c, ...caso } : c)) };
+      const lista = prev[pasId] || [];
+      const existe = lista.some(c => c.id === caso.id);
+      const next = { ...prev, [pasId]: existe ? lista.map(c => (c.id === caso.id ? { ...c, ...caso } : c)) : [...lista, caso] };
+      autoBackup(next);
+      return next;
+    });
+  }, [setCasos, autoBackup]);
+
+  // Saca un caso de memoria (quien llama ya lo borró de Supabase)
+  const handleQuitarCaso = useCallback((pasId, id) => {
+    setCasos(prev => {
+      const next = { ...prev, [pasId]: (prev[pasId] || []).filter(c => c.id !== id) };
       autoBackup(next);
       return next;
     });
@@ -153,15 +157,6 @@ function AppPrincipal() {
     setPasManuales(updated);
     await upsertPasManual(nuevoPas);
   }, [pasManuales]);
-
-  const handleDeletePasManual = useCallback(async (id) => {
-    setPasManuales(prev => prev.filter(p => p.id !== id));
-    await deletePasManual(id);
-    const updated = { ...casos };
-    delete updated[id];
-    setCasos(updated);
-    await saveStorage("pas_casos", updated);
-  }, [pasManuales, casos]);
 
   const handleBackup = useCallback(() => {
     const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, recordatorios, descartados };
@@ -229,9 +224,9 @@ function AppPrincipal() {
           {/* TABS CONTENT */}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onSaveCasos={handleSaveCasos} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} recordatorios={recordatorios} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onSaveCasos={handleSaveCasos} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} onEditPasManual={handleAddPasManual} onDeletePasManual={handleDeletePasManual} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
       </main>

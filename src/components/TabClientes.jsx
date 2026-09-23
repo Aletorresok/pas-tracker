@@ -1,178 +1,273 @@
-import { useState, useMemo } from "react";
+import { Fragment, useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { ESTADOS_CASO } from "../constants.js";
+import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
-import CasoDetalle from "../CasoUnificado.jsx";
-import { deleteCaso } from "../utils/storage.js";
-
-// Importamos los nuevos componentes modulares
-import ClienteCard from "./clientes/ClienteCards.jsx";
+import { fmtMoney, diasDesde, primerNombre } from "../utils/formatters.js";
+import { esActivo, netoYo } from "../utils/metricas.js";
+import { useEsCelular } from "../hooks/useEsCelular.js";
 import { NuevoCasoModal, NuevoPASModal } from "./clientes/ModalesCliente.jsx";
-import { alpha } from "../utils/theme.js";
+import CasoOverlay from "./caso/CasoOverlay.jsx";
+import EstadoPill from "./ui/EstadoPill.jsx";
+import Boton from "./ui/Boton.jsx";
+import Icono from "./ui/Icono.jsx";
 
-export default function TabClientes({ pas, casos, derivadores, onSaveCasos, darkMode, pasManuales, onAddPasManual, onEditPasManual, onDeletePasManual }) {
+const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || Number(c.monto_reclamado) || 0;
+const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
+const hace = iso => { if (!iso) return "—"; const d = diasDesde(iso); return d <= 0 ? "hoy" : `hace ${d} d`; };
+const linkWa = (tel, nombre) => {
+  const limpio = String(tel || "").replace(/\D/g, "");
+  return `https://wa.me/${limpio.startsWith("54") ? limpio : `54${limpio}`}?text=${encodeURIComponent(`Hola ${primerNombre(nombre)}, ¿cómo estás?`)}`;
+};
+
+// Resumen de un PAS a partir de sus casos
+function resumir(p, lista) {
+  const cobrados = lista.filter(c => c.estado === "cobrado");
+  return {
+    ...p,
+    _casos: lista,
+    _enCurso: lista.filter(esActivo).length,
+    _cobrados: cobrados.length,
+    _honorarios: cobrados.reduce((s, c) => s + netoYo(c), 0),
+    _ultimo: lista.reduce((m, c) => (c.fecha_derivacion && c.fecha_derivacion > m ? c.fecha_derivacion : m), ""),
+  };
+}
+
+const COLUMNAS = [
+  { k: "nombre", l: "PAS", ancho: "34%", valor: p => (p.nombre || "").toLowerCase() },
+  { k: "enCurso", l: "En curso", ancho: "13%", valor: p => p._enCurso, derecha: true },
+  { k: "cobrados", l: "Cobrados", ancho: "13%", valor: p => p._cobrados, derecha: true },
+  { k: "honorarios", l: "Mis honorarios", ancho: "20%", valor: p => p._honorarios, derecha: true },
+  { k: "ultimo", l: "Último caso", ancho: "20%", valor: p => p._ultimo },
+];
+
+// Contacto y casos de un PAS, dentro de la fila desplegada
+function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular }) {
+  const casos = [...pas._casos].sort((a, b) => (esActivo(b) - esActivo(a)) || ultimoMov(b).localeCompare(ultimoMov(a)));
+  return (
+    <div style={{ padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontSize: 13, color: "var(--sub)" }}>
+        {pas.mail && <a href={`mailto:${pas.mail}`} style={{ color: "var(--sub)" }}>{pas.mail}</a>}
+        {(pas.telefonos || []).map(t => (
+          <a key={t} href={linkWa(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--sub)", border: "1px solid var(--border)", borderRadius: 6, padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>
+            <Icono nombre="mensaje" size={13} /> {t}
+          </a>
+        ))}
+        <span style={{ flex: 1 }} />
+        {pas.manual && <Boton tamaño="sm" variante="fantasma" onClick={onEditar}>Editar PAS</Boton>}
+        <Boton tamaño="sm" variante="primario" icono="agregar" onClick={onNuevo}>Nuevo caso</Boton>
+      </div>
+
+      {casos.length === 0
+        ? <div style={{ fontSize: 13, color: "var(--muted)", padding: "8px 0" }}>Todavía no derivó casos.</div>
+        : (
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+            {casos.map((c, i) => (
+              <button key={c.id} type="button" onClick={() => onAbrir(c)} className="fila-caso"
+                style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : "minmax(0, 2fr) 150px minmax(0, 1.2fr) 90px 110px", gap: esCelular ? "4px 10px" : 12, alignItems: "center", padding: "9px 12px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit", fontSize: 14 }}>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600 }}>
+                  {c.asegurado || "Sin nombre"}
+                  {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
+                </span>
+                {esCelular
+                  ? <>
+                      <span className="num" style={{ fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : ""}</span>
+                      <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}><EstadoPill estado={c.estado} size="sm" /><span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.compania_aseguradora || ""}</span></span>
+                      <span className="num" style={{ fontSize: 12, color: "var(--sub)" }}>{hace(ultimoMov(c))}</span>
+                    </>
+                  : <>
+                      <span><EstadoPill estado={c.estado} size="sm" /></span>
+                      <span style={{ color: "var(--sub)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.compania_aseguradora || "—"}</span>
+                      <span className="num" style={{ color: "var(--sub)", fontSize: 13 }}>{hace(ultimoMov(c))}</span>
+                      <span className="num" style={{ textAlign: "right" }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</span>
+                    </>}
+              </button>
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
+// Clientes = los PAS que derivan casos (marcados como derivadores o cargados a mano).
+// Cada caso se guarda solo (la ficha lo guarda en Supabase); acá no hay guardado masivo.
+export default function TabClientes({ pas, casos, derivadores, onCasoLocal, darkMode, pasManuales, onAddPasManual }) {
+  const esCelular = useEsCelular();
   const { companias, agregarCompania } = useCompanias(casos);
-  const [modalPas, setModalPas] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
   const [busqueda, setBusqueda] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
-  const [casoDetalle, setCasoDetalle] = useState(null);
-  const [pasIdDetalle, setPasIdDetalle] = useState(null);
-  const [modalNuevoPAS, setModalNuevoPAS] = useState(false);
-  const [pasManualEdit, setPasManualEdit] = useState(null);
-  const [ordenCasos, setOrdenCasos] = useState("creacion");
+  const [orden, setOrden] = useState({ k: "enCurso", desc: true });
+  const [abiertoId, setAbiertoId] = useState(null);
+  const [nuevoCasoPara, setNuevoCasoPara] = useState(null);
+  const [pasEditando, setPasEditando] = useState(undefined); // undefined = cerrado, null = nuevo PAS
+  const [ficha, setFicha] = useState(null); // { caso, pasId }
+  const [error, setError] = useState("");
+
+  const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
 
   const clientes = useMemo(() => {
-    const derivs = pas.filter(p => derivadores[String(p.id)]);
     const manualesIds = new Set(pasManuales.map(p => String(p.id)));
-    const soloDerivs = derivs.filter(p => !manualesIds.has(String(p.id)));
-    return [...soloDerivs, ...pasManuales];
-  }, [pas, derivadores, pasManuales]);
+    const derivs = pas.filter(p => derivadores[String(p.id)] && !manualesIds.has(String(p.id)));
+    return [...derivs, ...pasManuales].map(p => resumir(p, casos[String(p.id)] || []));
+  }, [pas, derivadores, pasManuales, casos]);
 
-  const filtered = useMemo(() => {
-    let list = clientes;
-    if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-      list = list.filter(p => p.nombre.toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q));
-    }
-    if (filtroEstado !== "todos") {
-      list = list.filter(p => (casos[String(p.id)] || []).some(c => c.estado === filtroEstado));
-    }
-    return [...list].sort((a, b) => (casos[String(b.id)] || []).length - (casos[String(a.id)] || []).length);
-  }, [clientes, busqueda, filtroEstado, casos]);
+  const filtrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    const lista = q ? clientes.filter(p => (p.nombre || "").toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q)) : clientes;
+    const col = COLUMNAS.find(c => c.k === orden.k);
+    return [...lista].sort((a, b) => {
+      const va = col.valor(a), vb = col.valor(b);
+      const r = va < vb ? -1 : va > vb ? 1 : 0;
+      return orden.desc ? -r : r;
+    });
+  }, [clientes, busqueda, orden]);
 
-  const allCasos = useMemo(() => Object.values(casos).flat(), [casos]);
+  const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k !== "nombre" }));
+  const alternar = id => setAbiertoId(a => (a === id ? null : id));
 
-  const handleSave = (pasId, casoData, pasNombre) => {
-    const cur = casos[pasId] || [];
-    const idx = cur.findIndex(c => c.id === casoData.id);
-    onSaveCasos(pasId, idx >= 0 ? cur.map(c => c.id === casoData.id ? casoData : c) : [...cur, casoData], pasNombre);
-    setModalPas(null);
+  // Alta de un caso: se guarda solo ese caso y se abre su ficha para completarlo
+  const crearCaso = async (p, datos) => {
+    setError("");
+    const fila = { ...datos, pas_id: parseInt(p.id, 10) };
+    const { error: err } = await supabase.from("pas_casos").insert([fila]);
+    if (err) { console.error("[TabClientes] alta de caso:", err); setError("No se pudo crear el caso: " + (err.message || "error desconocido")); return; }
+    onCasoLocal(String(p.id), fila);
+    setNuevoCasoPara(null);
+    setFicha({ caso: fila, pasId: String(p.id) });
   };
 
   const exportarExcel = () => {
     const rows = [];
     clientes.forEach(p => {
-      const casosPas = casos[p.id] || [];
-      if (casosPas.length === 0) {
-        rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", Compañía: "", "Fecha derivación": "", "Monto acordado": "", "Cobré yo": "", "Comisión PAS": "", Nota: "" });
-      } else {
-        casosPas.forEach(c => {
-          rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: c.asegurado, Estado: c.estado, Compañía: c.compania_aseguradora || "", "Fecha derivación": c.fecha_derivacion || "", "Monto acordado": c.monto_acordado || c.monto_ofrecimiento || "", "Cobré yo": c.monto_cobro_yo || "", "Comisión PAS": c.monto_comision_pas || "", Nota: c.nota || "" });
-        });
-      }
+      if (p._casos.length === 0) rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", Compañía: "", "Fecha derivación": "", "Monto acordado": "", "Cobré yo": "", "Comisión PAS": "", Nota: "" });
+      p._casos.forEach(c => rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: c.asegurado, Estado: c.estado, Compañía: c.compania_aseguradora || "", "Fecha derivación": c.fecha_derivacion || "", "Monto acordado": c.monto_acordado || c.monto_ofrecimiento || "", "Cobré yo": c.monto_cobro_yo || "", "Comisión PAS": c.monto_comision_pas || "", Nota: c.nota || "" }));
     });
-    const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Casos");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Casos");
     XLSX.writeFile(wb, `pastracker_casos_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const iStyle = {
-    background: "var(--card2)",
-    border: `1px solid ${"var(--border)"}`,
-    borderRadius: 10,
-    color: "var(--text)",
-    padding: "10px 14px",
-    fontSize: 14,
-    width: "100%",
-    boxSizing: "border-box",
-    outline: "none",
-    fontFamily: "inherit",
-  };
+  const desplegado = p => (
+    <CasosDelPas pas={p} esCelular={esCelular}
+      onAbrir={c => setFicha({ caso: c, pasId: String(p.id) })}
+      onNuevo={() => setNuevoCasoPara(p)}
+      onEditar={() => setPasEditando(p)} />
+  );
+
+  const totalEnCurso = clientes.reduce((s, p) => s + p._enCurso, 0);
+  const conCasos = clientes.filter(p => p._casos.length > 0).length;
 
   return (
-    <div>
-      <div style={{ background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {ESTADOS_CASO.map(e => {
-            const cnt = allCasos.filter(c => c.estado === e.key).length;
-            const active = filtroEstado === e.key;
-            return (
-              <button key={e.key} onClick={() => setFiltroEstado(active ? "todos" : e.key)} style={{ flex: 1, minWidth: 58, background: active ? alpha(e.color, 16) : cnt > 0 ? alpha(e.color, 6) : "var(--card)", border: `1px solid ${active ? e.color : cnt > 0 ? alpha(e.color, 20) : "var(--border)"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center", cursor: "pointer", transition: "all .15s" }}>
-                <div style={{ fontSize: 14 }}>{e.emoji}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: cnt > 0 ? e.color : "var(--border2)" }}>{cnt}</div>
-                <div style={{ fontSize: 11, color: cnt > 0 ? alpha(e.color, 60) : "var(--border2)", marginTop: 1, lineHeight: 1.2 }}>{e.label}</div>
+    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Clientes</h1>
+        <span style={{ fontSize: 13, color: "var(--muted)" }}>{clientes.length} PAS · {conCasos} con casos · {totalEnCurso} casos en curso</span>
+      </header>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+          <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={16} /></span>
+          <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar PAS por nombre o mail…" aria-label="Buscar PAS"
+            style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+        </div>
+        <Boton icono="agregar" onClick={() => setPasEditando(null)}>PAS manual</Boton>
+        <Boton icono="guardar" onClick={exportarExcel}>Excel</Boton>
+      </div>
+
+      {error && <div role="alert" style={{ color: "var(--bad)", fontSize: 13 }}>{error}</div>}
+
+      {clientes.length === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
+          Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Prospección o agregalo con "PAS manual".
+        </div>
+      )}
+      {clientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>Ningún PAS coincide con la búsqueda.</div>}
+
+      {/* Celular: filas de dos líneas */}
+      {esCelular && filtrados.length > 0 && (
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+          {filtrados.map((p, i) => (
+            <Fragment key={p.id}>
+              <button type="button" onClick={() => alternar(p.id)} aria-expanded={abiertoId === p.id}
+                style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === p.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
+                <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
+                <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{p._honorarios ? fmtMoney(p._honorarios) : ""}</span>
+                <span style={{ fontSize: 12, color: "var(--sub)" }}><span className="num">{p._enCurso}</span> en curso · <span className="num">{p._cobrados}</span> cobrados</span>
+                <span style={{ fontSize: 12, color: "var(--muted)" }}>{p._ultimo ? hace(p._ultimo) : ""}</span>
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar PAS..." style={{ ...iStyle, flex: 1, minWidth: 180 }} />
-        <select value={ordenCasos} onChange={e => setOrdenCasos(e.target.value)} style={{ ...iStyle, flex: "none", width: "auto", minWidth: 130, cursor: "pointer" }}>
-          <option value="creacion">Creación</option>
-          <option value="ultimo_mov">Último mov.</option>
-          <option value="alfabetico">A → Z</option>
-          <option value="estado">Estado</option>
-        </select>
-        <button onClick={() => { setPasManualEdit(null); setModalNuevoPAS(true); }} style={{ background: "color-mix(in srgb, var(--accent) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: 8, color: "var(--accent)", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>+ PAS manual</button>
-        <button onClick={exportarExcel} style={{ background: "color-mix(in srgb, var(--ok) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 27%, transparent)", borderRadius: 8, color: "var(--ok)", padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>Excel</button>
-      </div>
-
-      {filtered.length === 0 && clientes.length === 0 && (
-        <div style={{ textAlign: "center", padding: "44px 16px", background: "var(--card2)", borderRadius: 12, border: `1px dashed ${"var(--border)"}` }}>
-          <div style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>Todavía no tenés clientes PAS</div>
-          <div style={{ fontSize: 13, color: "var(--border2)", marginTop: 8, lineHeight: 1.6 }}>
-            Podés marcar un PAS del Excel como derivador en <strong style={{ color: "var(--accent)" }}>Contactos</strong>,<br />
-            o usar el botón <strong style={{ color: "var(--accent)" }}>+ PAS manual</strong> de arriba.
-          </div>
+              {abiertoId === p.id && <div style={{ background: "var(--card2)", borderTop: "1px solid var(--border)" }}>{desplegado(p)}</div>}
+            </Fragment>
+          ))}
         </div>
       )}
 
-      {filtered.length === 0 && clientes.length > 0 && (
-        <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--muted)" }}>
-          <div style={{ fontSize: 14 }}>Sin resultados{filtroEstado !== "todos" ? " para ese estado" : ""}</div>
-          {filtroEstado !== "todos" && <button onClick={() => setFiltroEstado("todos")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 13, marginTop: 8 }}>Ver todos</button>}
+      {/* Compu: tabla */}
+      {!esCelular && filtrados.length > 0 && (
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
+            <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
+            <thead>
+              <tr>
+                {COLUMNAS.map(col => {
+                  const activa = orden.k === col.k;
+                  return (
+                    <th key={col.k} scope="col" aria-sort={activa ? (orden.desc ? "descending" : "ascending") : "none"}
+                      style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)", textAlign: col.derecha ? "right" : "left" }}>
+                      <button type="button" onClick={() => ordenarPor(col.k)}
+                        style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", font: "inherit", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: activa ? "var(--text)" : "var(--muted)", textAlign: col.derecha ? "right" : "left" }}>
+                        {col.l}{activa ? (orden.desc ? " ↓" : " ↑") : ""}
+                      </button>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {filtrados.map(p => {
+                const abierto = abiertoId === p.id;
+                const celda = { padding: "10px 14px", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", background: abierto ? "var(--card2)" : undefined };
+                return (
+                  <Fragment key={p.id}>
+                    <tr onClick={() => alternar(p.id)} style={{ cursor: "pointer" }} className="fila-caso">
+                      <td style={celda}>
+                        <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(p.id); }}
+                          style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {p.nombre}
+                        </button>
+                        {p.manual && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "0 5px" }}>manual</span>}
+                      </td>
+                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: p._enCurso ? 600 : 400, color: p._enCurso ? "var(--text)" : "var(--muted)" }}>{p._enCurso}</td>
+                      <td className="num" style={{ ...celda, textAlign: "right", color: p._cobrados ? "var(--text)" : "var(--muted)" }}>{p._cobrados}</td>
+                      <td className="num" style={{ ...celda, textAlign: "right" }}>{p._honorarios ? fmtMoney(p._honorarios) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td style={{ ...celda, color: "var(--sub)", fontSize: 13 }}>{p._ultimo ? hace(p._ultimo) : <span style={{ color: "var(--muted)" }}>sin casos</span>}</td>
+                    </tr>
+                    {abierto && (
+                      <tr><td colSpan={COLUMNAS.length} style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)" }}>{desplegado(p)}</td></tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {filtered.map(p => (
-        <ClienteCard key={p.id} pas={p} casos={casos[String(p.id)] || []}
-          onAddCaso={() => setModalPas(p)}
-          onDeleteCaso={cid => { const caso = (casos[String(p.id)] || []).find(c => c.id === cid); if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso?.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return; deleteCaso(cid); onSaveCasos(p.id, (casos[String(p.id)] || []).filter(c => c.id !== cid), p.nombre); }}
-          onDetalleCaso={c => { setCasoDetalle(c); setPasIdDetalle(p.id); }}
-          expanded={expandedId === p.id}
-          onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
-          darkMode={darkMode}
-          filtroEstado={filtroEstado}
-          ordenCasos={ordenCasos} />
-      ))}
-
-      {modalPas && (
-        <NuevoCasoModal pasNombre={modalPas.nombre} darkMode={darkMode}
-          onClose={() => setModalPas(null)}
-          onSave={data => handleSave(modalPas.id, data, modalPas.nombre)}
+      {nuevoCasoPara && (
+        <NuevoCasoModal pasNombre={nuevoCasoPara.nombre} darkMode={darkMode}
+          onClose={() => setNuevoCasoPara(null)}
+          onSave={datos => crearCaso(nuevoCasoPara, datos)}
           companias={companias} onAgregarCompania={agregarCompania} />
       )}
 
-      {modalNuevoPAS && (
-        <NuevoPASModal
-          pasEdit={pasManualEdit}
-          darkMode={darkMode}
-          onClose={() => { setModalNuevoPAS(false); setPasManualEdit(null); }}
-          onSave={data => { onAddPasManual(data); setModalNuevoPAS(false); setPasManualEdit(null); }} />
+      {pasEditando !== undefined && (
+        <NuevoPASModal pasEdit={pasEditando} darkMode={darkMode}
+          onClose={() => setPasEditando(undefined)}
+          onSave={datos => { onAddPasManual(datos); setPasEditando(undefined); }} />
       )}
 
-      {casoDetalle && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: "var(--card2)" }}>
-          <CasoDetalle
-            caso={casoDetalle}
-            pasId={pasIdDetalle}
-            pasNombre={[...pas, ...pasManuales].find(p => p.id === pasIdDetalle)?.nombre || ""}
-            darkMode={darkMode}
-            companias={companias}
-            onAgregarCompania={agregarCompania}
-            onUpdate={updated => {
-              const cur = casos[String(pasIdDetalle)] || [];
-              const pasNom = [...pas, ...pasManuales].find(p => p.id === pasIdDetalle)?.nombre || "";
-              onSaveCasos(pasIdDetalle, cur.map(c => c.id === updated.id ? updated : c), pasNom);
-              setCasoDetalle(updated);
-            }}
-            onClose={() => { setCasoDetalle(null); setPasIdDetalle(null); }}
-          />
-        </div>
+      {ficha && (
+        <CasoOverlay caso={ficha.caso} pasId={ficha.pasId} casos={casos} todosLosPas={todosLosPas}
+          onCasoLocal={onCasoLocal} darkMode={darkMode}
+          onCambio={updated => setFicha(f => ({ ...f, caso: updated }))}
+          onClose={() => setFicha(null)} />
       )}
     </div>
   );
