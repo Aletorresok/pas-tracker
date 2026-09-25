@@ -56,7 +56,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const [abierto, setAbierto] = useState(null); // { caso, pasId }
 
   const casosDelMes = useMemo(() => !mesSeleccionado ? [] : allCasos.filter(c =>
-    c.estado === "cobrado" && c.monto_cobro_yo && String(c.fecha_cobro_honorarios || "").startsWith(mesSeleccionado)
+    c.monto_cobro_yo && String(c.fecha_cobro_honorarios || "").startsWith(mesSeleccionado)
   ), [allCasos, mesSeleccionado]);
 
   const fechaHoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });

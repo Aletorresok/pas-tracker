@@ -17,11 +17,22 @@ export function aplanarCasos(casos, todosLosPas) {
   );
 }
 
+// ── Pagos: la indemnización y los honorarios se pagan por separado ─────────────
+// Un caso en "Cobrado" cuenta como pagado del todo (los casos viejos no tienen las fechas por separado)
+export const indemnizacionPagada = c => Boolean(c.fecha_cobro) || c.estado === "cobrado";
+export const honorariosCobrados = c => Boolean(c.fecha_cobro_honorarios) || c.estado_honorarios === "COBRADO" || c.estado === "cobrado";
+export const tieneHonorarios = c => (Number(c.monto_cobro_yo) || 0) > 0;
+// "Falta: indemnización y honorarios" / "Falta: honorarios" / "Falta: indemnización"
+export const textoFalta = c => {
+  const f = [c.faltaIndemnizacion && "indemnización", c.faltaHonorarios && "honorarios"].filter(Boolean);
+  return f.length ? `Falta: ${f.join(" y ")}` : "";
+};
+
 // Honorarios netos cobrados por mes, últimos 12 meses (el último es el actual)
 export function honorariosPorMes(allCasos, hoy = new Date()) {
   const mapa = {};
   allCasos.forEach(c => {
-    if (c.estado === "cobrado" && c.monto_cobro_yo && c.fecha_cobro_honorarios) {
+    if (c.monto_cobro_yo && c.fecha_cobro_honorarios) {
       const k = claveMes(c.fecha_cobro_honorarios);
       mapa[k] = (mapa[k] || 0) + netoYo(c);
     }
@@ -41,7 +52,7 @@ const variacion = (actual, anterior) => (anterior > 0 ? Math.round(((actual - an
 export function kpis(allCasos, hoy = new Date()) {
   const anio = hoy.getFullYear();
   const cobradoEnAnio = a => allCasos
-    .filter(c => c.estado === "cobrado" && String(c.fecha_cobro_honorarios || "").startsWith(String(a)))
+    .filter(c => String(c.fecha_cobro_honorarios || "").startsWith(String(a)))
     .reduce((s, c) => s + netoYo(c), 0);
   const porMes = honorariosPorMes(allCasos, hoy);
   const esteMes = porMes[11].valor, mesAnterior = porMes[10].valor;
@@ -62,11 +73,17 @@ export function kpis(allCasos, hoy = new Date()) {
   };
 }
 
-// Cobros en estado "esperando pago" con su fecha estimada
+// Cobros pendientes: casos esperando pago, o con uno de los dos pagos hecho y el otro no. Con su fecha estimada.
 export function cobrosPendientes(allCasos) {
   const hoyMs = Date.now();
+  const falta = c => ({ faltaIndemnizacion: !indemnizacionPagada(c), faltaHonorarios: tieneHonorarios(c) && !honorariosCobrados(c) });
   return allCasos
-    .filter(c => c.estado === "esperando_pago")
+    .filter(c => {
+      if (c.estado === "desistido") return false;
+      const f = falta(c);
+      if (!f.faltaIndemnizacion && !f.faltaHonorarios) return false;
+      return c.estado === "esperando_pago" || indemnizacionPagada(c) || honorariosCobrados(c);
+    })
     .map(c => {
       let fechaEstimada = null, diasRestantes = null;
       if (c.fecha_firma && c.plazo_pago) {
@@ -75,7 +92,10 @@ export function cobrosPendientes(allCasos) {
         fechaEstimada = String(c.fecha_pago).slice(0, 10);
       }
       if (fechaEstimada) diasRestantes = Math.ceil((new Date(fechaEstimada).getTime() - hoyMs) / 86400000);
-      return { ...c, fechaEstimada, diasRestantes, montoYo: Number(c.monto_cobro_yo) || 0, montoAsegurado: Number(c.monto_cobro_asegurado) || 0 };
+      const f = falta(c);
+      return { ...c, ...f, fechaEstimada, diasRestantes,
+        montoYo: f.faltaHonorarios ? Number(c.monto_cobro_yo) || 0 : 0,
+        montoAsegurado: f.faltaIndemnizacion ? Number(c.monto_cobro_asegurado) || 0 : 0 };
     })
     .sort((a, b) => (a.fechaEstimada || "9999").localeCompare(b.fechaEstimada || "9999"));
 }
