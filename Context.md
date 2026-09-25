@@ -94,6 +94,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Vista del cliente: pestañas por reclamo, dos columnas en PC y documentación desplegable
+*   **Varios reclamos con la misma patente** (ej.: mismo choque reclamado a dos compañías): arriba aparecen **pestañas** "Reclamo ante {compañía}" y se ve uno por vez (antes iban uno abajo del otro).
+*   **En PC** (≥ 900 px) cada reclamo usa dos columnas: a la izquierda el avance y la próxima mediación; a la derecha el mensaje del estudio, la documentación y los montos (clase `.caso-cliente` en `index.css`). En el celular sigue todo en una columna.
+*   **"Mandanos tu documentación" es desplegable** y arranca cerrado: muestra qué falta de lo necesario (o "✓ Ya tenemos lo necesario") y cuántos de los 8 ya están; con "Ver" se abre la lista para subir.
+
 ### 2026-09-25 — Arreglo: "new row violates row-level security policy" al guardar un caso
 *   **Causa:** el estudio y el portal usaban la misma sesión guardada en el navegador. Al entrar al portal con un PAS (por ejemplo para probar una derivación), esa sesión reemplazaba la del administrador y el estudio seguía funcionando "como el PAS": la base rechazaba los guardados. (No tenía que ver con agregar la compañía Antártida: las compañías nuevas se guardan solo en el navegador.)
 *   **Arreglo:** `supabase.js` usa otra clave de sesión para `/portal` (`pas-portal-auth`), así las dos sesiones conviven. `LoginGate` vuelve a verificar que sea administrador cuando cambia la sesión y, si la guardada no lo es, pide entrar de nuevo con un mensaje claro. El error de guardado ("row-level security") ahora explica qué hacer. Consecuencia: los PAS tienen que volver a iniciar sesión en el portal una vez.

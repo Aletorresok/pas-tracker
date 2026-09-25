@@ -147,6 +147,7 @@ function useAvisoDeSesion() {
 }
 
 function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, onRecargar }) {
+  const [abierto, setAbierto] = useState(false);
   const [subiendo, setSubiendo] = useState(null); // tipo en curso
   const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
   const inputRef = useRef(null);
@@ -158,6 +159,9 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
 
   const porTipo = {};
   enviados.forEach(e => { (porTipo[e.tipo] ||= []).push(e); });
+  const estaListo = d => (porTipo[d.tipo] || []).length > 0 || Boolean(tenemos?.[d.tipo]);
+  const faltan = DOCS_CLIENTE.filter(d => d.requerido && !estaListo(d));
+  const listos = DOCS_CLIENTE.filter(estaListo).length;
 
   const elegir = (tipo) => { tipoRef.current = tipo; setAviso(null); avisoSesion?.eligiendo(); inputRef.current?.click(); };
   const alElegir = async (e) => {
@@ -181,15 +185,24 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
 
   return (
     <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</div>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Podés sacar la foto con el celular o elegir un PDF. Si preferís, mandalo por WhatsApp.</p>
-        </div>
-        <Ilustracion nombre="foto" size={64} />
-      </div>
+      <button type="button" onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
+        style={{ width: "100%", display: "flex", gap: 12, alignItems: "center", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
+        <Ilustracion nombre="foto" size={48} />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</span>
+          <span style={{ display: "block", fontSize: 13, lineHeight: 1.45, color: faltan.length ? "var(--sub)" : "var(--ok)" }}>
+            {faltan.length ? `Falta: ${faltan.map(d => d.l.replace(/ \(.*\)/, "")).join(", ")}` : "✓ Ya tenemos lo necesario. Podés sumar más si querés."}
+            <span style={{ color: "var(--muted)" }}> · {listos} de {DOCS_CLIENTE.length}</span>
+          </span>
+        </span>
+        <span style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--accent-ink)" }}>
+          {abierto ? "Cerrar" : "Ver"}
+          <span style={{ display: "inline-flex", transform: abierto ? "rotate(180deg)" : "none", transition: "transform .15s" }}><Icono nombre="chevron" size={16} /></span>
+        </span>
+      </button>
       <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple hidden onChange={alElegir} />
-      {DOCS_CLIENTE.map((d, i) => {
+      {abierto && <p style={{ margin: "12px 0 4px", fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Podés sacar la foto con el celular o elegir un PDF. Si preferís, mandalo por WhatsApp.</p>}
+      {abierto && DOCS_CLIENTE.map((d, i) => {
         const env = porTipo[d.tipo] || [];
         const loTenemos = Boolean(tenemos?.[d.tipo]);
         const listo = env.length > 0 || loTenemos;
@@ -230,7 +243,8 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
   const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 };
 
   return (
-    <article style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <article className="caso-cliente">
+      <div>
       <section style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 16 }}>
           <div style={{ minWidth: 0 }}>
@@ -258,6 +272,8 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 14 }}>Último movimiento en tu caso: <span className="num">{fmtDate(caso.fecha_ultimo_movimiento)}</span></div>
         )}
       </section>
+      </div>
+      <div>
 
       {caso.mensaje_cliente && (
         <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
@@ -288,6 +304,7 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
           )}
         </section>
       )}
+      </div>
     </article>
   );
 }
@@ -308,6 +325,7 @@ export default function PortalCliente() {
   const app = useInstalarApp();
   const [dni, setDni] = useState("");
   const [casos, setCasos] = useState(null);
+  const [casoSel, setCasoSel] = useState(0); // pestaña elegida cuando hay más de un reclamo
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
@@ -325,6 +343,7 @@ export default function PortalCliente() {
       if (lista.length === 0) setError("No encontramos un reclamo con esa patente y DNI. Revisá los datos o escribinos por WhatsApp.");
       else {
         setCasos(lista);
+        setCasoSel(0);
         try { localStorage.setItem(PATENTE_GUARDADA, patente); } catch { /* sin almacenamiento */ }
       }
     } catch (err) {
@@ -358,7 +377,7 @@ export default function PortalCliente() {
         </div>
       </header>
 
-      <main style={{ flex: 1, width: "100%", maxWidth: 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
+      <main style={{ flex: 1, width: "100%", maxWidth: casos ? 1000 : 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
         {!casos ? (
           <>
             <Ilustracion nombre="auto" size={96} style={{ margin: "0 0 4px -8px" }} />
@@ -393,9 +412,21 @@ export default function PortalCliente() {
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 18px" }}>
               {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : "Así va tu reclamo."}
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              {casos.map(c => <TarjetaCaso key={c.id} caso={c} patente={patente} dni={dni} aviso={aviso} />)}
-            </div>
+            {casos.length > 1 && (
+              <div role="tablist" aria-label="Tus reclamos" className="pestanas-casos" style={{ marginBottom: 14 }}>
+                {casos.map((c, i) => {
+                  const activa = i === casoSel;
+                  return (
+                    <button key={c.id} type="button" role="tab" aria-selected={activa} onClick={() => setCasoSel(i)}
+                      style={{ flex: "none", font: "inherit", textAlign: "left", cursor: "pointer", padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${activa ? "var(--accent)" : "var(--border)"}`, background: activa ? "color-mix(in srgb, var(--accent) 10%, var(--card))" : "var(--card)", color: "var(--text)" }}>
+                      <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>Reclamo ante</span>
+                      <span style={{ display: "block", fontSize: 15, fontWeight: 700 }}>{c.compania_aseguradora || `Reclamo ${i + 1}`}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {casos[casoSel] && <TarjetaCaso key={casos[casoSel].id} caso={casos[casoSel]} patente={patente} dni={dni} aviso={aviso} />}
             {(aviso.cantidad > 0 || aviso.avisados > 0) && (
               <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 {aviso.cantidad > 0 ? (

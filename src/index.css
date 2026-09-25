@@ -105,6 +105,15 @@ input:focus, select:focus, textarea:focus {
 .bottom-nav { display: none; }
 .buscar-movil { display: none; }
 
+/* Vista del cliente: en PC, el estado del reclamo a la izquierda y lo demás a la derecha */
+.caso-cliente { display: grid; gap: 12px; }
+.caso-cliente > div { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (min-width: 900px) {
+  .caso-cliente { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+.pestanas-casos { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.pestanas-casos::-webkit-scrollbar { display: none; }
+
 @media (max-width: 900px) {
   .app-main { margin-left: 0; }
   .app-content { padding: 16px 16px calc(88px + env(safe-area-inset-bottom, 0px)); }
