@@ -42,11 +42,19 @@ export default function LoginGate({ children }) {
 
   const mostrar = (r) => {
     if (r === "error") { setError("No se pudo verificar tu cuenta. Revisá la conexión y probá de nuevo."); setPaso("cuenta"); }
-    else if (r === "no_admin") { setError("Esa cuenta no tiene acceso a la app."); setPaso("cuenta"); }
+    else if (r === "no_admin") { setError("La sesión guardada no era de administrador (por ejemplo, un PAS del portal). Ingresá con tu cuenta."); setPaso("cuenta"); }
     else { setError(""); setPaso(r); }
   };
 
-  useEffect(() => { verificar().then(mostrar); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    verificar().then(mostrar);
+    // Si la sesión cambia mientras la app está abierta (otra pestaña, otra cuenta), se vuelve a verificar
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((evento) => {
+      if (evento === "SIGNED_OUT") { setPaso("cuenta"); return; }
+      if (evento === "SIGNED_IN" || evento === "USER_UPDATED") setTimeout(() => verificar().then(r => { if (r !== "adentro" && r !== "pin") mostrar(r); }), 0);
+    });
+    return () => subscription.unsubscribe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const entrarConCuenta = async (e) => {
     e.preventDefault();

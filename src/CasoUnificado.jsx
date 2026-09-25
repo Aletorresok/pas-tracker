@@ -163,7 +163,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) { setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated); }
-      else { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + (error.message || "error desconocido"), type: "error" }); }
+      else {
+        setEstadoGuardado("error");
+        const sinPermiso = /row-level security/i.test(error.message || "");
+        setToast({ msg: sinPermiso ? "No se pudo guardar: la sesión no es de administrador. Cerrá sesión (Apariencia y backup) y entrá de nuevo con tu cuenta." : "No se pudo guardar: " + (error.message || "error desconocido"), type: "error" });
+      }
     } catch (e) { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + e.message, type: "error" }); }
     setGuardando(false);
   }, [caso, formData, onUpdate, pasId]);

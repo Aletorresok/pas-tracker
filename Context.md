@@ -94,6 +94,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Arreglo: "new row violates row-level security policy" al guardar un caso
+*   **Causa:** el estudio y el portal usaban la misma sesión guardada en el navegador. Al entrar al portal con un PAS (por ejemplo para probar una derivación), esa sesión reemplazaba la del administrador y el estudio seguía funcionando "como el PAS": la base rechazaba los guardados. (No tenía que ver con agregar la compañía Antártida: las compañías nuevas se guardan solo en el navegador.)
+*   **Arreglo:** `supabase.js` usa otra clave de sesión para `/portal` (`pas-portal-auth`), así las dos sesiones conviven. `LoginGate` vuelve a verificar que sea administrador cuando cambia la sesión y, si la guardada no lo es, pide entrar de nuevo con un mensaje claro. El error de guardado ("row-level security") ahora explica qué hacer. Consecuencia: los PAS tienen que volver a iniciar sesión en el portal una vez.
+
 ### 2026-09-24 — Notificaciones push y fechas reales (pendientes de configurar/correr)
 *   **Notificaciones** (Web Push, llegan con la app cerrada; en iPhone solo con la app instalada, iOS 16.4+):
     *   **Qué avisa:** caso nuevo derivado desde el portal · documentación que subió un cliente (uno por caso cada 30 min) · mediaciones/audiencias/eventos de **mañana** (cron diario 9:00 hs Argentina). Al tocarla abre la app.
