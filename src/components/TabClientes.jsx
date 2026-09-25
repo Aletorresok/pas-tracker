@@ -188,7 +188,11 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
     setError("");
     const fila = { ...datos, pas_id: parseInt(p.id, 10), origen: "estudio", revisado_en: new Date().toISOString() };
     const { error: err } = await supabase.from("pas_casos").insert([fila]);
-    if (err) { console.error("[TabClientes] alta de caso:", err); setError("No se pudo crear el caso: " + (err.message || "error desconocido")); return; }
+    if (err) {
+      console.error("[TabClientes] alta de caso:", err);
+      setError(/row-level security/i.test(err.message || "") ? "No se pudo crear el caso: la sesión no es de administrador. Cerrá sesión y entrá de nuevo con tu cuenta." : "No se pudo crear el caso: " + (err.message || "error desconocido"));
+      return;
+    }
     onCasoLocal(String(p.id), fila);
     setNuevoCasoPara(null);
     setFicha({ caso: fila, pasId: String(p.id) });
