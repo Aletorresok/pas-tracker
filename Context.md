@@ -94,6 +94,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Indemnización y honorarios se tildan por separado
+*   **Por qué:** cada compañía paga la indemnización y los honorarios cuando quiere; antes los honorarios solo contaban como cobrados si el caso estaba en "Cobrado".
+*   **Ficha** (`caso/SeccionPagos.jsx`): dos tildes con su fecha, "Indemnización pagada al asegurado" (`fecha_cobro`) y "Mis honorarios cobrados" (`fecha_cobro_honorarios` + `estado_honorarios = COBRADO`). Aparece en Resumen (en "Números del caso", cuando el caso está esperando pago o ya hay algo pagado) y arriba de todo en "Montos y honorarios". Con los dos tildados el caso pasa solo a **Cobrado**; si destildás uno de un caso cobrado, vuelve a **Esperando pago** (y a lo que sigue pagado le pone fecha si no tenía). En Fechas, "Cobro" pasó a llamarse "Indemnización pagada".
+*   **Cálculos** (`metricas.js`): `indemnizacionPagada`, `honorariosCobrados`, `tieneHonorarios`, `textoFalta`. Los honorarios cuentan por su fecha de cobro aunque el caso no esté en "Cobrado" (gráfico mensual, año, KPIs). "Cobros pendientes" (Hoy y Análisis) incluye los casos con un solo pago hecho, dice qué falta ("Falta: indemnización" / "Falta: honorarios") y suma solo lo pendiente. Los casos viejos en "Cobrado" cuentan como pagados del todo.
+
 ### 2026-09-25 — Vista del cliente: pestañas por reclamo, dos columnas en PC y documentación desplegable
 *   **Varios reclamos con la misma patente** (ej.: mismo choque reclamado a dos compañías): arriba aparecen **pestañas** "Reclamo ante {compañía}" y se ve uno por vez (antes iban uno abajo del otro).
 *   **En PC** (≥ 900 px) cada reclamo usa dos columnas: a la izquierda el avance y la próxima mediación; a la derecha el mensaje del estudio, la documentación y los montos (clase `.caso-cliente` en `index.css`). En el celular sigue todo en una columna.

@@ -3,6 +3,7 @@ import { fmtMoney, formatoFecha, fechaLocalISO } from "../../utils/formatters.js
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
+import SeccionPagos from "./SeccionPagos.jsx";
 
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
@@ -109,9 +110,9 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
           <span style={{ color: Th.text, fontWeight: 600 }}>Mis honorarios</span>
           <b className="num" style={{ color: "var(--accent-ink)", fontSize: 16 }}>{num(formData.monto_cobro_yo) ? fmtMoney(num(formData.monto_cobro_yo)) : "—"}</b>
         </div>
-        {formData.estado_honorarios && formData.estado_honorarios !== "NO_FACTURADO" && (
-          <div style={{ fontSize: 12, color: Th.muted, marginTop: 4 }}>Honorarios: {formData.estado_honorarios === "COBRADO" ? "cobrados" : "facturados"}</div>
-        )}
+        {(["esperando_pago", "cobrado"].includes(formData.estado) || formData.fecha_cobro || formData.fecha_cobro_honorarios)
+          ? <SeccionPagos formData={formData} onChange={onChange} Th={Th} compacto />
+          : formData.estado_honorarios === "FACTURADO" && <div style={{ fontSize: 12, color: Th.muted, marginTop: 4 }}>Honorarios: facturados</div>}
       </div>
       </div>
     </div>

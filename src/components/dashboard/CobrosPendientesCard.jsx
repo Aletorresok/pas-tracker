@@ -1,4 +1,5 @@
 import { fmtMoney, fmtDate } from "../../utils/formatters.js";
+import { textoFalta } from "../../utils/metricas.js";
 import { COLORES, THEME } from "../../utils/theme.js";
 import DashboardBadge from "./DashboardBadge.jsx"; // <-- Importamos el componente compartido
 
@@ -7,7 +8,8 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
   if (!cobrosPendientes.length) return null;
 
   // Calculamos el total de tus honorarios NETOS (restando la comisión del PAS) para el encabezado
-  const totalNetoYo = cobrosPendientes.reduce((s, c) => s + ((c.montoYo || 0) - (Number(c.monto_comision_pas) || 0)), 0);
+  const netoDe = c => (c.faltaHonorarios ? (c.montoYo || 0) - (Number(c.monto_comision_pas) || 0) : 0);
+  const totalNetoYo = cobrosPendientes.reduce((s, c) => s + netoDe(c), 0);
   const totalAsegurados = cobrosPendientes.reduce((s, c) => s + c.montoAsegurado, 0);
 
   return (
@@ -30,8 +32,8 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
             : "Sin fecha";
 
           // Cálculo de las 3 partes para este caso en particular
-          const comisionPAS = Number(c.monto_comision_pas) || 0;
-          const miGananciaNeta = (c.montoYo || 0) - comisionPAS;
+          const comisionPAS = c.faltaHonorarios ? Number(c.monto_comision_pas) || 0 : 0;
+          const miGananciaNeta = netoDe(c);
           const cobraAsegurado = c.montoAsegurado || 0;
 
           return (
@@ -43,6 +45,7 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
                   <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>
                     {c.compania_aseguradora || "—"}
                     {c.fechaEstimada ? ` · Pago est. ${fmtDate(c.fechaEstimada)}` : ""}
+                    {textoFalta(c) && <span style={{ color: T.text, fontWeight: 600 }}> · {textoFalta(c)}</span>}
                   </div>
                 </div>
                 <DashboardBadge color={badgeColor}>{badgeText}</DashboardBadge>

@@ -7,7 +7,7 @@ export default function SeccionFechas({ formData, onChange, Th }) {
     ["Ofrecimiento", "fecha_ofrecimiento"],
     ["Aceptación", "fecha_aceptacion"],
     ["Fecha de pago", "fecha_pago"],
-    ["Cobro", "fecha_cobro"],
+    ["Indemnización pagada", "fecha_cobro"],
     ["Mediación", "fecha_mediacion"],
     ["Inicio de juicio", "fecha_inicio_juicio"]
   ];
