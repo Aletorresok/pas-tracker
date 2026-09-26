@@ -6,7 +6,8 @@ import { supabase } from './supabase.js'
 import { useTheme } from "./context/ThemeContext.jsx";
 
 // ── IMPORTS: UTILIDADES
-import { parsePAS } from "./utils/formatters.js";
+import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
+import { RESULTADO_MAIL, esMailEnviado } from "./utils/mensajes.js";
 import { saveStorage, upsertPasManual, insertHistorialEntry } from "./utils/storage.js";
 
 // ── IMPORTS: HOOKS
@@ -123,6 +124,16 @@ function AppPrincipal() {
     }
     setModalPas(null);
   }, [modalPas, derivadores, descartados]);
+
+  // Mail de presentación: al abrirlo queda registrado como contacto (sale de "Sin contactar")
+  const handleMailEnviado = useCallback(async (p) => {
+    const entry = { fecha: fechaLocalISO(), resultados: [RESULTADO_MAIL], nota: "Mail de presentación", ts: Date.now() };
+    setHistorial(prev => ({ ...prev, [p.id]: [...(prev[p.id] || []), entry] }));
+    await insertHistorialEntry(p.id, entry);
+  }, []);
+  const hoyISO = fechaLocalISO();
+  const mailsHoy = useMemo(() => Object.values(historial).reduce((n, lista) =>
+    n + (lista || []).filter(e => esMailEnviado(e) && String(e.fecha).slice(0, 10) === hoyISO).length, 0), [historial, hoyISO]);
 
   // Actualiza (o agrega, si es nuevo) un caso en memoria; quien llama ya lo guardó en Supabase
   const handleCasoLocal = useCallback((pasId, caso) => {
@@ -272,7 +283,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
         </div>
       </main>

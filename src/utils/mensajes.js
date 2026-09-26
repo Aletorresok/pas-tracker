@@ -113,3 +113,38 @@ export function textoCliente(p, c, x = {}) {
   if (p.texto) return p.texto(c, x);
   return `Hola ${nombreCliente(c)}, ¿cómo estás? ${p.cuerpo(c, x)}\n\n${FIRMA}`;
 }
+
+// ── Mail de presentación para PAS sin teléfono ──────────────────────────────
+// Se manda a mano desde tu Gmail, de a poco, para que la cuenta no quede marcada como spam.
+export const MAILS_POR_DIA = 30;
+export const RESULTADO_MAIL = "mail_enviado";
+export const esMailEnviado = entrada => (entrada?.resultados || []).includes(RESULTADO_MAIL);
+
+export const MAIL_PRESENTACION = {
+  asunto: "Reclamos de tus asegurados contra terceros",
+  cuerpo: nombre => [
+    `Hola ${nombre || ""}, ¿cómo estás? Soy Alexis Torres Gaveglio, abogado.`.replace("Hola , ", "Hola, "),
+    "",
+    "Trabajo junto a productores de seguros llevando los reclamos de sus asegurados contra terceros. Te hago una consulta rápida: cuando a un cliente tuyo lo chocan, ¿el reclamo lo hace por su cuenta o se lo derivás a alguien?",
+    "",
+    "Si me lo derivás, me ocupo del reclamo de principio a fin y vos te llevás una comisión por el caso. Además tenés acceso a un portal web donde ves cómo avanza cada expediente, sin tener que llamarme para preguntar.",
+    "",
+    "Si te interesa, respondeme este mail y te cuento cómo funciona.",
+    "",
+    "Saludos,",
+    "Alexis Torres Gaveglio",
+    "Abogado",
+    "",
+    "Si preferís que no te escriba más, respondé \"baja\" y no te vuelvo a escribir.",
+  ].join("\n"),
+};
+
+// En la compu abre el redactor de Gmail; en el celular, la app de mail (mailto)
+export function linkMailPresentacion(mail, nombrePas, celular = false) {
+  if (!mail) return "";
+  const asunto = MAIL_PRESENTACION.asunto;
+  const cuerpo = MAIL_PRESENTACION.cuerpo(primerNombre(nombrePas));
+  return celular
+    ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`
+    : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(mail)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+}
