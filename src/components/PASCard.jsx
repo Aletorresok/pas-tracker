@@ -51,6 +51,9 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
             {ultimo && <span style={{ color: "var(--muted)" }}>contactado {hace === 0 ? "hoy" : hace !== null ? `hace ${hace} d` : fmtDate(ultimo.fecha)}{contactos.length > 1 ? ` · ${contactos.length} veces` : ""}</span>}
           </span>
         </button>
+        {!esDescartado && (
+          <Boton tamaño="sm" icono="agregar" onClick={() => onContactar(pas)} aria-label={`Registrar contacto con ${pas.nombre}`}>Registrar</Boton>
+        )}
         {telefonos[0] && (
           <a href={waLink(telefonos[0], pas.nombre)} target="_blank" rel="noreferrer" className="btn-wa" aria-label={`Escribir por WhatsApp a ${pas.nombre}`} title="WhatsApp">
             <Icono nombre="mensaje" size={18} />

@@ -8,7 +8,6 @@ export const ultimoContacto = (historial, id) => { const h = historial[id] || []
 // Contactados = con al menos un contacto, que no derivan ni están descartados
 export const FILTROS_CONTACTADOS = [
   { k: "contactados", l: "Contactados", test: (p, h, d, x) => h[p.id]?.length > 0 && !d[p.id] && !x[p.id] },
-  { k: "derivadores", l: "Derivadores", test: (p, h, d, x) => !!d[p.id] && !x[p.id] },
   { k: "descartados", l: "Descartados", test: (p, h, d, x) => !!x[p.id] },
 ];
 

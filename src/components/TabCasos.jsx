@@ -17,12 +17,11 @@ const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
 const ORDEN_ESTADO = Object.fromEntries(ESTADOS_CASO.map((e, i) => [e.key, i]));
 
 const COLUMNAS = [
-  { k: "asegurado", l: "Asegurado", ancho: "27%", valor: c => (c.asegurado || "").toLowerCase() },
-  { k: "estado", l: "Estado", ancho: "17%", valor: c => ORDEN_ESTADO[c.estado] ?? 99 },
-  { k: "pas", l: "PAS", ancho: "18%", valor: c => (c._pasNombre || "").toLowerCase() },
-  { k: "compania", l: "Compañía", ancho: "16%", valor: c => (c.compania_aseguradora || "").toLowerCase() },
-  { k: "mov", l: "Últ. mov.", ancho: "11%", valor: ultimoMov },
-  { k: "monto", l: "Monto", ancho: "11%", valor: montoCaso, derecha: true },
+  { k: "asegurado", l: "Asegurado", ancho: "34%", valor: c => (c.asegurado || "").toLowerCase() },
+  { k: "estado", l: "Estado", ancho: "19%", valor: c => ORDEN_ESTADO[c.estado] ?? 99 },
+  { k: "compania", l: "Compañía", ancho: "21%", valor: c => (c.compania_aseguradora || "").toLowerCase() },
+  { k: "mov", l: "Últ. mov.", ancho: "13%", valor: ultimoMov },
+  { k: "monto", l: "Monto", ancho: "13%", valor: montoCaso, derecha: true },
 ];
 
 function Movimiento({ caso }) {
@@ -212,7 +211,6 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
                         {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{c.patente}</span>}
                       </td>
                       <td style={celda}><EstadoPill estado={c.estado} size="sm" /></td>
-                      <td style={{ ...celda, color: "var(--sub)" }}>{c._pasNombre}</td>
                       <td style={{ ...celda, color: "var(--sub)" }}>{c.compania_aseguradora || "—"}</td>
                       <td style={{ ...celda, fontSize: 13 }}><Movimiento caso={c} /></td>
                       <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 500 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>

@@ -79,6 +79,12 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
   return (
     <div className="fila-exp" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 16, padding: "4px 16px 16px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+        {(pas?.nombre || caso._pasNombre) && (
+          <div style={{ fontSize: 13, color: "var(--sub)" }}>
+            PAS: <b style={{ color: "var(--text)", fontWeight: 600 }}>{pas?.nombre || caso._pasNombre}</b>
+            {(pas?.telefonos || [])[0] && <span className="num" style={{ color: "var(--muted)" }}> · {pas.telefonos[0]}</span>}
+          </div>
+        )}
         <div>
           <span style={etiqueta}>Estado · tocá para cambiar</span>
           <div role="radiogroup" aria-label="Estado del caso" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
