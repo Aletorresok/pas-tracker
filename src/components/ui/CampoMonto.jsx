@@ -8,7 +8,7 @@ const soloDigitos = v => {
 };
 const conMiles = v => (soloDigitos(v) ? Number(soloDigitos(v)).toLocaleString("es-AR") : "");
 
-export default function CampoMonto({ id, value, onChange, style, ...rest }) {
+export default function CampoMonto({ id, value, onChange, onBlur, style, ...rest }) {
   const [enfocado, setEnfocado] = useState(false);
   return (
     <div style={{ position: "relative" }}>
@@ -19,7 +19,7 @@ export default function CampoMonto({ id, value, onChange, style, ...rest }) {
         inputMode="numeric"
         value={enfocado ? soloDigitos(value) : conMiles(value)}
         onFocus={e => { setEnfocado(true); const el = e.target; setTimeout(() => el.select(), 0); }}
-        onBlur={() => setEnfocado(false)}
+        onBlur={e => { setEnfocado(false); onBlur?.(e); }}
         onChange={e => onChange(soloDigitos(e.target.value))}
         style={{
           width: "100%", boxSizing: "border-box", padding: "7px 10px 7px 22px", borderRadius: 7,

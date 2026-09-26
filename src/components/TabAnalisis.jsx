@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabase.js";
 import { cambiosDeEstado } from "../utils/analisis.js";
+import { todasLasOfertas } from "../utils/ofertas.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
@@ -36,6 +37,9 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   const [abierto, setAbierto] = useState(null);
   // Cambios de estado registrados en la bitácora ("Pasó de X a Y"), para los tiempos exactos de Etapas
   const [cambios, setCambios] = useState({});
+  // Historial de ofertas (SQL 21) para "Suba 1ª → última" en Compañías; sin la tabla, se usan los campos del caso
+  const [ofertas, setOfertas] = useState({});
+  useEffect(() => { todasLasOfertas().then(o => setOfertas(o || {})); }, [casos]);
   useEffect(() => {
     let vigente = true;
     (async () => {
@@ -97,7 +101,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
           <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
         </>
       )}
-      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} />}
+      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
       {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
       {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} />}

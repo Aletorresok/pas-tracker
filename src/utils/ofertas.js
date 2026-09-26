@@ -1,0 +1,98 @@
+// Historial de ofertas de la compañía y contactos (liquidador del caso + directorio de compañías). Tablas del SQL 21,
+// solo para el administrador. Si el SQL todavía no se corrió, las lecturas devuelven null y la ficha lo avisa.
+import { supabase } from "../supabase.js";
+import { fmtMoney } from "./formatters.js";
+
+export const RESPUESTAS = [
+  { k: "pendiente", l: "Sin responder" },
+  { k: "rechazada", l: "Rechazada" },
+  { k: "contraoferta", l: "Contraoferta" },
+  { k: "aceptada", l: "Aceptada" },
+];
+export const respuestaLabel = k => RESPUESTAS.find(r => r.k === k)?.l || k;
+
+const ordenar = lista => [...lista].sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)) || String(a.creado || "").localeCompare(String(b.creado || "")));
+
+// ── Ofertas ──────────────────────────────────────────────────────────────────
+export async function cargarOfertas(casoId) {
+  const { data, error } = await supabase.from("pas_ofertas").select("*").eq("caso_id", casoId);
+  return error ? null : ordenar(data || []);
+}
+export async function todasLasOfertas() {
+  const filas = [];
+  for (let desde = 0; ; desde += 1000) {
+    const { data, error } = await supabase.from("pas_ofertas").select("caso_id, fecha, monto, respuesta, creado").order("id").range(desde, desde + 999);
+    if (error) return null;
+    filas.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  const porCaso = {};
+  filas.forEach(o => (porCaso[o.caso_id] ||= []).push(o));
+  Object.keys(porCaso).forEach(k => { porCaso[k] = ordenar(porCaso[k]); });
+  return porCaso;
+}
+export async function agregarOferta(casoId, o) {
+  const { data, error } = await supabase.from("pas_ofertas").insert({ caso_id: casoId, ...o }).select().single();
+  return error ? { error: error.message } : { data };
+}
+export async function actualizarOferta(id, cambios) {
+  const { error } = await supabase.from("pas_ofertas").update(cambios).eq("id", id);
+  return error ? error.message : null;
+}
+export async function borrarOferta(id) {
+  const { error } = await supabase.from("pas_ofertas").delete().eq("id", id);
+  return error ? error.message : null;
+}
+
+// Campos del caso que siguen al historial: el último ofrecimiento (lo ve el PAS), el primero y su fecha
+// (para Análisis) y, si se aceptó una oferta, la fecha de aceptación y el monto acordado (solo si están vacíos).
+export function camposDesdeOfertas(ofertas, caso) {
+  if (!ofertas.length) return {};
+  const lista = ordenar(ofertas);
+  const primera = lista[0], ultima = lista[lista.length - 1];
+  const cambios = { monto_ofrecimiento: ultima.monto };
+  if (!Number(caso.primer_ofrecimiento)) cambios.primer_ofrecimiento = primera.monto;
+  if (!caso.fecha_ofrecimiento) cambios.fecha_ofrecimiento = primera.fecha;
+  const aceptada = [...lista].reverse().find(o => o.respuesta === "aceptada");
+  if (aceptada) {
+    if (!caso.fecha_aceptacion) cambios.fecha_aceptacion = aceptada.fecha;
+    if (!Number(caso.monto_acordado)) cambios.monto_acordado = aceptada.monto;
+  }
+  return cambios;
+}
+
+export const textoOferta = (o, cia) => `Ofrecimiento de ${cia || "la compañía"}: ${fmtMoney(o.monto)}`;
+export const textoRespuesta = o =>
+  o.respuesta === "contraoferta" && Number(o.contraoferta) ? `Contraoferta a ${fmtMoney(o.monto)}: ${fmtMoney(o.contraoferta)}`
+  : o.respuesta === "rechazada" ? `Se rechazó el ofrecimiento de ${fmtMoney(o.monto)}`
+  : o.respuesta === "aceptada" ? `Se aceptó el ofrecimiento de ${fmtMoney(o.monto)}`
+  : null;
+
+// Cuánto subió la compañía de la primera oferta a la última (%). Sin historial, usa primer y último ofrecimiento del caso.
+export function subaOfertas(ofertasDelCaso, caso) {
+  const montos = ofertasDelCaso?.length >= 2
+    ? ofertasDelCaso.map(o => Number(o.monto)).filter(Boolean)
+    : [Number(caso.primer_ofrecimiento), Number(caso.segundo_ofrecimiento), Number(caso.monto_ofrecimiento)].filter(Boolean);
+  if (montos.length < 2 || !montos[0]) return null;
+  const suba = Math.round((montos[montos.length - 1] / montos[0] - 1) * 100);
+  return Number.isFinite(suba) ? suba : null;
+}
+
+// ── Contactos ────────────────────────────────────────────────────────────────
+export async function cargarContacto(casoId) {
+  const { data, error } = await supabase.from("pas_caso_contactos").select("*").eq("caso_id", casoId).maybeSingle();
+  return error ? null : (data || {});
+}
+export async function guardarContacto(casoId, datos) {
+  const { error } = await supabase.from("pas_caso_contactos").upsert({ caso_id: casoId, ...datos, actualizado: new Date().toISOString() }, { onConflict: "caso_id" });
+  return error ? error.message : null;
+}
+export async function cargarCompania(nombre) {
+  if (!nombre) return {};
+  const { data, error } = await supabase.from("pas_companias").select("*").eq("compania", nombre).maybeSingle();
+  return error ? null : (data || {});
+}
+export async function guardarCompania(nombre, datos) {
+  const { error } = await supabase.from("pas_companias").upsert({ compania: nombre, ...datos }, { onConflict: "compania" });
+  return error ? error.message : null;
+}

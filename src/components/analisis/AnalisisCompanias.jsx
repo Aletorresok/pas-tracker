@@ -6,9 +6,9 @@ import { statsCompanias, pct } from "../../utils/analisis.js";
 const dias = v => (v === null ? "—" : `${v} d`);
 
 // Análisis → Compañías: plazos de oferta y pago, cuánto ofrecen y cuántos terminan en mediación o juicio
-export default function AnalisisCompanias({ allCasos }) {
+export default function AnalisisCompanias({ allCasos, ofertas = {} }) {
   const [minimo, setMinimo] = useState(1);
-  const { general, companias } = useMemo(() => statsCompanias(allCasos), [allCasos]);
+  const { general, companias } = useMemo(() => statsCompanias(allCasos, ofertas), [allCasos, ofertas]);
   const filas = companias.filter(c => c.total >= minimo);
 
   const max = k => Math.max(...filas.map(f => f[k].valor || 0), 1);
@@ -31,6 +31,7 @@ export default function AnalisisCompanias({ allCasos }) {
     colDias("diasFactura", "Factura a cobro", "Días desde la factura hasta el cobro de honorarios"),
     colPct("pctOfrecido", "% ofrecido", "Primer ofrecimiento sobre el monto reclamado"),
     colPct("pctCobrado", "% cobrado", "Lo que cobró el asegurado sobre el monto reclamado"),
+    colPct("suba", "Suba 1ª → última", "Cuánto subió la compañía de la primera oferta a la última (casos con 2 o más ofertas)"),
     colCuantos("mediacion", "Mediación"),
     colCuantos("juicio", "Juicio"),
   ];
@@ -40,12 +41,13 @@ export default function AnalisisCompanias({ allCasos }) {
     { l: "Acuerdo a pago · indemnización", v: dias(general.diasIndemnizacion.valor), s: `${general.diasIndemnizacion.n} casos` },
     { l: "Acuerdo a pago · honorarios", v: dias(general.diasHonorarios.valor), s: `${general.diasHonorarios.n} casos` },
     { l: "Ofrecido sobre reclamado", v: general.pctOfrecido.valor === null ? "—" : `${general.pctOfrecido.valor}%`, s: `${general.pctOfrecido.n} casos` },
+    { l: "Suba de la 1ª a la última oferta", v: general.suba.valor === null ? "—" : `${general.suba.valor > 0 ? "+" : ""}${general.suba.valor}%`, s: `${general.suba.n} casos` },
     { l: "Mediación · juicio", v: `${pct(general.mediacion, general.total) ?? 0}% · ${pct(general.juicio, general.total) ?? 0}%`, s: `${general.mediacion} y ${general.juicio} de ${general.total} casos` },
   ];
 
   return (
     <>
-      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}>
+      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
         {kpis.map(x => (
           <div key={x.l} style={{ padding: "12px 16px" }}>
             <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
@@ -66,7 +68,7 @@ export default function AnalisisCompanias({ allCasos }) {
             </select>
           </label>
         </div>
-        <TablaAnalisis columnas={columnas} filas={filas} ordenInicial={{ k: "total", desc: true }} clave={f => f.nombre} minWidth={980}
+        <TablaAnalisis columnas={columnas} filas={filas} ordenInicial={{ k: "total", desc: true }} clave={f => f.nombre} minWidth={1080}
           vacio="Todavía no hay casos con compañía cargada." />
         <Nota>
           Los plazos son la <b>mediana</b> (el caso del medio), así un juicio de años no desfigura el número. Al lado va cuántos casos tienen las dos fechas cargadas: con pocos, tomalo como una pista.
