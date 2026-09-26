@@ -6,7 +6,7 @@ import { fmtMoney, fmtDate, diasDesde, primerNombre } from "../utils/formatters.
 import { estadisticasPas } from "../utils/estadisticasPas.js";
 import { linkWhatsApp } from "../utils/mensajes.js";
 import ResumenMensual from "./clientes/ResumenMensual.jsx";
-import { esActivo, netoYo } from "../utils/metricas.js";
+import { esActivo } from "../utils/metricas.js";
 import { useEsCelular } from "../hooks/useEsCelular.js";
 import { NuevoCasoModal, NuevoPASModal } from "./clientes/ModalesCliente.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
@@ -23,25 +23,20 @@ const linkWa = (tel, nombre) => linkWhatsApp(tel, `Hola ${primerNombre(nombre)},
 
 // Resumen de un PAS a partir de sus casos
 function resumir(p, lista) {
-  const cobrados = lista.filter(c => c.estado === "cobrado");
   return {
     ...p,
     _casos: lista,
     _enCurso: lista.filter(esActivo).length,
-    _cobrados: cobrados.length,
-    _honorarios: cobrados.reduce((s, c) => s + netoYo(c), 0),
     _ultimo: lista.reduce((m, c) => (c.fecha_derivacion && c.fecha_derivacion > m ? c.fecha_derivacion : m), ""),
     _est: estadisticasPas(lista),
   };
 }
 
 const COLUMNAS = [
-  { k: "nombre", l: "PAS", ancho: "26%", valor: p => (p.nombre || "").toLowerCase() },
+  { k: "nombre", l: "PAS", ancho: "40%", valor: p => (p.nombre || "").toLowerCase() },
   { k: "enCurso", l: "En curso", ancho: "13%", valor: p => p._enCurso, derecha: true },
-  { k: "cobrados", l: "Cobrados", ancho: "11%", valor: p => p._cobrados, derecha: true },
-  { k: "desistidos", l: "Desistidos", ancho: "12%", valor: p => p._est.pctDesistidos ?? -1, derecha: true },
-  { k: "honorarios", l: "Mis honorarios", ancho: "16%", valor: p => p._honorarios, derecha: true },
-  { k: "ritmo", l: "Ritmo", ancho: "22%", valor: p => p._ultimo },
+  { k: "casos", l: "Casos", ancho: "12%", valor: p => p._casos.length, derecha: true },
+  { k: "ritmo", l: "Ritmo", ancho: "35%", valor: p => p._ultimo },
 ];
 
 // "cada 30 d · último hace 5 d", o "Dormido" si pasó el doble de su ritmo sin derivar
@@ -55,36 +50,15 @@ function Ritmo({ est }) {
   );
 }
 
-// Números del PAS dentro de la fila desplegada
-function EstadisticasDelPas({ est }) {
+// Datos del PAS dentro de la fila desplegada. Las estadísticas (éxito, desistidos, honorarios…) están en Análisis → PAS.
+function InfoDelPas({ est }) {
   if (!est.total) return null;
-  const tend = est.ult6 - est.prev6;
-  const datos = [
-    ["Casos", `${est.total}`, `${est.enCurso} en curso`],
-    ["Éxito", est.pctExito !== null ? `${est.pctExito}%` : "—", "de los cerrados, cobrados"],
-    ["Desistidos", est.pctDesistidos !== null ? `${est.pctDesistidos}%` : "—", `${est.desistidos} de ${est.total}`],
-    ["Ritmo", est.ritmo !== null ? `cada ${est.ritmo} d` : "—", est.ritmo !== null ? "entre derivaciones" : "se calcula desde 3 casos"],
-    ["Hasta cobrar", est.diasACobro !== null ? `${est.diasACobro} d` : "—", "promedio desde que deriva"],
-    ["Cobro promedio", est.cobroPromedioCliente ? fmtMoney(est.cobroPromedioCliente) : "—", "lo que cobra el asegurado"],
-    ["Mis honorarios", est.honorarios ? fmtMoney(est.honorarios) : "—", est.comisionPagada ? `comisión pagada ${fmtMoney(est.comisionPagada)}` : "neto de comisión"],
-    ["Tendencia", `${est.ult6} vs ${est.prev6}`, tend > 0 ? "▲ últimos 6 meses vs anteriores" : tend < 0 ? "▼ últimos 6 meses vs anteriores" : "últimos 6 meses vs anteriores"],
-  ];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div className="stats-pas" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
-        {datos.map(([l, v, s]) => (
-          <div key={l} style={{ background: "var(--card)", padding: "8px 10px", minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: "var(--muted)" }}>{l}</div>
-            <div className="num" style={{ fontSize: 16, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</div>
-            <div style={{ fontSize: 11, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ fontSize: 12, color: "var(--sub)" }}>
-        {est.primero && <>Cliente desde el {fmtDate(est.primero)}</>}
-        {est.companias.length > 0 && <> · Compañías: {est.companias.map(c => `${c.nombre} (${c.n})`).join(", ")}</>}
-        {est.dormido && <span style={{ color: "var(--warn)", fontWeight: 600 }}> · Hace {est.diasDesdeUltimo} días que no te deriva (su ritmo es cada {est.ritmo})</span>}
-      </div>
+    <div style={{ fontSize: 12, color: "var(--sub)" }}>
+      {est.primero && <>Cliente desde el {fmtDate(est.primero)}</>}
+      {est.companias.length > 0 && <> · Compañías: {est.companias.map(c => `${c.nombre} (${c.n})`).join(", ")}</>}
+      {est.dormido && <span style={{ color: "var(--warn)", fontWeight: 600 }}> · Hace {est.diasDesdeUltimo} días que no te deriva (su ritmo es cada {est.ritmo})</span>}
+      <span style={{ color: "var(--muted)" }}> · Números en Análisis → PAS</span>
     </div>
   );
 }
@@ -110,7 +84,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
       </div>
 
       {resumen && <ResumenMensual pas={pas} casos={pas._casos} onCerrar={() => setResumen(false)} />}
-      <EstadisticasDelPas est={pas._est} />
+      <InfoDelPas est={pas._est} />
 
       {casos.length === 0
         ? <div style={{ fontSize: 13, color: "var(--muted)", padding: "8px 0" }}>Todavía no derivó casos.</div>
@@ -266,8 +240,8 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
               <button type="button" onClick={() => alternar(p.id)} aria-expanded={abiertoId === p.id}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === p.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
-                <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{p._honorarios ? fmtMoney(p._honorarios) : ""}</span>
-                <span style={{ fontSize: 12, color: "var(--sub)" }}><span className="num">{p._enCurso}</span> en curso · <span className="num">{p._cobrados}</span> cobrados</span>
+                <span className="num" style={{ fontSize: 13, color: "var(--sub)" }}>{p._casos.length} {p._casos.length === 1 ? "caso" : "casos"}</span>
+                <span style={{ fontSize: 12, color: "var(--sub)" }}><span className="num">{p._enCurso}</span> en curso</span>
                 <span style={{ fontSize: 12, color: "var(--muted)" }}>{p._ultimo ? <Ritmo est={p._est} /> : ""}</span>
               </button>
               {abiertoId === p.id && <div style={{ background: "var(--card2)", borderTop: "1px solid var(--border)" }}>{desplegado(p)}</div>}
@@ -313,9 +287,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
                         {conPortal?.has(String(p.id)) && <span title="Tiene acceso al portal" style={{ marginLeft: 8, fontSize: 11, color: "var(--ok)", border: "1px solid color-mix(in srgb, var(--ok) 40%, transparent)", borderRadius: 4, padding: "0 5px" }}>portal</span>}
                       </td>
                       <td className="num" style={{ ...celda, textAlign: "right", fontWeight: p._enCurso ? 600 : 400, color: p._enCurso ? "var(--text)" : "var(--muted)" }}>{p._enCurso}</td>
-                      <td className="num" style={{ ...celda, textAlign: "right", color: p._cobrados ? "var(--text)" : "var(--muted)" }}>{p._cobrados}</td>
-                      <td className="num" style={{ ...celda, textAlign: "right", color: p._est.pctDesistidos ? "var(--text)" : "var(--muted)" }}>{p._est.pctDesistidos !== null ? `${p._est.pctDesistidos}%` : "—"}</td>
-                      <td className="num" style={{ ...celda, textAlign: "right" }}>{p._honorarios ? fmtMoney(p._honorarios) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td className="num" style={{ ...celda, textAlign: "right", color: p._casos.length ? "var(--text)" : "var(--muted)" }}>{p._casos.length}</td>
                       <td style={{ ...celda, color: "var(--sub)", fontSize: 13 }}><Ritmo est={p._est} /></td>
                     </tr>
                     {abierto && (

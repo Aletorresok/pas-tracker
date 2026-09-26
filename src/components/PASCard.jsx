@@ -1,4 +1,5 @@
 import { fmtDate, waLink, diasDesde } from "../utils/formatters.js";
+import { linkMailPresentacion, esMailEnviado } from "../utils/mensajes.js";
 import { alpha } from "../utils/theme.js";
 import Icono from "./ui/Icono.jsx";
 import Boton from "./ui/Boton.jsx";
@@ -28,7 +29,7 @@ function Interruptor({ activo, label, detalle, onClick }) {
 }
 
 // Fila de un PAS en Contactos: resumen en una línea, detalle al tocar
-export default function PASCard({ pas, historial, derivadores, onContactar, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle }) {
+export default function PASCard({ pas, historial, derivadores, onContactar, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle, onMail, mailBloqueado }) {
   const contactos = historial[pas.id] || [];
   const ultimo = contactos[contactos.length - 1];
   const esDerivador = !!derivadores[pas.id];
@@ -48,12 +49,19 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
           </span>
           <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 3, fontSize: 12, color: "var(--sub)" }}>
             <span className="num">{telefonos.length === 1 ? telefonos[0] : telefonos.length > 1 ? `${telefonos.length} teléfonos` : "Sin teléfono"}</span>
-            {ultimo && <span style={{ color: "var(--muted)" }}>contactado {hace === 0 ? "hoy" : hace !== null ? `hace ${hace} d` : fmtDate(ultimo.fecha)}{contactos.length > 1 ? ` · ${contactos.length} veces` : ""}</span>}
+            {ultimo && <span style={{ color: "var(--muted)" }}>{esMailEnviado(ultimo) ? "mail enviado" : "contactado"} {hace === 0 ? "hoy" : hace !== null ? `hace ${hace} d` : fmtDate(ultimo.fecha)}{contactos.length > 1 ? ` · ${contactos.length} veces` : ""}</span>}
           </span>
         </button>
         {!esDescartado && (
           <Boton tamaño="sm" icono="agregar" onClick={() => onContactar(pas)} aria-label={`Registrar contacto con ${pas.nombre}`}>Registrar</Boton>
         )}
+        {!telefonos[0] && pas.mail && onMail && (mailBloqueado
+          ? <Boton tamaño="sm" icono="mensaje" disabled title="Llegaste al tope de mails de hoy">Mail</Boton>
+          : <a href={linkMailPresentacion(pas.mail, pas.nombre, window.matchMedia("(max-width: 900px)").matches)} target="_blank" rel="noreferrer"
+              onClick={() => onMail(pas)} title={`Mail de presentación a ${pas.mail}`}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+              <Icono nombre="mensaje" size={14} />Mail
+            </a>)}
         {telefonos[0] && (
           <a href={waLink(telefonos[0], pas.nombre)} target="_blank" rel="noreferrer" className="btn-wa" aria-label={`Escribir por WhatsApp a ${pas.nombre}`} title="WhatsApp">
             <Icono nombre="mensaje" size={18} />

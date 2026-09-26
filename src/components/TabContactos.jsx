@@ -5,6 +5,7 @@ import { normalizarContacto } from "../hooks/usePASData.js";
 import PASCard from "./PASCard.jsx";
 import Boton from "./ui/Boton.jsx";
 import { alpha } from "../utils/theme.js";
+import { MAILS_POR_DIA } from "../utils/mensajes.js";
 
 const POR_TANDA = 40;
 const COLUMNA_ORDEN = { nombre: "nombre", telefono: "telefonos", mail: "mail" };
@@ -34,6 +35,8 @@ export default function TabContactos({
   onToggleDerivador,
   onToggleDescartado,
   onAgregarPas,
+  onMailEnviado,
+  mailsHoy = 0,
 }) {
   const [vista, setVista] = useState("agendado");
   const [busqueda, setBusqueda] = useState("");
@@ -184,6 +187,15 @@ export default function TabContactos({
         ))}
       </div>
 
+      {vista === "sin_tel" && (
+        <div style={{ fontSize: 13, color: "var(--sub)", marginBottom: 10, lineHeight: 1.5 }}>
+          Mails de presentación hoy: <b className="num" style={{ color: mailsHoy >= MAILS_POR_DIA ? "var(--warn)" : "var(--text)" }}>{mailsHoy} de {MAILS_POR_DIA}</b>
+          {mailsHoy >= MAILS_POR_DIA
+            ? " · Llegaste al tope del día: seguí mañana para que Gmail no te marque como spam."
+            : " · Tocá Mail en cada fila: se abre Gmail con el texto listo y queda registrado como contacto."}
+        </div>
+      )}
+
       <div style={{ fontSize: 12, color: "var(--sub)", marginBottom: 12 }}>
         {busquedaActiva.trim()
           ? `${visibles.length.toLocaleString("es-AR")}${hayMas ? "+" : ""} resultados para "${busquedaActiva.trim()}"`
@@ -211,6 +223,8 @@ export default function TabContactos({
           historial={historial}
           derivadores={derivadores}
           onContactar={contactar}
+          onMail={onMailEnviado}
+          mailBloqueado={mailsHoy >= MAILS_POR_DIA}
           onToggleDerivador={toggleDerivador}
           onToggleDescartado={onToggleDescartado}
           descartados={descartados}
