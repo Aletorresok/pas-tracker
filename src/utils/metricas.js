@@ -1,6 +1,7 @@
 // Cálculos del Dashboard y de Análisis. Funciones puras sobre la lista de casos.
 import { fechaLocalISO, sumarDias } from "./formatters.js";
 import { margenPara } from "./margenes.js";
+import { prescripcion, PRESCRIPCION_ANIOS } from "./flujoEstados.js";
 
 export const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const INACTIVOS = ["cobrado", "desistido"];
@@ -22,6 +23,10 @@ export function aplanarCasos(casos, todosLosPas) {
 export const indemnizacionPagada = c => Boolean(c.fecha_cobro) || c.estado === "cobrado";
 export const honorariosCobrados = c => Boolean(c.fecha_cobro_honorarios) || c.estado_honorarios === "COBRADO" || c.estado === "cobrado";
 export const tieneHonorarios = c => (Number(c.monto_cobro_yo) || 0) > 0;
+// Comisión del PAS pagada: por su fecha (SQL 20). Sin esa columna todavía, como antes: pagada cuando cobraste los honorarios.
+export const comisionPagada = c => (c.fecha_pago_comision !== undefined ? Boolean(c.fecha_pago_comision) : honorariosCobrados(c));
+// La debés: ya cobraste tus honorarios y todavía no se la pagaste
+export const comisionPorPagar = c => (Number(c.monto_comision_pas) || 0) > 0 && c.estado !== "desistido" && honorariosCobrados(c) && !comisionPagada(c);
 // "Falta: indemnización y honorarios" / "Falta: honorarios" / "Falta: indemnización"
 export const textoFalta = c => {
   const f = [c.faltaIndemnizacion && "indemnización", c.faltaHonorarios && "honorarios"].filter(Boolean);
@@ -72,7 +77,8 @@ export function kpis(allCasos, hoy = new Date()) {
     mesAnteriorNombre: porMes[10].mes,
     // Neto (ya descontada la comisión) y comisiones de los casos donde cobraste los honorarios
     totalHistorico: cobrados.reduce((s, c) => s + netoYo(c), 0),
-    comisionesPAS: cobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0),
+    comisionesPAS: allCasos.filter(c => (Number(c.monto_comision_pas) || 0) > 0 && comisionPagada(c)).reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0),
+    comisionesPorPagar: allCasos.filter(comisionPorPagar).reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0),
   };
 }
 
@@ -188,6 +194,20 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
         tareas.push({ id: `hon-${c.id}`, tipo: "honorarios", vence, titulo: c.asegurado || "Sin nombre", detalle: "Honorarios facturados sin cobrar", monto: Number(c.monto_honorarios) || null, caso: c });
       }
     }
+  });
+
+  // Prescripción: casos activos a menos de 90 días de cumplir el plazo desde el siniestro
+  allCasos.filter(esActivo).forEach(c => {
+    const p = prescripcion(c, hoyISO);
+    if (!p) return;
+    tareas.push({ id: `presc-${c.id}`, tipo: "prescripcion", vence: p.vence, titulo: c.asegurado || "Sin nombre", caso: c,
+      detalle: p.dias < 0 ? `Pasaron más de ${PRESCRIPCION_ANIOS} años desde el siniestro` : `Se cumplen ${PRESCRIPCION_ANIOS} años del siniestro en ${p.dias} días` });
+  });
+
+  // Comisiones que le debés al PAS (ya cobraste tus honorarios)
+  allCasos.filter(comisionPorPagar).forEach(c => {
+    tareas.push({ id: `com-${c.id}`, tipo: "comision", vence: aISO(c.fecha_cobro_honorarios) || hoyISO, titulo: c._pasNombre || "PAS", caso: c,
+      detalle: `Pagarle la comisión por ${c.asegurado || "el caso"}`, monto: Number(c.monto_comision_pas) || null });
   });
 
   return tareas.sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31"));

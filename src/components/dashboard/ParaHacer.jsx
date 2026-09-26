@@ -3,7 +3,7 @@ import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
-const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS" };
 
 // Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso.
 export default function ParaHacer({ tareas, onAbrir, onReiterar }) {

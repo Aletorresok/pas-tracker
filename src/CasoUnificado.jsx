@@ -17,6 +17,11 @@ import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
+import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
+import AvisarWhatsApp from "./components/caso/AvisarWhatsApp.jsx";
+import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "./utils/flujoEstados.js";
+import { registrarAccion } from "./utils/storage.js";
+import { useMargenes } from "./utils/margenes.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
 import ResumenCaso from "./components/caso/ResumenCaso.jsx";
@@ -35,7 +40,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion"
+  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -77,7 +82,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
     documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
-    mensaje_cliente: casoProp.mensaje_cliente || ""
+    mensaje_cliente: casoProp.mensaje_cliente || "",
+    // Comisión pagada al PAS: solo si la columna ya existe (SQL 20)
+    ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {})
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -162,6 +169,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;
       // Checklist manual: solo se manda si la columna ya existe en la base
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
+      if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) { setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated); }
       else {
@@ -175,7 +183,19 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   useEffect(() => { guardarCasoRef.current = guardarCaso; }, [guardarCaso]);
 
+  // Al cambiar de estado: completa la fecha de la etapa, lo anota en la bitácora y sugiere la próxima acción
+  const margenes = useMargenes();
+  const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
+  const alCambiarEstado = (anterior, nuevo) => {
+    const fechas = fechasAlCambiarEstado(formData, nuevo);
+    if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
+    registrarAccion(caso.id, textoCambioEstado(anterior, nuevo)).then(ok => ok && cargarAcciones());
+    const casoNuevo = { ...caso, ...formData, ...fechas, estado: nuevo };
+    setSugerencia({ estado: nuevo, accion: accionSugerida(casoNuevo, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
+  };
+
   const handleFormChange = (key, value) => {
+    if (key === "estado" && value !== formData.estado && caso.id) alCambiarEstado(formData.estado, value);
     setFormData(prev => ({ ...prev, [key]: value }));
     setEstadoGuardado("pendiente");
   };
@@ -262,6 +282,14 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                   Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
                   <button type="button" onClick={() => { handleFormChange("estado", deshacer.anterior); setDeshacer(null); }}
                     style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
+                </div>
+              )}
+              {sugerencia && (
+                <div style={{ marginTop: 10 }}>
+                  <SugerenciaEstado key={sugerencia.estado} sugerencia={sugerencia} onCerrar={() => setSugerencia(null)}
+                    onUsarAccion={a => { handleFormChange("proxima_accion", a.texto); handleFormChange("proxima_accion_vence", a.vence); setSugerencia(s => (s?.avisar ? { ...s, accion: null } : null)); }}
+                    avisoWhatsApp={<AvisarWhatsApp key={sugerencia.estado} abiertoInicial caso={{ ...caso, ...formData }} pasNombre={pasNombre || ""} pasTelefono={pasTelefono}
+                      onTelefonoCliente={v => handleFormChange("telefono_asegurado", v)} onUsarComoMensaje={t => handleFormChange("mensaje_cliente", t)} />} />
                 </div>
               )}
             </div>

@@ -39,9 +39,15 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
     acomodarEstado(indem, !hon);
   };
 
+  const comision = num(formData.monto_comision_pas);
+  const conComision = "fecha_pago_comision" in formData && comision > 0;
+  const comisionOk = Boolean(formData.fecha_pago_comision);
+  const tildarComision = () => onChange("fecha_pago_comision", comisionOk ? "" : fechaLocalISO());
+
   const filas = [
     { k: "indem", l: "Indemnización pagada al asegurado", monto: num(formData.monto_cobro_asegurado), ok: indem, fecha: "fecha_cobro", tildar: tildarIndemnizacion },
     ...(conHonorarios || hon ? [{ k: "hon", l: "Mis honorarios cobrados", monto: num(formData.monto_cobro_yo), ok: hon, fecha: "fecha_cobro_honorarios", tildar: tildarHonorarios }] : []),
+    ...(conComision ? [{ k: "com", l: "Comisión pagada al PAS", monto: comision, ok: comisionOk, fecha: "fecha_pago_comision", tildar: tildarComision }] : []),
   ];
 
   const contenido = filas.map((f, i) => (
@@ -66,7 +72,7 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 4 }}>Pagos</div>
-      <div style={{ fontSize: 12, color: Th.sub, marginBottom: 6 }}>Tildá cada uno cuando la compañía lo paga. Con los dos, el caso pasa a "Cobrado".</div>
+      <div style={{ fontSize: 12, color: Th.sub, marginBottom: 6 }}>Tildá cada uno cuando la compañía lo paga. Con los dos, el caso pasa a "Cobrado". La comisión del PAS, cuando se la pagás.</div>
       {contenido}
     </div>
   );

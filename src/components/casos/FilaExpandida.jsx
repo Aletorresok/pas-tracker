@@ -8,9 +8,15 @@ import PlazoChip from "../ui/PlazoChip.jsx";
 import Boton from "../ui/Boton.jsx";
 import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje } from "../caso/AvisoEstadoCliente.jsx";
 import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
+import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
+import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
+import { registrarAccion } from "../../utils/storage.js";
+import { useMargenes } from "../../utils/margenes.js";
 
 // Campos que se editan desde la fila desplegada de la tabla
-const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado"];
+// (las fechas de etapa se completan solas al cambiar de estado)
+const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
+  "fecha_inicio_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_ofrecimiento", l: "Ofrecido" },
@@ -58,9 +64,17 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     return () => clearTimeout(t);
   }, [borrador, estadoGuardado, onCasoLocal]);
 
-  const cambiarEstado = (nuevo) => {
+  const margenes = useMargenes();
+  const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
+  const cambiarEstado = (nuevo, { sinDeshacer = false } = {}) => {
     if (nuevo === borrador.estado) return;
-    if (ESTADOS_FINALES.includes(nuevo)) setDeshacer({ anterior: borrador.estado, nuevo });
+    if (!sinDeshacer && ESTADOS_FINALES.includes(nuevo)) setDeshacer({ anterior: borrador.estado, nuevo });
+    // Completa la fecha de la etapa, lo anota en la bitácora y sugiere la próxima acción
+    const actual = { ...caso, ...borrador };
+    const fechas = fechasAlCambiarEstado(actual, nuevo);
+    Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
+    registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo));
+    setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
     cambiar("estado", nuevo);
   };
   useEffect(() => {
@@ -88,7 +102,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
         )}
         <div>
           <span style={etiqueta}>Estado · tocá para cambiar</span>
-          <div style={{ marginBottom: 6 }}><AvisoEstadoCliente caso={{ ...caso, ...borrador }} onCambiar={e => cambiar("estado", e)} /></div>
+          <div style={{ marginBottom: 6 }}><AvisoEstadoCliente caso={{ ...caso, ...borrador }} onCambiar={e => cambiarEstado(e)} /></div>
           <div role="radiogroup" aria-label="Estado del caso" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {ESTADOS_CASO.map(e => {
               const activo = borrador.estado === e.key;
@@ -108,8 +122,16 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
           {deshacer && (
             <div role="status" style={{ marginTop: 8, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>
               Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
-              <button type="button" onClick={() => { cambiar("estado", deshacer.anterior); setDeshacer(null); }}
+              <button type="button" onClick={() => { cambiarEstado(deshacer.anterior, { sinDeshacer: true }); setDeshacer(null); }}
                 style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
+            </div>
+          )}
+          {sugerencia && (
+            <div style={{ marginTop: 8 }}>
+              <SugerenciaEstado key={sugerencia.estado} sugerencia={sugerencia} onCerrar={() => setSugerencia(null)}
+                onUsarAccion={a => { cambiar("proxima_accion", a.texto); cambiar("proxima_accion_vence", a.vence); setSugerencia(s => (s?.avisar ? { ...s, accion: null } : null)); }}
+                avisoWhatsApp={<AvisarWhatsApp key={sugerencia.estado} abiertoInicial caso={{ ...caso, ...borrador }} pasNombre={pas?.nombre || caso._pasNombre || ""} pasTelefono={(pas?.telefonos || [])[0] || ""}
+                  onTelefonoCliente={v => cambiar("telefono_asegurado", v)} onUsarComoMensaje={t => cambiar("mensaje_cliente", t)} />} />
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
 import SeccionPagos from "./SeccionPagos.jsx";
-import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje } from "./AvisoEstadoCliente.jsx";
+import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje, AvisoPrescripcion } from "./AvisoEstadoCliente.jsx";
 
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
@@ -48,6 +48,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
             <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>Guardar →</span>
           </button>
         )}
+        <AvisoPrescripcion caso={formData} />
         <AvisoEstadoCliente caso={formData} onCambiar={e => onChange("estado", e)} />
         <CasoProximaAccion formData={formData} onChange={onChange} Th={Th} />
 

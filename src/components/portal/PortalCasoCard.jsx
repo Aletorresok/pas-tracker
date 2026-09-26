@@ -161,6 +161,9 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
                 <div key={m.k} style={{ background: "var(--card)", borderRadius: 8, padding: "8px 10px", border: "1px solid var(--border)" }}>
                   <div style={{ fontSize: 12, color: "var(--sub)" }}>{m.l}</div>
                   <div className="num" style={{ fontSize: 16, fontWeight: 700, color: m.destacado ? "var(--accent-ink)" : "var(--text)" }}>{fmtMoney(caso[m.k])}</div>
+                  {m.k === "monto_comision_pas" && caso.fecha_pago_comision !== undefined && (
+                    <div className="num" style={{ fontSize: 12, color: caso.fecha_pago_comision ? "var(--ok)" : "var(--muted)" }}>{caso.fecha_pago_comision ? `Pagada el ${fmtDate(caso.fecha_pago_comision)}` : "Pendiente"}</div>
+                  )}
                 </div>
               ))}
             </div>

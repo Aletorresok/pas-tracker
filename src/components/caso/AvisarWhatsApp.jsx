@@ -5,8 +5,8 @@ import Icono from "../ui/Icono.jsx";
 // "Avisar por WhatsApp": elegís a quién (cliente o PAS) y una plantilla; el texto sale completo con los datos
 // del caso, lo podés retocar y se abre WhatsApp. Para el cliente, opcionalmente queda también como
 // "Mensaje del estudio" (lo ven el PAS en el portal y el cliente en su vista).
-export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "", onTelefonoCliente, onUsarComoMensaje }) {
-  const [abierto, setAbierto] = useState(false);
+export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "", onTelefonoCliente, onUsarComoMensaje, abiertoInicial = false }) {
+  const [abierto, setAbierto] = useState(abiertoInicial);
   const [para, setPara] = useState("cliente");
   const [plantilla, setPlantilla] = useState(() => plantillaSugerida(caso));
   const [texto, setTexto] = useState("");
