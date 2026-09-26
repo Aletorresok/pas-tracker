@@ -315,8 +315,8 @@ export function proyeccion(allCasos, companias = {}, hoy = new Date(), comisione
       const comision = num(c.monto_comision_pas) || (comisiones ? Math.round(honor * (pctPas || 0) / 100) : (ratioComision ? Math.round(honor * ratioComision / 100) : 0));
       // Cuándo
       // Sin plazo en el caso, el plazo habitual de la compañía (desde la firma o la aceptación)
-      const plazoCia = num(companias[cia]?.plazo_pago_dias);
-      let { fecha, segun: cuandoTxt } = fechaPagoComprometida(!num(c.plazo_pago) && plazoCia ? { ...c, plazo_pago: plazoCia } : c);
+      const plazoHabitual = num(companias[cia]?.plazo_pago_dias);
+      let { fecha, segun: cuandoTxt } = fechaPagoComprometida(!num(c.plazo_pago) && plazoHabitual ? { ...c, plazo_pago: plazoHabitual } : c);
       if (!fecha) {
         const plazo = plazoCia(cia) ?? plazoGeneral;
         fecha = c.fecha_derivacion && plazo ? sumarDias(aISO(c.fecha_derivacion), plazo) : null;
