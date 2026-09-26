@@ -40,7 +40,7 @@ export function waLink(phone, nombre) {
   const clean = phone.replace(/\D/g, "");
   const intl = clean.startsWith("54") ? clean : `54${clean}`;
   const n = primerNombre(nombre);
-  const msg = `Hola ${n}, cómo estás? Soy Alexis Torres Gaveglio, abogado (saqué tu número del padrón de la SSN). Trabajo con productores gestionando los reclamos de terceros de sus clientes.\n\nTe hago una consulta rápida: cuando un asegurado tuyo choca, ¿el reclamo lo maneja el cliente por su cuenta, le das una mano vos, o lo derivás?`;
+  const msg = `Hola ${n}, cómo estás? Soy Alexis Torres Gaveglio, abogado.\nTe hago una consulta rápida: cuando un asegurado tuyo choca contra un tercero, ¿el reclamo lo maneja el cliente por su cuenta, le das una mano vos o se lo derivás a algún abogado?`;
   return `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
 }
 

@@ -1,0 +1,173 @@
+// Estadísticas de la pestaña Análisis: compañías, PAS, etapas y flujo de caja.
+// Funciones puras sobre la lista de casos aplanada (metricas.aplanarCasos).
+import { fechaLocalISO, sumarDias } from "./formatters.js";
+import { netoYo, esActivo, tieneHonorarios, honorariosCobrados } from "./metricas.js";
+import { estadisticasPas } from "./estadisticasPas.js";
+
+const MAX_DIAS = 1825; // más de 5 años entre dos fechas = error de carga
+const aISO = v => (v ? String(v).slice(0, 10) : "");
+const num = v => Number(v) || 0;
+
+export const pct = (n, total) => (total ? Math.round((n / total) * 100) : null);
+
+export function diasEntre(a, b) {
+  if (!a || !b) return null;
+  const d = Math.round((new Date(aISO(b) + "T12:00:00") - new Date(aISO(a) + "T12:00:00")) / 86400000);
+  return Number.isFinite(d) && d >= 0 && d <= MAX_DIAS ? d : null;
+}
+
+export function mediana(xs) {
+  const s = xs.filter(x => x !== null && Number.isFinite(x)).sort((a, b) => a - b);
+  if (!s.length) return null;
+  const m = Math.floor(s.length / 2);
+  return Math.round(s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2);
+}
+
+// { valor, n }: mediana de días entre dos fechas y sobre cuántos casos se calculó
+function medianaDias(casos, desde, hasta) {
+  const ds = casos.map(c => diasEntre(desde(c), hasta(c))).filter(d => d !== null);
+  return { valor: mediana(ds), n: ds.length };
+}
+function medianaPct(casos, parte, total) {
+  const ps = casos.filter(c => num(total(c)) > 0 && num(parte(c)) > 0).map(c => Math.round((num(parte(c)) / num(total(c))) * 100));
+  return { valor: mediana(ps), n: ps.length };
+}
+
+// "Acuerdo": aceptación del ofrecimiento o, si no está, la firma del convenio
+export const fechaAcuerdo = c => c.fecha_aceptacion || c.fecha_firma || null;
+const fueAMediacion = c => Boolean(c.fecha_mediacion) || c.estado === "en_mediacion";
+const fueAJuicio = c => Boolean(c.fecha_inicio_juicio) || c.estado === "en_juicio";
+
+// ── Compañías ───────────────────────────────────────────────────────────────
+function statsDeGrupo(nombre, casos) {
+  return {
+    nombre,
+    total: casos.length,
+    diasOferta: medianaDias(casos, c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento),
+    diasIndemnizacion: medianaDias(casos, fechaAcuerdo, c => c.fecha_cobro),
+    diasHonorarios: medianaDias(casos, fechaAcuerdo, c => c.fecha_cobro_honorarios),
+    diasFactura: medianaDias(casos, c => c.fecha_factura, c => c.fecha_cobro_honorarios),
+    // Primer ofrecimiento si está cargado; si no, el último
+    pctOfrecido: medianaPct(casos, c => num(c.primer_ofrecimiento) || num(c.monto_ofrecimiento), c => c.monto_reclamado),
+    pctCobrado: medianaPct(casos, c => c.monto_cobro_asegurado, c => c.monto_reclamado),
+    mediacion: casos.filter(fueAMediacion).length,
+    juicio: casos.filter(fueAJuicio).length,
+  };
+}
+
+export function statsCompanias(allCasos) {
+  const grupos = {};
+  allCasos.forEach(c => { if (c.compania_aseguradora) (grupos[c.compania_aseguradora] ||= []).push(c); });
+  return {
+    general: statsDeGrupo("Todas", allCasos.filter(c => c.compania_aseguradora)),
+    companias: Object.entries(grupos).map(([nombre, casos]) => statsDeGrupo(nombre, casos)),
+  };
+}
+
+// ── PAS ─────────────────────────────────────────────────────────────────────
+// Usa estadisticasPas (lo mismo que Clientes) y agrega el neto por caso cobrado
+export function statsPasAnalisis(allCasos, hoy = new Date()) {
+  const grupos = {};
+  allCasos.forEach(c => { (grupos[c._pasId] ||= { nombre: c._pasNombre, casos: [] }).casos.push(c); });
+  return Object.entries(grupos).map(([pasId, { nombre, casos }]) => {
+    const est = estadisticasPas(casos, hoy);
+    const conHonorarios = casos.filter(c => tieneHonorarios(c) && honorariosCobrados(c));
+    const neto = conHonorarios.reduce((s, c) => s + netoYo(c), 0);
+    return {
+      pasId, nombre, ...est,
+      neto,
+      casosConNeto: conHonorarios.length,
+      netoPorCaso: conHonorarios.length ? Math.round(neto / conHonorarios.length) : null,
+    };
+  });
+}
+
+// ── Etapas: embudo y tiempos ────────────────────────────────────────────────
+// "estados" = estados actuales que implican haber pasado por la etapa aunque falte la fecha
+export const ETAPAS = [
+  { key: "derivado", label: "Derivado", fecha: c => c.fecha_derivacion || c.fecha_carga, estados: null },
+  { key: "reclamado", label: "Reclamado", fecha: c => c.fecha_inicio_reclamo, estados: ["reclamado", "con_ofrecimiento", "en_mediacion", "en_juicio", "esperando_pago", "cobrado"] },
+  { key: "ofrecimiento", label: "Ofrecimiento", fecha: c => c.fecha_ofrecimiento, estados: ["con_ofrecimiento", "esperando_pago", "cobrado"] },
+  { key: "acuerdo", label: "Acuerdo", fecha: fechaAcuerdo, estados: ["esperando_pago", "cobrado"] },
+  { key: "indemnizacion", label: "Indemnización cobrada", fecha: c => c.fecha_cobro, estados: ["cobrado"] },
+  { key: "honorarios", label: "Honorarios cobrados", fecha: c => c.fecha_cobro_honorarios, estados: ["cobrado"] },
+];
+
+const llego = (c, etapa, i) => i === 0 || Boolean(etapa.fecha(c)) || Boolean(etapa.estados?.includes(c.estado));
+
+export function embudo(allCasos) {
+  const etapas = ETAPAS.map((e, i) => ({
+    key: e.key, label: e.label,
+    llegaron: allCasos.filter(c => llego(c, e, i)).length,
+    // Días desde la etapa anterior (solo casos con las dos fechas)
+    tiempo: i === 0 ? null : medianaDias(allCasos, ETAPAS[i - 1].fecha, e.fecha),
+  }));
+  // Desistidos: última etapa a la que llegaron antes de caerse
+  const caidas = {};
+  const desistidos = allCasos.filter(c => c.estado === "desistido");
+  desistidos.forEach(c => {
+    let ultima = 0;
+    ETAPAS.forEach((e, i) => { if (e.fecha(c)) ultima = i; });
+    caidas[ETAPAS[ultima].key] = (caidas[ETAPAS[ultima].key] || 0) + 1;
+  });
+  return { etapas, caidas, desistidos: desistidos.length };
+}
+
+// No hay historial de cambios de estado: la entrada al estado actual se aproxima con la fecha del expediente que le corresponde
+const ENTRADA_ESTADO = {
+  doc_pendiente: c => c.fecha_derivacion || c.fecha_carga,
+  iniciado: c => c.fecha_contacto_asegurado || c.fecha_derivacion || c.fecha_carga,
+  reclamado: c => c.fecha_ultimo_reclamo || c.fecha_reclamo || c.fecha_inicio_reclamo,
+  con_ofrecimiento: c => c.fecha_reconsideracion || c.fecha_ofrecimiento,
+  en_mediacion: c => c.fecha_mediacion,
+  en_juicio: c => c.fecha_inicio_juicio,
+  esperando_pago: fechaAcuerdo,
+};
+
+// Casos activos con los días que llevan en su estado (null = falta la fecha para saberlo)
+export function tiempoEnEstado(allCasos, hoy = new Date()) {
+  const hoyISO = fechaLocalISO(hoy);
+  return allCasos.filter(esActivo).map(c => {
+    const desde = ENTRADA_ESTADO[c.estado]?.(c);
+    return { caso: c, desde: aISO(desde), dias: desde ? diasEntre(desde, hoyISO) : null };
+  });
+}
+
+// ── Flujo de caja (honorarios por cobrar) ───────────────────────────────────
+export const DIAS_FACTURA = 30; // plazo que se asume entre factura y cobro de honorarios (igual que en Hoy)
+
+// Fecha estimada de cobro de los honorarios y de qué dato sale
+export function estimarCobro(c) {
+  if (c.fecha_firma && num(c.plazo_pago)) return { fecha: sumarDias(aISO(c.fecha_firma), num(c.plazo_pago)), segun: "Firma + plazo" };
+  if (c.fecha_pago) return { fecha: aISO(c.fecha_pago), segun: "Fecha de pago" };
+  if (c.estado_honorarios === "FACTURADO" && c.fecha_factura) return { fecha: sumarDias(aISO(c.fecha_factura), DIAS_FACTURA), segun: `Factura + ${DIAS_FACTURA} d` };
+  return { fecha: null, segun: null };
+}
+
+export const TRAMOS_CAJA = [
+  { key: "vencido", label: "Vencido" },
+  { key: "d30", label: "0 a 30 días" },
+  { key: "d60", label: "31 a 60" },
+  { key: "d90", label: "61 a 90" },
+  { key: "mas", label: "Más de 90" },
+  { key: "sin_fecha", label: "Sin fecha" },
+];
+
+export function flujoCaja(allCasos, hoy = new Date()) {
+  const hoyISO = fechaLocalISO(hoy);
+  const items = allCasos
+    .filter(c => c.estado !== "desistido" && tieneHonorarios(c) && !honorariosCobrados(c))
+    .map(c => {
+      const { fecha, segun } = estimarCobro(c);
+      const dias = fecha ? Math.round((new Date(fecha + "T12:00:00") - new Date(hoyISO + "T12:00:00")) / 86400000) : null;
+      const tramo = dias === null ? "sin_fecha" : dias < 0 ? "vencido" : dias <= 30 ? "d30" : dias <= 60 ? "d60" : dias <= 90 ? "d90" : "mas";
+      return { caso: c, fecha, segun, dias, tramo, bruto: num(c.monto_cobro_yo), comision: num(c.monto_comision_pas), neto: netoYo(c) };
+    })
+    .sort((a, b) => (a.fecha || "9999").localeCompare(b.fecha || "9999"));
+
+  const tramos = TRAMOS_CAJA.map(t => {
+    const del = items.filter(i => i.tramo === t.key);
+    return { ...t, casos: del.length, neto: del.reduce((s, i) => s + i.neto, 0), comision: del.reduce((s, i) => s + i.comision, 0) };
+  });
+  return { items, tramos };
+}
