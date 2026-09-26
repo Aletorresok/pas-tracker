@@ -30,11 +30,10 @@
     *   `dashboard/RecepcionHoy.jsx` (archivos que mandaron clientes) · `NuevosPortal.jsx` (casos derivados sin revisar) · `ParaHacer.jsx` (próximas acciones, honorarios, reclamos quietos con "Reiteré hoy", PAS dormidos con "Escribirle") · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `GraficoBarraMensual.jsx`.
 *   `TabCasos.jsx` (**Casos**) — tabla con chips (Activos, Todos, Sin DNI, por estado), orden, filas de dos líneas en celular.
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
-*   `TabProspeccion.jsx` (**Contactos**; la clave interna sigue siendo `prospeccion`) — Sin contactar (ordenado por teléfono de mayor a menor por defecto ; `TabContactos.jsx`, paginado en servidor), Contactados / Derivadores / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx`; registrar contacto `ContactModal.jsx`.
-*   `TabClientes.jsx` (**Clientes**) — tabla de PAS clientes (en curso, cobrados, % desistidos, honorarios, ritmo/Dormido); fila desplegada con estadísticas, "Resumen del mes" (`clientes/ResumenMensual.jsx`), nuevo caso / PAS manual (`clientes/ModalesCliente.jsx`) y sus casos.
+*   `TabProspeccion.jsx` (**Contactos**; la clave interna sigue siendo `prospeccion`) — Sin contactar (orden por defecto: teléfono, alfanumérico; `TabContactos.jsx`, paginado en servidor), Contactados / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx` con botón Registrar; registrar contacto `ContactModal.jsx`.
+*   `TabClientes.jsx` (**Clientes**) — incluye el acceso al portal (antes pestaña Portal): botón "Link del portal", marca "portal" en la fila y, al desplegar, "Dar acceso al portal" / "Quitar" (`clientes/AccesoPortal.jsx`). Tabla de PAS clientes (en curso, cobrados, % desistidos, honorarios, ritmo/Dormido); fila desplegada con estadísticas, "Resumen del mes" (`clientes/ResumenMensual.jsx`), nuevo caso / PAS manual (`clientes/ModalesCliente.jsx`) y sus casos.
 *   `TabAnalisis.jsx` (**Análisis**) — chips Resumen (KPIs históricos netos, `analisis/CasosPorEtapa.jsx`, cobros en detalle `dashboard/CobrosPendientesCard.jsx`) / Compañías / PAS / Etapas / Flujo de caja (con `analisis/HonorariosPorMes.jsx`).
     *   `analisis/AnalisisCompanias.jsx` (+ `MargenCompanias.jsx`) · `AnalisisPas.jsx` · `AnalisisEtapas.jsx` · `AnalisisCaja.jsx` · `TablaAnalisis.jsx` (tabla ordenable compartida).
-*   `TabPortalUsuarios.jsx` (**Portal**) — alta/baja de usuarios del portal (cliente de Supabase aparte para no pisar tu sesión).
 
 **Ficha del caso**
 *   `CasoUnificado.jsx` — encabezado fijo, línea de etapas (`caso/EtapasCaso.jsx`), pestañas Resumen / Datos / Montos / Documentos / Bitácora, autoguardado (upsert de un caso), PDF, "Generar escrito".
@@ -94,6 +93,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-25 — Clientes absorbe Portal, Casos sin columna PAS, Contactos más rápido
+*   **Portal dentro de Clientes:** se borra la pestaña Portal (`TabPortalUsuarios.jsx`). En Clientes: botón "Link del portal" (copia la dirección), marca verde "portal" junto al nombre de los PAS con acceso y, en la fila desplegada, "Dar acceso al portal" (mail + contraseña inicial, mismo alta que antes con un cliente de Supabase aparte) o "Con acceso al portal · Quitar". `clientes/AccesoPortal.jsx` (`usePortalUsers`, `urlPortal`). Ahora también se puede dar acceso a un PAS manual.
+*   **Casos:** sin la columna PAS; el PAS (y su teléfono) aparece al desplegar el caso (`casos/FilaExpandida.jsx`). La búsqueda por PAS sigue funcionando.
+*   **Contactos:** botón **Registrar** directo en cada fila (sin desplegar). Se quita el filtro "Derivadores" (eso está en Clientes). Sin contactar ordena por teléfono **alfanumérico** (1, 2, 3…), los vacíos al final.
+*   **Menú:** Hoy · Casos · Contactos · Clientes · Análisis.
 
 ### 2026-09-25 — Hoy en dos columnas, gráficos a Análisis, Contactos, márgenes de reclamo quieto por datos
 *   **Hoy:** quedan KPIs y dos columnas parejas: **Para hacer** a la izquierda, **Cobros pendientes + Agenda** a la derecha. "Casos por etapa" y "Honorarios por mes" se mudaron a Análisis.
@@ -267,7 +272,7 @@
 *   **Entrada a la app en dos pasos** (`LoginGate.jsx`): (1) **una vez por navegador**, mail + contraseña de la cuenta de Supabase Auth (`atglexsolutions@gmail.com`); la sesión queda guardada en el navegador. (2) Cada vez que abrís la app en una pestaña nueva, el **PIN 3934** de siempre. A los **5 PIN incorrectos** se cierra la sesión y vuelve a pedir contraseña. Solo entran las cuentas de la tabla `pas_admins` (función `es_admin()`).
 *   **Los datos se cargan recién después de entrar** (`App` → `LoginGate` → `AppPrincipal`); antes se descargaba todo aunque no pusieras el PIN.
 *   Menú "Apariencia y backup" / "Más": **Cerrar sesión** (en este navegador).
-*   `TabPortalUsuarios`: el alta de usuarios del portal usa un cliente aparte (sin guardar sesión) para no reemplazar tu sesión de administrador.
+*   `TabPortalUsuarios` (hoy `clientes/AccesoPortal.jsx`): el alta de usuarios del portal usa un cliente aparte (sin guardar sesión) para no reemplazar tu sesión de administrador.
 *   Portal PAS: "Plazos por compañía" ahora sale de la función `plazos_companias()` (solo compañía, fechas y montos; sin nombres ni patentes), porque con RLS un PAS ya no puede leer casos ajenos.
 *   **SQL:** `sql/2026-09-23_05_admin_y_funciones.sql` (paso 1: tabla `pas_admins`, funciones `es_admin`, `mi_pas_id`, `plazos_companias`; no cambia permisos) y `sql/2026-09-23_06_activar_rls.sql` (paso 2: **RLS en todas las tablas** de `public`, borra políticas viejas; administrador puede todo; cada PAS ve y deriva solo sus casos, ve los movimientos de sus casos, su usuario y su ficha de `pas_lista`). Al final del 06 está el script para volver atrás.
 *   **Orden:** correr 05 → probar la preview → publicar → entrar con mail y contraseña en cada navegador (Chrome y celular) → recién ahí correr 06.

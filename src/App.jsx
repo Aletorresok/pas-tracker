@@ -21,7 +21,6 @@ import TabDashboard from './components/TabDashboard.jsx'
 import TabAnalisis from './components/TabAnalisis.jsx'
 import TabClientes from './components/TabClientes.jsx'
 import TabProspeccion from './components/TabProspeccion.jsx'
-import TabPortalUsuarios from './components/TabPortalUsuarios.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
@@ -275,7 +274,6 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
-          {mainTab === "portal" && <TabPortalUsuarios pas={pas} derivadores={derivadores} darkMode={darkMode} />}
         </div>
       </main>
 

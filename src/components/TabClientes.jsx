@@ -14,6 +14,7 @@ import EstadoPill from "./ui/EstadoPill.jsx";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
 import Ilustracion from "./ui/Ilustracion.jsx";
+import AccesoPortal, { usePortalUsers, urlPortal } from "./clientes/AccesoPortal.jsx";
 
 const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || Number(c.monto_reclamado) || 0;
 const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
@@ -89,7 +90,7 @@ function EstadisticasDelPas({ est }) {
 }
 
 // Contacto y casos de un PAS, dentro de la fila desplegada
-function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular }) {
+function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso }) {
   const casos = [...pas._casos].sort((a, b) => (esActivo(b) - esActivo(a)) || ultimoMov(b).localeCompare(ultimoMov(a)));
   const [resumen, setResumen] = useState(false);
   return (
@@ -102,6 +103,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular }) {
           </a>
         ))}
         <span style={{ flex: 1 }} />
+        {tieneAcceso !== null && <AccesoPortal pas={pas} tieneAcceso={tieneAcceso} onCambio={onCambioAcceso} />}
         {pas.manual && <Boton tamaño="sm" variante="fantasma" onClick={onEditar}>Editar PAS</Boton>}
         {casos.length > 0 && <Boton tamaño="sm" icono="mensaje" onClick={() => setResumen(r => !r)}>Resumen del mes</Boton>}
         <Boton tamaño="sm" variante="primario" icono="agregar" onClick={onNuevo}>Nuevo caso</Boton>
@@ -155,6 +157,14 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   const [error, setError] = useState("");
 
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
+  // Acceso al portal de productores (antes era la pestaña Portal)
+  const { ids: conPortal, recargar: recargarPortal } = usePortalUsers();
+  const [linkCopiado, setLinkCopiado] = useState(false);
+  const copiarLinkPortal = async () => {
+    try { await navigator.clipboard.writeText(urlPortal()); } catch { window.prompt("Copiá el link:", urlPortal()); }
+    setLinkCopiado(true);
+    setTimeout(() => setLinkCopiado(false), 2000);
+  };
 
   // Llegar desde el buscador: muestra ese PAS abierto
   useEffect(() => {
@@ -211,6 +221,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
   const desplegado = p => (
     <CasosDelPas pas={p} esCelular={esCelular}
+      tieneAcceso={conPortal ? conPortal.has(String(p.id)) : null} onCambioAcceso={recargarPortal}
       onAbrir={c => setFicha({ caso: c, pasId: String(p.id) })}
       onNuevo={() => setNuevoCasoPara(p)}
       onEditar={() => setPasEditando(p)} />
@@ -233,6 +244,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
             style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
         </div>
         <Boton icono="agregar" onClick={() => setPasEditando(null)}>PAS manual</Boton>
+        <Boton icono="portal" onClick={copiarLinkPortal}>{linkCopiado ? "Link copiado" : "Link del portal"}</Boton>
         <Boton icono="guardar" onClick={exportarExcel}>Excel</Boton>
       </div>
 
@@ -298,6 +310,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
                           {p.nombre}
                         </button>
                         {p.manual && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "0 5px" }}>manual</span>}
+                        {conPortal?.has(String(p.id)) && <span title="Tiene acceso al portal" style={{ marginLeft: 8, fontSize: 11, color: "var(--ok)", border: "1px solid color-mix(in srgb, var(--ok) 40%, transparent)", borderRadius: 4, padding: "0 5px" }}>portal</span>}
                       </td>
                       <td className="num" style={{ ...celda, textAlign: "right", fontWeight: p._enCurso ? 600 : 400, color: p._enCurso ? "var(--text)" : "var(--muted)" }}>{p._enCurso}</td>
                       <td className="num" style={{ ...celda, textAlign: "right", color: p._cobrados ? "var(--text)" : "var(--muted)" }}>{p._cobrados}</td>

@@ -17,8 +17,8 @@ function consultaContactos({ vista, busqueda, orden, soloContar = false }) {
   if (vista !== "todos") q = q.eq("prioridad", vista);
   const texto = busqueda.trim().replace(/[,()*%\\]/g, " ").trim();
   if (texto) q = q.or(`nombre.ilike.*${texto}*,mail.ilike.*${texto}*,telefonos.ilike.*${texto}*`);
-  // Teléfono va de mayor a menor (los sin teléfono al final); nombre y mail, de la A a la Z
-  if (!soloContar) q = q.order(COLUMNA_ORDEN[orden] || "nombre", { ascending: orden !== "telefono", nullsFirst: false }).order("id");
+  // Orden alfanumérico (teléfono: 1, 2, 3…; nombre y mail: A a Z). Los vacíos, al final.
+  if (!soloContar) q = q.order(COLUMNA_ORDEN[orden] || "nombre", { ascending: true, nullsFirst: false }).order("id");
   return q;
 }
 
