@@ -3,6 +3,7 @@
 import { fechaLocalISO, sumarDias } from "./formatters.js";
 import { netoYo, esActivo, tieneHonorarios, honorariosCobrados } from "./metricas.js";
 import { estadisticasPas } from "./estadisticasPas.js";
+import { subaOfertas } from "./ofertas.js";
 
 const MAX_DIAS = 1825; // más de 5 años entre dos fechas = error de carga
 const aISO = v => (v ? String(v).slice(0, 10) : "");
@@ -39,8 +40,10 @@ const fueAMediacion = c => Boolean(c.fecha_mediacion) || c.estado === "en_mediac
 const fueAJuicio = c => Boolean(c.fecha_inicio_juicio) || c.estado === "en_juicio";
 
 // ── Compañías ───────────────────────────────────────────────────────────────
-function statsDeGrupo(nombre, casos) {
+function statsDeGrupo(nombre, casos, ofertas = {}) {
+  const subas = casos.map(c => subaOfertas(ofertas[c.id], c)).filter(v => v !== null);
   return {
+    suba: { valor: mediana(subas), n: subas.length },
     nombre,
     total: casos.length,
     diasOferta: medianaDias(casos, c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento),
@@ -55,12 +58,12 @@ function statsDeGrupo(nombre, casos) {
   };
 }
 
-export function statsCompanias(allCasos) {
+export function statsCompanias(allCasos, ofertas = {}) {
   const grupos = {};
   allCasos.forEach(c => { if (c.compania_aseguradora) (grupos[c.compania_aseguradora] ||= []).push(c); });
   return {
-    general: statsDeGrupo("Todas", allCasos.filter(c => c.compania_aseguradora)),
-    companias: Object.entries(grupos).map(([nombre, casos]) => statsDeGrupo(nombre, casos)),
+    general: statsDeGrupo("Todas", allCasos.filter(c => c.compania_aseguradora), ofertas),
+    companias: Object.entries(grupos).map(([nombre, casos]) => statsDeGrupo(nombre, casos, ofertas)),
   };
 }
 

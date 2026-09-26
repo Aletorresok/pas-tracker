@@ -8,6 +8,7 @@ import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js
 
 import SeccionInfo from "./components/caso/SeccionInfo.jsx";
 import SeccionMontos from "./components/caso/SeccionMontos.jsx";
+import HistorialOfertas from "./components/caso/HistorialOfertas.jsx";
 import SeccionPagos from "./components/caso/SeccionPagos.jsx";
 import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
@@ -319,6 +320,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div {...panel("montos")}>
               <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
               <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
+              <HistorialOfertas casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
               <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
             </div>
             <div {...panel("documentos")}>
