@@ -5,7 +5,8 @@ import BarraAvance from "../ui/BarraAvance.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
-import EscritoPortal from "./EscritoPortal.jsx";
+import ModalGenerarEscrito from "../caso/ModalGenerarEscrito.jsx";
+import { THEME } from "../../utils/theme.js";
 
 const FECHAS = [
   { k: "fecha_derivacion", l: "Derivación" },
@@ -110,7 +111,7 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
             style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
             {open ? "Ocultar detalle" : "Ver detalle y adjuntar documentación"}
           </button>
-          {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Reclamo para firmar</Boton>}
+          {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
         </div>
       </div>
 
@@ -159,7 +160,10 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
           </div>
         </div>
       )}
-      {escrito && <EscritoPortal caso={caso} onClose={() => setEscrito(false)} />}
+      {/* El mismo modal y el mismo escrito que usa el estudio en la ficha del caso */}
+      <ModalGenerarEscrito isOpen={escrito} onClose={() => setEscrito(false)} caso={caso} dniInicial={caso.dni_asegurado || ""} Th={THEME()}
+        onSuccess={() => { setOpen(true); setAviso({ tipo: "ok", texto: "Escrito descargado. Imprimilo y que lo firme el asegurado." }); }}
+        onError={msg => { setOpen(true); setAviso({ tipo: "error", texto: msg }); }} />
     </article>
   );
 }
