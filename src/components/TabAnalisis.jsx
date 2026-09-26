@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabase.js";
 import { cambiosDeEstado } from "../utils/analisis.js";
-import { todasLasOfertas } from "../utils/ofertas.js";
+import { todasLasOfertas, todasLasCompanias } from "../utils/ofertas.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
@@ -40,6 +40,10 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   // Historial de ofertas (SQL 21) para "Suba 1ª → última" en Compañías; sin la tabla, se usan los campos del caso
   const [ofertas, setOfertas] = useState({});
   useEffect(() => { todasLasOfertas().then(o => setOfertas(o || {})); }, [casos]);
+  // Directorio de compañías (SQL 21; % de honorarios con el SQL 23). null = falta el SQL.
+  const [companias, setCompanias] = useState({});
+  const cargarCompanias = () => todasLasCompanias().then(setCompanias);
+  useEffect(() => { cargarCompanias(); }, []);
   useEffect(() => {
     let vigente = true;
     (async () => {
@@ -101,10 +105,10 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
           <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
         </>
       )}
-      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} />}
+      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} cambios={cambios} directorio={companias} onCompaniasGuardadas={cargarCompanias} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
       {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
-      {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} />}
+      {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} companias={companias} />}
 
       {abierto && (
         <CasoOverlay

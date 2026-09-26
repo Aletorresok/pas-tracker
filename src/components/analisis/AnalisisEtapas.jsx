@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import TablaAnalisis, { card, tono, ConMuestra, Barrita, Nota } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
-import { embudo, tiempoEnEstado, mediana, pct, ETAPAS, duracionPorEstado } from "../../utils/analisis.js";
+import { embudo, tiempoEnEstado, mediana, pct, ETAPAS, duracionPorEstado, diasEntre, fechaAcuerdo } from "../../utils/analisis.js";
+import { QUIEN, quienTiene, tiempoPorQuien } from "../../utils/pelota.js";
 import { ESTADOS_CASO } from "../../constants.js";
 
 // Análisis → Etapas: cuántos casos llegan a cada etapa, cuánto tardan entre una y otra y dónde se traban
@@ -26,6 +27,8 @@ export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) 
 
   return (
     <>
+      <SeccionPelota allCasos={allCasos} cambios={cambios} />
+
       <section style={{ ...card, padding: "14px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Embudo</h2>
@@ -101,5 +104,79 @@ export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) 
         </section>
       )}
     </>
+  );
+}
+
+// "¿Quién tiene la pelota?": cuántos casos dependen hoy de cada uno y cuántos días la tuvo cada uno
+const COLOR_QUIEN = { vos: "var(--accent)", cliente: "var(--info)", compania: "var(--warn)", terceros: "var(--border2)" };
+function SeccionPelota({ allCasos, cambios }) {
+  const hoy = useMemo(() => allCasos.map(c => quienTiene(c)).filter(Boolean), [allCasos]);
+  const cuenta = k => hoy.filter(q => q === k).length;
+  const exacto = useMemo(() => tiempoPorQuien(allCasos, cambios), [allCasos, cambios]);
+
+  // Aproximado con las fechas del expediente (sirve desde ya, mientras se juntan cambios registrados)
+  const med = (desde, hasta) => mediana(allCasos.map(c => diasEntre(desde(c), hasta(c))).filter(d => d !== null));
+  const aprox = {
+    compania: [med(c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento), med(fechaAcuerdo, c => c.fecha_cobro)],
+    vosCliente: [med(c => c.fecha_derivacion, c => c.fecha_inicio_reclamo), med(c => c.fecha_ofrecimiento, fechaAcuerdo)],
+  };
+  const sumar = xs => (xs.some(x => x !== null) ? xs.reduce((a, x) => a + (x || 0), 0) : null);
+
+  // Por compañía, con los cambios registrados
+  const porCompania = useMemo(() => {
+    const g = {};
+    exacto.porCaso.forEach(x => { const k = x.caso.compania_aseguradora || "Sin compañía"; (g[k] ||= []).push(x); });
+    return Object.entries(g).map(([nombre, xs]) => ({ nombre, n: xs.length, ...Object.fromEntries(QUIEN.map(q => [q.k, Math.round(xs.reduce((a, x) => a + x[q.k], 0) / xs.length)])) }));
+  }, [exacto]);
+  const totalPromedio = QUIEN.reduce((a, q) => a + (exacto.promedio[q.k] || 0), 0);
+
+  return (
+    <section style={{ ...card, padding: "14px 16px" }}>
+      <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700 }}>¿Quién tiene la pelota?</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
+        {QUIEN.map(q => (
+          <div key={q.k} style={{ borderTop: `3px solid ${COLOR_QUIEN[q.k]}`, paddingTop: 6 }}>
+            <div className="num" style={{ fontSize: 22, fontWeight: 700 }}>{cuenta(q.k)}</div>
+            <div style={{ fontSize: 12, color: "var(--sub)" }}>{q.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Días que la tiene cada uno, por caso</div>
+      {exacto.casos > 0 ? (
+        <>
+          <div aria-hidden="true" style={{ display: "flex", height: 12, borderRadius: 4, overflow: "hidden", gap: 2, marginBottom: 8 }}>
+            {QUIEN.map(q => exacto.promedio[q.k] > 0 && <div key={q.k} style={{ flex: exacto.promedio[q.k], background: COLOR_QUIEN[q.k] }} />)}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px", fontSize: 13 }}>
+            {QUIEN.map(q => (
+              <span key={q.k} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 3, background: COLOR_QUIEN[q.k] }} />
+                <span style={{ color: "var(--sub)" }}>{q.corto}</span>
+                <b className="num">{exacto.promedio[q.k]} d</b>
+                <span className="num" style={{ color: "var(--muted)", fontSize: 12 }}>{totalPromedio ? `${pct(exacto.promedio[q.k], totalPromedio)}%` : ""}</span>
+              </span>
+            ))}
+          </div>
+          <Nota>Promedio por caso con los cambios de estado registrados ({exacto.casos} {exacto.casos === 1 ? "caso" : "casos"}), desde la derivación hasta hoy o hasta que se cerró.</Nota>
+          {porCompania.length > 1 && (
+            <div style={{ marginTop: 10 }}>
+              <TablaAnalisis clave={f => f.nombre} filas={porCompania} ordenInicial={{ k: "compania", desc: true }} minWidth={620} columnas={[
+                { k: "nombre", l: "Compañía", ancho: "28%", valor: f => f.nombre.toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.nombre}</b> },
+                ...QUIEN.map(q => ({ k: q.k, l: q.corto, ancho: "15%", derecha: true, celda: f => <span className="num">{f[q.k]} d</span> })),
+                { k: "n", l: "Casos", ancho: "12%", derecha: true, celda: f => <span className="num">{f.n}</span> },
+              ]} />
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ fontSize: 13, color: "var(--sub)", lineHeight: 1.5 }}>
+          Con los cambios de estado registrados (desde el 25/09/2026) se va a ver cuántos días la tuvo cada uno. Mientras tanto, con las fechas del expediente:
+          <b> compañía {sumar(aprox.compania) ?? "—"} d</b> (reclamo a oferta + acuerdo a pago) y
+          <b> vos y el cliente {sumar(aprox.vosCliente) ?? "—"} d</b> (derivación a reclamo + oferta a acuerdo), en la mediana.
+        </div>
+      )}
+      <Nota>Doc. pendiente = esperando al cliente · Iniciado y Con ofrecimiento = vos · Reclamado y Esperando pago = la compañía · Mediación y juicio, aparte. Una próxima acción vencida pasa la pelota a vos.</Nota>
+    </section>
   );
 }

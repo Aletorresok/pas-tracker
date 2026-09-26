@@ -2,14 +2,14 @@ import { useMemo, useState } from "react";
 import TablaAnalisis, { card, tono, Nota } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import HonorariosPorMes from "./HonorariosPorMes.jsx";
-import { flujoCaja, DIAS_FACTURA } from "../../utils/analisis.js";
+import { flujoCaja, DIAS_FACTURA, proyeccion } from "../../utils/analisis.js";
 import { fmtMoney, fmtDate } from "../../utils/formatters.js";
 import { ESTADOS_CASO } from "../../constants.js";
 
 const COLOR_TRAMO = { vencido: "var(--bad)", d30: tono(95), d60: tono(75), d90: tono(55), mas: tono(35), sin_fecha: "var(--border2)" };
 
 // Análisis → Flujo de caja: honorarios que faltan cobrar, agrupados por cuándo deberían entrar
-export default function AnalisisCaja({ allCasos, onAbrirCaso }) {
+export default function AnalisisCaja({ allCasos, onAbrirCaso, companias }) {
   const { items, tramos } = useMemo(() => flujoCaja(allCasos), [allCasos]);
   const [filtro, setFiltro] = useState(null);
 
@@ -84,10 +84,61 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso }) {
             { k: "neto", l: "Mi neto", ancho: "10%", derecha: true, celda: f => <b className="num">{fmtMoney(f.neto)}</b> },
           ]} />
         <Nota>
-          Entran los casos no desistidos con "Mis honorarios" cargado y sin cobrar. La fecha estimada sale de: firma + plazo de pago; si no, la fecha de pago; si no, factura + {DIAS_FACTURA} días (si está facturado).
+          Entran los casos no desistidos con "Mis honorarios" cargado y sin cobrar. La fecha estimada sale de: firma + plazo de pago; si no hay firma, aceptación + plazo; si no, la fecha de pago; si no, factura + {DIAS_FACTURA} días (si está facturado).
           "Sin fecha" = hay monto pero no hay con qué estimar cuándo entra.
         </Nota>
       </section>
+
+      <Proyeccion allCasos={allCasos} companias={companias} onAbrirCaso={onAbrirCaso} />
     </>
+  );
+}
+
+// Proyección "si todo sale bien": aparte de lo cobrado y de lo que ya tiene fecha. Es un estimado.
+function Proyeccion({ allCasos, companias, onAbrirCaso }) {
+  const p = useMemo(() => proyeccion(allCasos, companias || {}), [allCasos, companias]);
+  const [ver, setVer] = useState(false);
+  const max = Math.max(...p.meses.map(m => m.neto), 1);
+  return (
+    <section style={{ border: "1.5px dashed var(--border2)", borderRadius: 12, padding: "14px 16px", background: "color-mix(in srgb, var(--card2) 50%, transparent)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--warn)", border: "1px solid var(--warn)", borderRadius: 4, padding: "1px 6px" }}>ESTIMADO</span>
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Si todos los casos en curso salen bien</h2>
+      </div>
+      <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--sub)", lineHeight: 1.5 }}>
+        No es plata comprometida ni se suma a lo cobrado: supone que <b>todos</b> los casos en curso se cobran, al porcentaje que suele pagar cada compañía, con su % de honorarios y en el plazo habitual.
+      </p>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
+        <div><div style={{ fontSize: 12, color: "var(--sub)" }}>Tus honorarios netos posibles</div><div className="num" style={{ fontSize: 22, fontWeight: 700 }}>{fmtMoney(p.total)}</div><div style={{ fontSize: 12, color: "var(--muted)" }}>{p.items.length} casos en curso</div></div>
+        {p.esperable !== null && <div><div style={{ fontSize: 12, color: "var(--sub)" }}>Con tu tasa de cobro ({p.tasaCobro}% de los cerrados)</div><div className="num" style={{ fontSize: 22, fontWeight: 700, color: "var(--sub)" }}>{fmtMoney(p.esperable)}</div><div style={{ fontSize: 12, color: "var(--muted)" }}>más realista</div></div>}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${p.meses.length}, minmax(0, 1fr))`, gap: 6, alignItems: "end", height: 150, marginBottom: 6 }}>
+        {p.meses.map(m => (
+          <div key={m.key} title={`${m.mes}: ${fmtMoney(m.neto)} · ${m.casos} casos`} style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", gap: 4, height: "100%" }}>
+            <span className="num" style={{ fontSize: 11, color: "var(--sub)", whiteSpace: "nowrap" }}>{m.neto ? fmtMoney(m.neto) : ""}</span>
+            <span style={{ width: "min(100%, 48px)", height: m.neto ? Math.max(4, Math.round((m.neto / max) * 100)) : 0, borderRadius: "4px 4px 0 0", background: "repeating-linear-gradient(45deg, var(--border2), var(--border2) 4px, transparent 4px, transparent 8px)", border: "1px solid var(--border2)" }} />
+            <span style={{ fontSize: 12, color: "var(--sub)", textTransform: "capitalize" }}>{m.mes}<span className="num" style={{ display: "block", fontSize: 11, color: "var(--muted)", textAlign: "center" }}>{m.casos}</span></span>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={() => setVer(v => !v)} style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", padding: 0 }}>{ver ? "Ocultar casos" : "Ver cómo se calculó cada caso"}</button>
+      {ver && (
+        <div style={{ marginTop: 8 }}>
+          <TablaAnalisis clave={f => f.caso.id} filas={p.items} ordenInicial={{ k: "fecha", desc: false }} minWidth={900} onFila={f => onAbrirCaso(f.caso)} columnas={[
+            { k: "asegurado", l: "Asegurado", ancho: "18%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.caso.asegurado || "Sin nombre"}</b> },
+            { k: "compania", l: "Compañía", ancho: "13%", valor: f => (f.caso.compania_aseguradora || "").toLowerCase(), celda: f => f.caso.compania_aseguradora || "—" },
+            { k: "indem", l: "Indemnización", ancho: "17%", derecha: true, celda: f => <span className="num">{fmtMoney(f.indem)} <span style={{ fontSize: 11, color: "var(--muted)", display: "block" }}>{f.baseTxt}</span></span> },
+            { k: "honor", l: "Honorarios", ancho: "14%", derecha: true, celda: f => <span className="num">{fmtMoney(f.honor)} <span style={{ fontSize: 11, color: "var(--muted)", display: "block" }}>{f.honTxt}</span></span> },
+            { k: "comision", l: "Comisión PAS", ancho: "12%", derecha: true, celda: f => <span className="num" style={{ color: "var(--sub)" }}>{f.comision ? `−${fmtMoney(f.comision)}` : "—"}</span> },
+            { k: "neto", l: "Neto", ancho: "12%", derecha: true, celda: f => <b className="num">{fmtMoney(f.neto)}</b> },
+            { k: "fecha", l: "Cuándo", ancho: "14%", celda: f => <span className="num">{fmtDate(f.fecha)} <span style={{ fontSize: 11, color: "var(--muted)", display: "block" }}>{f.cuandoTxt}</span></span> },
+          ]} />
+        </div>
+      )}
+      <Nota>
+        Indemnización: lo acordado; si no hay acuerdo, lo reclamado por el % que suele cobrarse con esa compañía. Honorarios: los cargados; si no, el % de la compañía (Análisis → Compañías) o el de tus casos. Comisión: la cargada o la proporción habitual. Cuándo: la fecha de pago comprometida o lo que suele tardar esa compañía desde la derivación; lo atrasado va al mes actual.
+        {p.sinDatos > 0 && ` Quedan afuera ${p.sinDatos} ${p.sinDatos === 1 ? "caso" : "casos"} sin monto reclamado ni acuerdo.`}
+      </Nota>
+    </section>
   );
 }

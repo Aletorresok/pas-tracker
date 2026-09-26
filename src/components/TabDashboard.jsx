@@ -9,6 +9,7 @@ import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
 import { useMargenes } from "../utils/margenes.js";
+import { quienTiene } from "../utils/pelota.js";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
 
@@ -41,6 +42,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const tareas = useMemo(() => tareasPendientes({ allCasos, margenes: margenes || {} })
     .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [allCasos, margenes]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
+  const teTocan = useMemo(() => allCasos.filter(c => quienTiene(c) === "vos").length, [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
   const nuevos = useMemo(() => allCasos
     .filter(c => c.origen === "portal" && !c.revisado_en)
@@ -71,7 +73,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
       <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr 1fr" }}>
         <Kpi destacado label={`Mis honorarios cobrados · ${k.anio}`} valor={fmtMoney(k.cobradoAnio)} pie={<Variacion valor={k.varAnual} contra={k.anio - 1} />} />
         <Kpi label="Por cobrar" valor={fmtMoney(k.porCobrar)} pie={<span style={{ fontSize: 12, color: "var(--muted)" }}>{k.porCobrarCasos} {k.porCobrarCasos === 1 ? "caso" : "casos"}</span>} />
-        <Kpi label="En gestión" valor={k.enGestion} pie={<span style={{ fontSize: 12, color: "var(--muted)" }}>de {k.total} casos · {nDerivadores} derivadores</span>} />
+        <Kpi label="En gestión" valor={k.enGestion} pie={<span style={{ fontSize: 12, color: "var(--muted)" }}>de {k.total} casos · <button type="button" onClick={() => onIrA?.("casos")} title="En Casos, filtro Te toca a vos" style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>{teTocan} te {teTocan === 1 ? "toca" : "tocan"} a vos</button></span>} />
         <Kpi label="Este mes" valor={fmtMoney(k.esteMes)} pie={<Variacion valor={k.varMensual} contra={k.mesAnteriorNombre.toLowerCase()} />} />
       </section>
 
