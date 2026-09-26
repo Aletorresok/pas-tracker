@@ -94,6 +94,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-26 — Condiciones de cada compañía, en una sola tabla
+*   Análisis → Compañías: "Reclamo quieto: margen por compañía" y "Condiciones de cada compañía" quedan unificadas en **"Condiciones de cada compañía"** (`analisis/CondicionesCompanias.jsx`): una fila "General" (reclamo quieto por defecto) y, por compañía, **Reclamo quieto (días) · Honorarios (%) · Plazo de pago (días)**, con el detalle de casos, cuánto suele tardar en ofrecer y qué % de honorarios pagó en tus casos. Mismos datos y misma forma de guardar (al salir del campo). En el celular cada campo lleva su etiqueta. Se borran `MargenCompanias.jsx` y `analisis/HonorariosCompanias.jsx`.
+
 ### 2026-09-26 — Arreglo: Análisis dejaba de cargar ("q is not a function")
 *   En `analisis.proyeccion`, el plazo habitual de la compañía (PR #61) usaba el mismo nombre que la función del plazo hasta el cobro (`plazoCia`) y la pisaba: Análisis se rompía al calcular la proyección. Renombrado a `plazoHabitual`. Probadas las cinco vistas de Análisis.
 
