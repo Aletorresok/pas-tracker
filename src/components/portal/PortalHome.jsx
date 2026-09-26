@@ -12,7 +12,7 @@ import GraficoCompanias from "../GraficoCompanias.jsx";
 import { alpha } from "../../utils/theme.js";
 import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
-import { plazosRespuesta } from "../../utils/metricas.js";
+import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -123,7 +123,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   useRealtimeCasos(pasId, handleRealtimeUpdate);
 
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
-  const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
+  const comisionTotal  = casos.filter(c => !c._demo && comisionPagada(c)).reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
+  // Ya cobrada por el estudio y todavía no pagada al PAS
+  const comisionPendiente = casos.filter(c => !c._demo && comisionPorPagar(c)).reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
   // Cuánto suele tardar cada compañía en ofrecer (datos de todo el estudio, sin nombres)
   const plazos = plazosRespuesta(todosLosCasos);
@@ -187,6 +189,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px 16px" }}>
             <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
             <div className="num" style={{ fontSize: 28, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: -0.5 }}>{fmtMoney(comisionTotal || 0)}</div>
+            {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>Por pagarte: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
             {proximo && (
               <div style={{ fontSize: 13, color: T.sub, marginTop: 4 }}>
                 Próximo cobro: <b className="num" style={{ color: T.text }}>{Number(proximo.monto_comision_pas) > 0 ? fmtMoney(proximo.monto_comision_pas) : proximo.asegurado}</b>

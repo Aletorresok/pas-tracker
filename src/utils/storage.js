@@ -217,3 +217,11 @@ export async function registrarReiteracion(caso) {
   if (error) { console.error("[registrarReiteracion] caso:", error); return null; }
   return cambios;
 }
+
+// Deja una nota en la bitácora del caso (la ve también el PAS en "Movimientos"). Devuelve true si se guardó.
+export async function registrarAccion(casoId, descripcion) {
+  if (!casoId) return false;
+  const { error } = await supabase.from("acciones").insert({ caso_id: casoId, tipo: "nota", fecha: new Date().toISOString(), descripcion });
+  if (error) { console.error("[registrarAccion]", error); return false; }
+  return true;
+}

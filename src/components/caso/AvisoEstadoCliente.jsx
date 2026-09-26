@@ -1,4 +1,6 @@
 import { estadoSugerido, textoEtapaCliente } from "../../utils/vistaCliente.js";
+import { prescripcion, PRESCRIPCION_ANIOS } from "../../utils/flujoEstados.js";
+import { fmtDate } from "../../utils/formatters.js";
 
 // Aviso cuando las fechas del caso muestran que avanzó más que su estado: el cliente ve la etapa según el estado.
 export default function AvisoEstadoCliente({ caso, onCambiar }) {
@@ -34,6 +36,19 @@ export function VistaPreviaMensaje({ caso }) {
   return (
     <div style={{ marginTop: 6, fontSize: 12, color: "var(--muted)", lineHeight: 1.45 }}>
       Vacío: el cliente ve el texto automático de la etapa: <i>“{texto}”</i>
+    </div>
+  );
+}
+
+// Aviso de prescripción en la ficha (mismo criterio que "Para hacer")
+export function AvisoPrescripcion({ caso }) {
+  const p = prescripcion(caso);
+  if (!p) return null;
+  return (
+    <div role="status" style={{ fontSize: 13, lineHeight: 1.45, padding: "8px 12px", borderRadius: 8, color: "var(--text)", background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--bad) 35%, transparent)" }}>
+      <b>Prescripción:</b> {p.dias < 0
+        ? `ya pasaron más de ${PRESCRIPCION_ANIOS} años desde el siniestro (${fmtDate(p.vence)}).`
+        : `el ${fmtDate(p.vence)} se cumplen ${PRESCRIPCION_ANIOS} años desde el siniestro (faltan ${p.dias} días).`}
     </div>
   );
 }
