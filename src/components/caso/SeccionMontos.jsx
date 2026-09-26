@@ -1,6 +1,6 @@
 import CampoMonto from "../ui/CampoMonto.jsx";
 
-export default function SeccionMontos({ formData, onChange, Th }) {
+export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
 
@@ -18,6 +18,11 @@ export default function SeccionMontos({ formData, onChange, Th }) {
           <label key={f.k}>
             <span style={labelStyle}>{f.l}</span>
             <CampoMonto value={formData[f.k]} onChange={v => onChange(f.k, v)} />
+            {f.k === "monto_comision_pas" && (
+              <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>
+                {pctComision ? `${pctComision}% de tus honorarios: se calcula sola al cargarlos` : pctComision === 0 ? "Este PAS no cobra comisión" : "El % del PAS se carga en Clientes"}
+              </span>
+            )}
           </label>
         ))}
       </div>

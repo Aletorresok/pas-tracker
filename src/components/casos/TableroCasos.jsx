@@ -4,6 +4,7 @@ import { ESTADOS_CASO } from "../../constants.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
+import { cargarCompania } from "../../utils/ofertas.js";
 import { useMargenes } from "../../utils/margenes.js";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
@@ -37,6 +38,11 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal 
     if (!caso || caso.estado === estado) return;
     setError("");
     const cambios = { estado, ...fechasAlCambiarEstado(caso, estado), fecha_ultimo_movimiento: fechaLocalISO() };
+    // Con acuerdo y sin plazo cargado, el plazo de pago de la compañía
+    if (estado === "esperando_pago" && !Number(caso.plazo_pago)) {
+      const plazo = Number((await cargarCompania(caso.compania_aseguradora))?.plazo_pago_dias);
+      if (plazo) cambios.plazo_pago = plazo;
+    }
     const actualizado = await guardar(caso, cambios);
     if (!actualizado) return;
     registrarAccion(caso.id, textoCambioEstado(caso.estado, estado));

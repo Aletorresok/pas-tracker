@@ -9,7 +9,7 @@ import { ESTADOS_CASO } from "../../constants.js";
 const COLOR_TRAMO = { vencido: "var(--bad)", d30: tono(95), d60: tono(75), d90: tono(55), mas: tono(35), sin_fecha: "var(--border2)" };
 
 // Análisis → Flujo de caja: honorarios que faltan cobrar, agrupados por cuándo deberían entrar
-export default function AnalisisCaja({ allCasos, onAbrirCaso, companias }) {
+export default function AnalisisCaja({ allCasos, onAbrirCaso, companias, comisiones }) {
   const { items, tramos } = useMemo(() => flujoCaja(allCasos), [allCasos]);
   const [filtro, setFiltro] = useState(null);
 
@@ -89,14 +89,14 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso, companias }) {
         </Nota>
       </section>
 
-      <Proyeccion allCasos={allCasos} companias={companias} onAbrirCaso={onAbrirCaso} />
+      <Proyeccion allCasos={allCasos} companias={companias} comisiones={comisiones} onAbrirCaso={onAbrirCaso} />
     </>
   );
 }
 
 // Proyección "si todo sale bien": aparte de lo cobrado y de lo que ya tiene fecha. Es un estimado.
-function Proyeccion({ allCasos, companias, onAbrirCaso }) {
-  const p = useMemo(() => proyeccion(allCasos, companias || {}), [allCasos, companias]);
+function Proyeccion({ allCasos, companias, comisiones, onAbrirCaso }) {
+  const p = useMemo(() => proyeccion(allCasos, companias || {}, new Date(), comisiones ?? null), [allCasos, companias, comisiones]);
   const [ver, setVer] = useState(false);
   const max = Math.max(...p.meses.map(m => m.neto), 1);
   return (
@@ -136,7 +136,7 @@ function Proyeccion({ allCasos, companias, onAbrirCaso }) {
         </div>
       )}
       <Nota>
-        Indemnización: lo acordado; si no hay acuerdo, lo reclamado por el % que suele cobrarse con esa compañía. Honorarios: los cargados; si no, el % de la compañía (Análisis → Compañías) o el de tus casos. Comisión: la cargada o la proporción habitual. Cuándo: la fecha de pago comprometida o lo que suele tardar esa compañía desde la derivación; lo atrasado va al mes actual.
+        Indemnización: lo acordado; si no hay acuerdo, lo reclamado por el % que suele cobrarse con esa compañía. Honorarios: los cargados; si no, el % de la compañía (Análisis → Compañías) o el de tus casos. Comisión: la cargada, o el % del PAS (Clientes; sin % = no cobra). Cuándo: la fecha de pago comprometida o lo que suele tardar esa compañía desde la derivación; lo atrasado va al mes actual.
         {p.sinDatos > 0 && ` Quedan afuera ${p.sinDatos} ${p.sinDatos === 1 ? "caso" : "casos"} sin monto reclamado ni acuerdo.`}
       </Nota>
     </section>
