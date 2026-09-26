@@ -94,6 +94,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-26 — Arreglo: Análisis dejaba de cargar ("q is not a function")
+*   En `analisis.proyeccion`, el plazo habitual de la compañía (PR #61) usaba el mismo nombre que la función del plazo hasta el cobro (`plazoCia`) y la pisaba: Análisis se rompía al calcular la proyección. Renombrado a `plazoHabitual`. Probadas las cinco vistas de Análisis.
+
 ### 2026-09-26 — Plazo de pago editable (y por compañía) y % de comisión por PAS (SQL 24 ejecutado)
 *   **Plazo de pago del convenio** (`pas_casos.plazo_pago`, días): ahora se edita en la ficha → Datos → Fechas ("Plazo de pago (días)"), junto con **"Firma del convenio"** (`fecha_firma`). Antes no había dónde cargarlos.
 *   **Plazo habitual por compañía** (`pas_companias.plazo_pago_dias`, SQL 24): se configura en Análisis → Compañías → **"Condiciones de cada compañía"** (junto con el % de honorarios) o en la ficha → Contacto en la compañía. Se **copia al caso** cuando el caso no tiene plazo y se carga la aceptación o la firma (ficha) o pasa a Esperando pago (ficha, fila de Casos y tablero). La proyección también lo usa si el caso no tiene plazo.
