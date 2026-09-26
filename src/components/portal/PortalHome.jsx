@@ -201,7 +201,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           {pagosPendientes.length > 0 && (
             <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 16px" }}>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Próximos cobros</div>
-              <div style={{ maxHeight: 240, overflowY: "auto" }}>
+              {/* Usa el alto que queda en la pantalla (la columna es fija al bajar) */}
+              <div style={{ maxHeight: "max(240px, calc(100vh - 400px))", overflowY: "auto" }}>
                 {pagosPendientes.map((p, i) => (
                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
                     <span style={{ minWidth: 0 }}>

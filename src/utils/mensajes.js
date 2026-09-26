@@ -133,7 +133,7 @@ export const MAIL_PRESENTACION = {
     "",
     "Saludos,",
     "Alexis Torres Gaveglio",
-    "Abogado",
+    "Abogado · 11 3313-3259",
     "",
     "Si preferís que no te escriba más, respondé \"baja\" y no te vuelvo a escribir.",
   ].join("\n"),

@@ -44,7 +44,7 @@
 *   Bitácora: `SeccionTimeline.jsx`. Otros: `ModalGenerarEscrito.jsx`, `PreviewModal.jsx`, `Toast.jsx`, `EstadoSelector.jsx`.
 
 **Portal PAS y vista del cliente** (`components/portal/`)
-*   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
+*   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar, "Reclamo para firmar" → `EscritoPortal.jsx`), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
 *   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio, montos, "Mandanos tu documentación" (un mail por sesión), WhatsApp.
 
 **UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`).
@@ -93,6 +93,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-25 — Portal PAS: reclamo para firmar; próximos cobros más alto; teléfono en el mail
+*   **Reclamo para firmar** (portal PAS): en cada caso en curso, botón "Reclamo para firmar" (`portal/EscritoPortal.jsx`). Toma asegurado, DNI, fecha del siniestro y compañía del caso (se pueden corregir en el modal, no se guardan) y la documentación adicional, y descarga el mismo reclamo extrajudicial del estudio **con lugar para la firma del asegurado** (firma, aclaración, DNI y fecha). Así el PAS lo imprime y lo firman en el momento.
+*   `generarEscrito` acepta `conFirma` (solo lo usa el portal; el escrito del estudio queda igual).
+*   **Próximos cobros** (columna izquierda del portal): la lista usa el alto disponible de la pantalla (antes, 240 px fijos).
+*   **Mail de presentación:** firma "Abogado · 11 3313-3259".
 
 ### 2026-09-25 — Mail de presentación a PAS sin teléfono; estadísticas de Clientes pasan a Análisis
 *   **Mail de presentación** (Contactos → Sin teléfono): botón **Mail** en las filas sin teléfono y con mail. Abre el redactor de Gmail (en el celular, la app de mail) con asunto y texto listos y el primer nombre del PAS, y lo registra como contacto con resultado `mail_enviado` (sale de Sin contactar; en Contactados se ve "mail enviado hace X d"). Tope de **30 por día** (`MAILS_POR_DIA`) para cuidar la cuenta de Gmail: arriba de la lista se ve "Mails de presentación hoy: N de 30" y al llegar al tope el botón se desactiva. Texto en `utils/mensajes.js` (`MAIL_PRESENTACION`, `linkMailPresentacion`); registro en `App.handleMailEnviado`.
