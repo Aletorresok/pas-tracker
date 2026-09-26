@@ -134,7 +134,7 @@ async function resumenDelDia(forzar = false) {
   const hoy = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   if (!forzar && !(await unaVez(`resumen:${hoy}`))) return 0;
   const { data: casos } = await sb.from("pas_casos")
-    .select("estado, proxima_accion, proxima_accion_vence, fecha_firma, plazo_pago, fecha_pago, origen, revisado_en, monto_cobro_yo, monto_comision_pas, fecha_cobro_honorarios, estado_honorarios, fecha_pago_comision");
+    .select("estado, proxima_accion, proxima_accion_vence, fecha_firma, fecha_aceptacion, plazo_pago, fecha_pago, origen, revisado_en, monto_cobro_yo, monto_comision_pas, fecha_cobro_honorarios, estado_honorarios, fecha_pago_comision");
   const activos = (casos || []).filter(c => !["cobrado", "desistido"].includes(c.estado));
   const conAccion = activos.filter(c => (c.proxima_accion || "").trim() && c.proxima_accion_vence);
   const vencidas = conAccion.filter(c => String(c.proxima_accion_vence).slice(0, 10) < hoy).length;
@@ -142,7 +142,8 @@ async function resumenDelDia(forzar = false) {
   const pagosVencidos = activos.filter(c => {
     if (c.estado !== "esperando_pago") return false;
     let f = c.fecha_pago ? String(c.fecha_pago).slice(0, 10) : null;
-    if (c.fecha_firma && Number(c.plazo_pago)) { const [y, m, d] = String(c.fecha_firma).slice(0, 10).split("-"); f = agregar(y, m, d, Number(c.plazo_pago)); }
+    const base = c.fecha_firma || c.fecha_aceptacion; // firma o aceptación + plazo del convenio
+    if (base && Number(c.plazo_pago)) { const [y, m, d] = String(base).slice(0, 10).split("-"); f = agregar(y, m, d, Number(c.plazo_pago)); }
     return !!f && f <= hoy;
   }).length;
   const nuevos = (casos || []).filter(c => c.origen === "portal" && !c.revisado_en).length;

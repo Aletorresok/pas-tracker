@@ -2,15 +2,22 @@
 import { fmtDate, fmtMoney } from "./formatters.js";
 import { ESTADOS_CASO, estadoInfo } from "../constants.js";
 
-// Fecha estimada de pago: firma del acuerdo + plazo del convenio; si no, la fecha de pago cargada
-export function fechaPagoEstimada(c) {
-  if (c.fecha_firma && Number(c.plazo_pago)) {
-    const d = new Date(String(c.fecha_firma).slice(0, 10) + "T12:00:00");
-    d.setDate(d.getDate() + Number(c.plazo_pago));
-    return d.toISOString().slice(0, 10);
-  }
-  return c.fecha_pago ? String(c.fecha_pago).slice(0, 10) : null;
+const masDias = (iso, dias) => {
+  const d = new Date(String(iso).slice(0, 10) + "T12:00:00");
+  d.setDate(d.getDate() + Number(dias));
+  return d.toISOString().slice(0, 10);
+};
+
+// Fecha en que la compañía se comprometió a pagar y de dónde sale: firma + plazo del convenio; si no hay firma,
+// aceptación + plazo; si no hay plazo, la fecha de pago cargada. { fecha, segun } (fecha null si no hay datos).
+export function fechaPagoComprometida(c) {
+  const plazo = Number(c.plazo_pago);
+  if (c.fecha_firma && plazo) return { fecha: masDias(c.fecha_firma, plazo), segun: `Firma + ${plazo} d` };
+  if (c.fecha_aceptacion && plazo) return { fecha: masDias(c.fecha_aceptacion, plazo), segun: `Aceptación + ${plazo} d` };
+  if (c.fecha_pago) return { fecha: String(c.fecha_pago).slice(0, 10), segun: "Fecha de pago" };
+  return { fecha: null, segun: null };
 }
+export const fechaPagoEstimada = c => fechaPagoComprometida(c).fecha;
 
 // Qué está pasando ahora con el caso, en palabras para el cliente.
 // Si el estudio no escribió un mensaje, es lo que el cliente ve como "Mensaje del estudio".

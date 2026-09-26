@@ -101,7 +101,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
           <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
         </>
       )}
-      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} />}
+      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
       {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
       {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} />}

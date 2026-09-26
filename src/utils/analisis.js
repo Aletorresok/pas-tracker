@@ -4,6 +4,7 @@ import { fechaLocalISO, sumarDias } from "./formatters.js";
 import { netoYo, esActivo, tieneHonorarios, honorariosCobrados } from "./metricas.js";
 import { estadisticasPas } from "./estadisticasPas.js";
 import { subaOfertas } from "./ofertas.js";
+import { fechaPagoComprometida } from "./vistaCliente.js";
 
 const MAX_DIAS = 1825; // más de 5 años entre dos fechas = error de carga
 const aISO = v => (v ? String(v).slice(0, 10) : "");
@@ -39,11 +40,43 @@ export const fechaAcuerdo = c => c.fecha_aceptacion || c.fecha_firma || null;
 const fueAMediacion = c => Boolean(c.fecha_mediacion) || c.estado === "en_mediacion";
 const fueAJuicio = c => Boolean(c.fecha_inicio_juicio) || c.estado === "en_juicio";
 
+// ── Incumplimientos de pago ─────────────────────────────────────────────────
+// Casos con fecha comprometida de pago (firma o aceptación + plazo, o fecha de pago) y qué pasó:
+// "a_termino" (pagó ese día o antes), "tarde" (pagó después) o "impago" (ya pasó la fecha y no pagó).
+// El pago es la fecha de cobro de la indemnización. Los "Cobrado" viejos sin esa fecha no se pueden evaluar.
+const diasConSigno = (a, b) => Math.round((new Date(aISO(b) + "T12:00:00") - new Date(aISO(a) + "T12:00:00")) / 86400000);
+export function incumplimientos(casos, hoy = new Date()) {
+  const hoyISO = fechaLocalISO(hoy);
+  return casos.map(c => {
+    if (c.estado === "desistido") return null;
+    const { fecha, segun } = fechaPagoComprometida(c);
+    if (!fecha) return null;
+    if (c.fecha_cobro) {
+      const atraso = diasConSigno(fecha, c.fecha_cobro);
+      return { caso: c, debia: fecha, segun, pago: aISO(c.fecha_cobro), atraso: Math.max(0, atraso), estado: atraso > 0 ? "tarde" : "a_termino" };
+    }
+    if (c.estado === "cobrado" || fecha >= hoyISO) return null; // sin fecha de cobro, o todavía en plazo
+    return { caso: c, debia: fecha, segun, pago: null, atraso: diasConSigno(fecha, hoyISO), estado: "impago" };
+  }).filter(Boolean);
+}
+function resumenPagos(casos) {
+  const lista = incumplimientos(casos);
+  const tarde = lista.filter(x => x.estado === "tarde");
+  const aTermino = lista.filter(x => x.estado === "a_termino").length;
+  const cerrados = aTermino + tarde.length; // los impagos todavía no terminaron
+  return {
+    total: lista.length, aTermino, tarde: tarde.length, impagos: lista.filter(x => x.estado === "impago").length,
+    pctATermino: pct(aTermino, cerrados), cerrados,
+    atraso: mediana(tarde.map(x => x.atraso)),
+  };
+}
+
 // ── Compañías ───────────────────────────────────────────────────────────────
 function statsDeGrupo(nombre, casos, ofertas = {}) {
   const subas = casos.map(c => subaOfertas(ofertas[c.id], c)).filter(v => v !== null);
   return {
     suba: { valor: mediana(subas), n: subas.length },
+    pagos: resumenPagos(casos),
     nombre,
     total: casos.length,
     diasOferta: medianaDias(casos, c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento),
@@ -171,8 +204,8 @@ export const DIAS_FACTURA = 30; // plazo que se asume entre factura y cobro de h
 
 // Fecha estimada de cobro de los honorarios y de qué dato sale
 export function estimarCobro(c) {
-  if (c.fecha_firma && num(c.plazo_pago)) return { fecha: sumarDias(aISO(c.fecha_firma), num(c.plazo_pago)), segun: "Firma + plazo" };
-  if (c.fecha_pago) return { fecha: aISO(c.fecha_pago), segun: "Fecha de pago" };
+  const comprometida = fechaPagoComprometida(c);
+  if (comprometida.fecha) return comprometida;
   if (c.estado_honorarios === "FACTURADO" && c.fecha_factura) return { fecha: sumarDias(aISO(c.fecha_factura), DIAS_FACTURA), segun: `Factura + ${DIAS_FACTURA} d` };
   return { fecha: null, segun: null };
 }

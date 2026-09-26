@@ -7,8 +7,9 @@ import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import ModalGenerarEscrito from "../caso/ModalGenerarEscrito.jsx";
 import { THEME } from "../../utils/theme.js";
-import { diasDesde, sumarDias, primerNombre } from "../../utils/formatters.js";
+import { diasDesde, primerNombre } from "../../utils/formatters.js";
 import { linkWhatsApp, linkVistaCliente } from "../../utils/mensajes.js";
+import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 
 // Una línea con lo que sigue y cuándo, para contestarle al cliente sin abrir nada
 function queSigue(caso, plazoCia) {
@@ -23,7 +24,7 @@ function queSigue(caso, plazoCia) {
     return Number(caso.monto_ofrecimiento) > 0 ? `Ofrecieron ${fmtMoney(caso.monto_ofrecimiento)}` : `${cia} hizo un ofrecimiento`;
   }
   if (caso.estado === "esperando_pago") {
-    const fecha = caso.fecha_firma && Number(caso.plazo_pago) ? sumarDias(String(caso.fecha_firma).slice(0, 10), Number(caso.plazo_pago)) : caso.fecha_pago ? String(caso.fecha_pago).slice(0, 10) : null;
+    const fecha = fechaPagoEstimada(caso);
     if (!fecha) return "Hay acuerdo · fecha de pago a confirmar";
     const d = -diasDesde(fecha);
     return `Pago estimado ${fmtDate(fecha)} · ${d > 0 ? `en ${d} días` : d === 0 ? "hoy" : `vencido hace ${-d} días`}`;

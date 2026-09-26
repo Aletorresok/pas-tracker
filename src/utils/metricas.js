@@ -2,6 +2,7 @@
 import { fechaLocalISO, sumarDias } from "./formatters.js";
 import { margenPara } from "./margenes.js";
 import { prescripcion, PRESCRIPCION_ANIOS } from "./flujoEstados.js";
+import { fechaPagoEstimada } from "./vistaCliente.js";
 
 export const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const INACTIVOS = ["cobrado", "desistido"];
@@ -94,12 +95,8 @@ export function cobrosPendientes(allCasos) {
       return c.estado === "esperando_pago" || indemnizacionPagada(c) || honorariosCobrados(c);
     })
     .map(c => {
-      let fechaEstimada = null, diasRestantes = null;
-      if (c.fecha_firma && c.plazo_pago) {
-        fechaEstimada = sumarDias(c.fecha_firma, Number(c.plazo_pago));
-      } else if (c.fecha_pago) {
-        fechaEstimada = String(c.fecha_pago).slice(0, 10);
-      }
+      let diasRestantes = null;
+      const fechaEstimada = fechaPagoEstimada(c); // firma o aceptación + plazo, o fecha de pago
       if (fechaEstimada) diasRestantes = Math.ceil((new Date(fechaEstimada).getTime() - hoyMs) / 86400000);
       const f = falta(c);
       return { ...c, ...f, fechaEstimada, diasRestantes,

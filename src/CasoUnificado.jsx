@@ -22,6 +22,8 @@ import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
 import AvisarWhatsApp from "./components/caso/AvisarWhatsApp.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "./utils/flujoEstados.js";
 import { registrarAccion } from "./utils/storage.js";
+import { registrarCambioOfrecimiento } from "./utils/ofertas.js";
+import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
@@ -172,7 +174,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
       const { error } = await supabase.from("pas_casos").upsert([fila]);
-      if (!error) { setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated); }
+      if (!error) {
+        // Ofrecimiento nuevo cargado a mano: el anterior queda en el historial de ofertas
+        if (Number(updated.monto_ofrecimiento) && Number(updated.monto_ofrecimiento) !== Number(caso.monto_ofrecimiento)) registrarCambioOfrecimiento(caso, updated.monto_ofrecimiento, fechaLocalISO()).then(ok => ok && setVersionOfertas(v => v + 1));
+        setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated);
+      }
       else {
         setEstadoGuardado("error");
         const sinPermiso = /row-level security/i.test(error.message || "");
@@ -187,6 +193,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   // Al cambiar de estado: completa la fecha de la etapa, lo anota en la bitácora y sugiere la próxima acción
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
+  const [versionOfertas, setVersionOfertas] = useState(0); // recarga el historial de ofertas
   const alCambiarEstado = (anterior, nuevo) => {
     const fechas = fechasAlCambiarEstado(formData, nuevo);
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
@@ -320,7 +327,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div {...panel("montos")}>
               <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
               <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
-              <HistorialOfertas casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
+              <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
               <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
             </div>
             <div {...panel("documentos")}>
