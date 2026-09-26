@@ -8,3 +8,4 @@ dist-electron.zip
 .DS_Store
 *.log
 .vercel
+supabase/.temp
