@@ -26,13 +26,13 @@
 *   `components/BuscadorGlobal.jsx` — Ctrl/Cmd+K: casos (asegurado, patente, DNI, siniestro, compañía, PAS) y PAS (cargados + búsqueda en los 51 mil contactos).
 
 **Pestañas del estudio**
-*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, KPIs, Para hacer, Cobros pendientes, Agenda, Casos por etapa, Honorarios por mes.
+*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, KPIs y dos columnas parejas: Para hacer (izquierda) · Cobros pendientes + Agenda (derecha).
     *   `dashboard/RecepcionHoy.jsx` (archivos que mandaron clientes) · `NuevosPortal.jsx` (casos derivados sin revisar) · `ParaHacer.jsx` (próximas acciones, honorarios, reclamos quietos con "Reiteré hoy", PAS dormidos con "Escribirle") · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `GraficoBarraMensual.jsx`.
 *   `TabCasos.jsx` (**Casos**) — tabla con chips (Activos, Todos, Sin DNI, por estado), orden, filas de dos líneas en celular.
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
-*   `TabProspeccion.jsx` (**Prospección**) — Sin contactar (`TabContactos.jsx`, paginado en servidor), Contactados / Derivadores / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx`; registrar contacto `ContactModal.jsx`.
+*   `TabProspeccion.jsx` (**Contactos**; la clave interna sigue siendo `prospeccion`) — Sin contactar (ordenado por teléfono de mayor a menor por defecto ; `TabContactos.jsx`, paginado en servidor), Contactados / Derivadores / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx`; registrar contacto `ContactModal.jsx`.
 *   `TabClientes.jsx` (**Clientes**) — tabla de PAS clientes (en curso, cobrados, % desistidos, honorarios, ritmo/Dormido); fila desplegada con estadísticas, "Resumen del mes" (`clientes/ResumenMensual.jsx`), nuevo caso / PAS manual (`clientes/ModalesCliente.jsx`) y sus casos.
-*   `TabAnalisis.jsx` (**Análisis**) — chips Resumen (KPIs históricos, casos por estado, cobros en detalle `dashboard/CobrosPendientesCard.jsx`) / Compañías / PAS / Etapas / Flujo de caja.
+*   `TabAnalisis.jsx` (**Análisis**) — chips Resumen (KPIs históricos netos, `analisis/CasosPorEtapa.jsx`, cobros en detalle `dashboard/CobrosPendientesCard.jsx`) / Compañías / PAS / Etapas / Flujo de caja (con `analisis/HonorariosPorMes.jsx`).
     *   `analisis/AnalisisCompanias.jsx` (+ `MargenCompanias.jsx`) · `AnalisisPas.jsx` · `AnalisisEtapas.jsx` · `AnalisisCaja.jsx` · `TablaAnalisis.jsx` (tabla ordenable compartida).
 *   `TabPortalUsuarios.jsx` (**Portal**) — alta/baja de usuarios del portal (cliente de Supabase aparte para no pisar tu sesión).
 
@@ -94,6 +94,15 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-25 — Hoy en dos columnas, gráficos a Análisis, Contactos, márgenes de reclamo quieto por datos
+*   **Hoy:** quedan KPIs y dos columnas parejas: **Para hacer** a la izquierda, **Cobros pendientes + Agenda** a la derecha. "Casos por etapa" y "Honorarios por mes" se mudaron a Análisis.
+*   **Análisis → Resumen:** "Casos por etapa" (`analisis/CasosPorEtapa.jsx`) reemplaza a "Casos por estado" (el detalle por estado sigue en los chips de Casos). KPI renombrado a "Mis honorarios cobrados · histórico" (**neto**, ya descontada la comisión).
+*   **Análisis → Flujo de caja:** arriba, "Honorarios cobrados por mes" (`analisis/HonorariosPorMes.jsx`, tocando un mes se ven sus casos).
+*   **Números corregidos** (`metricas.kpis`): "Comisiones pagadas a PAS" suma solo los casos con honorarios cobrados (antes sumaba también las comisiones por pagar). El histórico cuenta también los casos viejos en "Cobrado" sin fecha de cobro de honorarios. "Por cobrar" (Hoy) usa el mismo criterio que Cobros pendientes y Flujo de caja (con honorarios, sin cobrar, no desistido): antes incluía casos viejos ya cobrados sin fecha.
+*   **Cobros pendientes → "Asegurado":** si "Lo que cobró el asegurado" está vacío, muestra lo acordado o el ofrecimiento (antes quedaba en $0 aunque el caso tuviera monto; ej. Gallardo Gerardo).
+*   **Prospección → "Contactos"** (solo el nombre visible). Sin contactar se ordena por defecto por **teléfono de mayor a menor** (los sin teléfono al final); el chip Teléfono va primero.
+*   **Reclamo quieto, margen por compañía con tus datos:** si una compañía no tiene margen propio, usa el día en que ya respondió el **75%** de sus reclamos (inicio del reclamo → ofrecimiento), con **3 casos o más**, nunca menos que el general ni más de **60 días**. Sin datos suficientes, el general (14). Los márgenes que cargues a mano siguen mandando, y se editan igual que antes. `metricas.plazosRespuesta` (ahora con `sugerido`), `metricas.margenesSugeridos`, `margenes.margenPara(margenes, cia, sugeridos)`.
 
 ### 2026-09-25 — Análisis: estadísticas para decidir (compañías, PAS, etapas, flujo de caja)
 *   **Pestaña Análisis con chips** (mismo estilo que Prospección; la última elegida se recuerda en `localStorage.pas_analisis_vista`): **Resumen** (lo que ya estaba: KPIs históricos, casos por estado, cobros pendientes) · **Compañías** · **PAS** · **Etapas** · **Flujo de caja**.

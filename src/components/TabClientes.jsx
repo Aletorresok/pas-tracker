@@ -241,7 +241,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
       {clientes.length === 0 && (
         <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
           <Ilustracion nombre="carpeta" size={88} style={{ margin: "0 auto 8px" }} />
-          Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Prospección o agregalo con "PAS manual".
+          Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Contactos o agregalo con "PAS manual".
         </div>
       )}
       {clientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>Ningún PAS coincide con la búsqueda.</div>}

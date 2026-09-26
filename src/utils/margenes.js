@@ -7,8 +7,12 @@ export const MARGEN_DEFECTO = 14;
 export const GENERAL = "*";
 const CAMBIO = "pas-margenes-cambio";
 
-// Días para una compañía: el suyo, si no el general, si no 14
-export const margenPara = (margenes, cia) => margenes?.[cia] ?? margenes?.[GENERAL] ?? MARGEN_DEFECTO;
+// Días para una compañía: el que cargaste para ella; si no, el sugerido por tus datos (nunca menos que el general);
+// si no hay datos, el general; si no, 14. `sugeridos` sale de metricas.margenesSugeridos.
+export const margenPara = (margenes, cia, sugeridos = {}) => {
+  const general = margenes?.[GENERAL] ?? MARGEN_DEFECTO;
+  return margenes?.[cia] ?? (sugeridos[cia] != null ? Math.max(general, sugeridos[cia]) : general);
+};
 
 // { compania: dias } o null si la tabla no existe todavía
 export async function cargarMargenes() {

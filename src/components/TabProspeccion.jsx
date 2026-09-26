@@ -24,7 +24,7 @@ export default function TabProspeccion(props) {
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Prospección</h1>
+      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Contactos</h1>
       <div role="group" aria-label="Filtrar PAS" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
         {chip("sin_contactar", "Sin contactar")}
         {FILTROS_CONTACTADOS.map(f => chip(f.k, f.l, conteos[f.k]))}
