@@ -6,6 +6,7 @@ import { alpha } from "../../utils/theme.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
 import Boton from "../ui/Boton.jsx";
+import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje } from "../caso/AvisoEstadoCliente.jsx";
 import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 
 // Campos que se editan desde la fila desplegada de la tabla
@@ -87,6 +88,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
         )}
         <div>
           <span style={etiqueta}>Estado · tocá para cambiar</span>
+          <div style={{ marginBottom: 6 }}><AvisoEstadoCliente caso={{ ...caso, ...borrador }} onCambiar={e => cambiar("estado", e)} /></div>
           <div role="radiogroup" aria-label="Estado del caso" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {ESTADOS_CASO.map(e => {
               const activo = borrador.estado === e.key;
@@ -137,8 +139,9 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
         </div>
 
         <div>
-          <label htmlFor={`mc-${caso.id}`} style={etiqueta}>Mensaje para el cliente <span style={{ color: "var(--muted)" }}>· lo ven el PAS y el cliente</span></label>
+          <label htmlFor={`mc-${caso.id}`} style={etiqueta}>Mensaje para el cliente <EtiquetaMensajeCliente /></label>
           <textarea id={`mc-${caso.id}`} rows={2} value={borrador.mensaje_cliente} onChange={e => cambiar("mensaje_cliente", e.target.value)} placeholder="Ej: El reclamo está en la compañía. Estimamos respuesta en 15 días." style={area} />
+          <VistaPreviaMensaje caso={{ ...caso, ...borrador }} />
         </div>
 
         <AvisarWhatsApp caso={{ ...caso, ...borrador }} pasNombre={pas?.nombre || caso._pasNombre || ""} pasTelefono={(pas?.telefonos || [])[0] || ""}

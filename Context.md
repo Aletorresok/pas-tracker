@@ -45,7 +45,7 @@
 
 **Portal PAS y vista del cliente** (`components/portal/`)
 *   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar, "Generar escrito" con el mismo modal de la ficha, `caso/ModalGenerarEscrito.jsx`), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
-*   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio, montos, "Mandanos tu documentación" (un mail por sesión), WhatsApp.
+*   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio (o texto automático de la etapa, `utils/vistaCliente.js`), montos, "Mandanos tu documentación" (un mail por sesión), mediación con link, WhatsApp.
 
 **UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`).
 
@@ -93,6 +93,17 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-25 — Vista del cliente más prolija; avisos en la ficha (SQL 19 pendiente de correr)
+*   **Mensaje del estudio siempre presente:** si no escribiste uno, el cliente ve el texto automático de la etapa (sin fecha, firmado por el estudio) y la línea de tiempo muestra la descripción corta del paso (no se repite el texto). Los textos viven en `utils/vistaCliente.js` (`textoEtapaCliente`), compartidos con la ficha.
+*   **Fecha estimada de pago:** firma + plazo del convenio (o la fecha de pago cargada), en el texto y en el paso "Pago", con la leyenda "Si pasada esa fecha no recibiste el pago, avisanos por WhatsApp así lo reclamamos".
+*   **Cobrado:** "¡Listo! Cobraste $X el dd/mm" y la fecha debajo del monto.
+*   **Se quitó "Último movimiento"** (si pasaban semanas sin novedad visible, generaba reclamos).
+*   **Documentación:** la lista de faltantes y el contador solo en Doc. pendiente / Iniciado, con "Compartí toda la documentación necesaria. Nos falta: …". Después: "¿Tenés documentación nueva del siniestro? Compartila acá." (sin lista ni "necesario").
+*   **Mediación / audiencia:** además de día y hora, el lugar y un botón "Entrar a la mediación" con el link, y "Te confirmamos por WhatsApp si tenés que participar y qué necesitás".
+*   **Horario de atención** junto al botón de WhatsApp: constante `HORARIO_ATENCION` en `portal/PortalCliente.jsx` (vacía = no se muestra; falta que el usuario defina el horario).
+*   **Ficha y fila de Casos (estudio):** etiqueta "Lo leen el cliente y el PAS" en el mensaje; si está vacío, debajo se ve el texto automático que le llega al cliente. **Aviso de estado atrasado** (`caso/AvisoEstadoCliente.jsx`, `vistaCliente.estadoSugerido`): si el caso tiene fecha de inicio de reclamo, ofrecimiento, juicio o acuerdo pero su estado es anterior, avisa que el cliente lo ve atrasado y ofrece "Pasar a …" con un toque.
+*   **SQL 19** (`sql/2026-09-25_19_vista_cliente.sql`, ⏳ **pendiente de correr**): `consultar_caso_cliente` suma `fecha_firma`, `plazo_pago` y `fecha_cobro`; `extras_cliente` suma `link` y `lugar` del evento. Sin correrlo, la vista funciona pero sin fecha estimada por firma + plazo, sin fecha de cobro y sin link/lugar de la mediación.
 
 ### 2026-09-25 — Portal PAS: "qué sigue" y seguimiento para el cliente; alta de caso con patente, DNI y teléfono
 *   **Tarjeta del caso (portal PAS):** debajo de la barra de avance, una línea con lo que sigue: *Reclamado* → "Reclamado hace N días · {compañía} suele responder en unos X días" (X = promedio reclamo → ofrecimiento de esa compañía, con `metricas.plazosRespuesta` sobre los datos de `plazos_companias`); *Con ofrecimiento* → "Ofrecieron $X"; *Esperando pago* → "Pago estimado dd/mm · en N días" (firma + plazo, o fecha de pago).

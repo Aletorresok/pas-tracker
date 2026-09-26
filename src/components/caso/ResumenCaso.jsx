@@ -4,6 +4,7 @@ import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
 import SeccionPagos from "./SeccionPagos.jsx";
+import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje } from "./AvisoEstadoCliente.jsx";
 
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
@@ -47,15 +48,17 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
             <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>Guardar →</span>
           </button>
         )}
+        <AvisoEstadoCliente caso={formData} onCambiar={e => onChange("estado", e)} />
         <CasoProximaAccion formData={formData} onChange={onChange} Th={Th} />
 
         <div style={caja}>
           <label htmlFor="mensaje-cliente" style={{ display: "block", fontSize: 14, fontWeight: 700, color: Th.text, marginBottom: 8 }}>
-            Mensaje para el cliente <span style={{ fontWeight: 500, color: Th.muted, fontSize: 12 }}>· lo ven el PAS y el cliente</span>
+            Mensaje para el cliente <EtiquetaMensajeCliente />
           </label>
           <textarea id="mensaje-cliente" value={formData.mensaje_cliente || ""} onChange={e => onChange("mensaje_cliente", e.target.value)}
             placeholder="Ej: El reclamo está en la compañía. Estimamos novedades en 10 días."
             style={{ ...Th.input, minHeight: 60, resize: "vertical" }} />
+          <VistaPreviaMensaje caso={formData} />
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 8, fontSize: 12, color: Th.muted }}>
             {formData.patente && <button type="button" onClick={copiarLink} style={link}>{copiado ? "✓ Link copiado" : "Copiar link del cliente"}</button>}
             {!tieneDni && <span>Sin DNI cargado: el cliente no puede entrar. <button type="button" onClick={() => irA("datos")} style={{ ...link, fontSize: 12 }}>Cargar DNI</button></span>}

@@ -12,10 +12,14 @@ import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import Logo from "../ui/Logo.jsx";
+import { textoEtapaCliente, fechaPagoEstimada } from "../../utils/vistaCliente.js";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
 const WHATSAPP = "5491133133259";
 const ABOGADO = "Dr. Alexis Torres Gaveglio";
+// Horario de atención que se muestra junto al botón de WhatsApp (vacío = no se muestra)
+const HORARIO_ATENCION = "";
+
 
 const limpiarPatente = v => v.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
 
@@ -34,37 +38,27 @@ const PASOS_TEXTO = [
   "Recibís tu dinero.",
 ];
 
-// Qué está pasando ahora con tu caso
-const ahora = caso => {
-  const cia = caso.compania_aseguradora || "la compañía";
-  switch (caso.estado) {
-    case "doc_pendiente": return "Estamos reuniendo la documentación de tu siniestro. Si te pedimos algo, mandalo cuanto antes así avanzamos.";
-    case "iniciado": return "Ya tenemos tu caso y estamos preparando el reclamo.";
-    case "reclamado": return `Presentamos el reclamo ante ${cia}. Ahora esperamos su respuesta.`;
-    case "con_ofrecimiento": return `${cia} hizo un ofrecimiento. Lo estamos analizando para conseguir el mejor monto posible.`;
-    case "en_mediacion": return `El caso está en mediación: una reunión formal para llegar a un acuerdo con ${cia}.`;
-    case "en_juicio": return "Iniciamos una demanda judicial para defender tu reclamo. Estos procesos llevan más tiempo; te vamos a ir contando.";
-    case "esperando_pago": return `Hay acuerdo. Ahora ${cia} tiene que pagar${caso.fecha_pago ? ` (fecha estimada: ${fmtDate(caso.fecha_pago)})` : ""}.`;
-    case "cobrado": return "¡Listo! Tu reclamo está cobrado.";
-    case "desistido": return "Este reclamo quedó cerrado. Si tenés dudas, escribinos.";
-    default: return "";
-  }
-};
+// Qué está pasando ahora con tu caso (mismo texto que ve el estudio en la ficha)
+const ahora = textoEtapaCliente;
 
 // Fecha que acompaña a cada paso, si la hay
-const fechaPaso = (caso, i) => [caso.fecha_derivacion, caso.fecha_inicio_reclamo, caso.fecha_ofrecimiento, caso.fecha_pago, null][i];
+const fechaPaso = (caso, i) => [caso.fecha_derivacion, caso.fecha_inicio_reclamo, caso.fecha_ofrecimiento, fechaPagoEstimada(caso), caso.fecha_cobro][i];
 
 const linkWhatsApp = patente => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola ${ABOGADO}, te escribo por mi reclamo${patente ? ` (patente ${patente})` : ""}.`)}`;
 
 function BotonWhatsApp({ patente, texto = "Escribinos por WhatsApp" }) {
   return (
-    <a className="btn-wa-grande" href={linkWhatsApp(patente)} target="_blank" rel="noopener noreferrer">
-      <Icono nombre="mensaje" size={18} /> {texto}
-    </a>
+    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+      <a className="btn-wa-grande" href={linkWhatsApp(patente)} target="_blank" rel="noopener noreferrer">
+        <Icono nombre="mensaje" size={18} /> {texto}
+      </a>
+      {HORARIO_ATENCION && <span style={{ fontSize: 12, color: "var(--muted)" }}>Respondemos {HORARIO_ATENCION}</span>}
+    </span>
   );
 }
 
-function LineaDeTiempo({ caso }) {
+// Si no hay mensaje del estudio, el texto de la etapa va en la tarjeta de mensaje y acá queda la descripción corta
+function LineaDeTiempo({ caso, textoEnMensaje = false }) {
   const paso = pasoDe(caso.estado);
   const color = paso === 5 ? "var(--ok)" : "var(--accent)";
   return (
@@ -93,7 +87,7 @@ function LineaDeTiempo({ caso }) {
                 {fecha && (hecho || actual) && <span className="num" style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}{i === 3 && !hecho ? " (estimada)" : ""}</span>}
               </div>
               {actual
-                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: 8, padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{ahora(caso)}</div>
+                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: 8, padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{textoEnMensaje ? PASOS_TEXTO[i] : ahora(caso)}</div>
                 : <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{PASOS_TEXTO[i]}</div>}
             </div>
           </li>
@@ -147,6 +141,8 @@ function useAvisoDeSesion() {
 }
 
 function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, onRecargar }) {
+  // La lista de lo que falta solo se muestra mientras se junta la documentación
+  const enDocumentacion = ["doc_pendiente", "iniciado"].includes(caso.estado);
   const [abierto, setAbierto] = useState(false);
   const [subiendo, setSubiendo] = useState(null); // tipo en curso
   const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
@@ -190,10 +186,14 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
         <Ilustracion nombre="foto" size={48} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: "block", fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Mandanos tu documentación</span>
-          <span style={{ display: "block", fontSize: 13, lineHeight: 1.45, color: faltan.length ? "var(--sub)" : "var(--ok)" }}>
-            {faltan.length ? `Falta: ${faltan.map(d => d.l.replace(/ \(.*\)/, "")).join(", ")}` : "✓ Ya tenemos lo necesario. Podés sumar más si querés."}
-            <span style={{ color: "var(--muted)" }}> · {listos} de {DOCS_CLIENTE.length}</span>
-          </span>
+          {enDocumentacion ? (
+            <span style={{ display: "block", fontSize: 13, lineHeight: 1.45, color: faltan.length ? "var(--sub)" : "var(--ok)" }}>
+              {faltan.length ? `Compartí toda la documentación necesaria. Nos falta: ${faltan.map(d => d.l.replace(/ \(.*\)/, "")).join(", ")}` : "✓ Ya tenemos lo necesario. Podés sumar más si querés."}
+              <span style={{ color: "var(--muted)" }}> · {listos} de {DOCS_CLIENTE.length}</span>
+            </span>
+          ) : (
+            <span style={{ display: "block", fontSize: 13, lineHeight: 1.45, color: "var(--sub)" }}>¿Tenés documentación nueva del siniestro? Compartila acá.</span>
+          )}
         </span>
         <span style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--accent-ink)" }}>
           {abierto ? "Cerrar" : "Ver"}
@@ -214,7 +214,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
                 {listo && <Icono nombre="check" size={12} />}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{d.l}{d.requerido && !listo && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · necesario</span>}</span>
+                <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{d.l}{enDocumentacion && d.requerido && !listo && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · necesario</span>}</span>
                 {loTenemos
                   ? <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Ya lo tenemos</span>
                   : env.length > 0 && <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Enviado{env.length > 1 ? ` (${env.length})` : ""} · {new Date(env[0].creado).toLocaleDateString("es-AR")}</span>}
@@ -241,6 +241,9 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
   const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 };
+  // Sin mensaje escrito por el estudio, se muestra el texto de la etapa (así la tarjeta nunca queda vacía)
+  const mensajeAuto = !caso.mensaje_cliente && caso.estado !== "desistido";
+  const mensaje = caso.mensaje_cliente || (mensajeAuto ? ahora(caso) : "");
 
   return (
     <article className="caso-cliente">
@@ -256,32 +259,36 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
 
         {caso.estado === "desistido"
           ? <div style={{ background: "var(--card2)", borderRadius: 8, padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
-          : <LineaDeTiempo caso={caso} />}
+          : <LineaDeTiempo caso={caso} textoEnMensaje={mensajeAuto} />}
 
         {evento && (
           <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 10, padding: "10px 12px" }}>
             <Icono nombre="calendario" size={18} />
             <span style={{ fontSize: 14, lineHeight: 1.45 }}>
               <b>{evento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> {new Date(evento.inicio).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, {new Date(evento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs.
-              <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>Te confirmamos los detalles por WhatsApp.</span>
+              {evento.lugar && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>Lugar: {evento.lugar}</span>}
+              {evento.link && (
+                <a href={evento.link} target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "7px 12px", borderRadius: 8, background: "var(--info)", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                  Entrar a la {evento.tipo === "audiencia" ? "audiencia" : "mediación"}
+                </a>
+              )}
+              <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginTop: 6 }}>Te confirmamos por WhatsApp si tenés que participar y qué necesitás.</span>
             </span>
           </div>
         )}
 
-        {caso.fecha_ultimo_movimiento && !cerrado && (
-          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 14 }}>Último movimiento en tu caso: <span className="num">{fmtDate(caso.fecha_ultimo_movimiento)}</span></div>
-        )}
       </section>
       </div>
       <div>
 
-      {caso.mensaje_cliente && (
+      {mensaje && (
         <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 700 }}>Mensaje del estudio</span>
-            {caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
+            {caso.mensaje_cliente && caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
           </div>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{caso.mensaje_cliente}</p>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{mensaje}</p>
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
         </section>
       )}
@@ -300,6 +307,7 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
             <div>
               <div style={{ fontSize: 13, color: "var(--sub)" }}>{caso.estado === "cobrado" ? "Cobraste" : "Vas a cobrar"}</div>
               <div className="num" style={{ fontSize: 22, fontWeight: 700, color: "var(--ok)" }}>{fmtMoney(cobras)}</div>
+              {caso.estado === "cobrado" && caso.fecha_cobro && <div className="num" style={{ fontSize: 12, color: "var(--muted)" }}>el {fmtDate(caso.fecha_cobro)}</div>}
             </div>
           )}
         </section>
