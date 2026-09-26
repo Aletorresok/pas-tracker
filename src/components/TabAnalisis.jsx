@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabase.js";
+import { cambiosDeEstado } from "../utils/analisis.js";
+import { ESTADOS_CASO } from "../constants.js";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
 import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
@@ -31,6 +34,23 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const [vista, setVista] = useState(leerVista);
   const [abierto, setAbierto] = useState(null);
+  // Cambios de estado registrados en la bitácora ("Pasó de X a Y"), para los tiempos exactos de Etapas
+  const [cambios, setCambios] = useState({});
+  useEffect(() => {
+    let vigente = true;
+    (async () => {
+      const filas = [];
+      for (let desde = 0; ; desde += 1000) {
+        const { data, error } = await supabase.from("acciones").select("id, caso_id, fecha, descripcion")
+          .like("descripcion", "Pasó de %").order("id").range(desde, desde + 999);
+        if (error || !data) break;
+        filas.push(...data);
+        if (data.length < 1000) break;
+      }
+      if (vigente) setCambios(cambiosDeEstado(filas, ESTADOS_CASO));
+    })();
+    return () => { vigente = false; };
+  }, [casos]);
 
   const elegir = v => {
     setVista(v);
@@ -79,7 +99,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
       )}
       {vista === "companias" && <AnalisisCompanias allCasos={allCasos} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
-      {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} />}
+      {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
       {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} />}
 
       {abierto && (

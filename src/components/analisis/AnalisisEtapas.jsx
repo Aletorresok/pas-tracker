@@ -1,13 +1,17 @@
 import { useMemo } from "react";
 import TablaAnalisis, { card, tono, ConMuestra, Barrita, Nota } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
-import { embudo, tiempoEnEstado, mediana, pct, ETAPAS } from "../../utils/analisis.js";
+import { embudo, tiempoEnEstado, mediana, pct, ETAPAS, duracionPorEstado } from "../../utils/analisis.js";
 import { ESTADOS_CASO } from "../../constants.js";
 
 // Análisis → Etapas: cuántos casos llegan a cada etapa, cuánto tardan entre una y otra y dónde se traban
-export default function AnalisisEtapas({ allCasos, onAbrirCaso }) {
+export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) {
   const { etapas, caidas, desistidos } = useMemo(() => embudo(allCasos), [allCasos]);
-  const activos = useMemo(() => tiempoEnEstado(allCasos), [allCasos]);
+  const activos = useMemo(() => tiempoEnEstado(allCasos, new Date(), cambios), [allCasos, cambios]);
+  const exactos = activos.filter(a => a.exacto).length;
+  const duraciones = useMemo(() => duracionPorEstado(cambios), [cambios]);
+  const filasDuracion = ESTADOS_CASO.filter(e => duraciones[e.key]).map(e => ({ key: e.key, label: e.label, ...duraciones[e.key] }));
+  const maxDuracion = Math.max(...filasDuracion.map(f => f.valor || 0), 1);
   const total = allCasos.length;
 
   const porEstado = ESTADOS_CASO.map(e => {
@@ -69,8 +73,20 @@ export default function AnalisisEtapas({ allCasos, onAbrirCaso }) {
             celda: f => <span className="num" style={{ color: f.sinFecha ? "var(--warn)" : "var(--muted)", fontWeight: f.sinFecha ? 600 : 400 }}>{f.sinFecha}</span> },
         ]} />
         <Nota>
-          Como no se guarda cuándo cambió el estado, la entrada se toma de la fecha del expediente que le corresponde: Reclamado desde el último reclamo, Con ofrecimiento desde la reconsideración u ofrecimiento, Esperando pago desde la aceptación o firma, y así. Los "sin fecha" no entran en la cuenta.
+          Desde el 25/09/2026 cada cambio de estado queda registrado en la bitácora: para esos casos la entrada al estado es exacta ({exactos} de {activos.length} hoy). Para el resto se toma la fecha del expediente que corresponde (Reclamado desde el último reclamo, Con ofrecimiento desde la reconsideración u ofrecimiento, Esperando pago desde la aceptación o firma, etc.). Los "sin fecha" no entran en la cuenta.
         </Nota>
+      </section>
+
+      <section>
+        <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700 }}>Cuánto dura cada estado</h2>
+        <TablaAnalisis clave={f => f.key} filas={filasDuracion} ordenInicial={{ k: "valor", desc: true }} minWidth={420}
+          vacio="Todavía no hay datos: se arma solo a medida que cambies de estado los casos (desde el 25/09/2026)."
+          columnas={[
+            { k: "label", l: "Estado", ancho: "45%", valor: f => ESTADOS_CASO.findIndex(e => e.key === f.key), celda: f => <EstadoPill estado={f.key} /> },
+            { k: "valor", l: "Mediana", ancho: "35%", derecha: true, celda: f => <><ConMuestra valor={f.valor} n={f.n} sufijo=" d" /><Barrita valor={f.valor} max={maxDuracion} /></> },
+            { k: "n", l: "Casos", ancho: "20%", derecha: true, celda: f => <span className="num">{f.n}</span> },
+          ]} />
+        <Nota>Días entre que el caso entró a cada estado y pasó al siguiente, solo con cambios registrados. Es el dato exacto; al principio va a tener pocos casos.</Nota>
       </section>
 
       {demorados.length > 0 && (
