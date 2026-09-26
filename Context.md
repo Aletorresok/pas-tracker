@@ -32,7 +32,8 @@
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
 *   `TabProspeccion.jsx` (**Prospección**) — Sin contactar (`TabContactos.jsx`, paginado en servidor), Contactados / Derivadores / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx`; registrar contacto `ContactModal.jsx`.
 *   `TabClientes.jsx` (**Clientes**) — tabla de PAS clientes (en curso, cobrados, % desistidos, honorarios, ritmo/Dormido); fila desplegada con estadísticas, "Resumen del mes" (`clientes/ResumenMensual.jsx`), nuevo caso / PAS manual (`clientes/ModalesCliente.jsx`) y sus casos.
-*   `TabAnalisis.jsx` (**Análisis**) — cobros en detalle (`dashboard/CobrosPendientesCard.jsx`), ranking de PAS (`dashboard/RankingPASCard.jsx`), plazos por compañía (`GraficoCompanias.jsx`).
+*   `TabAnalisis.jsx` (**Análisis**) — chips Resumen (KPIs históricos, casos por estado, cobros en detalle `dashboard/CobrosPendientesCard.jsx`) / Compañías / PAS / Etapas / Flujo de caja.
+    *   `analisis/AnalisisCompanias.jsx` (+ `MargenCompanias.jsx`) · `AnalisisPas.jsx` · `AnalisisEtapas.jsx` · `AnalisisCaja.jsx` · `TablaAnalisis.jsx` (tabla ordenable compartida).
 *   `TabPortalUsuarios.jsx` (**Portal**) — alta/baja de usuarios del portal (cliente de Supabase aparte para no pisar tu sesión).
 
 **Ficha del caso**
@@ -52,7 +53,7 @@
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `hooks/useInstalarApp.js` (botón "Instalar app": menú Apariencia y backup, cabecera del portal, vista del cliente), `context/ThemeContext.jsx` (tema y acento).
 
 **Utilidades** (`utils/`)
-*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
+*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `analisis.js` (estadísticas de Análisis: compañías, PAS, embudo, tiempo en estado, flujo de caja) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda).
@@ -93,6 +94,18 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-25 — Análisis: estadísticas para decidir (compañías, PAS, etapas, flujo de caja)
+*   **Pestaña Análisis con chips** (mismo estilo que Prospección; la última elegida se recuerda en `localStorage.pas_analisis_vista`): **Resumen** (lo que ya estaba: KPIs históricos, casos por estado, cobros pendientes) · **Compañías** · **PAS** · **Etapas** · **Flujo de caja**.
+*   **Compañías** (`analisis/AnalisisCompanias.jsx`): por compañía, reclamo a oferta, acuerdo a pago de indemnización (`fecha_cobro`), acuerdo a pago de honorarios (`fecha_cobro_honorarios`), factura a cobro, % ofrecido y % cobrado sobre lo reclamado, y cuántos casos van a mediación y a juicio. Arriba, los mismos números para toda la cartera. Filtro "Con al menos N casos". Abajo quedó "Reclamo quieto: margen por compañía".
+*   **PAS** (`analisis/AnalisisPas.jsx`): casos, en curso, % cobrados (sobre cerrados), % desistidos (sobre el total, igual que Clientes), neto por caso, neto total y días de derivación a cobro. Usa `estadisticasPas` para que los números coincidan con Clientes. Tiene buscador.
+*   **Etapas** (`analisis/AnalisisEtapas.jsx`): embudo Derivado → Reclamado → Ofrecimiento → Acuerdo → Indemnización cobrada → Honorarios cobrados, con el % que pasa y la mediana de días entre etapas; en qué etapa quedaron los desistidos; tiempo en el estado actual por estado (con "sin fecha"); y los 10 casos más demorados, que se abren con un clic.
+*   **Flujo de caja** (`analisis/AnalisisCaja.jsx`): honorarios netos sin cobrar (`tieneHonorarios` && !`honorariosCobrados`), por tramo: Vencido / 0–30 / 31–60 / 61–90 / +90 / Sin fecha, con acumulados a 30, 60 y 90 días. La fecha estimada sale de firma + plazo, si no fecha de pago, si no factura + 30 días. Tocando un tramo se filtra el detalle; tocando un caso se abre la ficha.
+*   **Cálculos** en `utils/analisis.js` (funciones puras). Los plazos son **medianas** y se muestran con la cantidad de casos que tienen las dos fechas ("32 d · 7"). Se descartan diferencias negativas o de más de 5 años. "Acuerdo" = `fecha_aceptacion` o, si falta, `fecha_firma`.
+*   **Limitación:** no se guarda el historial de cambios de estado, así que el "tiempo en el estado actual" se aproxima con la fecha del expediente que corresponde a cada estado (`ENTRADA_ESTADO`). Si hace falta exactitud, habría que registrar cada cambio de estado con su fecha.
+*   **Componentes:** `analisis/TablaAnalisis.jsx` (tabla ordenable con el estilo de Clientes, `ConMuestra`, `Barrita`, `Nota`). La tabla de compañías reemplaza en Análisis al selector "Plazos por compañía" (`GraficoCompanias.jsx` sigue en el portal PAS). **Borrado** `dashboard/RankingPASCard.jsx`: lo reemplaza la vista PAS. En Hoy, el enlace ahora dice "Compañías, PAS, etapas y flujo de caja → Análisis".
+*   `Context-viejo.md` (raíz): copia del contexto de antes del rediseño, guardada por si sirve. No usarlo como referencia.
+*   **Mensaje de WhatsApp para contactar PAS** (`formatters.waLink`): vuelve a la versión más nueva del usuario, que estaba solo en su PC: "…cuando un asegurado tuyo choca contra un tercero, ¿el reclamo lo maneja el cliente por su cuenta, le das una mano vos o se lo derivás a algún abogado?" (sin la mención al padrón de la SSN). Reemplaza al del 24/09.
 
 ### 2026-09-25 — Indemnización y honorarios se tildan por separado
 *   **Por qué:** cada compañía paga la indemnización y los honorarios cuando quiere; antes los honorarios solo contaban como cobrados si el caso estaba en "Cobrado".

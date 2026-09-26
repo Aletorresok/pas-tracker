@@ -159,7 +159,7 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       <button type="button" onClick={() => onIrA?.("analisis")}
         style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0 }}>
-        Ranking de PAS, plazos por compañía y cobros en detalle → Análisis
+        Compañías, PAS, etapas y flujo de caja → Análisis
       </button>
 
       {abierto && (
