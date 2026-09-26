@@ -7,6 +7,29 @@ import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import ModalGenerarEscrito from "../caso/ModalGenerarEscrito.jsx";
 import { THEME } from "../../utils/theme.js";
+import { diasDesde, sumarDias, primerNombre } from "../../utils/formatters.js";
+import { linkWhatsApp, linkVistaCliente } from "../../utils/mensajes.js";
+
+// Una línea con lo que sigue y cuándo, para contestarle al cliente sin abrir nada
+function queSigue(caso, plazoCia) {
+  const cia = caso.compania_aseguradora || "La compañía";
+  if (caso.estado === "reclamado") {
+    const desde = caso.fecha_ultimo_reclamo || caso.fecha_reclamo || caso.fecha_inicio_reclamo;
+    const d = desde ? diasDesde(desde) : null;
+    if (d === null) return plazoCia ? `${cia} suele responder en unos ${plazoCia} días` : null;
+    return `Reclamado hace ${d} ${d === 1 ? "día" : "días"}${plazoCia ? ` · ${cia} suele responder en unos ${plazoCia} días` : ""}`;
+  }
+  if (caso.estado === "con_ofrecimiento") {
+    return Number(caso.monto_ofrecimiento) > 0 ? `Ofrecieron ${fmtMoney(caso.monto_ofrecimiento)}` : `${cia} hizo un ofrecimiento`;
+  }
+  if (caso.estado === "esperando_pago") {
+    const fecha = caso.fecha_firma && Number(caso.plazo_pago) ? sumarDias(String(caso.fecha_firma).slice(0, 10), Number(caso.plazo_pago)) : caso.fecha_pago ? String(caso.fecha_pago).slice(0, 10) : null;
+    if (!fecha) return "Hay acuerdo · fecha de pago a confirmar";
+    const d = -diasDesde(fecha);
+    return `Pago estimado ${fmtDate(fecha)} · ${d > 0 ? `en ${d} días` : d === 0 ? "hoy" : `vencido hace ${-d} días`}`;
+  }
+  return null;
+}
 
 const FECHAS = [
   { k: "fecha_derivacion", l: "Derivación" },
@@ -23,10 +46,15 @@ const MONTOS = [
 ];
 
 // Tarjeta de un caso en el portal del PAS: lo esencial arriba, el detalle al tocar
-export default function PortalCasoCard({ caso, proximoEvento }) {
+export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
   const [open, setOpen] = useState(false);
   const [escrito, setEscrito] = useState(false);
   const abierto = !["cobrado", "desistido"].includes(caso.estado) && !caso._demo;
+  const sigue = queSigue(caso, plazoCia);
+  // El cliente entra a su vista con la patente y los últimos 3 números del DNI: hacen falta los dos
+  const puedeSeguirlo = abierto && caso.patente && String(caso.dni_asegurado || "").replace(/D/g, "").length >= 3;
+  const textoCliente = `Hola ${primerNombre(caso.asegurado || "")}, podés seguir cómo va tu reclamo cuando quieras en ${linkVistaCliente(caso.patente)} (entrás con la patente y los últimos 3 números de tu DNI).`;
+  const linkCliente = puedeSeguirlo ? (linkWhatsApp(caso.telefono_asegurado, textoCliente) || `https://wa.me/?text=${encodeURIComponent(textoCliente)}`) : null;
   const [subiendo, setSubiendo] = useState(false);
   const [aviso, setAviso] = useState(null); // { tipo, texto }
   const fileInputRef = useRef(null);
@@ -80,6 +108,8 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
 
         <BarraAvance estado={caso.estado} conPill={false} conEtiquetas />
 
+        {sigue && <div className="num" style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{sigue}</div>}
+
         {proximoEvento && (
           <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text)", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 8, padding: "8px 10px" }}>
             <Icono nombre="calendario" size={16} />
@@ -111,7 +141,15 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
             style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
             {open ? "Ocultar detalle" : "Ver detalle y adjuntar documentación"}
           </button>
-          {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
+          <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+            {linkCliente && (
+              <a href={linkCliente} target="_blank" rel="noreferrer" title="Le manda por WhatsApp el link para que siga el caso solo"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                <Icono nombre="mensaje" size={14} />Pasale el seguimiento al cliente
+              </a>
+            )}
+            {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
+          </span>
         </div>
       </div>
 
