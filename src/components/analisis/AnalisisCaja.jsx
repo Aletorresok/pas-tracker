@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import TablaAnalisis, { card, tono, Nota } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
+import HonorariosPorMes from "./HonorariosPorMes.jsx";
 import { flujoCaja, DIAS_FACTURA } from "../../utils/analisis.js";
 import { fmtMoney, fmtDate } from "../../utils/formatters.js";
 import { ESTADOS_CASO } from "../../constants.js";
@@ -36,6 +37,8 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso }) {
           </div>
         ))}
       </section>
+
+      <HonorariosPorMes allCasos={allCasos} onAbrirCaso={onAbrirCaso} />
 
       <section style={{ ...card, padding: "14px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, gap: 8, flexWrap: "wrap" }}>

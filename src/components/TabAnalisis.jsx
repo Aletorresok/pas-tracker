@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
-import { ESTADOS_CASO } from "../constants.js";
 import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import AnalisisCompanias from "./analisis/AnalisisCompanias.jsx";
 import AnalisisPas from "./analisis/AnalisisPas.jsx";
 import AnalisisEtapas from "./analisis/AnalisisEtapas.jsx";
 import AnalisisCaja from "./analisis/AnalisisCaja.jsx";
+import CasosPorEtapa from "./analisis/CasosPorEtapa.jsx";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
 
@@ -24,7 +24,7 @@ const leerVista = () => {
 };
 
 // Métricas de fondo para decidir: lo que no hace falta mirar todos los días
-export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], onCasoLocal }) {
+export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], onCasoLocal, onIrA }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
@@ -37,8 +37,6 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
     try { localStorage.setItem("pas_analisis_vista", v); } catch { /* sin almacenamiento: no pasa nada */ }
   };
   const abrirCaso = c => setAbierto({ caso: c, pasId: c._pasId });
-
-  const porEstado = ESTADOS_CASO.map(e => ({ ...e, count: allCasos.filter(c => c.estado === e.key).length })).filter(e => e.count > 0);
 
   const chip = ({ k: key, l }) => {
     const activo = vista === key;
@@ -62,29 +60,19 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
         <>
           <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
             {[
-              { l: "Honorarios cobrados · histórico", v: fmtMoney(k.totalHistorico) },
-              { l: "Comisiones pagadas a PAS", v: fmtMoney(k.comisionesPAS) },
+              { l: "Mis honorarios cobrados · histórico", v: fmtMoney(k.totalHistorico), s: "neto, ya descontada la comisión" },
+              { l: "Comisiones pagadas a PAS", v: fmtMoney(k.comisionesPAS), s: "de los casos con honorarios cobrados" },
               { l: "Casos totales", v: k.total },
             ].map(x => (
               <div key={x.l} style={{ padding: "12px 16px" }}>
                 <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
                 <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2 }}>{x.v}</div>
+                {x.s && <div style={{ fontSize: 12, color: "var(--muted)" }}>{x.s}</div>}
               </div>
             ))}
           </section>
 
-          <section style={{ ...card, padding: "14px 16px" }}>
-            <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700 }}>Casos por estado</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "6px 16px" }}>
-              {porEstado.map(e => (
-                <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: e.color, flex: "none" }} />
-                  <span style={{ color: "var(--sub)", flex: 1 }}>{e.label}</span>
-                  <b className="num">{e.count}</b>
-                </div>
-              ))}
-            </div>
-          </section>
+          <CasosPorEtapa allCasos={allCasos} onVerCasos={onIrA ? () => onIrA("casos") : undefined} />
 
           <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
         </>

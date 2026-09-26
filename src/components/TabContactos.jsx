@@ -17,7 +17,8 @@ function consultaContactos({ vista, busqueda, orden, soloContar = false }) {
   if (vista !== "todos") q = q.eq("prioridad", vista);
   const texto = busqueda.trim().replace(/[,()*%\\]/g, " ").trim();
   if (texto) q = q.or(`nombre.ilike.*${texto}*,mail.ilike.*${texto}*,telefonos.ilike.*${texto}*`);
-  if (!soloContar) q = q.order(COLUMNA_ORDEN[orden] || "nombre", { ascending: true }).order("id");
+  // Teléfono va de mayor a menor (los sin teléfono al final); nombre y mail, de la A a la Z
+  if (!soloContar) q = q.order(COLUMNA_ORDEN[orden] || "nombre", { ascending: orden !== "telefono", nullsFirst: false }).order("id");
   return q;
 }
 
@@ -37,7 +38,7 @@ export default function TabContactos({
   const [vista, setVista] = useState("agendado");
   const [busqueda, setBusqueda] = useState("");
   const [busquedaActiva, setBusquedaActiva] = useState("");
-  const [orden, setOrden] = useState("nombre");
+  const [orden, setOrden] = useState("telefono");
   const [expandedId, setExpandedId] = useState(null);
 
   const [lista, setLista] = useState([]);
@@ -167,8 +168,8 @@ export default function TabContactos({
       <div style={{ display: "flex", gap: 6, marginBottom: 8, alignItems: "center", flexWrap: "wrap" }}>
         <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 2 }}>Ordenar:</span>
         {[
-          { key: "nombre", label: "Nombre" },
           { key: "telefono", label: "Teléfono" },
+          { key: "nombre", label: "Nombre" },
           { key: "mail", label: "Mail" },
         ].map(o => (
           <button key={o.key} type="button" onClick={() => setOrden(o.key)} aria-pressed={orden === o.key} style={{

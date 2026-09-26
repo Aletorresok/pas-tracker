@@ -56,7 +56,9 @@ export function kpis(allCasos, hoy = new Date()) {
     .reduce((s, c) => s + netoYo(c), 0);
   const porMes = honorariosPorMes(allCasos, hoy);
   const esteMes = porMes[11].valor, mesAnterior = porMes[10].valor;
-  const porCobrar = allCasos.filter(c => !c.fecha_cobro_honorarios && (Number(c.monto_cobro_yo) || 0) > 0);
+  // Mismo criterio que Cobros pendientes y Flujo de caja: con honorarios cargados, sin cobrar y no desistido
+  const porCobrar = allCasos.filter(c => c.estado !== "desistido" && tieneHonorarios(c) && !honorariosCobrados(c));
+  const cobrados = allCasos.filter(c => tieneHonorarios(c) && honorariosCobrados(c));
   return {
     anio,
     cobradoAnio: cobradoEnAnio(anio),
@@ -68,8 +70,9 @@ export function kpis(allCasos, hoy = new Date()) {
     esteMes,
     varMensual: variacion(esteMes, mesAnterior),
     mesAnteriorNombre: porMes[10].mes,
-    totalHistorico: allCasos.filter(c => c.fecha_cobro_honorarios).reduce((s, c) => s + netoYo(c), 0),
-    comisionesPAS: allCasos.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0),
+    // Neto (ya descontada la comisión) y comisiones de los casos donde cobraste los honorarios
+    totalHistorico: cobrados.reduce((s, c) => s + netoYo(c), 0),
+    comisionesPAS: cobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0),
   };
 }
 
@@ -95,7 +98,8 @@ export function cobrosPendientes(allCasos) {
       const f = falta(c);
       return { ...c, ...f, fechaEstimada, diasRestantes,
         montoYo: f.faltaHonorarios ? Number(c.monto_cobro_yo) || 0 : 0,
-        montoAsegurado: f.faltaIndemnizacion ? Number(c.monto_cobro_asegurado) || 0 : 0 };
+        // Lo que va a cobrar el asegurado: si todavía no se cargó "Lo que cobró", el acordado o el ofrecimiento
+        montoAsegurado: f.faltaIndemnizacion ? Number(c.monto_cobro_asegurado) || Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || 0 : 0 };
     })
     .sort((a, b) => (a.fechaEstimada || "9999").localeCompare(b.fechaEstimada || "9999"));
 }
@@ -108,7 +112,22 @@ const diasEntre = (a, b) => {
   return Number.isFinite(d) ? d : null;
 };
 
-// Cuánto tarda cada compañía en responder un reclamo (inicio del reclamo → ofrecimiento), con tus datos. Solo informativo.
+// Margen sugerido por compañía: el día en que ya respondió el 75% de sus reclamos (con al menos 3 casos),
+// nunca menos que el general ni más de 60 días. Así no avisa antes de tiempo con las que suelen tardar.
+export const MIN_CASOS_SUGERIDO = 3;
+export const MARGEN_SUGERIDO_MAX = 60;
+const percentil = (xs, p) => {
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.ceil((p / 100) * s.length) - 1)];
+};
+
+// { cia: dias } con los márgenes sugeridos (solo las compañías con datos suficientes)
+export const margenesSugeridos = allCasos => Object.fromEntries(
+  Object.entries(plazosRespuesta(allCasos)).filter(([, p]) => p.sugerido !== null).map(([cia, p]) => [cia, p.sugerido])
+);
+
+// Cuánto tarda cada compañía en responder un reclamo (inicio del reclamo → ofrecimiento), con tus datos.
+// { cia: { promedio, n, sugerido } }; sugerido es null si hay pocos casos.
 export function plazosRespuesta(allCasos) {
   const porCia = {};
   allCasos.forEach(c => {
@@ -116,19 +135,24 @@ export function plazosRespuesta(allCasos) {
     if (!c.compania_aseguradora || d === null || d < 0 || d > 730) return;
     (porCia[c.compania_aseguradora] ||= []).push(d);
   });
-  return Object.fromEntries(Object.entries(porCia).map(([cia, ds]) => [cia, { promedio: Math.round(ds.reduce((s, x) => s + x, 0) / ds.length), n: ds.length }]));
+  return Object.fromEntries(Object.entries(porCia).map(([cia, ds]) => [cia, {
+    promedio: Math.round(ds.reduce((s, x) => s + x, 0) / ds.length),
+    n: ds.length,
+    sugerido: ds.length >= MIN_CASOS_SUGERIDO ? Math.min(MARGEN_SUGERIDO_MAX, percentil(ds, 75)) : null,
+  }]));
 }
 
 // Casos "Reclamado" sin respuesta hace más que el margen de su compañía (Análisis → Reclamo quieto)
 export function reclamosQuietos(allCasos, hoy = new Date(), margenes = {}) {
   const hoyISO = fechaLocalISO(hoy);
+  const sugeridos = margenesSugeridos(allCasos);
   return allCasos
     .filter(c => c.estado === "reclamado")
     .map(c => {
       const desde = aISO(c.fecha_ultimo_reclamo || c.fecha_reclamo || c.fecha_inicio_reclamo || c.fecha_ultimo_movimiento);
       const dias = diasEntre(desde, hoyISO);
       if (!desde || dias === null) return null;
-      const umbral = margenPara(margenes, c.compania_aseguradora);
+      const umbral = margenPara(margenes, c.compania_aseguradora, sugeridos);
       return { caso: c, desde, dias, umbral, vence: sumarDias(desde, umbral) };
     })
     .filter(q => q && q.dias > q.umbral);

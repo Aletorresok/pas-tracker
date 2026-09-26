@@ -47,7 +47,7 @@ export default function MargenCompanias({ allCasos }) {
     <section style={{ ...card, padding: "14px 16px" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700 }}>Reclamo quieto: margen por compañía</h2>
       <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>
-        Días sin respuesta de la compañía antes de que Hoy te avise para reiterar el reclamo. Dejá vacía una compañía para usar el general.
+        Días sin respuesta de la compañía antes de que Hoy te avise para reiterar el reclamo. Si dejás vacía una compañía, usa lo que tardó en responder el 75% de sus reclamos (con 3 casos o más, hasta 60 días) o, si no hay datos, el general.
       </p>
       {margenes === null ? (
         <div style={{ fontSize: 13, color: "var(--warn)" }}>Falta correr el SQL 14 en Supabase. Mientras tanto se usan {MARGEN_DEFECTO} días para todas.</div>
@@ -59,15 +59,18 @@ export default function MargenCompanias({ allCasos }) {
           </div>
           {companias.map(c => {
             const p = plazos[c.nombre];
+            // Sin margen propio: el sugerido por tus datos (nunca menos que el general) o el general
+            const efectivo = p?.sugerido != null ? Math.max(general, p.sugerido) : general;
             return (
               <div key={c.nombre} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 0", borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: "block", fontSize: 14 }}>{c.nombre}</span>
                   <span style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>
                     {c.total} {c.total === 1 ? "caso" : "casos"}{p ? ` · suele ofrecer a los ${p.promedio} d (${p.n} ${p.n === 1 ? "caso" : "casos"})` : ""}
+                    {margenes[c.nombre] == null && (p?.sugerido != null && efectivo > general ? ` · usa ${efectivo} d según tus datos` : "")}
                   </span>
                 </span>
-                <Dias compania={c.nombre} valor={margenes[c.nombre]} placeholder={String(general)} />
+                <Dias compania={c.nombre} valor={margenes[c.nombre]} placeholder={String(efectivo)} />
               </div>
             );
           })}

@@ -27,7 +27,7 @@ function Interruptor({ activo, label, detalle, onClick }) {
   );
 }
 
-// Fila de un PAS en Prospección: resumen en una línea, detalle al tocar
+// Fila de un PAS en Contactos: resumen en una línea, detalle al tocar
 export default function PASCard({ pas, historial, derivadores, onContactar, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle }) {
   const contactos = historial[pas.id] || [];
   const ultimo = contactos[contactos.length - 1];
