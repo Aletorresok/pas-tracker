@@ -15,6 +15,31 @@ import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
 import Ilustracion from "./ui/Ilustracion.jsx";
 import AccesoPortal, { usePortalUsers, urlPortal } from "./clientes/AccesoPortal.jsx";
+import { cargarComisiones, guardarComision } from "../utils/ofertas.js";
+
+// % de comisión del PAS sobre tus honorarios. Vacío = no cobra comisión. Se guarda al salir del campo.
+function ComisionPas({ pas, pct, onGuardado }) {
+  const [texto, setTexto] = useState(null);
+  const [estado, setEstado] = useState("");
+  const guardar = async () => {
+    if (texto === null) return;
+    const n = parseFloat(String(texto).replace(",", "."));
+    const nuevo = Number.isFinite(n) && n > 0 && n <= 100 ? n : null;
+    if ((nuevo ?? null) === (pct ?? null)) { setTexto(null); return; }
+    const err = await guardarComision(pas.id, nuevo);
+    setEstado(err ? "error" : "ok"); setTexto(null);
+    if (!err) onGuardado();
+    setTimeout(() => setEstado(""), 1500);
+  };
+  return (
+    <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--sub)" }}>
+      Comisión
+      <input inputMode="decimal" value={texto ?? (pct ?? "")} placeholder="sin" onChange={e => setTexto(e.target.value)} onBlur={guardar} onKeyDown={e => e.key === "Enter" && e.currentTarget.blur()}
+        aria-label={`% de comisión de ${pas.nombre}`} style={{ width: 56, font: "inherit", fontSize: 13, padding: "4px 6px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", textAlign: "right" }} />
+      <span style={{ color: estado === "ok" ? "var(--ok)" : estado === "error" ? "var(--bad)" : "var(--muted)" }}>{estado === "ok" ? "✓" : estado === "error" ? "no se guardó" : "%"}</span>
+    </label>
+  );
+}
 
 const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || Number(c.monto_reclamado) || 0;
 const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
@@ -64,7 +89,7 @@ function InfoDelPas({ est }) {
 }
 
 // Contacto y casos de un PAS, dentro de la fila desplegada
-function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso }) {
+function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso, comision, onCambioComision }) {
   const casos = [...pas._casos].sort((a, b) => (esActivo(b) - esActivo(a)) || ultimoMov(b).localeCompare(ultimoMov(a)));
   const [resumen, setResumen] = useState(false);
   return (
@@ -77,6 +102,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
           </a>
         ))}
         <span style={{ flex: 1 }} />
+        {comision !== undefined && <ComisionPas pas={pas} pct={comision} onGuardado={onCambioComision} />}
         {tieneAcceso !== null && <AccesoPortal pas={pas} tieneAcceso={tieneAcceso} onCambio={onCambioAcceso} />}
         {pas.manual && <Boton tamaño="sm" variante="fantasma" onClick={onEditar}>Editar PAS</Boton>}
         {casos.length > 0 && <Boton tamaño="sm" icono="mensaje" onClick={() => setResumen(r => !r)}>Resumen del mes</Boton>}
@@ -133,6 +159,10 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   // Acceso al portal de productores (antes era la pestaña Portal)
   const { ids: conPortal, recargar: recargarPortal } = usePortalUsers();
+  // % de comisión de cada PAS (SQL 24). null = falta el SQL (no se muestra el campo)
+  const [comisiones, setComisiones] = useState(null);
+  const recargarComisiones = () => cargarComisiones().then(setComisiones);
+  useEffect(() => { recargarComisiones(); }, []);
   const [linkCopiado, setLinkCopiado] = useState(false);
   const copiarLinkPortal = async () => {
     try { await navigator.clipboard.writeText(urlPortal()); } catch { window.prompt("Copiá el link:", urlPortal()); }
@@ -196,6 +226,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   const desplegado = p => (
     <CasosDelPas pas={p} esCelular={esCelular}
       tieneAcceso={conPortal ? conPortal.has(String(p.id)) : null} onCambioAcceso={recargarPortal}
+      comision={comisiones === null ? undefined : (comisiones[String(p.id)] ?? null)} onCambioComision={recargarComisiones}
       onAbrir={c => setFicha({ caso: c, pasId: String(p.id) })}
       onNuevo={() => setNuevoCasoPara(p)}
       onEditar={() => setPasEditando(p)} />

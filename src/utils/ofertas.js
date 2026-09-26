@@ -121,3 +121,19 @@ export async function todasLasCompanias() {
   if (error) return null;
   return Object.fromEntries((data || []).map(r => [r.compania, r]));
 }
+
+// ── Comisión de cada PAS (SQL 24) ────────────────────────────────────────────
+// { pasId: pct } — sin entrada = ese PAS no cobra comisión. null si falta el SQL 24.
+export async function cargarComisiones() {
+  const { data, error } = await supabase.from("pas_comisiones").select("pas_id, pct");
+  if (error) return null;
+  return Object.fromEntries((data || []).map(r => [String(r.pas_id), Number(r.pct)]));
+}
+export async function guardarComision(pasId, pct) {
+  const { error } = pct
+    ? await supabase.from("pas_comisiones").upsert({ pas_id: String(pasId), pct }, { onConflict: "pas_id" })
+    : await supabase.from("pas_comisiones").delete().eq("pas_id", String(pasId));
+  return error ? error.message : null;
+}
+// Comisión que corresponde a unos honorarios con un % (null si no hay % o no hay honorarios)
+export const comisionPara = (honorarios, pct) => (Number(honorarios) > 0 && Number(pct) > 0 ? Math.round(Number(honorarios) * Number(pct) / 100) : null);

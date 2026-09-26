@@ -278,7 +278,8 @@ export function comparativaMediacion(casos, cambios = {}, ofertas = {}) {
 //   Compañías, o el que surge de tus casos cobrados).
 //   Comisión PAS: la cargada; si no, la proporción habitual sobre los honorarios.
 //   Fecha: la comprometida de pago; si no, derivación + lo que suele tardar esa compañía hasta el cobro de honorarios.
-export function proyeccion(allCasos, companias = {}, hoy = new Date()) {
+// `comisiones` = { pasId: % } (SQL 24): si está cargado, el PAS sin % no cobra comisión; si es null, se usa la proporción habitual.
+export function proyeccion(allCasos, companias = {}, hoy = new Date(), comisiones = null) {
   const hoyISO = fechaLocalISO(hoy);
   const { general, companias: porCia } = statsCompanias(allCasos);
   const pctCobradoCia = Object.fromEntries(porCia.map(x => [x.nombre, x.pctCobrado.valor]));
@@ -310,9 +311,12 @@ export function proyeccion(allCasos, companias = {}, hoy = new Date()) {
         honor = Math.round(indem * p / 100);
         honTxt = `${p}%${cargado ? "" : datos ? " (tus casos)" : " (todas)"}`;
       }
-      const comision = num(c.monto_comision_pas) || (ratioComision ? Math.round(honor * ratioComision / 100) : 0);
+      const pctPas = comisiones ? num(comisiones[String(c._pasId)]) : null;
+      const comision = num(c.monto_comision_pas) || (comisiones ? Math.round(honor * (pctPas || 0) / 100) : (ratioComision ? Math.round(honor * ratioComision / 100) : 0));
       // Cuándo
-      let { fecha, segun: cuandoTxt } = fechaPagoComprometida(c);
+      // Sin plazo en el caso, el plazo habitual de la compañía (desde la firma o la aceptación)
+      const plazoCia = num(companias[cia]?.plazo_pago_dias);
+      let { fecha, segun: cuandoTxt } = fechaPagoComprometida(!num(c.plazo_pago) && plazoCia ? { ...c, plazo_pago: plazoCia } : c);
       if (!fecha) {
         const plazo = plazoCia(cia) ?? plazoGeneral;
         fecha = c.fecha_derivacion && plazo ? sumarDias(aISO(c.fecha_derivacion), plazo) : null;

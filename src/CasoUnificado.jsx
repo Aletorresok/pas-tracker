@@ -22,7 +22,7 @@ import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
 import AvisarWhatsApp from "./components/caso/AvisarWhatsApp.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "./utils/flujoEstados.js";
 import { registrarAccion } from "./utils/storage.js";
-import { registrarCambioOfrecimiento } from "./utils/ofertas.js";
+import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "./utils/ofertas.js";
 import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
@@ -85,7 +85,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
     documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
-    mensaje_cliente: casoProp.mensaje_cliente || "",
+    mensaje_cliente: casoProp.mensaje_cliente || "", plazo_pago: casoProp.plazo_pago || "",
     // Comisión pagada al PAS: solo si la columna ya existe (SQL 20)
     ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {})
   });
@@ -194,8 +194,17 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
   const [versionOfertas, setVersionOfertas] = useState(0); // recarga el historial de ofertas
+  // Plazo de pago por defecto de la compañía y % de comisión del PAS (SQL 24; sin eso, no hacen nada)
+  const [plazoCompania, setPlazoCompania] = useState(null);
+  const [pctComision, setPctComision] = useState(undefined); // undefined = sin configurar, 0 = no cobra
+  useEffect(() => { cargarCompania(formData.compania_aseguradora).then(d => setPlazoCompania(Number(d?.plazo_pago_dias) || null)); }, [formData.compania_aseguradora]);
+  useEffect(() => { cargarComisiones().then(m => setPctComision(m === null ? undefined : (m[String(pasId)] || 0))); }, [pasId]);
+  // Con acuerdo (aceptación, firma o Esperando pago) y sin plazo cargado, usa el de la compañía
+  const plazoPorDefecto = datos => (!Number(datos.plazo_pago) && plazoCompania && (datos.fecha_aceptacion || datos.fecha_firma || datos.estado === "esperando_pago") ? { plazo_pago: plazoCompania } : {});
+
   const alCambiarEstado = (anterior, nuevo) => {
-    const fechas = fechasAlCambiarEstado(formData, nuevo);
+    const fechas0 = fechasAlCambiarEstado(formData, nuevo);
+    const fechas = { ...fechas0, ...plazoPorDefecto({ ...formData, ...fechas0, estado: nuevo }) };
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
     registrarAccion(caso.id, textoCambioEstado(anterior, nuevo)).then(ok => ok && cargarAcciones());
     const casoNuevo = { ...caso, ...formData, ...fechas, estado: nuevo };
@@ -204,7 +213,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   const handleFormChange = (key, value) => {
     if (key === "estado" && value !== formData.estado && caso.id) alCambiarEstado(formData.estado, value);
-    setFormData(prev => ({ ...prev, [key]: value }));
+    const extra = {};
+    // Al cargar la aceptación o la firma, el plazo de la compañía si el caso no tiene
+    if ((key === "fecha_aceptacion" || key === "fecha_firma") && value) Object.assign(extra, plazoPorDefecto({ ...formData, [key]: value }));
+    // Al cargar tus honorarios, la comisión del PAS con su %
+    if (key === "monto_cobro_yo" && pctComision) { const com = comisionPara(value, pctComision); if (com !== null) extra.monto_comision_pas = com; }
+    setFormData(prev => ({ ...prev, [key]: value, ...extra }));
     setEstadoGuardado("pendiente");
   };
 
@@ -322,11 +336,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             </div>
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
-              <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} />
+              <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} plazoCompania={plazoCompania} />
             </div>
             <div {...panel("montos")}>
               <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
-              <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} />
+              <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
               <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
               <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
             </div>

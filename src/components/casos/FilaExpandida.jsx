@@ -11,14 +11,14 @@ import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
-import { registrarCambioOfrecimiento } from "../../utils/ofertas.js";
+import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "../../utils/ofertas.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { useMargenes } from "../../utils/margenes.js";
 
 // Campos que se editan desde la fila desplegada de la tabla
 // (las fechas de etapa se completan solas al cambiar de estado)
 const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
-  "fecha_inicio_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion"];
+  "fecha_inicio_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_ofrecimiento", l: "Ofrecido" },
@@ -43,7 +43,19 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
   const casoRef = useRef(caso);
   casoRef.current = caso;
 
-  const cambiar = (k, v) => { setBorrador(b => ({ ...b, [k]: v })); setEstadoGuardado("pendiente"); };
+  // % de comisión del PAS y plazo de pago de la compañía (SQL 24; sin eso, no hacen nada)
+  const [pctComision, setPctComision] = useState(0);
+  const [plazoCompania, setPlazoCompania] = useState(null);
+  useEffect(() => { cargarComisiones().then(m => setPctComision(m?.[String(caso._pasId)] || 0)); }, [caso._pasId]);
+  useEffect(() => { cargarCompania(caso.compania_aseguradora).then(d => setPlazoCompania(Number(d?.plazo_pago_dias) || null)); }, [caso.compania_aseguradora]);
+
+  const cambiar = (k, v) => {
+    const extra = {};
+    // Al cargar tus honorarios, la comisión del PAS con su %
+    if (k === "monto_cobro_yo" && pctComision) { const com = comisionPara(v, pctComision); if (com !== null) extra.monto_comision_pas = String(com); }
+    setBorrador(b => ({ ...b, [k]: v, ...extra }));
+    setEstadoGuardado("pendiente");
+  };
 
   // Guardado automático: 1,2 s después del último cambio, solo los campos que cambiaron
   useEffect(() => {
@@ -75,7 +87,9 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     if (!sinDeshacer && ESTADOS_FINALES.includes(nuevo)) setDeshacer({ anterior: borrador.estado, nuevo });
     // Completa la fecha de la etapa, lo anota en la bitácora y sugiere la próxima acción
     const actual = { ...caso, ...borrador };
-    const fechas = fechasAlCambiarEstado(actual, nuevo);
+    const fechas = { ...fechasAlCambiarEstado(actual, nuevo) };
+    // Con acuerdo y sin plazo cargado, el plazo de pago de la compañía
+    if (nuevo === "esperando_pago" && !Number(actual.plazo_pago) && plazoCompania) fechas.plazo_pago = plazoCompania;
     Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
     registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo));
     setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });

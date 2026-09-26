@@ -14,6 +14,7 @@ export default function ContactoCompania({ casoId, compania, Th }) {
   const aviso = err => { setEstado(err ? "No se guardó: " + err : "ok"); setTimeout(() => setEstado(""), 1500); };
   const guardarCaso = async () => aviso(await guardarContacto(casoId, { nombre: contacto.nombre || null, telefono: contacto.telefono || null, mail: contacto.mail || null, notas: contacto.notas || null }));
   const guardarCia = async () => { if (compania) aviso(await guardarCompania(compania, { mail: cia.mail || null, telefono: cia.telefono || null })); };
+  const guardarPlazo = async () => { if (compania) { const n = parseInt(cia.plazo_pago_dias, 10); aviso(await guardarCompania(compania, { plazo_pago_dias: n >= 1 && n <= 365 ? n : null })); } };
 
   const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16 };
   const campo = { width: "100%", boxSizing: "border-box", padding: "6px 9px", borderRadius: 7, border: `1px solid ${Th.border}`, background: "var(--card)", color: "var(--text)", fontSize: 13, fontFamily: "inherit" };
@@ -55,6 +56,7 @@ export default function ContactoCompania({ casoId, compania, Th }) {
               accion: cia.mail ? <a href={`mailto:${cia.mail}`} style={link}>Escribir</a> : null })}
             {Campo({ l: "Teléfono", valor: cia.telefono, set: v => setCia(c => ({ ...c, telefono: v })), onBlur: guardarCia, tipo: "tel",
               accion: cia.telefono ? <a href={`tel:${cia.telefono.replace(/[^\d+]/g, "")}`} style={link}>Llamar</a> : null })}
+            {Campo({ l: "Plazo de pago habitual (días)", valor: cia.plazo_pago_dias ?? "", set: v => setCia(c => ({ ...c, plazo_pago_dias: v })), onBlur: guardarPlazo, tipo: "number", ph: "Ej: 15" })}
           </div>
         </>
       )}
