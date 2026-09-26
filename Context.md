@@ -94,6 +94,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Portal PAS: "qué sigue" y seguimiento para el cliente; alta de caso con patente, DNI y teléfono
+*   **Tarjeta del caso (portal PAS):** debajo de la barra de avance, una línea con lo que sigue: *Reclamado* → "Reclamado hace N días · {compañía} suele responder en unos X días" (X = promedio reclamo → ofrecimiento de esa compañía, con `metricas.plazosRespuesta` sobre los datos de `plazos_companias`); *Con ofrecimiento* → "Ofrecieron $X"; *Esperando pago* → "Pago estimado dd/mm · en N días" (firma + plazo, o fecha de pago).
+*   **"Pasale el seguimiento al cliente"** (portal PAS): abre WhatsApp al teléfono del asegurado (o a elegir contacto si no hay) con el link de su vista y cómo entrar. Solo aparece en casos en curso con patente y DNI cargados (los necesita la vista del cliente).
+*   **Derivar caso (portal):** campo DNI del asegurado, opcional (sirve para el escrito y para el seguimiento del cliente).
+*   **Nuevo caso (Clientes, estudio):** campos Patente, DNI y Teléfono del asegurado en el alta (antes solo se podían cargar abriendo la ficha).
+
 ### 2026-09-25 — Portal PAS: reclamo para firmar; próximos cobros más alto; teléfono en el mail
 *   **Generar escrito desde el portal PAS:** en cada caso en curso, botón "Generar escrito" que abre **el mismo modal y el mismo escrito** que el botón de la ficha del caso (`caso/ModalGenerarEscrito.jsx` + `utils/generarEscrito.js`): pide el DNI (si el caso lo tiene, ya viene cargado) y la documentación adicional, y descarga el PDF. Así el PAS lo imprime y lo firman en el momento. (Se descartó un modal propio del portal que había salido en el PR #48.)
 *   **El escrito tiene abajo tres espacios en blanco: Firma, Aclaración y DNI** (para todos: estudio y portal).

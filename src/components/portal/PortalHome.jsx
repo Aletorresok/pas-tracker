@@ -12,6 +12,7 @@ import GraficoCompanias from "../GraficoCompanias.jsx";
 import { alpha } from "../../utils/theme.js";
 import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
+import { plazosRespuesta } from "../../utils/metricas.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -124,6 +125,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const casosCobrados  = casos.filter(c => c.estado === "cobrado");
   const comisionTotal  = casosCobrados.reduce((s, c) => s + (Number(c.monto_comision_pas) || 0), 0);
   const totalCobrado   = casosCobrados.reduce((s, c) => s + (Number(c.monto_cobro_asegurado) || 0), 0);
+  // Cuánto suele tardar cada compañía en ofrecer (datos de todo el estudio, sin nombres)
+  const plazos = plazosRespuesta(todosLosCasos);
   const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora).filter(Boolean))].sort();
 
   const pagosPendientes = casos
@@ -255,7 +258,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
               {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (
-            lista.map(c => <PortalCasoCard key={c.id} caso={c} proximoEvento={eventos[c.id]} />)
+            lista.map(c => <PortalCasoCard key={c.id} caso={c} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
           )}
 
           {todosLosCasos.length > 0 && (

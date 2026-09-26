@@ -16,6 +16,9 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
   const [fechaSiniestro, setFechaSiniestro] = useState("");
   const [fechaDerivacion, setFechaDerivacion] = useState(new Date().toISOString().slice(0, 10));
   const [estado, setEstado] = useState("doc_pendiente");
+  const [patente, setPatente] = useState("");
+  const [dni, setDni] = useState("");
+  const [telefono, setTelefono] = useState("");
 
   const iStyle = {
     background: "var(--card2)",
@@ -37,6 +40,9 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
       caso_id: Date.now(),
       asegurado: asegurado.trim(),
       compania_aseguradora: compania.trim() || null,
+      patente: patente.trim().toUpperCase() || null,
+      dni_asegurado: dni.trim() || null,
+      telefono_asegurado: telefono.trim() || null,
       fecha_siniestro: fechaSiniestro || null,
       fecha_derivacion: fechaDerivacion || null,
       estado,
@@ -54,6 +60,22 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Asegurado *</div>
           <input type="text" value={asegurado} onChange={e => setAsegurado(e.target.value)} placeholder="Nombre del asegurado" style={iStyle} autoFocus />
         </label>
+
+        {/* Con la patente y el DNI el cliente consulta su caso; el teléfono sirve para avisarle por WhatsApp */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
+          <label>
+            <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Patente</div>
+            <input type="text" value={patente} onChange={e => setPatente(e.target.value.toUpperCase())} placeholder="AB123CD" style={{ ...iStyle, textTransform: "uppercase" }} />
+          </label>
+          <label>
+            <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>DNI</div>
+            <input type="text" inputMode="numeric" value={dni} onChange={e => setDni(e.target.value)} placeholder="25123456" style={iStyle} />
+          </label>
+          <label>
+            <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Teléfono</div>
+            <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="11 3313 3259" style={iStyle} />
+          </label>
+        </div>
 
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 600 }}>Compañía aseguradora</div>

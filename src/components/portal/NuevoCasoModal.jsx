@@ -14,6 +14,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       asegurado: "",
       telefono: "",
       patente: "",
+      dni: "",
       fecha_siniestro: "",
       compania: "",
     };
@@ -66,6 +67,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         telefono_asegurado: formData.telefono,
         origen: "portal",
         patente: valorPatente,
+        dni_asegurado: (formData.dni || "").trim() || null,
         fecha_siniestro: formData.fecha_siniestro,
         compania_aseguradora: formData.compania,
         estado: "doc_pendiente", 
@@ -130,7 +132,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             <div>
               <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Teléfono del Asegurado *</label>
               <input 
@@ -153,7 +155,20 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", textTransform: "uppercase", textAlign: "center" }}
               />
             </div>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>DNI del Asegurado</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="dni"
+                value={formData.dni || ""}
+                onChange={handleChange}
+                placeholder="Ej: 25123456"
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+              />
+            </div>
           </div>
+          <div style={{ fontSize: 12, color: T.muted, marginTop: -6 }}>Con la patente y el DNI el asegurado sigue su caso online, y el escrito sale con sus datos.</div>
 
           <div>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Fecha del Siniestro *</label>
