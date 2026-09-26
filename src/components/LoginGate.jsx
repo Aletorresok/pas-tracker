@@ -103,7 +103,7 @@ export default function LoginGate({ children }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <Logo alto={26} />
           <div>
-            <div style={{ fontSize: 17, fontWeight: 700 }}>PAS Tracker</div>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>ATG Lex</div>
             <div style={{ fontSize: 12, color: "var(--muted)" }}>ATG Lex Solutions</div>
           </div>
         </div>

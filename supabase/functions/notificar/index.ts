@@ -163,7 +163,7 @@ async function resumenDelDia(forzar = false) {
     comisiones && plural(comisiones, "comisión por pagar a un PAS", "comisiones por pagar a PAS"),
   ].filter(Boolean);
   return enviar({
-    titulo: partes.length ? "Tu día en PAS Tracker" : "Todo al día",
+    titulo: partes.length ? "Tu día en ATG Lex" : "Todo al día",
     cuerpo: partes.length ? partes.join(" · ") : "No hay tareas vencidas ni pendientes para hoy.",
     url: "/", etiqueta: `resumen-${hoy}`,
   });
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     // Prueba desde la app
     if (body.tipo === "prueba") {
       if (!(await esAdmin(req))) return responder({ error: "no autorizado" }, 401);
-      return responder({ enviados: await enviar({ titulo: "PAS Tracker", cuerpo: "Las notificaciones funcionan en este dispositivo ✓", url: "/", etiqueta: "prueba" }) });
+      return responder({ enviados: await enviar({ titulo: "ATG Lex", cuerpo: "Las notificaciones funcionan en este dispositivo ✓", url: "/", etiqueta: "prueba" }) });
     }
     return responder({ enviados: 0 });
   } catch (e) {

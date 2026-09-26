@@ -43,7 +43,7 @@ export function linkGoogleCalendar(ev, caso = {}) {
     caso.patente && `Patente: ${caso.patente}`,
     caso.nro_siniestro && `Siniestro: ${caso.nro_siniestro}`,
     ev.notas,
-    "Cargado desde PAS Tracker",
+    "Cargado desde ATG Lex",
   ].filter(Boolean).join("\n");
   const p = new URLSearchParams({ action: "TEMPLATE", text: titulo, dates: `${f(ini)}/${f(fin)}`, ctz: ZONA, details: detalle });
   if (ev.lugar || ev.link) p.set("location", ev.lugar || ev.link);

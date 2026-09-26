@@ -1,4 +1,4 @@
-# PAS Tracker - CLAUDE.md
+# ATG Lex (antes PAS Tracker) - CLAUDE.md
 
 ## Comandos
 

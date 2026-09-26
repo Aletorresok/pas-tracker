@@ -104,7 +104,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24, paddingLeft: 8 }}>
             <Logo alto={24} />
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>PAS Tracker</div>
+              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>ATG Lex</div>
               {pasCount > 0 && <div style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
             </div>
           </div>
