@@ -94,13 +94,13 @@
 
 ## 📝 Registro de Cambios
 
-### 2026-09-25 — Flujo de estados, prescripción y comisión pagada al PAS (SQL 20 pendiente de correr)
+### 2026-09-25 — Flujo de estados, prescripción y comisión pagada al PAS (SQL 20 ejecutado)
 *   **Cambio de estado** (ficha y fila de Casos, `utils/flujoEstados.js`): completa sola la fecha de la etapa si está vacía (Reclamado → inicio del reclamo, Con ofrecimiento → ofrecimiento, En juicio → inicio del juicio, Esperando pago → aceptación), deja en la bitácora "Pasó de X a Y" (`storage.registrarAccion`; el PAS lo ve en Movimientos) y muestra `caso/SugerenciaEstado.jsx`.
 *   **Próxima acción sugerida** al cambiar de estado, con plazo (se acepta con "Usar"): Doc. pendiente → pedir documentación (3 d); Iniciado → presentar el reclamo (3 d); Reclamado → controlar respuesta y reiterar (margen de la compañía); Con ofrecimiento → hablarlo con el cliente (3 d); En mediación → prepararla (7 d); En juicio → seguimiento (30 d); Esperando pago → controlar el pago (fecha estimada o 30 d).
 *   **Aviso al cliente** solo al pasar a Con ofrecimiento o Esperando pago: se abre "Avisar por WhatsApp" con la plantilla de la etapa (`AvisarWhatsApp` acepta `abiertoInicial`).
 *   **Prescripción** (`flujoEstados.prescripcion`): `PRESCRIPCION_ANIOS = 3` desde la fecha del siniestro, aviso `PRESCRIPCION_AVISO_DIAS = 90` antes. No aplica en juicio, esperando pago, cobrado ni desistido. Tarea en Para hacer ("Prescripción") y aviso rojo en el Resumen de la ficha.
-*   **Comisión pagada al PAS:** columna `fecha_pago_comision` (SQL 20). Tercer tilde en Pagos ("Comisión pagada al PAS", con fecha). `metricas.comisionPagada` / `comisionPorPagar` (la debés cuando ya cobraste tus honorarios). Para hacer suma "Comisión PAS · Pagarle la comisión por …". Análisis → "Comisiones pagadas a PAS" cuenta solo las pagadas (`kpis.comisionesPorPagar` aparte). Portal PAS: "Tu comisión cobrada" = las pagadas, "Por pagarte: $X" y, en el detalle del caso, "Pagada el dd/mm" o "Pendiente". Sin el SQL 20 todo funciona como antes (la comisión se da por pagada al cobrar tus honorarios).
-*   **SQL 20** (`sql/2026-09-25_20_comision_pas.sql`, ⏳ **pendiente de correr**): agrega la columna y marca como pagadas las comisiones de los casos con honorarios ya cobrados (confirmado por el usuario).
+*   **Comisión pagada al PAS:** columna `fecha_pago_comision` (SQL 20). Tercer tilde en Pagos ("Comisión pagada al PAS", con fecha). `metricas.comisionPagada` / `comisionPorPagar` (la debés cuando ya cobraste tus honorarios). Para hacer suma "Comisión PAS · Pagarle la comisión por …". Análisis → "Comisiones pagadas a PAS" cuenta solo las pagadas (`kpis.comisionesPorPagar` aparte). Portal PAS: "Tu comisión cobrada" = las pagadas, "Por pagarte: $X" y, en el detalle del caso, "Pagada el dd/mm" o "Pendiente".
+*   **SQL 20** (`sql/2026-09-25_20_comision_pas.sql`, ✅ ejecutado el 25/09): agrega la columna y marca como pagadas las comisiones de los casos con honorarios ya cobrados (confirmado por el usuario).
 *   **Pendiente para más adelante (idea 6):** responder a la compañía dentro del mismo hilo de mail (guardar el link del hilo de Gmail en el caso + plantillas por estado, o integrar Gmail con permisos).
 
 ### 2026-09-25 — Vista del cliente más prolija; avisos en la ficha (SQL 19 ejecutado)
