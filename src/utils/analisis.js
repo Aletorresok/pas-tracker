@@ -125,12 +125,42 @@ const ENTRADA_ESTADO = {
 };
 
 // Casos activos con los días que llevan en su estado (null = falta la fecha para saberlo)
-export function tiempoEnEstado(allCasos, hoy = new Date()) {
+// `cambios` = cambios de estado registrados en la bitácora (ver cambiosDeEstado). Si el caso tiene registrada
+// su entrada al estado actual, se usa esa fecha (exacta); si no, la aproximación con las fechas del expediente.
+export function tiempoEnEstado(allCasos, hoy = new Date(), cambios = {}) {
   const hoyISO = fechaLocalISO(hoy);
   return allCasos.filter(esActivo).map(c => {
-    const desde = ENTRADA_ESTADO[c.estado]?.(c);
-    return { caso: c, desde: aISO(desde), dias: desde ? diasEntre(desde, hoyISO) : null };
+    const registrada = [...(cambios[c.id] || [])].reverse().find(x => x.a === c.estado)?.fecha;
+    const desde = registrada || ENTRADA_ESTADO[c.estado]?.(c);
+    return { caso: c, desde: aISO(desde), dias: desde ? diasEntre(desde, hoyISO) : null, exacto: Boolean(registrada) };
   });
+}
+
+// ── Cambios de estado registrados ───────────────────────────────────────────
+// Desde el 25/09/2026 cada cambio de estado deja en la bitácora "Pasó de {estado} a {estado}".
+// De acciones [{ caso_id, fecha, descripcion }] arma { casoId: [{ de, a, fecha }] } ordenado por fecha.
+export function cambiosDeEstado(acciones, estados) {
+  const porLabel = Object.fromEntries(estados.map(e => [e.label, e.key]));
+  const res = {};
+  acciones.forEach(x => {
+    const m = /^Pasó de (.+) a (.+)$/.exec(String(x.descripcion || "").trim());
+    if (!m || !porLabel[m[1]] || !porLabel[m[2]]) return;
+    (res[x.caso_id] ||= []).push({ de: porLabel[m[1]], a: porLabel[m[2]], fecha: aISO(x.fecha) });
+  });
+  Object.values(res).forEach(l => l.sort((a, b) => a.fecha.localeCompare(b.fecha)));
+  return res;
+}
+
+// Cuánto duró cada estado, con los casos que entraron y salieron de él estando registrados: { estado: { valor, n } }
+export function duracionPorEstado(cambios) {
+  const dias = {};
+  Object.values(cambios).forEach(lista => {
+    for (let i = 0; i < lista.length - 1; i++) {
+      const d = diasEntre(lista[i].fecha, lista[i + 1].fecha);
+      if (d !== null && lista[i].a === lista[i + 1].de) (dias[lista[i].a] ||= []).push(d);
+    }
+  });
+  return Object.fromEntries(Object.entries(dias).map(([k, ds]) => [k, { valor: mediana(ds), n: ds.length }]));
 }
 
 // ── Flujo de caja (honorarios por cobrar) ───────────────────────────────────

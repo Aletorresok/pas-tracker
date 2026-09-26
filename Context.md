@@ -94,6 +94,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Tiempos exactos por estado y tablero de casos
+*   **Tiempos exactos** (Análisis → Etapas): lee de la bitácora los "Pasó de X a Y" (`analisis.cambiosDeEstado`, de a 1000 filas en `TabAnalisis`). "Tiempo en el estado actual" usa la fecha exacta de entrada cuando está registrada (y dice cuántos casos lo tienen); si no, la aproximación de siempre. Tabla nueva **"Cuánto dura cada estado"** (`analisis.duracionPorEstado`): mediana de días entre que el caso entró a un estado y pasó al siguiente, solo con cambios registrados (se llena con el uso, desde el 25/09/2026).
+*   **Tablero** (Casos → selector Tabla / Tablero, se recuerda en `localStorage.pas_casos_vista`; `casos/TableroCasos.jsx`): una columna por estado en curso (Cobrado y Desistido se cierran desde la ficha). Tarjeta: asegurado, compañía · patente, próxima acción con plazo. **Arrastrar** a otra columna cambia el estado con el mismo flujo que la ficha (fecha de la etapa, bitácora, próxima acción sugerida y aviso al cliente en Con ofrecimiento / Esperando pago); tocar abre la ficha. Usa la misma búsqueda que la tabla (`coincide` en `TabCasos`). En el celular no se arrastra: se usa para mirar y abrir casos.
+
 ### 2026-09-25 — Copia de seguridad completa semanal
 *   **Copia completa** (`utils/copiaSeguridad.js`): baja todas las tablas de trabajo (`TABLAS_COPIA`: casos, acciones, agenda, subidas del cliente, márgenes, historial, derivadores, descartados, PAS manuales, pas_lista, usuarios del portal y contactos), de a 1000 filas, a un JSON `pastracker_copia_completa_AAAA-MM-DD.json` (formato `{ version: 2, tipo: "copia_completa", fecha, tablas }`). Quedan afuera a propósito: `pas_config` (claves de las notificaciones), `pas_admins`, suscripciones push, avisos e intentos de ingreso del cliente.
 *   **Automática:** en la compu (pantalla de más de 900 px), la primera vez que se abre la app cada 7 días (`DIAS_ENTRE_COPIAS`) se descarga sola y avisa abajo a la derecha. La fecha de la última copia se guarda en el navegador (`pastracker_copia_completa_fecha`); si falla, se reintenta la próxima vez que se abre la app.
