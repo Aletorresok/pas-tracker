@@ -5,6 +5,7 @@ import BarraAvance from "../ui/BarraAvance.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
+import EscritoPortal from "./EscritoPortal.jsx";
 
 const FECHAS = [
   { k: "fecha_derivacion", l: "Derivación" },
@@ -23,6 +24,8 @@ const MONTOS = [
 // Tarjeta de un caso en el portal del PAS: lo esencial arriba, el detalle al tocar
 export default function PortalCasoCard({ caso, proximoEvento }) {
   const [open, setOpen] = useState(false);
+  const [escrito, setEscrito] = useState(false);
+  const abierto = !["cobrado", "desistido"].includes(caso.estado) && !caso._demo;
   const [subiendo, setSubiendo] = useState(false);
   const [aviso, setAviso] = useState(null); // { tipo, texto }
   const fileInputRef = useRef(null);
@@ -102,10 +105,13 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
           </div>
         )}
 
-        <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
-          style={{ alignSelf: "flex-start", background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
-          {open ? "Ocultar detalle" : "Ver detalle y adjuntar documentación"}
-        </button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            {open ? "Ocultar detalle" : "Ver detalle y adjuntar documentación"}
+          </button>
+          {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Reclamo para firmar</Boton>}
+        </div>
       </div>
 
       {open && (
@@ -153,6 +159,7 @@ export default function PortalCasoCard({ caso, proximoEvento }) {
           </div>
         </div>
       )}
+      {escrito && <EscritoPortal caso={caso} onClose={() => setEscrito(false)} />}
     </article>
   );
 }

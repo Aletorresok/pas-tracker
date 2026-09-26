@@ -27,6 +27,7 @@ export async function generarEscrito({
   dni, 
   dirHandle, 
   opcionesDoc = {},
+  conFirma = false, // portal PAS: agrega el lugar para que firme el asegurado
   onSuccess, 
   onError 
 }) {
@@ -84,6 +85,20 @@ export async function generarEscrito({
       doc.text(`${index + 1}. ${item}`, margin + 4, y);
       y += 6;
     });
+
+    // Firma del asegurado (el PAS lo imprime y lo firman en el momento)
+    if (conFirma) {
+      y = Math.max(y + 24, 215);
+      const x2 = margin + contentWidth / 2 + 10;
+      doc.setLineWidth(0.3);
+      doc.setDrawColor("#000000");
+      doc.line(margin, y, margin + 80, y);
+      doc.setFontSize(10);
+      doc.text("Firma del asegurado", margin, y + 5);
+      doc.text("Aclaración: " + nombreCompleto, margin, y + 11, { maxWidth: 80 });
+      doc.text("DNI: " + formatearDni(dni), margin, y + 17);
+      doc.text("Fecha: ____ / ____ / ________", x2, y + 5);
+    }
 
     dibujarPie(doc, { margen: margin, ancho: contentWidth });
 
