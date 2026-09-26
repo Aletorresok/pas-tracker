@@ -56,6 +56,7 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onCopiaCompleta,
         {push.estado === "activo" ? <>
           <div style={{ ...item, cursor: "default", color: "var(--ok)", fontWeight: 600 }}><Icono nombre="campana" size={16} />Activadas</div>
           <button type="button" onClick={push.probar} style={item}><Icono nombre="check" size={16} />Mandar una de prueba</button>
+          <button type="button" onClick={push.resumen} style={item}><Icono nombre="campana" size={16} />Mandar el resumen de hoy</button>
           <button type="button" onClick={push.desactivar} style={{ ...item, color: T.sub }}><Icono nombre="cerrar" size={16} />Desactivar</button>
         </> : push.estado === "bloqueado"
           ? <div style={{ fontSize: 12, color: "var(--warn)", padding: "4px 12px 8px", lineHeight: 1.4 }}>Bloqueadas en el navegador. Habilitalas desde el candado de la barra de direcciones.</div>

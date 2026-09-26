@@ -2,7 +2,8 @@
 // La llaman:
 //   · Webhook de base de datos en pas_casos (INSERT)            → "Nuevo caso del portal"
 //   · Webhook de base de datos en pas_subidas_cliente (UPDATE)  → "El cliente mandó documentación"
-//   · Cron diario ({"tipo":"agenda"})                            → mediaciones/audiencias de mañana
+//   · Cron diario ({"tipo":"agenda"}, 9 hs)                      → mediaciones/audiencias de mañana + resumen del día
+//   · La app ({"tipo":"resumen"}, solo el administrador)         → el resumen del día, para probarlo
 //   · La app ({"tipo":"prueba"}, solo el administrador)          → notificación de prueba
 //   · La app ({"tipo":"clave"})                                  → clave pública para activar un dispositivo
 // No hace falta cargar secretos: la primera vez genera su par de claves VAPID y lo guarda en pas_config
@@ -122,6 +123,51 @@ async function agendaDeManana() {
   return enviados;
 }
 
+// Resumen del día (9 hs): tareas vencidas y de hoy, pagos que ya deberían haber entrado, mediaciones y audiencias
+// de la semana, casos nuevos del portal sin abrir y comisiones que le debés a un PAS. Una vez por día (salvo `forzar`).
+const agregar = (y: string, m: string, d: string, dias: number) => {
+  const f = new Date(`${y}-${m}-${d}T12:00:00Z`);
+  f.setUTCDate(f.getUTCDate() + dias);
+  return f.toISOString().slice(0, 10);
+};
+async function resumenDelDia(forzar = false) {
+  const hoy = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  if (!forzar && !(await unaVez(`resumen:${hoy}`))) return 0;
+  const { data: casos } = await sb.from("pas_casos")
+    .select("estado, proxima_accion, proxima_accion_vence, fecha_firma, plazo_pago, fecha_pago, origen, revisado_en, monto_cobro_yo, monto_comision_pas, fecha_cobro_honorarios, estado_honorarios, fecha_pago_comision");
+  const activos = (casos || []).filter(c => !["cobrado", "desistido"].includes(c.estado));
+  const conAccion = activos.filter(c => (c.proxima_accion || "").trim() && c.proxima_accion_vence);
+  const vencidas = conAccion.filter(c => String(c.proxima_accion_vence).slice(0, 10) < hoy).length;
+  const deHoy = conAccion.filter(c => String(c.proxima_accion_vence).slice(0, 10) === hoy).length;
+  const pagosVencidos = activos.filter(c => {
+    if (c.estado !== "esperando_pago") return false;
+    let f = c.fecha_pago ? String(c.fecha_pago).slice(0, 10) : null;
+    if (c.fecha_firma && Number(c.plazo_pago)) { const [y, m, d] = String(c.fecha_firma).slice(0, 10).split("-"); f = agregar(y, m, d, Number(c.plazo_pago)); }
+    return !!f && f <= hoy;
+  }).length;
+  const nuevos = (casos || []).filter(c => c.origen === "portal" && !c.revisado_en).length;
+  const honorariosCobrados = (c: Record<string, unknown>) => !!c.fecha_cobro_honorarios || c.estado_honorarios === "COBRADO" || c.estado === "cobrado";
+  const comisiones = (casos || []).filter(c => Number(c.monto_comision_pas) > 0 && c.estado !== "desistido" && honorariosCobrados(c) && !c.fecha_pago_comision).length;
+  const [y, m, d] = hoy.split("-");
+  const { count: eventos } = await sb.from("pas_eventos").select("id", { count: "exact", head: true })
+    .in("tipo", ["mediacion", "audiencia"]).gte("inicio", `${hoy}T00:00:00-03:00`).lte("inicio", `${agregar(y, m, d, 6)}T23:59:59-03:00`);
+
+  const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+  const partes = [
+    vencidas && plural(vencidas, "tarea vencida", "tareas vencidas"),
+    deHoy && plural(deHoy, "tarea para hoy", "tareas para hoy"),
+    pagosVencidos && plural(pagosVencidos, "pago que ya debería haber entrado", "pagos que ya deberían haber entrado"),
+    eventos && plural(eventos, "mediación o audiencia esta semana", "mediaciones o audiencias esta semana"),
+    nuevos && plural(nuevos, "caso nuevo del portal sin abrir", "casos nuevos del portal sin abrir"),
+    comisiones && plural(comisiones, "comisión por pagar a un PAS", "comisiones por pagar a PAS"),
+  ].filter(Boolean);
+  return enviar({
+    titulo: partes.length ? "Tu día en PAS Tracker" : "Todo al día",
+    cuerpo: partes.length ? partes.join(" · ") : "No hay tareas vencidas ni pendientes para hoy.",
+    url: "/", etiqueta: `resumen-${hoy}`,
+  });
+}
+
 async function esAdmin(req: Request) {
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!token) return false;
@@ -140,7 +186,12 @@ Deno.serve(async (req) => {
     if (body.table === "pas_subidas_cliente" && body.type === "UPDATE" && body.record?.estado === "subida" && body.old_record?.estado !== "subida")
       return responder({ enviados: await subidaCliente(body.record?.id) });
     // Cron
-    if (body.tipo === "agenda") return responder({ enviados: await agendaDeManana() });
+    if (body.tipo === "agenda") return responder({ enviados: (await agendaDeManana()) + (await resumenDelDia()) });
+    // Resumen del día a pedido (para probarlo desde la app)
+    if (body.tipo === "resumen") {
+      if (!(await esAdmin(req))) return responder({ error: "no autorizado" }, 401);
+      return responder({ enviados: await resumenDelDia(true) });
+    }
     // Clave pública para que la app active un dispositivo (no es secreta)
     if (body.tipo === "clave") return responder({ clave: (await vapid()).publicKey });
     // Prueba desde la app
