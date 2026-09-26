@@ -10,7 +10,7 @@ export default function SeccionMontos({ formData, onChange, Th }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[
           { k: "monto_reclamado", l: "Monto reclamado ($)" },
-          { k: "monto_ofrecimiento", l: "Monto ofrecimiento ($)" },
+          { k: "monto_ofrecimiento", l: "Último ofrecimiento ($)" },
           { k: "monto_cobro_asegurado", l: "Lo que cobró el asegurado ($)" },
           { k: "monto_cobro_yo", l: "Mis honorarios ($)" },
           { k: "monto_comision_pas", l: "Comisión PAS ($)" },

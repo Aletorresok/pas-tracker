@@ -96,3 +96,21 @@ export async function guardarCompania(nombre, datos) {
   const { error } = await supabase.from("pas_companias").upsert({ compania: nombre, ...datos }, { onConflict: "compania" });
   return error ? error.message : null;
 }
+
+// Cuando el "Monto ofrecimiento" cambia desde la ficha o la fila de Casos, el anterior no se pierde:
+// si el caso no tenía historial, primero se guarda el ofrecimiento que ya tenía; después, el nuevo.
+// `caso` = cómo estaba guardado antes del cambio. Devuelve true si agregó algo (sin el SQL 21 no hace nada).
+export async function registrarCambioOfrecimiento(caso, nuevo, hoy) {
+  const monto = Number(nuevo);
+  if (!caso?.id || !monto) return false;
+  const previas = await cargarOfertas(caso.id);
+  if (previas === null) return false;
+  const ultima = previas[previas.length - 1];
+  if (ultima && Number(ultima.monto) === monto) return false; // ya está (lo cargó la tarjeta de Ofertas)
+  const anterior = Number(caso.monto_ofrecimiento);
+  if (!previas.length && anterior && anterior !== monto) {
+    await agregarOferta(caso.id, { fecha: String(caso.fecha_ofrecimiento || hoy).slice(0, 10), monto: anterior, respuesta: "pendiente", nota: "Ofrecimiento anterior" });
+  }
+  const r = await agregarOferta(caso.id, { fecha: hoy, monto, respuesta: "pendiente" });
+  return !r.error;
+}

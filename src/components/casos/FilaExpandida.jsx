@@ -11,6 +11,8 @@ import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
+import { registrarCambioOfrecimiento } from "../../utils/ofertas.js";
+import { fechaLocalISO } from "../../utils/formatters.js";
 import { useMargenes } from "../../utils/margenes.js";
 
 // Campos que se editan desde la fila desplegada de la tabla
@@ -58,6 +60,8 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
       setEstadoGuardado("guardando");
       const { error } = await supabase.from("pas_casos").update(cambios).eq("id", actual.id);
       if (error) { console.error("[FilaExpandida] error al guardar:", error); setEstadoGuardado("error"); return; }
+      // Ofrecimiento nuevo: el anterior queda en el historial de ofertas
+      if ("monto_ofrecimiento" in cambios && cambios.monto_ofrecimiento) registrarCambioOfrecimiento(actual, cambios.monto_ofrecimiento, fechaLocalISO());
       onCasoLocal({ ...actual, ...cambios });
       setEstadoGuardado("guardado");
     }, 1200);
