@@ -94,6 +94,13 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-26 — SQL 25: base de ATG Lex (etapa 2; ⏳ pendiente de ejecutar)
+*   `sql/2026-09-26_25_atg_lex.sql`. Tablas nuevas, solo administrador: `expedientes`, `plazos` (plazos procesales y escritos, de un caso PAS o de un expediente), `dias_inhabiles` (feria y días inhábiles; trae cargada la feria de enero 2027), `rutina_items`, `rutina_registro`, `dias_escuela`, `objetivos`.
+*   `pas_eventos` (agenda): el evento puede ser de un caso PAS **o** de un expediente (`expediente_id`; `caso_id` deja de ser obligatorio).
+*   `pas_casos.fecha_doc_completa`: la completa un trigger cuando el caso sale de Documentación pendiente (no si pasa a Desistido) y no se puede borrar con un guardado viejo. Las fechas de Iniciado y Reclamado las va a completar la app al cambiar el estado (se editan a mano y el autoguardado las pisaría si lo hiciera la base).
+*   `pas_historial`: `canal`, `version_mensaje`, `respuesta` (respondio / interesado / no_interesado) y `respuesta_fecha`.
+*   Los feriados nacionales los trae la app (API argentinadatos, como Agenda Legal); la feria de invierno se carga en `dias_inhabiles` cuando la fijen.
+
 ### 2026-09-26 — La app pasa a llamarse ATG Lex (etapa 1 del plan ATG Lex)
 *   Nombre visible **"ATG Lex"** en: título de la pestaña, manifiesto de la app instalable (nombre, nombre corto y descripción), menú lateral, pantalla de ingreso, notificaciones (`sw.js` y función `notificar`), texto del mail de documentación del cliente y descripción de los eventos de Google Calendar. El portal PAS y "Mi reclamo" no cambian.
 *   Siguen igual: el repo, el proyecto de Vercel y la URL `pas-tracker20.vercel.app`, y el nombre del paquete.
