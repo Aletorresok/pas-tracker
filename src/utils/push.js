@@ -68,10 +68,10 @@ export function useNotificaciones() {
     revisar();
   };
 
-  // Manda una notificación de prueba a todos tus dispositivos activados
-  const probar = async () => {
+  // Manda una notificación de prueba (o el resumen del día) a todos tus dispositivos activados
+  const probar = async (tipo = "prueba") => {
     setError(""); setAviso("Enviando…");
-    const { data, error: err } = await supabase.functions.invoke("notificar", { body: { tipo: "prueba" } });
+    const { data, error: err } = await supabase.functions.invoke("notificar", { body: { tipo } });
     if (err) {
       let detalle = "";
       try { detalle = JSON.stringify(await err.context?.json?.()); } catch { /* sin detalle */ }
@@ -85,5 +85,6 @@ export function useNotificaciones() {
     if (!n) setError("La función respondió, pero no llegó a ningún dispositivo (ver Logs de la función).");
   };
 
-  return { estado, error, aviso, activar, desactivar, probar };
+  const resumen = () => probar("resumen");
+  return { estado, error, aviso, activar, desactivar, probar: () => probar("prueba"), resumen };
 }
