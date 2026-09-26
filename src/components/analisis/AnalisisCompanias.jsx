@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import TablaAnalisis, { card, ConMuestra, Barrita, Nota } from "./TablaAnalisis.jsx";
-import MargenCompanias from "../MargenCompanias.jsx";
 import { statsCompanias, pct, incumplimientos, comparativaMediacion } from "../../utils/analisis.js";
-import HonorariosCompanias from "./HonorariosCompanias.jsx";
+import CondicionesCompanias from "./CondicionesCompanias.jsx";
 import { fmtMoney } from "../../utils/formatters.js";
 import { fmtDate } from "../../utils/formatters.js";
 
@@ -91,9 +90,7 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
 
       <Mediacion allCasos={allCasos} cambios={cambios} ofertas={ofertas} />
 
-      <MargenCompanias allCasos={allCasos} />
-
-      <HonorariosCompanias allCasos={allCasos} companias={directorio} onGuardado={onCompaniasGuardadas} />
+      <CondicionesCompanias allCasos={allCasos} companias={directorio} onGuardado={onCompaniasGuardadas} />
     </>
   );
 }
