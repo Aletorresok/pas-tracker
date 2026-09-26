@@ -94,6 +94,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-25 — Copia de seguridad completa semanal
+*   **Copia completa** (`utils/copiaSeguridad.js`): baja todas las tablas de trabajo (`TABLAS_COPIA`: casos, acciones, agenda, subidas del cliente, márgenes, historial, derivadores, descartados, PAS manuales, pas_lista, usuarios del portal y contactos), de a 1000 filas, a un JSON `pastracker_copia_completa_AAAA-MM-DD.json` (formato `{ version: 2, tipo: "copia_completa", fecha, tablas }`). Quedan afuera a propósito: `pas_config` (claves de las notificaciones), `pas_admins`, suscripciones push, avisos e intentos de ingreso del cliente.
+*   **Automática:** en la compu (pantalla de más de 900 px), la primera vez que se abre la app cada 7 días (`DIAS_ENTRE_COPIAS`) se descarga sola y avisa abajo a la derecha. La fecha de la última copia se guarda en el navegador (`pastracker_copia_completa_fecha`); si falla, se reintenta la próxima vez que se abre la app.
+*   **Manual:** "Apariencia y backup" → "Copia de seguridad completa" (muestra la fecha de la última). El "Descargar / Restaurar backup" de antes sigue igual. La copia completa no se restaura desde la app: es para emergencias (se recarga en Supabase con ayuda).
+
 ### 2026-09-25 — Flujo de estados, prescripción y comisión pagada al PAS (SQL 20 ejecutado)
 *   **Cambio de estado** (ficha y fila de Casos, `utils/flujoEstados.js`): completa sola la fecha de la etapa si está vacía (Reclamado → inicio del reclamo, Con ofrecimiento → ofrecimiento, En juicio → inicio del juicio, Esperando pago → aceptación), deja en la bitácora "Pasó de X a Y" (`storage.registrarAccion`; el PAS lo ve en Movimientos) y muestra `caso/SugerenciaEstado.jsx`.
 *   **Próxima acción sugerida** al cambiar de estado, con plazo (se acepta con "Usar"): Doc. pendiente → pedir documentación (3 d); Iniciado → presentar el reclamo (3 d); Reclamado → controlar respuesta y reiterar (margen de la compañía); Con ofrecimiento → hablarlo con el cliente (3 d); En mediación → prepararla (7 d); En juicio → seguimiento (30 d); Esperando pago → controlar el pago (fecha estimada o 30 d).
@@ -101,7 +106,7 @@
 *   **Prescripción** (`flujoEstados.prescripcion`): `PRESCRIPCION_ANIOS = 3` desde la fecha del siniestro, aviso `PRESCRIPCION_AVISO_DIAS = 90` antes. No aplica en juicio, esperando pago, cobrado ni desistido. Tarea en Para hacer ("Prescripción") y aviso rojo en el Resumen de la ficha.
 *   **Comisión pagada al PAS:** columna `fecha_pago_comision` (SQL 20). Tercer tilde en Pagos ("Comisión pagada al PAS", con fecha). `metricas.comisionPagada` / `comisionPorPagar` (la debés cuando ya cobraste tus honorarios). Para hacer suma "Comisión PAS · Pagarle la comisión por …". Análisis → "Comisiones pagadas a PAS" cuenta solo las pagadas (`kpis.comisionesPorPagar` aparte). Portal PAS: "Tu comisión cobrada" = las pagadas, "Por pagarte: $X" y, en el detalle del caso, "Pagada el dd/mm" o "Pendiente".
 *   **SQL 20** (`sql/2026-09-25_20_comision_pas.sql`, ✅ ejecutado el 25/09): agrega la columna y marca como pagadas las comisiones de los casos con honorarios ya cobrados (confirmado por el usuario).
-*   **Pendiente para más adelante (idea 6):** responder a la compañía dentro del mismo hilo de mail (guardar el link del hilo de Gmail en el caso + plantillas por estado, o integrar Gmail con permisos).
+*   **Idea 6 descartada** (25/09): responder a la compañía en el mismo hilo desde la app. El usuario va a usar plantillas como firmas de Gmail.
 
 ### 2026-09-25 — Vista del cliente más prolija; avisos en la ficha (SQL 19 ejecutado)
 *   **Mensaje del estudio siempre presente:** si no escribiste uno, el cliente ve el texto automático de la etapa (sin fecha, firmado por el estudio) y la línea de tiempo muestra la descripción corta del paso (no se repite el texto). Los textos viven en `utils/vistaCliente.js` (`textoEtapaCliente`), compartidos con la ficha.
