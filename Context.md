@@ -94,11 +94,11 @@
 
 ## 📝 Registro de Cambios
 
-### 2026-09-26 — Plazo de pago editable (y por compañía) y % de comisión por PAS (SQL 24 pendiente)
+### 2026-09-26 — Plazo de pago editable (y por compañía) y % de comisión por PAS (SQL 24 ejecutado)
 *   **Plazo de pago del convenio** (`pas_casos.plazo_pago`, días): ahora se edita en la ficha → Datos → Fechas ("Plazo de pago (días)"), junto con **"Firma del convenio"** (`fecha_firma`). Antes no había dónde cargarlos.
 *   **Plazo habitual por compañía** (`pas_companias.plazo_pago_dias`, SQL 24): se configura en Análisis → Compañías → **"Condiciones de cada compañía"** (junto con el % de honorarios) o en la ficha → Contacto en la compañía. Se **copia al caso** cuando el caso no tiene plazo y se carga la aceptación o la firma (ficha) o pasa a Esperando pago (ficha, fila de Casos y tablero). La proyección también lo usa si el caso no tiene plazo.
 *   **% de comisión por PAS** (`pas_comisiones`, SQL 24, solo administrador): se carga en **Clientes → fila desplegada del PAS → "Comisión %"**. Vacío = ese PAS no cobra comisión. Al cargar **Mis honorarios** en un caso (ficha o fila de Casos) la **comisión se calcula sola** con ese % (se puede corregir a mano). En Montos, debajo de Comisión PAS, dice qué % se usa. La proyección usa el % del PAS (sin % = sin comisión) cuando el caso no tiene comisión cargada.
-*   **SQL 24** (`sql/2026-09-26_24_plazo_y_comision.sql`, ⏳ **pendiente de correr**). Sin correrlo: no hay plazo por compañía ni % por PAS, y el resto funciona como antes.
+*   **SQL 24** (`sql/2026-09-26_24_plazo_y_comision.sql`, ✅ ejecutado el 26/09).
 *   El plazo de "factura + 30 días" para estimar el cobro de honorarios sigue fijo (`DIAS_FACTURA`).
 
 ### 2026-09-26 — ¿Quién tiene la pelota?, ¿conviene mediar? y proyección "si todo sale bien" (SQL 23 pendiente)
@@ -109,7 +109,7 @@
 *   **SQL 23** (`sql/2026-09-26_23_honorarios_companias.sql`, ⏳ **pendiente de correr**): columna `honorarios_pct` en `pas_companias`. Sin correrlo, la proyección usa los % de tus casos y guardar un % da "no se guardó".
 
 ### 2026-09-26 — Incumplimientos de pago; ofrecimientos nuevos sin perder el anterior (SQL 22 ejecutado)
-*   **Fecha comprometida de pago, en un solo lugar** (`vistaCliente.fechaPagoComprometida`, `{ fecha, segun }`): firma + plazo; si no hay firma, **aceptación + plazo** (nuevo); si no hay plazo, la fecha de pago cargada. La usan Cobros pendientes, Flujo de caja, el portal PAS, la vista del cliente, la próxima acción sugerida y el resumen de las 9 (la función `notificar` también: **hay que redesplegarla** para que tome aceptación + plazo).
+*   **Fecha comprometida de pago, en un solo lugar** (`vistaCliente.fechaPagoComprometida`, `{ fecha, segun }`): firma + plazo; si no hay firma, **aceptación + plazo** (nuevo); si no hay plazo, la fecha de pago cargada. La usan Cobros pendientes, Flujo de caja, el portal PAS, la vista del cliente, la próxima acción sugerida y el resumen de las 9 (la función `notificar` también; redesplegada el 26/09 con el código del repo).
 *   **Incumplimientos de pago** (Análisis → Compañías, `analisis.incumplimientos`): por caso con fecha comprometida, "a término" (pagó ese día o antes), "tarde" (pagó después; el pago es `fecha_cobro`, el tilde "Indemnización pagada") o "impago" (pasó la fecha y no pagó; entra al día siguiente). Columna **"Paga a término"** por compañía (% sobre los pagos cerrados, con la cantidad de incumplimientos) y sección **"Incumplimientos de pago"**: resumen (a término, tarde, atraso típico, vencidos sin pagar) y tabla de los atrasados e impagos (tocar abre la ficha). Los "Cobrado" viejos sin fecha de cobro no se evalúan.
 *   **Ofrecimiento nuevo sin borrar el anterior:** si cambiás el ofrecimiento desde la ficha (campo ahora llamado "Último ofrecimiento") o desde "Ofrecido" en la fila de Casos, se suma al historial de ofertas (`ofertas.registrarCambioOfrecimiento`); si el caso no tenía historial, primero guarda el que ya tenía. No duplica lo que cargó la tarjeta de Ofertas.
 *   **SQL 22** (`sql/2026-09-26_22_historial_ofertas_inicial.sql`, ✅ ejecutado el 26/09): pasa al historial el primer ofrecimiento (si era distinto) y el último de cada caso que todavía no tiene historial; el último queda "Aceptada" si el caso está en Esperando pago o Cobrado. Se puede volver a correr.
