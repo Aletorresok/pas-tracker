@@ -8,6 +8,7 @@ import { useTheme } from "./context/ThemeContext.jsx";
 // ── IMPORTS: UTILIDADES
 import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
 import { RESULTADO_MAIL, esMailEnviado } from "./utils/mensajes.js";
+import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/copiaSeguridad.js";
 import { saveStorage, upsertPasManual, insertHistorialEntry } from "./utils/storage.js";
 
 // ── IMPORTS: HOOKS
@@ -202,6 +203,24 @@ function AppPrincipal() {
     await upsertPasManual(nuevoPas);
   }, [pas, pasManuales]);
 
+  // Copia completa semanal: en la compu, la primera vez que abrís la app en la semana se descarga sola
+  const [copiaFecha, setCopiaFecha] = useState(() => ultimaCopia());
+  const [copiaAviso, setCopiaAviso] = useState(null); // { ok, texto }
+  const hacerCopiaCompleta = useCallback(async () => {
+    setCopiaAviso({ ok: true, texto: "Armando la copia de seguridad completa…" });
+    const r = await descargarCopiaCompleta();
+    setCopiaFecha(ultimaCopia());
+    setCopiaAviso(r.ok
+      ? { ok: true, texto: `Copia de seguridad descargada (${r.filas.toLocaleString("es-AR")} registros). Guardala en un lugar seguro.` }
+      : { ok: false, texto: `No se pudo hacer la copia de seguridad: ${r.error}. Se vuelve a intentar la próxima vez que abras la app.` });
+    setTimeout(() => setCopiaAviso(null), 8000);
+  }, []);
+  useEffect(() => {
+    if (loading || !totalContactos) return;
+    const enCompu = typeof window !== "undefined" && window.matchMedia("(min-width: 901px)").matches;
+    if (enCompu && copiaPendiente()) hacerCopiaCompleta();
+  }, [loading, totalContactos, hacerCopiaCompleta]);
+
   const handleBackup = useCallback(() => {
     const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, descartados };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
@@ -234,6 +253,8 @@ function AppPrincipal() {
         setMainTab={setMainTab}
         autobackupFecha={autobackupFecha}
         onBackup={handleBackup}
+        onCopiaCompleta={hacerCopiaCompleta}
+        copiaFecha={copiaFecha}
         onRestore={handleRestore}
         onBuscar={() => setBuscando(true)}
       />
@@ -287,6 +308,12 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
         </div>
       </main>
+
+      {copiaAviso && (
+        <div role="status" style={{ position: "fixed", right: 16, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", zIndex: 400, maxWidth: 360, background: "var(--card)", border: `1px solid ${copiaAviso.ok ? "var(--border)" : "var(--bad)"}`, borderRadius: 10, padding: "10px 14px", fontSize: 13, lineHeight: 1.45, color: copiaAviso.ok ? "var(--text)" : "var(--bad)", boxShadow: "var(--shadow)" }}>
+          {copiaAviso.texto}
+        </div>
+      )}
 
       {/* MODALES */}
       {modalPas && <ContactModal pas={modalPas} esDerivador={!!derivadores[modalPas.id]} esDescartado={!!descartados[modalPas.id]} onClose={() => setModalPas(null)} onSave={handleSaveContacto} />}

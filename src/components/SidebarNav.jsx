@@ -40,7 +40,7 @@ function SelectorAcento() {
   );
 }
 
-function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
+function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onCopiaCompleta, copiaFecha, onClose }) {
   const { darkMode, toggleDarkMode, T } = useTheme();
   const app = useInstalarApp();
   const push = useNotificaciones();
@@ -64,6 +64,10 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
         {push.error && <div style={{ fontSize: 12, color: "var(--bad)", padding: "2px 12px 6px", lineHeight: 1.4 }}>{push.error}</div>}
         <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
       </>}
+      <button type="button" onClick={() => { onCopiaCompleta?.(); onClose(); }} style={{ ...item, fontWeight: 600 }}><Icono nombre="guardar" size={16} />Copia de seguridad completa</button>
+      <div style={{ fontSize: 12, color: T.muted, padding: "0 12px 6px 38px", lineHeight: 1.4 }}>
+        {copiaFecha ? `Última: ${new Date(copiaFecha + "T12:00:00").toLocaleDateString("es-AR")} · ` : ""}se descarga sola cada semana en la compu
+      </div>
       <button type="button" onClick={() => { onBackup(); onClose(); }} style={item}><Icono nombre="guardar" size={16} />Descargar backup</button>
       <label style={{ ...item, margin: 0 }}>
         <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestore(f); e.target.value = ""; onClose(); }} style={{ display: "none" }} />
@@ -80,12 +84,12 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onClose }) {
   );
 }
 
-export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFecha, onBackup, onRestore, onBuscar }) {
+export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFecha, onBackup, onRestore, onBuscar, onCopiaCompleta, copiaFecha }) {
   const { T } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
   const [showMas, setShowMas] = useState(false);
 
-  const utilidades = { autobackupFecha, onBackup, onRestore };
+  const utilidades = { autobackupFecha, onBackup, onRestore, onCopiaCompleta, copiaFecha };
 
   return (
     <>
