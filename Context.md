@@ -94,7 +94,13 @@
 
 ## 📝 Registro de Cambios
 
-### 2026-09-26 — SQL 25: base de ATG Lex (etapa 2; ⏳ pendiente de ejecutar)
+### 2026-09-26 — Motor de plazos procesales (etapa 3 del plan ATG Lex)
+*   `utils/plazos.js` (funciones puras): `calcularVencimiento` (hábiles judiciales desde el día siguiente a la notificación; corridos que caen en inhábil pasan al primer hábil), `diasSalteados` (feriados e inhábiles que no se contaron, para explicarlo), `plazoDeGracia` (día hábil siguiente; 2 primeras horas en Nación/CABA, 4 en PBA), `habilesHasta` y `describirPlazoHabil` (chip "3 días háb.", "Vence hoy", "Vencido hace 2 d háb."), `COMPUTOS`, `CLASES_PLAZO` (fatal / ordinatorio / propio).
+*   `utils/calendarioJudicial.js`: `cargarCalendarioJudicial()` junta los feriados nacionales de la API argentinadatos (año anterior, actual y siguiente; guardados 30 días en el navegador; si la API falla usa los fijos y marca `aproximado`) y la tabla `dias_inhabiles` (por jurisdicción). La API incluye los días no laborables con fines turísticos (23/03, 10/07 y 07/12 en 2026), que se toman como inhábiles.
+*   Probado con los feriados reales de 2026: 15 casos (fin de semana, feriado 12/10, inhábil solo PBA, corridos que caen domingo, gracia, vencidos vistos en fin de semana).
+*   **Fechas al cambiar el estado** (`flujoEstados.fechasAlCambiarEstado`), con la definición nueva: **Iniciado** completa "Inicio de reclamo"; **Reclamado** completa "Primer pedido de respuesta" (`fecha_reclamo`) y también el inicio si estaba vacío. Antes Reclamado completaba el inicio. La fila desplegable de Casos ahora también guarda `fecha_reclamo`; la ficha lo muestra en Datos → Fechas como "Primer pedido de respuesta".
+
+### 2026-09-26 — SQL 25: base de ATG Lex (etapa 2; ✅ ejecutado el 26/09)
 *   `sql/2026-09-26_25_atg_lex.sql`. Tablas nuevas, solo administrador: `expedientes`, `plazos` (plazos procesales y escritos, de un caso PAS o de un expediente), `dias_inhabiles` (feria y días inhábiles; trae cargada la feria de enero 2027), `rutina_items`, `rutina_registro`, `dias_escuela`, `objetivos`.
 *   `pas_eventos` (agenda): el evento puede ser de un caso PAS **o** de un expediente (`expediente_id`; `caso_id` deja de ser obligatorio).
 *   `pas_casos.fecha_doc_completa`: la completa un trigger cuando el caso sale de Documentación pendiente (no si pasa a Desistido) y no se puede borrar con un guardado viejo. Las fechas de Iniciado y Reclamado las va a completar la app al cambiar el estado (se editan a mano y el autoguardado las pisaría si lo hiciera la base).

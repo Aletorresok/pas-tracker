@@ -4,6 +4,7 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
   const camposFechas = [
     ["Derivación", "fecha_derivacion"],
     ["Inicio de reclamo", "fecha_inicio_reclamo"],
+    ["Primer pedido de respuesta", "fecha_reclamo"],
     ["Ofrecimiento", "fecha_ofrecimiento"],
     ["Aceptación", "fecha_aceptacion"],
     ["Firma del convenio", "fecha_firma"],
