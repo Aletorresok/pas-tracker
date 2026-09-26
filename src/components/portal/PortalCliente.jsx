@@ -18,7 +18,7 @@ import Ilustracion from "../ui/Ilustracion.jsx";
 const WHATSAPP = "5491133133259";
 const ABOGADO = "Dr. Alexis Torres Gaveglio";
 // Horario de atención que se muestra junto al botón de WhatsApp (vacío = no se muestra)
-const HORARIO_ATENCION = "";
+const HORARIO_ATENCION = "de lunes a viernes de 9 a 18";
 
 
 const limpiarPatente = v => v.replace(/[^A-Za-z0-9]/g, "").toUpperCase();

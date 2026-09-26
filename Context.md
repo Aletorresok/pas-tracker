@@ -94,16 +94,16 @@
 
 ## 📝 Registro de Cambios
 
-### 2026-09-25 — Vista del cliente más prolija; avisos en la ficha (SQL 19 pendiente de correr)
+### 2026-09-25 — Vista del cliente más prolija; avisos en la ficha (SQL 19 ejecutado)
 *   **Mensaje del estudio siempre presente:** si no escribiste uno, el cliente ve el texto automático de la etapa (sin fecha, firmado por el estudio) y la línea de tiempo muestra la descripción corta del paso (no se repite el texto). Los textos viven en `utils/vistaCliente.js` (`textoEtapaCliente`), compartidos con la ficha.
 *   **Fecha estimada de pago:** firma + plazo del convenio (o la fecha de pago cargada), en el texto y en el paso "Pago", con la leyenda "Si pasada esa fecha no recibiste el pago, avisanos por WhatsApp así lo reclamamos".
 *   **Cobrado:** "¡Listo! Cobraste $X el dd/mm" y la fecha debajo del monto.
 *   **Se quitó "Último movimiento"** (si pasaban semanas sin novedad visible, generaba reclamos).
 *   **Documentación:** la lista de faltantes y el contador solo en Doc. pendiente / Iniciado, con "Compartí toda la documentación necesaria. Nos falta: …". Después: "¿Tenés documentación nueva del siniestro? Compartila acá." (sin lista ni "necesario").
 *   **Mediación / audiencia:** además de día y hora, el lugar y un botón "Entrar a la mediación" con el link, y "Te confirmamos por WhatsApp si tenés que participar y qué necesitás".
-*   **Horario de atención** junto al botón de WhatsApp: constante `HORARIO_ATENCION` en `portal/PortalCliente.jsx` (vacía = no se muestra; falta que el usuario defina el horario).
+*   **Horario de atención** junto al botón de WhatsApp: constante `HORARIO_ATENCION` en `portal/PortalCliente.jsx`: "de lunes a viernes de 9 a 18" (vacía = no se muestra).
 *   **Ficha y fila de Casos (estudio):** etiqueta "Lo leen el cliente y el PAS" en el mensaje; si está vacío, debajo se ve el texto automático que le llega al cliente. **Aviso de estado atrasado** (`caso/AvisoEstadoCliente.jsx`, `vistaCliente.estadoSugerido`): si el caso tiene fecha de inicio de reclamo, ofrecimiento, juicio o acuerdo pero su estado es anterior, avisa que el cliente lo ve atrasado y ofrece "Pasar a …" con un toque.
-*   **SQL 19** (`sql/2026-09-25_19_vista_cliente.sql`, ⏳ **pendiente de correr**): `consultar_caso_cliente` suma `fecha_firma`, `plazo_pago` y `fecha_cobro`; `extras_cliente` suma `link` y `lugar` del evento. Sin correrlo, la vista funciona pero sin fecha estimada por firma + plazo, sin fecha de cobro y sin link/lugar de la mediación.
+*   **SQL 19** (`sql/2026-09-25_19_vista_cliente.sql`, ✅ ejecutado el 25/09): `consultar_caso_cliente` suma `fecha_firma`, `plazo_pago` y `fecha_cobro`; `extras_cliente` suma `link` y `lugar` del evento.
 
 ### 2026-09-25 — Portal PAS: "qué sigue" y seguimiento para el cliente; alta de caso con patente, DNI y teléfono
 *   **Tarjeta del caso (portal PAS):** debajo de la barra de avance, una línea con lo que sigue: *Reclamado* → "Reclamado hace N días · {compañía} suele responder en unos X días" (X = promedio reclamo → ofrecimiento de esa compañía, con `metricas.plazosRespuesta` sobre los datos de `plazos_companias`); *Con ofrecimiento* → "Ofrecieron $X"; *Esperando pago* → "Pago estimado dd/mm · en N días" (firma + plazo, o fecha de pago).
