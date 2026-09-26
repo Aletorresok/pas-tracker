@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "PAS Tracker",
-  "short_name": "PAS Tracker",
-  "description": "Gestión de casos, PAS y cobros de ATG Lex Solutions",
+  "name": "ATG Lex",
+  "short_name": "ATG Lex",
+  "description": "Gestión del estudio ATG Lex Solutions: casos, expedientes, PAS y cobros",
   "start_url": "/",
   "scope": "/",
   "lang": "es-AR",

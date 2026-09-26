@@ -1,4 +1,4 @@
--- ============================================================
+-- ATG Lex (antes PAS Tracker) · Esquema de Supabase (esquema public)
 -- PAS Tracker · Esquema de Supabase (esquema public)
 -- Regenerado el 2026-09-23 desde information_schema de la base de producción
 -- y actualizado a mano con los SQL 09 a 15 (2026-09-24):

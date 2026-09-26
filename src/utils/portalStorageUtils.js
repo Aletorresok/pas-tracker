@@ -48,7 +48,7 @@ export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, arch
 }
 /**
  * Avisa por mail lo que subió un cliente en una sesión (plantilla propia si está cargada; si no, la de derivaciones),
- * todo junto en un solo mail. Sin links: los archivos están en una carpeta privada y se guardan desde PAS Tracker.
+ * todo junto en un solo mail. Sin links: los archivos están en una carpeta privada y se guardan desde ATG Lex.
  * Usa la API de EmailJS con `keepalive`, así el envío sale aunque la página se esté cerrando.
  * @param items [{ caso, tipo, nombre }]
  */
@@ -79,7 +79,7 @@ export function notificarSubidaCliente(items) {
     telefono: primero.patente ? `Patente ${primero.patente}` : "N/D",
     fecha_siniestro: "—",
     compania: [...new Set(grupos.map(g => g.caso.compania_aseguradora).filter(Boolean))].join(" / ") || "N/D",
-    links_archivos: `${lista}\n\nEstán esperando en PAS Tracker → Hoy → "Documentación recibida" (Guardar en el caso).`,
+    links_archivos: `${lista}\n\nEstán esperando en ATG Lex → Hoy → "Documentación recibida" (Guardar en el caso).`,
   };
   try {
     fetch("https://api.emailjs.com/api/v1.0/email/send", {

@@ -1,4 +1,4 @@
-// Service worker mínimo de PAS Tracker: hace la app instalable y muestra un aviso si no hay conexión.
+// Service worker mínimo de ATG Lex: hace la app instalable y muestra un aviso si no hay conexión.
 // No guarda la app en caché: cada vez que se abre con internet trae la última versión publicada.
 const OFFLINE = "/offline.html";
 const CACHE = "pas-offline-v3";
@@ -21,7 +21,7 @@ self.addEventListener("fetch", e => {
 self.addEventListener("push", e => {
   let a = {};
   try { a = e.data ? e.data.json() : {}; } catch { a = { cuerpo: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(a.titulo || "PAS Tracker", {
+  e.waitUntil(self.registration.showNotification(a.titulo || "ATG Lex", {
     body: a.cuerpo || "",
     icon: "/icons/icon-192.png",
     badge: "/icons/favicon-32.png",

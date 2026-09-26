@@ -1,4 +1,4 @@
-# PAS-Tracker — Documento de Contexto General
+# ATG Lex (antes PAS-Tracker) — Documento de Contexto General
 
 > Última revisión de estructura: 2026-09-24. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
 
@@ -93,6 +93,27 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-26 — La app pasa a llamarse ATG Lex (etapa 1 del plan ATG Lex)
+*   Nombre visible **"ATG Lex"** en: título de la pestaña, manifiesto de la app instalable (nombre, nombre corto y descripción), menú lateral, pantalla de ingreso, notificaciones (`sw.js` y función `notificar`), texto del mail de documentación del cliente y descripción de los eventos de Google Calendar. El portal PAS y "Mi reclamo" no cambian.
+*   Siguen igual: el repo, el proyecto de Vercel y la URL `pas-tracker20.vercel.app`, y el nombre del paquete.
+*   **Pendiente del usuario:** redesplegar la función `notificar` en Supabase para que las notificaciones digan "ATG Lex" (`supabase functions deploy notificar`). En la app instalada, el nombre nuevo aparece cuando Chrome actualiza el manifiesto (puede tardar un día) o al reinstalarla.
+
+### 2026-09-26 — Plan ATG Lex: Agenda Legal se integra acá (APROBADO, en curso)
+*   **Decisión:** una sola app. Agenda Legal (repo `Aletorresok/CalendarioLegal`, Supabase propio) se absorbe y se da de baja al final. Su sync con esta app escribía la columna legacy `compania` con la clave anon (roto con RLS).
+*   **Expedientes** (casos que no son de seguros) en una tabla nueva `expedientes`, separada de `pas_casos` para no mezclarlos con el RLS del portal PAS. Ficha con Resumen / Datos / Plazos / Escritos / Documentos / Bitácora. Vista del cliente **caso a caso** (interruptor, apagado por defecto; ingreso con DNI + código del expediente).
+*   **Plazos procesales** en tabla compartida (caso PAS o expediente) con cómputo en días hábiles judiciales (feriados y feria), portado de Agenda Legal. **Escritos pendientes** con fecha objetivo propia; la app insiste cuando se pasa.
+*   **Rutina** (pestaña nueva): Diaria / Semanal / Mensual / Anual. Bloques con horario, prioridad (imprescindible / importante / postergable), checklist y accesos directos; listas automáticas (clientes sin novedades hace 15 días, documentación pendiente, ofrecimientos sin respuesta, escritos colgados); "Preparar audiencia" el día anterior. **Días de escuela:** rango de fechas + horario; la rutina se reacomoda según prioridad. **Anual:** objetivos del mes, trimestre, semestre y año; línea "Objetivo anual" en Hoy; los medibles también en Análisis. Cada objetivo medible se ve como **anillo coloreado** (hecho vs. lo que falta en gris), con una **marca de "dónde deberías estar hoy"** (verde si vas a tiempo, naranja si vas un poco atrás, rojo si vas muy atrás) y una **frase útil** calculada ("a este ritmo cerrás el año en…", "hay 4 PAS dormidos que derivaban"). KPIs propuestos: PAS activos derivando (90 días), honorarios cobrados, casos nuevos, casos cobrados, tiempo hasta el cobro (meta a la baja), rutina cumplida. Los objetivos sin número se tildan a mano.
+*   **Hoy unificado:** "Ahora toca", plazos y escritos de casos PAS y expedientes juntos, prospección del día (15 WhatsApp + 30 mails).
+*   **Métricas (definidas con el usuario el 26/09):**
+    *   **Etapas del inicio:** Derivación → Documentación completa (fecha nueva, se registra sola cuando se completa la documentación o el caso sale de Documentación pendiente) → **Iniciado** (cargó el reclamo o pidió fecha de mediación si se saltea la etapa administrativa) → **Reclamado** (primer contacto a la compañía pidiendo respuesta). Regla: ese primer pedido va **entre 7 y 14 días después de Iniciado**; Hoy avisa al día 7 ("ya podés pedir respuesta") y al 14 ("vence"). Métricas: derivación → documentación completa (depende del cliente), documentación completa → iniciado (depende del estudio), derivación → iniciado, % de primeros reclamos dentro de la ventana 7–14.
+    *   **Prospección como embudo:** Contactado → Respondió → **Interesado** (categoría nueva: "me va a tener en cuenta") → **Derivador** (con el primer caso, automático). Tasas de respuesta, de interés y de conversión, **por versión del mensaje de primer contacto** (para saber si un mensaje nuevo funciona mejor). El canal se guarda solo según el botón usado (WhatsApp o Mail); la respuesta se anota a mano. Interesados que no derivan en 30 días → lista de seguimiento.
+    *   **Compañía:** iniciado → ofrecimiento, ofrecimiento → aceptación, firma → pago vs. plazo del convenio, derivación → cobro, % desistidos, % mediación/juicio, mejora entre primer ofrecimiento y final. Todo abierto por aseguradora.
+    *   **PAS:** casos derivados, % que termina cobrado, honorario promedio, desistidos, tiempo de documentación de sus clientes.
+    *   Cada tiempo muestra la mediana, la tendencia contra el período anterior y con cuántos casos se calcula. Viven en Análisis (pestaña nueva **Prospección**, más Compañías y PAS); cualquiera se puede elegir como objetivo en Rutina → Anual.
+*   Queda afuera la "organización personal" de Agenda Legal (objetivos personales, hábitos, ideas).
+*   **Etapas:** 1) nombre ATG Lex ✅ · 2) SQL (expedientes, plazos, feriados, rutina) · 3) motor de plazos · 4) Expedientes + ficha · 5) Hoy unificado · 6) Rutina · 7) vista del cliente para expedientes · 8) migración de datos, plantillas y baja de Agenda Legal.
+*   Propuesta visual (HTML con los tokens de la app) aprobada el 26/09.
 
 ### 2026-09-26 — Condiciones de cada compañía, en una sola tabla
 *   Análisis → Compañías: "Reclamo quieto: margen por compañía" y "Condiciones de cada compañía" quedan unificadas en **"Condiciones de cada compañía"** (`analisis/CondicionesCompanias.jsx`): una fila "General" (reclamo quieto por defecto) y, por compañía, **Reclamo quieto (días) · Honorarios (%) · Plazo de pago (días)**, con el detalle de casos, cuánto suele tardar en ofrecer y qué % de honorarios pagó en tus casos. Mismos datos y misma forma de guardar (al salir del campo). En el celular cada campo lleva su etiqueta. Se borran `MargenCompanias.jsx` y `analisis/HonorariosCompanias.jsx`.
@@ -254,7 +275,7 @@
 
 ### 2026-09-24 — App instalable en PC y Android (PWA)
 *   **Instalar:** Chrome/Edge ofrecen "Instalar" (ícono en la barra de direcciones o menú ⋮ → "Instalar app"). Además hay un botón **"Instalar app"** que aparece solo cuando el navegador lo permite: en el estudio dentro de **Apariencia y backup**, en el portal como ícono en la cabecera y en la vista del cliente debajo del botón de WhatsApp.
-*   **Tres apps separadas:** "PAS Tracker" (estudio), "Portal PAS" (abre en `/portal`) y "Mi reclamo" (abre en la vista del cliente). El título de la pestaña cambia según cuál sea.
+*   **Tres apps separadas:** "ATG Lex" (estudio; antes "PAS Tracker"), "Portal PAS" (abre en `/portal`) y "Mi reclamo" (abre en la vista del cliente). El título de la pestaña cambia según cuál sea.
 *   **Cliente:** la patente queda recordada en su celular (el DNI no), así la app instalada la trae completa.
 *   **Sin conexión:** pantalla "Sin conexión" con "Reintentar". Las actualizaciones siguen llegando solas.
 *   Probado con Chromium: las tres pasan el control de instalación de Chrome sin errores, el service worker se registra y la pantalla sin conexión funciona.

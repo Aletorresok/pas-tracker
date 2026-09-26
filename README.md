@@ -1,4 +1,4 @@
-# PAS Tracker
+# ATG Lex (antes PAS Tracker)
 
 Sistema de gestión de casos legales para seguros (siniestros) en Argentina. Permite gestionar contactos de Productores de Seguros (PAS), trackear casos desde la derivación hasta el cobro, y ofrecer un portal donde los PAS ven el estado de sus casos.
 
