@@ -237,3 +237,105 @@ export function flujoCaja(allCasos, hoy = new Date()) {
   });
   return { items, tramos };
 }
+
+// ── ¿Conviene ir a mediación? ───────────────────────────────────────────────
+// Casos ya cobrados, separados en: arreglo sin mediación, con mediación (sin juicio) y con juicio.
+// Por grupo: % cobrado sobre lo reclamado, días desde la derivación hasta el cobro, tus honorarios netos y,
+// con mediación, cuánto más se cobró que la última oferta anterior a la mediación (si está en el historial).
+export const GRUPOS_MEDIACION = [
+  { k: "sin", l: "Arreglo sin mediación" },
+  { k: "mediacion", l: "Con mediación" },
+  { k: "juicio", l: "Con juicio" },
+];
+export function comparativaMediacion(casos, cambios = {}, ofertas = {}) {
+  const paso = (c, estado) => (cambios[c.id] || []).some(t => t.a === estado);
+  const cobrados = casos.filter(c => (c.estado === "cobrado" || c.fecha_cobro) && num(c.monto_cobro_asegurado) > 0);
+  const grupoDe = c => (c.fecha_inicio_juicio || paso(c, "en_juicio") ? "juicio" : c.fecha_mediacion || paso(c, "en_mediacion") ? "mediacion" : "sin");
+  return GRUPOS_MEDIACION.map(g => {
+    const del = cobrados.filter(c => grupoDe(c) === g.k);
+    const pctCobrado = del.filter(c => num(c.monto_reclamado) > 0).map(c => Math.round((num(c.monto_cobro_asegurado) / num(c.monto_reclamado)) * 100));
+    const dias = del.map(c => diasEntre(c.fecha_derivacion, c.fecha_cobro)).filter(d => d !== null);
+    const neto = del.map(c => netoYo(c)).filter(v => v > 0);
+    const mejora = g.k === "mediacion" ? del.map(c => {
+      const previas = (ofertas[c.id] || []).filter(o => c.fecha_mediacion && String(o.fecha) < aISO(c.fecha_mediacion));
+      const ultima = previas.length ? num(previas[previas.length - 1].monto) : 0;
+      return ultima ? Math.round((num(c.monto_cobro_asegurado) / ultima - 1) * 100) : null;
+    }).filter(v => v !== null) : [];
+    return {
+      ...g, casos: del.length,
+      pctCobrado: { valor: mediana(pctCobrado), n: pctCobrado.length },
+      dias: { valor: mediana(dias), n: dias.length },
+      neto: { valor: mediana(neto), n: neto.length },
+      mejora: { valor: mediana(mejora), n: mejora.length },
+    };
+  });
+}
+
+// ── Proyección "si todo sale bien" ──────────────────────────────────────────
+// Para cada caso en curso sin honorarios cobrados: cuánto cobrarías si se cobra, y cuándo. NO es plata comprometida.
+//   Indemnización: lo acordado; si no hay acuerdo, lo reclamado × el % que suele pagar esa compañía (o todas).
+//   Honorarios: los cargados; si no, la indemnización × el % de honorarios de la compañía (cargado en Análisis →
+//   Compañías, o el que surge de tus casos cobrados).
+//   Comisión PAS: la cargada; si no, la proporción habitual sobre los honorarios.
+//   Fecha: la comprometida de pago; si no, derivación + lo que suele tardar esa compañía hasta el cobro de honorarios.
+export function proyeccion(allCasos, companias = {}, hoy = new Date()) {
+  const hoyISO = fechaLocalISO(hoy);
+  const { general, companias: porCia } = statsCompanias(allCasos);
+  const pctCobradoCia = Object.fromEntries(porCia.map(x => [x.nombre, x.pctCobrado.valor]));
+  const cobradosCon = allCasos.filter(c => honorariosCobrados(c) && num(c.monto_cobro_yo) > 0 && num(c.monto_cobro_asegurado) > 0);
+  const pctHonorariosDe = lista => mediana(lista.map(c => Math.round((num(c.monto_cobro_yo) / num(c.monto_cobro_asegurado)) * 1000) / 10));
+  const pctHonGeneral = pctHonorariosDe(cobradosCon);
+  const pctHonDatos = cia => pctHonorariosDe(cobradosCon.filter(c => c.compania_aseguradora === cia));
+  const ratioComision = mediana(allCasos.filter(c => num(c.monto_cobro_yo) > 0 && num(c.monto_comision_pas) > 0).map(c => Math.round((num(c.monto_comision_pas) / num(c.monto_cobro_yo)) * 1000) / 10));
+  const plazoCia = cia => mediana(allCasos.filter(c => !cia || c.compania_aseguradora === cia).map(c => diasEntre(c.fecha_derivacion, c.fecha_cobro_honorarios)).filter(d => d !== null));
+  const plazoGeneral = plazoCia(null);
+
+  let sinDatos = 0;
+  const items = allCasos
+    .filter(c => esActivo(c) && !honorariosCobrados(c))
+    .map(c => {
+      const cia = c.compania_aseguradora;
+      // Indemnización esperada
+      let indem = num(c.monto_acordado), baseTxt = "Acordado";
+      if (!indem) {
+        const p = pctCobradoCia[cia] ?? general.pctCobrado.valor;
+        if (num(c.monto_reclamado) && p) { indem = Math.round(num(c.monto_reclamado) * p / 100); baseTxt = `Reclamado × ${p}%${pctCobradoCia[cia] != null ? "" : " (todas)"}`; }
+      }
+      // Honorarios
+      let honor = num(c.monto_cobro_yo), honTxt = "Cargados";
+      if (!honor) {
+        const cargado = num(companias[cia]?.honorarios_pct), datos = pctHonDatos(cia);
+        const p = cargado || datos || pctHonGeneral;
+        if (!indem || !p) { sinDatos++; return null; }
+        honor = Math.round(indem * p / 100);
+        honTxt = `${p}%${cargado ? "" : datos ? " (tus casos)" : " (todas)"}`;
+      }
+      const comision = num(c.monto_comision_pas) || (ratioComision ? Math.round(honor * ratioComision / 100) : 0);
+      // Cuándo
+      let { fecha, segun: cuandoTxt } = fechaPagoComprometida(c);
+      if (!fecha) {
+        const plazo = plazoCia(cia) ?? plazoGeneral;
+        fecha = c.fecha_derivacion && plazo ? sumarDias(aISO(c.fecha_derivacion), plazo) : null;
+        cuandoTxt = fecha ? `Derivación + ${plazo} d` : "Sin datos";
+      }
+      if (!fecha || fecha < hoyISO) fecha = hoyISO; // lo atrasado o sin fecha, en el mes actual
+      return { caso: c, indem, baseTxt, honor, honTxt, comision, neto: honor - comision, fecha, cuandoTxt };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  // Meses: el actual + 5, y "después"
+  const meses = [];
+  const d0 = new Date(hoyISO + "T12:00:00");
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(d0.getFullYear(), d0.getMonth() + i, 1);
+    meses.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, mes: d.toLocaleDateString("es-AR", { month: "short" }), neto: 0, casos: 0 });
+  }
+  const despues = { key: "despues", mes: "Después", neto: 0, casos: 0 };
+  items.forEach(i => { const m = meses.find(x => x.key === i.fecha.slice(0, 7)) || despues; m.neto += i.neto; m.casos++; });
+
+  const cerrados = allCasos.filter(c => ["cobrado", "desistido"].includes(c.estado));
+  const tasaCobro = pct(cerrados.filter(c => c.estado === "cobrado").length, cerrados.length);
+  const total = items.reduce((s, i) => s + i.neto, 0);
+  return { items, meses: [...meses, despues], total, sinDatos, tasaCobro, esperable: tasaCobro !== null ? Math.round(total * tasaCobro / 100) : null, pctHonGeneral, pctHonDatos };
+}

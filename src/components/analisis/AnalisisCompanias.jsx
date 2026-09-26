@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import TablaAnalisis, { card, ConMuestra, Barrita, Nota } from "./TablaAnalisis.jsx";
 import MargenCompanias from "../MargenCompanias.jsx";
-import { statsCompanias, pct, incumplimientos } from "../../utils/analisis.js";
+import { statsCompanias, pct, incumplimientos, comparativaMediacion } from "../../utils/analisis.js";
+import HonorariosCompanias from "./HonorariosCompanias.jsx";
+import { fmtMoney } from "../../utils/formatters.js";
 import { fmtDate } from "../../utils/formatters.js";
 
 const dias = v => (v === null ? "—" : `${v} d`);
 
 // Análisis → Compañías: plazos de oferta y pago, cuánto ofrecen y cuántos terminan en mediación o juicio
-export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso }) {
+export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso, cambios = {}, directorio, onCompaniasGuardadas }) {
   const [minimo, setMinimo] = useState(1);
   const { general, companias } = useMemo(() => statsCompanias(allCasos, ofertas), [allCasos, ofertas]);
   const filas = companias.filter(c => c.total >= minimo);
@@ -87,7 +89,11 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso 
 
       <Incumplimientos allCasos={allCasos} general={general.pagos} onAbrirCaso={onAbrirCaso} />
 
+      <Mediacion allCasos={allCasos} cambios={cambios} ofertas={ofertas} />
+
       <MargenCompanias allCasos={allCasos} />
+
+      <HonorariosCompanias allCasos={allCasos} companias={directorio} onGuardado={onCompaniasGuardadas} />
     </>
   );
 }
@@ -118,6 +124,43 @@ function Incumplimientos({ allCasos, general, onAbrirCaso }) {
         La fecha comprometida sale de la firma + plazo del convenio; si no hay firma, de la aceptación + plazo; si no hay plazo, de la fecha de pago cargada.
         El pago es la fecha en que se tildó "Indemnización pagada". Un caso sin pagar entra al día siguiente de la fecha comprometida.
       </Nota>
+    </section>
+  );
+}
+
+// ¿Conviene ir a mediación? Casos cobrados con y sin mediación (en general o de una compañía)
+function Mediacion({ allCasos, cambios, ofertas }) {
+  const [cia, setCia] = useState("");
+  const companias = useMemo(() => [...new Set(allCasos.map(c => c.compania_aseguradora).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es")), [allCasos]);
+  const filas = useMemo(() => comparativaMediacion(cia ? allCasos.filter(c => c.compania_aseguradora === cia) : allCasos, cambios, ofertas), [allCasos, cambios, ofertas, cia]);
+  const sin = filas.find(f => f.k === "sin"), med = filas.find(f => f.k === "mediacion");
+  const nada = <span style={{ color: "var(--muted)" }}>—</span>;
+  return (
+    <section>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>¿Conviene ir a mediación?</h2>
+        <select value={cia} onChange={e => setCia(e.target.value)} aria-label="Compañía"
+          style={{ font: "inherit", fontSize: 13, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)" }}>
+          <option value="">Todas las compañías</option>
+          {companias.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      {sin.casos > 0 && med.casos > 0 && sin.pctCobrado.valor != null && med.pctCobrado.valor != null && (
+        <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--sub)" }}>
+          Con mediación se cobró <b style={{ color: "var(--text)" }}>{med.pctCobrado.valor}%</b> del reclamo contra <b style={{ color: "var(--text)" }}>{sin.pctCobrado.valor}%</b> sin mediación
+          {med.dias.valor != null && sin.dias.valor != null && <>, y tardó <b style={{ color: "var(--text)" }}>{med.dias.valor - sin.dias.valor > 0 ? `${med.dias.valor - sin.dias.valor} días más` : `${sin.dias.valor - med.dias.valor} días menos`}</b></>}.
+        </p>
+      )}
+      <TablaAnalisis clave={f => f.k} filas={filas} ordenInicial={{ k: "casos", desc: true }} minWidth={720} vacio="Todavía no hay casos cobrados." columnas={[
+        { k: "l", l: "Cómo terminó", ancho: "24%", valor: f => f.l, celda: f => <b style={{ fontWeight: 600 }}>{f.l}</b> },
+        { k: "casos", l: "Casos", ancho: "10%", derecha: true, celda: f => <span className="num">{f.casos}</span> },
+        { k: "pctCobrado", l: "% del reclamo", ancho: "16%", derecha: true, valor: f => f.pctCobrado.valor, celda: f => <ConMuestra valor={f.pctCobrado.valor} n={f.pctCobrado.n} sufijo="%" /> },
+        { k: "dias", l: "Derivación a cobro", ancho: "17%", derecha: true, valor: f => f.dias.valor, celda: f => <ConMuestra valor={f.dias.valor} n={f.dias.n} sufijo=" d" /> },
+        { k: "neto", l: "Tus honorarios netos", ancho: "17%", derecha: true, valor: f => f.neto.valor, celda: f => f.neto.valor == null ? nada : <span className="num">{fmtMoney(f.neto.valor)}</span> },
+        { k: "mejora", l: "Vs. última oferta", ancho: "16%", derecha: true, ayuda: "Con mediación: cuánto más se cobró que la última oferta anterior a la mediación (con historial de ofertas)", valor: f => f.mejora.valor,
+          celda: f => f.k !== "mediacion" || f.mejora.valor == null ? nada : <ConMuestra valor={`${f.mejora.valor > 0 ? "+" : ""}${f.mejora.valor}`} n={f.mejora.n} sufijo="%" /> },
+      ]} />
+      <Nota>Solo casos cobrados. Mediana de cada grupo; al lado, sobre cuántos casos. Un caso cuenta "con mediación" si tiene fecha de mediación o pasó por ese estado, y "con juicio" si llegó a juicio. Con pocos casos, tomalo como una pista.</Nota>
     </section>
   );
 }

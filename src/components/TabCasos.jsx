@@ -9,6 +9,7 @@ import Icono from "./ui/Icono.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import FilaExpandida from "./casos/FilaExpandida.jsx";
 import TableroCasos from "./casos/TableroCasos.jsx";
+import { QUIEN, quienTiene } from "../utils/pelota.js";
 
 const VISTA_GUARDADA = "pas_casos_vista";
 const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
@@ -71,6 +72,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
 
   const conteos = useMemo(() => {
     const c = { todos: allCasos.length, activos: allCasos.filter(esActivo).length, sin_dni: allCasos.filter(sinDni).length };
+    QUIEN.forEach(q => { c[`p_${q.k}`] = allCasos.filter(x => quienTiene(x) === q.k).length; });
     ESTADOS_CASO.forEach(e => { c[e.key] = allCasos.filter(x => x.estado === e.key).length; });
     return c;
   }, [allCasos]);
@@ -78,7 +80,8 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
   const filtrados = useMemo(() => {
     let lista = allCasos.filter(c =>
       c.id === abiertoId || // la fila abierta no desaparece aunque le cambies el estado
-      (filtro === "todos" ? true : filtro === "activos" ? esActivo(c) : filtro === "sin_dni" ? sinDni(c) : c.estado === filtro)
+      (filtro === "todos" ? true : filtro === "activos" ? esActivo(c) : filtro === "sin_dni" ? sinDni(c)
+        : filtro.startsWith("p_") ? quienTiene(c) === filtro.slice(2) : c.estado === filtro)
     );
     const q = busqueda.trim().toLowerCase();
     if (q) {
@@ -179,6 +182,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
         {chip("activos", "Activos", conteos.activos)}
         {chip("todos", "Todos", conteos.todos)}
         {conteos.sin_dni > 0 && chip("sin_dni", "Sin DNI", conteos.sin_dni)}
+        {QUIEN.filter(q => conteos[`p_${q.k}`] > 0).map(q => chip(`p_${q.k}`, q.l, conteos[`p_${q.k}`]))}
         {ESTADOS_CASO.filter(e => conteos[e.key] > 0).map(e => chip(e.key, e.label, conteos[e.key]))}
       </div>
 

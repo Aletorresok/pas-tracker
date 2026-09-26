@@ -114,3 +114,10 @@ export async function registrarCambioOfrecimiento(caso, nuevo, hoy) {
   const r = await agregarOferta(caso.id, { fecha: hoy, monto, respuesta: "pendiente" });
   return !r.error;
 }
+
+// Todas las compañías del directorio: { compania: { mail, telefono, notas, honorarios_pct } } (null si falta el SQL 21)
+export async function todasLasCompanias() {
+  const { data, error } = await supabase.from("pas_companias").select("*");
+  if (error) return null;
+  return Object.fromEntries((data || []).map(r => [r.compania, r]));
+}
