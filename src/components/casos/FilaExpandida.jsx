@@ -18,7 +18,7 @@ import { useMargenes } from "../../utils/margenes.js";
 // Campos que se editan desde la fila desplegada de la tabla
 // (las fechas de etapa se completan solas al cambiar de estado)
 const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
-  "fecha_inicio_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago"];
+  "fecha_inicio_reclamo", "fecha_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_ofrecimiento", l: "Ofrecido" },

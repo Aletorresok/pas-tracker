@@ -5,17 +5,21 @@ import { estadoInfo } from "../constants.js";
 import { fechaPagoEstimada } from "./vistaCliente.js";
 import { margenPara } from "./margenes.js";
 
-// Fecha que se completa sola (si está vacía) al entrar a cada estado
-const FECHA_DE_ESTADO = {
-  reclamado: "fecha_inicio_reclamo",
-  con_ofrecimiento: "fecha_ofrecimiento",
-  en_juicio: "fecha_inicio_juicio",
-  esperando_pago: "fecha_aceptacion",
+// Fechas que se completan solas (si están vacías) al entrar a cada estado.
+// Iniciado = cargó el reclamo o pidió mediación; Reclamado = primer pedido de respuesta a la compañía.
+// Si se saltea Iniciado, Reclamado completa también el inicio.
+const FECHAS_DE_ESTADO = {
+  iniciado: ["fecha_inicio_reclamo"],
+  reclamado: ["fecha_inicio_reclamo", "fecha_reclamo"],
+  con_ofrecimiento: ["fecha_ofrecimiento"],
+  en_juicio: ["fecha_inicio_juicio"],
+  esperando_pago: ["fecha_aceptacion"],
 };
 
 export function fechasAlCambiarEstado(caso, nuevo, hoy = fechaLocalISO()) {
-  const campo = FECHA_DE_ESTADO[nuevo];
-  return campo && !caso[campo] ? { [campo]: hoy } : {};
+  const fechas = {};
+  (FECHAS_DE_ESTADO[nuevo] || []).forEach(campo => { if (!caso[campo]) fechas[campo] = hoy; });
+  return fechas;
 }
 
 export const textoCambioEstado = (anterior, nuevo) =>
