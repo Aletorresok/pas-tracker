@@ -8,7 +8,8 @@ import Logo from "./ui/Logo.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
-  { k: "casos", l: "Casos", icon: "casos" },
+  { k: "casos", l: "Casos PAS", icon: "casos" },
+  { k: "expedientes", l: "Expedientes", icon: "balanza" },
   { k: "prospeccion", l: "Contactos", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
   { k: "analisis", l: "Análisis", icon: "grafico" },
@@ -176,7 +177,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           );
         })}
         <button type="button" onClick={() => setShowMas(v => !v)} aria-expanded={showMas}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: mainTab === "analisis" || showMas ? T.accentInk : T.muted, fontSize: 11, fontWeight: 500 }}>
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: !TABS_MOVIL.includes(mainTab) || showMas ? T.accentInk : T.muted, fontSize: 11, fontWeight: 500 }}>
           <Icono nombre="mas" size={20} />Más
         </button>
       </nav>
