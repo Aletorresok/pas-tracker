@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { renombrarArchivoLocal } from "../../utils/carpeta.js";
 import { TIPOS_DOC } from "../../constants.js";
+import ArchivoPreviewFlotante from "./ArchivoPreviewFlotante.jsx";
 
 export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, onToast, onPreview }) {
   const [menuOpen, setMenuOpen]        = useState(false);
@@ -8,8 +9,10 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [guardando, setGuardando]     = useState(false);
+  const [hover, setHover]             = useState(false);
   const btnRef = useRef(null);
   const menuRef = useRef(null);
+  const filaRef = useRef(null);
 
   useEffect(() => {
     if (menuOpen && btnRef.current) {
@@ -52,7 +55,13 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
+    <div
+      ref={filaRef}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}
+    >
+      <ArchivoPreviewFlotante archivo={archivo} anchorRef={filaRef} activo={hover && !menuOpen && !renombrando} />
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "var(--mono)", color: "var(--muted)", width: 32, textAlign: "center" }}>{esImagen ? "IMG" : "PDF"}</span>
