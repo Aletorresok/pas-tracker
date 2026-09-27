@@ -8,12 +8,14 @@ import {
   crearCarpetaCaso,
 } from "../utils/carpeta.js";
 import ArchivoLocalRow from "./carpeta/ArchivoLocalRow.jsx";
+import GestorPDF from "./carpeta/GestorPDF.jsx";
 
 export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, version }) {
   const [dirHandle, setDirHandle]         = useState(null);
   const [archivos, setArchivos]           = useState([]);
   const [cargando, setCargando]           = useState(false);
   const [nombreCarpeta, setNombreCarpeta] = useState("");
+  const [gestorPdfAbierto, setGestorPdfAbierto] = useState(false);
 
   useEffect(() => { onDirHandleChange?.(dirHandle); }, [dirHandle, onDirHandleChange]);
 
@@ -156,6 +158,12 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
         ) : (
           <div style={{ display: "flex", gap: 6 }}>
             <button
+              onClick={() => setGestorPdfAbierto(true)}
+              style={{ background: "var(--accent)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+            >
+              Gestor de PDF
+            </button>
+            <button
               onClick={recargarCarpeta}
               disabled={cargando}
               title="Recargar archivos"
@@ -172,6 +180,18 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
           </div>
         )}
       </div>
+
+      {gestorPdfAbierto && (
+        <GestorPDF
+          archivos={archivos}
+          dirHandle={dirHandle}
+          caso={caso}
+          Th={Th}
+          onToast={onToast}
+          onGuardado={recargarCarpeta}
+          onClose={() => setGestorPdfAbierto(false)}
+        />
+      )}
 
       {!dirHandle && (
         <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 12, background: Th.card2, borderRadius: 8, border: `1px dashed ${Th.border}` }}>
