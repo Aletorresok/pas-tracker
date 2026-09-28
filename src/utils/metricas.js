@@ -213,6 +213,14 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
       detalle: `Aceptado hace ${dias} d y todavía sin firmar el convenio${c.compania_aseguradora ? ` con ${c.compania_aseguradora}` : ""}` });
   });
 
+  // Llega la fecha de pago del acuerdo: confirmarlo con la compañía y avisar al cliente y al PAS
+  allCasos.filter(c => c.estado === "esperando_pago" && !indemnizacionPagada(c)).forEach(c => {
+    const fecha = fechaPagoEstimada(c);
+    if (!fecha || fecha > sumarDias(hoyISO, 1)) return;
+    tareas.push({ id: `cobro-${c.id}`, tipo: "cobro", vence: fecha, titulo: c.asegurado || "Sin nombre", caso: c,
+      detalle: `${fecha < hoyISO ? "Pasó la fecha de pago" : fecha === hoyISO ? "Hoy es la fecha de pago" : "Mañana es la fecha de pago"}${c.compania_aseguradora ? ` de ${c.compania_aseguradora}` : ""}: confirmalo y avisale al cliente y al PAS` });
+  });
+
   // Monto reclamado: tiene que estar desde que se inicia el reclamo
   allCasos.filter(c => esActivo(c) && c.estado !== "doc_pendiente" && !(Number(c.monto_reclamado) > 0)).forEach(c => {
     tareas.push({ id: `monto-${c.id}`, tipo: "dato", vence: null, titulo: c.asegurado || "Sin nombre", caso: c, detalle: "Falta cargar el monto reclamado" });

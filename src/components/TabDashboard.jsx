@@ -37,7 +37,7 @@ function Kpi({ label, valor, pie, destacado }) {
   );
 }
 
-export default function TabDashboard({ pas, casos, derivadores, historial, darkMode, pasManuales = [], onCasoLocal, onIrA, onAbrirExpediente }) {
+export default function TabDashboard({ pas, casos, derivadores, descartados = {}, historial, darkMode, pasManuales = [], onCasoLocal, onIrA, onAbrirExpediente }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
@@ -117,7 +117,7 @@ export default function TabDashboard({ pas, casos, derivadores, historial, darkM
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
           <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("finanzas")} />
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
-          <ProspeccionHoy historial={historial} onIr={() => onIrA?.("prospeccion")} />
+          <ProspeccionHoy historial={historial} derivadores={derivadores} descartados={descartados} onIr={() => onIrA?.("prospeccion")} />
         </div>
       </div>
 

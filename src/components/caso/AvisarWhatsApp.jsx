@@ -91,7 +91,17 @@ export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "",
           </label>
         )}
       </div>
-      {aviso && <div role="status" style={{ fontSize: 12, color: "var(--ok)" }}>{aviso}</div>}
+      {aviso && (
+        <div role="status" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: 12, color: "var(--ok)" }}>
+          {aviso}
+          {para === "cliente" && pasTelefono && (
+            <button type="button" onClick={() => { elegirPara("pas"); setAviso(""); }}
+              style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 12, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
+              Avisarle también al PAS →
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -96,6 +96,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Avisos de ofrecimiento y cobro al cliente y al PAS; recordatorio único a PAS interesados
+*   **Avisos:** al pasar a "Con ofrecimiento" o "Esperando pago" ya se proponía el WhatsApp al cliente; ahora, después de mandarlo, aparece **"Avisarle también al PAS →"** (misma caja, plantilla "Novedad del caso"). En Hoy → Para hacer, **"Fecha de pago"**: casos en Esperando pago cuya fecha estimada (firma + plazo) es mañana, hoy o ya pasó, sin la indemnización tildada: "confirmalo y avisale al cliente y al PAS".
+*   **PAS interesados** (pregunta 16, aceptada a prueba): "Registrar contacto" suma **"Interesado"** (queda en Contactados, se guarda como resultado `interesado` en `pas_historial`, sin SQL). A los 30 días sin derivar aparece en **Contactos → "Para recordar"** con **"Mandar recordatorio"** (WhatsApp con un texto útil, `mensajes.textoRecordatorio`) o "No mandar"; cualquiera de los dos lo saca de la lista (resultado `recordatorio_interesado`) y no vuelve a aparecer. Arriba de la lista: "De N recordatorios enviados, M derivaron", para decidir si sirve. Filtro **"Interesados"** en Contactos. En Hoy → Prospección del día, cuántos hay para recordar.
+*   Probado en Chromium con la página de prueba: contacto "Interesado", lista Para recordar, mandar y salir de la lista, contador de conversión.
+
 ### 2026-09-28 — Portal PAS: revisión completa (SQL 29 ⚠️ pendiente de correr)
 *   **Derivar un caso** (`portal/NuevoCasoModal.jsx`, reescrito): etiquetas como el resto de la app; patente y DNI marcados "recomendado" (avisa si faltan: sin ellos el cliente no sigue su caso ni manda documentación por el link); **aviso de patente ya derivada** por ese PAS; compañía con **buscador** (conocidas de Argentina + las que ya tienen casos, `utils/companias.js`); fecha del siniestro no puede ser futura; Esc cierra.
     *   **Errores separados:** si no se guarda el caso, dice que no se guardó nada (antes decía "el caso se guardó, pero…" aunque no se hubiera guardado) y el borrador queda. Si el caso se guardó y falla algún archivo, lo avisa con los nombres.

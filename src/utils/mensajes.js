@@ -158,3 +158,33 @@ export function linkMailPresentacion(mail, nombrePas, celular = false) {
     ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`
     : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(mail)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
+
+// ── PAS interesados: un solo recordatorio a los 30 días ─────────────────────
+// "Interesado" = dijo que te va a tener en cuenta. Si a los 30 días no derivó, la app propone UN recordatorio útil
+// (no "¿tenés algún caso?") y después no vuelve a insistir. Se guarda como resultado del contacto, igual que el mail.
+export const RESULTADO_INTERESADO = "interesado";
+export const RESULTADO_RECORDATORIO = "recordatorio_interesado";
+export const DIAS_RECORDATORIO = 30;
+const tiene = (e, r) => (e?.resultados || []).includes(r);
+
+// { desde, dias } si toca mandarle el recordatorio (el último "interesado" tiene 30 días o más y no se mandó después)
+export function recordatorioPendiente(entradas, hoy = new Date()) {
+  const lista = entradas || [];
+  let i = lista.length - 1;
+  while (i >= 0 && !tiene(lista[i], RESULTADO_INTERESADO)) {
+    if (tiene(lista[i], RESULTADO_RECORDATORIO)) return null;
+    i--;
+  }
+  if (i < 0) return null;
+  const desde = String(lista[i].fecha || "").slice(0, 10);
+  const dias = Math.floor((hoy - new Date(`${desde}T12:00:00`)) / 86400000);
+  return dias >= DIAS_RECORDATORIO ? { desde, dias } : null;
+}
+export const fueInteresado = entradas => (entradas || []).some(e => tiene(e, RESULTADO_INTERESADO));
+export const recibioRecordatorio = entradas => (entradas || []).some(e => tiene(e, RESULTADO_RECORDATORIO));
+
+export const textoRecordatorio = nombrePas => [
+  `Hola ${primerNombre(nombrePas) || ""}, ¿cómo va? Soy Alexis Torres Gaveglio, hablamos hace un mes por los reclamos a terceros.`.replace("Hola , ", "Hola, "),
+  "Te escribo solo para dejarte esto a mano: si a algún cliente tuyo lo chocan y no tuvo la culpa, pasame sus datos por acá y me encargo de todo el reclamo. El cliente no adelanta nada, vos seguís el caso desde el portal sin llamarme y cobrás tu parte cuando se cobra.",
+  "No te vuelvo a escribir por esto; cuando lo necesites, acá estoy.",
+].join("\n\n");

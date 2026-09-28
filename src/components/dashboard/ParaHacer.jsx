@@ -4,7 +4,7 @@ import PlazoChip from "../ui/PlazoChip.jsx";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
-const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS", pedir_respuesta: "Pedir respuesta", firma: "A la firma", dato: "Dato faltante", plazo: "Plazo procesal", escrito: "Escrito" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS", pedir_respuesta: "Pedir respuesta", firma: "A la firma", cobro: "Fecha de pago", dato: "Dato faltante", plazo: "Plazo procesal", escrito: "Escrito" };
 
 // Lista única de tareas ordenada por vencimiento (casos PAS, plazos y escritos de expedientes). Clic abre el caso o el expediente.
 export default function ParaHacer({ tareas, cal, onAbrir, onReiterar }) {
