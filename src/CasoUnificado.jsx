@@ -45,7 +45,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision"
+  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -89,7 +89,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || "", plazo_pago: casoProp.plazo_pago || "",
     // Comisión pagada al PAS: solo si la columna ya existe (SQL 20)
-    ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {})
+    ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {}),
+    // Número de factura y link del hilo de Gmail: solo si las columnas ya existen (SQL 28)
+    ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {})
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -175,6 +177,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       // Checklist manual: solo se manda si la columna ya existe en la base
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
+      if (!("nro_factura" in casoProp)) { delete fila.nro_factura; delete fila.hilo_gmail; }
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) {
         // Ofrecimiento nuevo cargado a mano: el anterior queda en el historial de ofertas

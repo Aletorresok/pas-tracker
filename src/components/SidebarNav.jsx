@@ -13,6 +13,7 @@ const TABS = [
   { k: "expedientes", l: "Expedientes", icon: "balanza" },
   { k: "prospeccion", l: "Contactos", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
+  { k: "finanzas", l: "Finanzas", icon: "finanzas" },
   { k: "analisis", l: "Análisis", icon: "grafico" },
   { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];

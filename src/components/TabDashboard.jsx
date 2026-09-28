@@ -115,16 +115,20 @@ export default function TabDashboard({ pas, casos, derivadores, historial, darkM
           if (cambios) { const { _pasId, _pasNombre, ...limpio } = c; onCasoLocal(_pasId, { ...limpio, ...cambios }); }
         }} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
+          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("finanzas")} />
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
           <ProspeccionHoy historial={historial} onIr={() => onIrA?.("prospeccion")} />
         </div>
       </div>
 
-      <button type="button" onClick={() => onIrA?.("analisis")}
-        style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0 }}>
-        Honorarios por mes, casos por etapa, compañías, PAS y flujo de caja → Análisis
-      </button>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        {[["finanzas", "Resultado del mes, gastos, facturación y flujo de caja → Finanzas"], ["analisis", "Casos por etapa, compañías y PAS → Análisis"]].map(([tab, texto]) => (
+          <button key={tab} type="button" onClick={() => onIrA?.(tab)}
+            style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0, textAlign: "left" }}>
+            {texto}
+          </button>
+        ))}
+      </div>
 
       {abierto && (
         <CasoOverlay

@@ -96,6 +96,17 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Finanzas: gastos, facturación y resultado del mes; hilo de Gmail del caso (SQL 28 ⚠️ pendiente de correr)
+*   **Pestaña Finanzas** (menú, entre Clientes y Análisis; en celular, en "Más"; `TabFinanzas.jsx`, `finanzas/*`, `utils/finanzas.js`):
+    *   **Mes** (con flechas para ir a meses anteriores): honorarios cobrados, comisiones pagadas a PAS, gastos y **resultado** (honorarios − comisiones − gastos); tabla de los últimos 6 meses; gastos por categoría; lista de gastos del mes con alta/edición/baja.
+    *   **Gastos** (`gastos`, SQL 28): categoría (matrícula, aportes, mediaciones, cartas documento, tasas y sellados, movilidad, software y suscripciones, otros), monto, detalle, fecha, **"se repite todos los meses"** (desde la fecha, con "hasta" opcional) y **caso opcional** para la ganancia neta por caso.
+    *   **Facturación:** sin facturar (se factura ahí mismo con **número** y fecha), facturado sin cobrar (en rojo después de 30 días; "Marcar cobro" abre el caso en Montos) y cobrados con su **neto** (honorarios − comisión − gastos del caso).
+    *   **Flujo de caja** se mudó de Análisis a Finanzas (mismo componente `analisis/AnalisisCaja.jsx`). Análisis queda con Resumen, Compañías, PAS y Etapas. En Hoy, "Ver todos" de cobros y el link de abajo llevan a Finanzas.
+*   **Ficha:** "Factura de honorarios" suma el **número de factura**; en Resumen, **"Hilo con la compañía"** (`caso/HiloGmail.jsx`): se pega una vez el link de la conversación de Gmail y después se abre con "Abrir el hilo en Gmail".
+*   `sql/2026-09-28_28_finanzas.sql`: tabla `gastos` (solo administrador) y columnas `pas_casos.nro_factura` y `pas_casos.hilo_gmail`. Sin el SQL: Finanzas avisa y no permite cargar gastos; la ficha avisa en el número de factura y en el hilo (se guarda igual el resto). Probado en Postgres 16 (dos veces, y el control de "hasta" ≥ fecha).
+*   La copia de seguridad completa (`copiaSeguridad.TABLAS_COPIA`) todavía no incluye `gastos` (ni las tablas de ATG Lex): sumarlas cuando estén todos los SQL corridos, porque una tabla que falta hace fallar la copia.
+*   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular: resultado del mes, gasto fijo con caso, facturar con número, flujo de caja, hilo de Gmail y número de factura en la ficha.
+
 ### 2026-09-28 — Presentación al cliente y ficha más simple
 *   **Presentate al cliente** (ficha → Resumen, mientras el caso está en Doc. pendiente o Iniciado y no hay `fecha_contacto_asegurado`): botón que abre el WhatsApp de "Primer contacto" con quién sos, qué PAS lo derivó ("Juan, tu productor de seguros"), la documentación que hace falta y, si hay patente y DNI, **el link a la vista del cliente para que la suba él mismo** (llega a Hoy → Documentación recibida). Al abrir WhatsApp queda registrada la fecha de contacto; "Ya me presenté" la marca sin mandar nada. La plantilla "Pedir documentación" también trae el link (`mensajes.clientePuedeEntrar`, `comoMandarDocs`). `AvisarWhatsApp` suma `plantillaInicial`, `onEnviado` y `onCerrar`.
 *   ~~Mails del caso en Gmail~~ (buscar por patente/siniestro/asegurado): **se sacó** a pedido del usuario, porque los hilos con la compañía no siempre mencionan esos datos. Gmail no se puede mostrar dentro de la app (Google lo bloquea).

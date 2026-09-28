@@ -18,10 +18,18 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
           {texto}{vencidos ? " · cobro vencido" : ""}
         </span>
       </div>
-      <label style={{ display: "block", maxWidth: 240 }}>
-        <span style={labelStyle}>Fecha de factura</span>
-        <input type="date" value={formData.fecha_factura || ""} onChange={e => onChange("fecha_factura", e.target.value)} style={Th.input} />
-      </label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        <label>
+          <span style={labelStyle}>Fecha de factura</span>
+          <input type="date" value={formData.fecha_factura || ""} onChange={e => onChange("fecha_factura", e.target.value)} style={Th.input} />
+        </label>
+        {"nro_factura" in formData
+          ? <label>
+              <span style={labelStyle}>Número de factura</span>
+              <input value={formData.nro_factura || ""} onChange={e => onChange("nro_factura", e.target.value)} placeholder="Ej: 0001-00000123" style={Th.input} />
+            </label>
+          : <span style={{ fontSize: 12, color: Th.muted, alignSelf: "end" }}>Para cargar el número de factura falta correr el SQL 28.</span>}
+      </div>
     </div>
   );
 }

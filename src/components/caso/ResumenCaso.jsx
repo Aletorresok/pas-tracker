@@ -6,6 +6,7 @@ import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
 import ContactoCompania from "./ContactoCompania.jsx";
+import HiloGmail from "./HiloGmail.jsx";
 import SeccionPagos from "./SeccionPagos.jsx";
 import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje, AvisoPrescripcion } from "./AvisoEstadoCliente.jsx";
 
@@ -123,6 +124,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
       <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
       <AgendaCaso casoId={casoId} caso={{ ...formData, nro_siniestro: nroSiniestro }} onChange={onChange} Th={Th} />
       <ContactoCompania casoId={casoId} compania={formData.compania_aseguradora} Th={Th} />
+      <HiloGmail formData={formData} onChange={onChange} Th={Th} />
 
       <div style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>

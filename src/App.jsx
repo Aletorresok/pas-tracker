@@ -27,6 +27,7 @@ import TabProspeccion from './components/TabProspeccion.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import TabExpedientes from './components/TabExpedientes.jsx'
 import TabRutina from './components/TabRutina.jsx'
+import TabFinanzas from './components/TabFinanzas.jsx'
 import TabHerramientas from './components/TabHerramientas.jsx'
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
@@ -332,6 +333,7 @@ function AppPrincipal() {
           {/* TABS CONTENT */}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "rutina" && <TabRutina pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} darkMode={darkMode} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "finanzas" && <TabFinanzas pas={pas} casos={casos} pasManuales={pasManuales} darkMode={darkMode} onCasoLocal={handleCasoLocal} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
