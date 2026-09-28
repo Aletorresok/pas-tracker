@@ -1,5 +1,6 @@
 import { supabase } from "../supabase.js";
 import emailjs from "@emailjs/browser";
+import { comprimir } from "./subidasCliente.js";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -11,13 +12,16 @@ const LINK_APP = "https://pas-tracker20.vercel.app";
 /**
  * Sube múltiples archivos al bucket de Supabase y notifica por EmailJS.
  * Con `casoId` (pas_casos.id) se guardan en <pas_id>/<caso>/, así la ficha del caso los muestra.
+ * Las fotos grandes se achican antes de subir. Si el mail no sale, no corta: el estudio igual ve el caso.
+ * Devuelve { subidos: [{ nombre, link }], fallidos: [nombre], avisoEnviado }.
  */
 export async function subirArchivosYNotificar({ pasId, casoId, pasNombre, casoData, archivos }) {
   const subidos = []; // { nombre, link }
   const fallidos = [];
 
   if (archivos && archivos.length > 0) {
-    for (let file of archivos) {
+    for (let original of archivos) {
+      const file = await comprimir(original);
       // Se guarda con su nombre original (sin tildes ni símbolos, que Storage no acepta) para que el link se entienda
       const limpio = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9._-]+/g, "_").replace(/_+/g, "_").slice(-80);
       const filePath = `${pasId}/${casoId ? `${casoId}/` : ""}${Date.now()}_${limpio || "archivo"}`;
@@ -25,10 +29,9 @@ export async function subirArchivosYNotificar({ pasId, casoId, pasNombre, casoDa
       const { error: uploadError } = await supabase.storage.from("adjuntos").upload(filePath, file);
       if (uploadError) { console.error("[adjuntos] no se pudo subir", file.name, uploadError); fallidos.push(file.name); continue; }
       const { data: linkData } = supabase.storage.from("adjuntos").getPublicUrl(filePath);
-      if (linkData?.publicUrl) subidos.push({ nombre: file.name, link: linkData.publicUrl });
+      subidos.push({ nombre: file.name, link: linkData?.publicUrl || "(link no disponible: está en la ficha del caso)" });
     }
   }
-  const linksAdjuntos = subidos.map(s => s.link);
 
   const textoLinks = [
     ...subidos.map(s => `📎 ${s.nombre}\n${s.link}`),
@@ -44,8 +47,14 @@ export async function subirArchivosYNotificar({ pasId, casoId, pasNombre, casoDa
     links_archivos: textoLinks,
   };
 
-  await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-  return linksAdjuntos;
+  let avisoEnviado = true;
+  try {
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
+  } catch (e) {
+    avisoEnviado = false;
+    console.error("[aviso por mail] no se pudo mandar:", e);
+  }
+  return { subidos, fallidos, avisoEnviado };
 }
 /**
  * Avisa por mail lo que subió un cliente en una sesión (plantilla propia si está cargada; si no, la de derivaciones),

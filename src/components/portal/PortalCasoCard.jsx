@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
 import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 import BarraAvance from "../ui/BarraAvance.jsx";
@@ -8,7 +8,9 @@ import Icono from "../ui/Icono.jsx";
 import ModalGenerarEscrito from "../caso/ModalGenerarEscrito.jsx";
 import { THEME } from "../../utils/theme.js";
 import { diasDesde, primerNombre } from "../../utils/formatters.js";
-import { linkWhatsApp, linkVistaCliente } from "../../utils/mensajes.js";
+import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
+import { adjuntosDelCaso } from "../../utils/adjuntosPas.js";
+import SelectorArchivos from "./SelectorArchivos.jsx";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 
 // Una línea con lo que sigue y cuándo, para contestarle al cliente sin abrir nada
@@ -47,34 +49,41 @@ const MONTOS = [
 ];
 
 // Tarjeta de un caso en el portal del PAS: lo esencial arriba, el detalle al tocar
-export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
+export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCia }) {
   const [open, setOpen] = useState(false);
   const [escrito, setEscrito] = useState(false);
   const abierto = !["cobrado", "desistido"].includes(caso.estado) && !caso._demo;
   const sigue = queSigue(caso, plazoCia);
   // El cliente entra a su vista con la patente y los últimos 3 números del DNI: hacen falta los dos
-  const puedeSeguirlo = abierto && caso.patente && String(caso.dni_asegurado || "").replace(/D/g, "").length >= 3;
+  const puedeSeguirlo = abierto && clientePuedeEntrar(caso);
   const textoCliente = `Hola ${primerNombre(caso.asegurado || "")}, podés seguir cómo va tu reclamo cuando quieras en ${linkVistaCliente(caso.patente)} (entrás con la patente y los últimos 3 números de tu DNI).`;
   const linkCliente = puedeSeguirlo ? (linkWhatsApp(caso.telefono_asegurado, textoCliente) || `https://wa.me/?text=${encodeURIComponent(textoCliente)}`) : null;
   const [subiendo, setSubiendo] = useState(false);
   const [aviso, setAviso] = useState(null); // { tipo, texto }
-  const fileInputRef = useRef(null);
+  const [archivos, setArchivos] = useState([]);
+  const [enviados, setEnviados] = useState(null); // lo que ya mandó el PAS (null = no se puede ver: falta el SQL 29)
+  // El escrito para que firme el asegurado sirve hasta que se reclama
+  const conEscrito = ["doc_pendiente", "iniciado", "reclamado"].includes(caso.estado) && !caso._demo;
+  // Consulta por WhatsApp con el caso ya identificado
+  const consulta = linkWhatsApp(TELEFONO_ESTUDIO, `Hola Alexis, te consulto por el caso de ${caso.asegurado || "mi asegurado"}${[caso.patente, caso.compania_aseguradora].filter(Boolean).length ? ` (${[caso.patente, caso.compania_aseguradora].filter(Boolean).join(", ")})` : ""}: `);
+
+  const cargarEnviados = () => adjuntosDelCaso(caso.pas_id, caso.id).then(r => setEnviados(r ? r.delCaso : null));
+  useEffect(() => { if (open && !caso._demo) cargarEnviados(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const historial = [...(caso.movimientos || [])].sort((a, b) => b.ts - a.ts);
   const ultima = historial[0];
   const fechas = FECHAS.filter(f => caso[f.k]);
   const montos = MONTOS.filter(f => Number(caso[f.k]) > 0);
 
-  const subir = async (e) => {
-    const archivos = Array.from(e.target.files || []);
+  const subir = async () => {
     if (!archivos.length) return;
     setSubiendo(true);
     setAviso(null);
     try {
-      await subirArchivosYNotificar({
+      const { subidos, fallidos } = await subirArchivosYNotificar({
         pasId: caso.pas_id,
         casoId: caso.id,
-        pasNombre: caso.pas_nombre || "Productor",
+        pasNombre: pasNombre || "Productor",
         casoData: {
           asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",
           telefono: caso.telefono_asegurado || caso.tercero_contacto || "Ya registrado",
@@ -83,13 +92,17 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
         },
         archivos,
       });
-      setAviso({ tipo: "ok", texto: `${archivos.length === 1 ? "Archivo enviado" : `${archivos.length} archivos enviados`}. Ya le avisamos al estudio.` });
+      if (!subidos.length) throw new Error("no se subió ningún archivo");
+      setAviso(fallidos.length
+        ? { tipo: "error", texto: `Se mandaron ${subidos.length}; ${fallidos.length === 1 ? "uno no se pudo subir" : `${fallidos.length} no se pudieron subir`} (${fallidos.join(", ")}). Probá de nuevo con esos.` }
+        : { tipo: "ok", texto: `${subidos.length === 1 ? "Archivo enviado" : `${subidos.length} archivos enviados`}. Ya le avisamos al estudio.` });
+      setArchivos(a => a.filter(f => fallidos.includes(f.name)));
+      cargarEnviados();
     } catch (err) {
       console.error("Error al subir:", err);
       setAviso({ tipo: "error", texto: "No se pudo subir. Revisá la conexión y probá de nuevo." });
     } finally {
       setSubiendo(false);
-      if (fileInputRef.current) fileInputRef.current.value = null;
     }
   };
 
@@ -141,7 +154,7 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
             style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
-            {open ? "Ocultar detalle" : "Ver detalle y adjuntar documentación"}
+            {open ? "Ocultar detalle" : "Detalle y documentación"}
           </button>
           <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
             {linkCliente && (
@@ -150,7 +163,13 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
                 <Icono nombre="mensaje" size={14} />Pasale el seguimiento al cliente
               </a>
             )}
-            {abierto && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
+            {conEscrito && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
+            {consulta && !caso._demo && (
+              <a href={consulta} target="_blank" rel="noreferrer" title="Te abre WhatsApp con el caso ya identificado"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                <Icono nombre="telefono" size={14} />Consultar al estudio
+              </a>
+            )}
           </span>
         </div>
       </div>
@@ -191,12 +210,26 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
             </div>
           )}
 
+          {enviados?.length > 0 && (
+            <div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Documentación que mandaste ({enviados.length})</div>
+              {enviados.map((a, i) => (
+                <div key={a.ruta} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", borderTop: i ? "1px solid var(--border)" : "none", fontSize: 13 }}>
+                  <span style={{ color: "var(--sub)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nombre}</span>
+                  <span className="num" style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(String(a.creado || "").slice(0, 10))}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div>
-            <input type="file" multiple accept="image/*,application/pdf" ref={fileInputRef} style={{ display: "none" }} onChange={subir} />
-            <Boton variante="primario" icono="adjuntar" onClick={() => fileInputRef.current?.click()} disabled={subiendo}>
-              {subiendo ? "Subiendo…" : "Adjuntar documentación"}
-            </Boton>
-            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>Fotos o PDF. Desde el celular podés sacar la foto en el momento.</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>Adjuntar documentación</div>
+            <SelectorArchivos archivos={archivos} onChange={setArchivos} disabled={subiendo || caso._demo} />
+            {archivos.length > 0 && (
+              <Boton variante="primario" icono="adjuntar" onClick={subir} disabled={subiendo} style={{ marginTop: 10 }}>
+                {subiendo ? "Enviando…" : `Enviar ${archivos.length === 1 ? "1 archivo" : `${archivos.length} archivos`} al estudio`}
+              </Boton>
+            )}
             {aviso && (
               <div role="status" style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: aviso.tipo === "ok" ? "var(--ok)" : "var(--bad)" }}>{aviso.texto}</div>
             )}

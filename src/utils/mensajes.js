@@ -2,6 +2,8 @@
 import { fmtMoney, fmtDate, primerNombre } from "./formatters.js";
 
 export const FIRMA = "Dr. Alexis Torres Gaveglio";
+// WhatsApp del estudio: adonde escriben los PAS con "Consultar al estudio"
+export const TELEFONO_ESTUDIO = "11 3313-3259";
 
 // Número para wa.me en formato argentino de celular: 54 9 + característica + número.
 // Acepta "11 3313-3259", "011 15 3313 3259", "+54 9 11 3313 3259", etc. Devuelve "" si no hay número.

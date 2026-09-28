@@ -23,11 +23,11 @@ export default function CambiarPasswordModal({ onClose, dark }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 24px", width: "100%", maxWidth: 360, boxShadow: "0 20px 60px #0004" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 24px", width: "100%", maxWidth: 360, boxShadow: "var(--shadow)" }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: T.text, marginBottom: 20 }}>Cambiar contraseña</div>
         {[{ label: "Nueva contraseña", val: nueva, set: setNueva }, { label: "Confirmar contraseña", val: confirm, set: setConfirm }].map(f => (
           <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{f.label}</div>
+            <div style={{ fontSize: 13, color: T.text, fontWeight: 600, marginBottom: 6 }}>{f.label}</div>
             <input type="password" value={f.val} onChange={e => f.set(e.target.value)} style={T.input} />
           </label>
         ))}

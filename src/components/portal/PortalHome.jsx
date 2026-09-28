@@ -13,6 +13,7 @@ import { alpha } from "../../utils/theme.js";
 import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
+import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -56,6 +57,19 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const [busqueda, setBusqueda] = useState("");
   const [eventos, setEventos] = useState({}); // caso_id → próxima mediación/audiencia
   const app = useInstalarApp();
+  const [menu, setMenu] = useState(false);
+  const [fabVisible, setFabVisible] = useState(true);
+  useEffect(() => {
+    let ultimo = window.scrollY;
+    const alMover = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - ultimo) < 8) return;
+      setFabVisible(y < ultimo || y < 80);
+      ultimo = y;
+    };
+    window.addEventListener("scroll", alMover, { passive: true });
+    return () => window.removeEventListener("scroll", alMover);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -131,9 +145,11 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   const plazos = plazosRespuesta(todosLosCasos);
   const companiasUnicas = [...new Set(todosLosCasos.map(c => c.compania_aseguradora).filter(Boolean))].sort();
 
+  // Fecha de pago: la misma que muestra la tarjeta (firma + plazo del convenio, o la fecha cargada)
   const pagosPendientes = casos
     .filter(c => c.estado === "esperando_pago" || (c.fecha_pago && c.estado !== "cobrado" && c.estado !== "desistido"))
-    .sort((a, b) => new Date(a.fecha_pago || "2099-01-01") - new Date(b.fecha_pago || "2099-01-01"));
+    .map(c => ({ ...c, _fechaPago: fechaPagoEstimada(c) }))
+    .sort((a, b) => (a._fechaPago || "2099-01-01").localeCompare(b._fechaPago || "2099-01-01"));
 
   const enCurso = casos.filter(c => !["cobrado", "desistido"].includes(c.estado));
   const casosDesistidos = casos.filter(c => c.estado === "desistido");
@@ -170,16 +186,33 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <Logo alto={26} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 12, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>ATG Lex Solutions · Portal de productores</div>
+            <div style={{ fontSize: 12, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Portal de productores</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pasInfo?.nombre || "Portal"}</div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 4, alignItems: "center", flex: "none" }}>
           <Boton variante="primario" icono="agregar" tamaño="sm" className="hide-mobile" onClick={() => setModalNuevoCaso(true)}>Derivar caso</Boton>
-          {app.puede && <Boton variante="fantasma" tamaño="sm" icono="instalar" onClick={app.instalar} aria-label="Instalar app" title="Instalar app" />}
-          <Boton variante="fantasma" tamaño="sm" icono={dark ? "sol" : "luna"} onClick={onToggleDark} aria-label={dark ? "Modo claro" : "Modo oscuro"} />
-          <Boton variante="fantasma" tamaño="sm" icono="candado" onClick={() => setCambPwd(true)} aria-label="Cambiar contraseña" />
-          <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={onLogout} aria-label="Salir" />
+          <div style={{ position: "relative" }}>
+            <Boton variante="fantasma" tamaño="sm" icono="clientes" onClick={() => setMenu(m => !m)} aria-expanded={menu} aria-haspopup="menu">Cuenta</Boton>
+            {menu && (
+              <>
+                <div onClick={() => setMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 30 }} />
+                <div role="menu" style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 31, minWidth: 210, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, boxShadow: "var(--shadow)", padding: 6, display: "flex", flexDirection: "column" }}>
+                  {[
+                    app.puede && { l: "Instalar la app", icono: "instalar", f: app.instalar },
+                    { l: dark ? "Modo claro" : "Modo oscuro", icono: dark ? "sol" : "luna", f: onToggleDark },
+                    { l: "Cambiar contraseña", icono: "candado", f: () => setCambPwd(true) },
+                    { l: "Salir", icono: "salir", f: onLogout },
+                  ].filter(Boolean).map(o => (
+                    <button key={o.l} type="button" role="menuitem" onClick={() => { setMenu(false); o.f(); }}
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", background: "none", border: "none", borderRadius: 8, font: "inherit", fontSize: 14, color: T.text, cursor: "pointer", textAlign: "left" }}>
+                      <Icono nombre={o.icono} size={16} />{o.l}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -193,7 +226,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
             {proximo && (
               <div style={{ fontSize: 13, color: T.sub, marginTop: 4 }}>
                 Próximo cobro: <b className="num" style={{ color: T.text }}>{Number(proximo.monto_comision_pas) > 0 ? fmtMoney(proximo.monto_comision_pas) : proximo.asegurado}</b>
-                {proximo.fecha_pago ? ` · ${fmtDate(proximo.fecha_pago)}` : " · fecha a confirmar"}
+                {proximo._fechaPago ? ` · ${fmtDate(proximo._fechaPago)}` : " · fecha a confirmar"}
               </div>
             )}
             <div className="stats-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 10 }}>
@@ -213,7 +246,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.asegurado}</span>
-                      <span style={{ color: T.muted, fontSize: 12 }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "Fecha a confirmar"}</span>
+                      <span style={{ color: T.muted, fontSize: 12 }}>{p._fechaPago ? fmtDate(p._fechaPago) : "Fecha a confirmar"}</span>
                     </span>
                     {Number(p.monto_comision_pas) > 0 && <span className="num" style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{fmtMoney(p.monto_comision_pas)}</span>}
                   </div>
@@ -261,10 +294,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
               {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (
-            lista.map(c => <PortalCasoCard key={c.id} caso={c} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
+            lista.map(c => <PortalCasoCard key={c.id} caso={c} pasNombre={pasInfo?.nombre} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
           )}
 
-          {todosLosCasos.length > 0 && (
+          {Object.keys(plazos).length >= 3 && (
             <GraficoBoundary>
               <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false} />
             </GraficoBoundary>
@@ -273,12 +306,12 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       </div>
 
       {/* Botón fijo para derivar en celular */}
-      <button type="button" className="fab-derivar" onClick={() => setModalNuevoCaso(true)}>
+      <button type="button" className={`fab-derivar${fabVisible ? "" : " fab-oculto"}`} onClick={() => setModalNuevoCaso(true)}>
         <Icono nombre="agregar" size={18} /> Derivar caso
       </button>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
-      {modalNuevoCaso && <NuevoCasoModal pasId={pasId} pasNombre={pasInfo?.nombre} onClose={() => setModalNuevoCaso(false)} onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev.filter(c => !c._demo)])} dark={dark} companias={companiasUnicas} />}
+      {modalNuevoCaso && <NuevoCasoModal pasId={pasId} pasNombre={pasInfo?.nombre} casos={casos} onClose={() => setModalNuevoCaso(false)} onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev.filter(c => !c._demo)])} dark={dark} companias={companiasUnicas} />}
     </div>
   );
 }
