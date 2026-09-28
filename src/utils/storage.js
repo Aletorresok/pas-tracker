@@ -177,12 +177,29 @@ export async function upsertPasManual(pas) {
   if (error) console.error("[upsertPasManual] error:", error);
 }
 
-export async function deleteCaso(id) {
-  const { error: errAcc } = await supabase.from("acciones").delete().eq("caso_id", id);
-  if (errAcc) console.error("[deleteCaso] error acciones:", errAcc);
+// Papelera (SQL 26): eliminar copia el caso con todo lo suyo a pas_papelera y lo borra, en una sola operación.
+// Se recupera tal cual durante 30 días; después lo borra un cron.
+const FALTA_SQL_26 = "Falta correr el SQL 26 (papelera) en Supabase.";
+const errorPapelera = (error, texto) => (error?.code === "PGRST202" || error?.code === "42P01" ? FALTA_SQL_26 : `${texto}: ${error?.message || "error desconocido"}`);
 
-  const { error } = await supabase.from("pas_casos").delete().eq("id", id);
-  if (error) console.error("[deleteCaso] error:", error);
+export async function deleteCaso(id) {
+  const { data, error } = await supabase.rpc("eliminar_caso", { p_caso_id: id });
+  if (error) { console.error("[deleteCaso]", error); return { error: errorPapelera(error, "No se pudo eliminar el caso") }; }
+  return { papeleraId: data };
+}
+
+export async function restaurarCaso(papeleraId) {
+  const { data, error } = await supabase.rpc("restaurar_caso", { p_papelera_id: papeleraId });
+  if (error) { console.error("[restaurarCaso]", error); return { error: errorPapelera(error, "No se pudo recuperar el caso") }; }
+  return { caso: data };
+}
+
+export async function listarPapelera() {
+  const { data, error } = await supabase.from("pas_papelera")
+    .select("id, caso_id, pas_id, asegurado, patente, compania, eliminado_en")
+    .order("eliminado_en", { ascending: false });
+  if (error) { console.error("[listarPapelera]", error); return { error: errorPapelera(error, "No se pudo cargar la papelera") }; }
+  return { lista: data || [] };
 }
 
 export async function deletePasManual(id) {

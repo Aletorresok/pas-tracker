@@ -57,7 +57,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, onEliminar, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -234,14 +234,15 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     return () => clearTimeout(t);
   }, [deshacer]);
 
-  // Al cerrar con cambios sin guardar, guarda primero
-  const cerrar = async () => {
+  // Al cerrar o eliminar con cambios sin guardar, guarda primero (así "Deshacer" lo recupera completo)
+  const guardarPendiente = async () => {
     if (estadoGuardado === "pendiente" || estadoGuardado === "error") {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       await guardarCasoRef.current?.();
     }
-    onClose();
   };
+  const cerrar = async () => { await guardarPendiente(); onClose(); };
+  const eliminar = async () => { await guardarPendiente(); onEliminar(); };
 
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
@@ -292,6 +293,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                     ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
                     : TEXTO_GUARDADO[estadoGuardado]}
                 </span>
+                {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
                 <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
               </div>

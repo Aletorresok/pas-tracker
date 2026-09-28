@@ -9,7 +9,8 @@ import { useTheme } from "./context/ThemeContext.jsx";
 import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
 import { RESULTADO_MAIL, esMailEnviado } from "./utils/mensajes.js";
 import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/copiaSeguridad.js";
-import { saveStorage, upsertPasManual, insertHistorialEntry } from "./utils/storage.js";
+import { saveStorage, upsertPasManual, insertHistorialEntry, deleteCaso, restaurarCaso } from "./utils/storage.js";
+import AvisoDeshacer from "./components/ui/AvisoDeshacer.jsx";
 
 // ── IMPORTS: HOOKS
 import { usePASData } from "./hooks/usePASData.js";
@@ -179,6 +180,28 @@ function AppPrincipal() {
     });
   }, [setCasos, autoBackup]);
 
+  // Eliminar manda el caso a la papelera (30 días) y muestra "Deshacer". Devuelve true si se eliminó.
+  const [casoEliminado, setCasoEliminado] = useState(null); // { papeleraId, nombre }
+  const cerrarAvisoEliminado = useCallback(() => setCasoEliminado(null), []);
+  const handleEliminarCaso = useCallback(async (caso, pasId) => {
+    const nombre = caso.asegurado || "Sin nombre";
+    if (!window.confirm(`¿Eliminar el caso de ${nombre}?\n\nVa a la papelera: lo podés recuperar durante 30 días.`)) return false;
+    const { papeleraId, error } = await deleteCaso(caso.id);
+    if (error) { window.alert(error); return false; }
+    handleQuitarCaso(String(pasId), caso.id);
+    setCasoEliminado({ papeleraId, nombre });
+    return true;
+  }, [handleQuitarCaso]);
+
+  // Recupera de la papelera y lo vuelve a poner en memoria. Devuelve el caso o null.
+  const handleRestaurarCaso = useCallback(async (papeleraId) => {
+    const { caso, error } = await restaurarCaso(papeleraId);
+    if (error) { window.alert(error); return null; }
+    const { pas_id, ...resto } = caso;
+    handleCasoLocal(String(pas_id), resto);
+    return caso;
+  }, [handleCasoLocal]);
+
   const handleToggleDerivador = useCallback(async (pasId) => {
     const updated = { ...derivadores, [pasId]: !derivadores[pasId] };
     setDerivadores(updated);
@@ -270,6 +293,7 @@ function AppPrincipal() {
         <CasoOverlay caso={casoBuscado.caso} pasId={casoBuscado.pasId} casos={casos} todosLosPas={todosLosPas}
           onCasoLocal={handleCasoLocal} darkMode={darkMode}
           onCambio={updated => setCasoBuscado(b => ({ ...b, caso: { ...updated, _pasId: b.pasId } }))}
+          onEliminarCaso={handleEliminarCaso}
           onClose={() => setCasoBuscado(null)} />
       )}
 
@@ -304,7 +328,7 @@ function AppPrincipal() {
           {/* TABS CONTENT */}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onQuitarCaso={handleQuitarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
@@ -315,6 +339,11 @@ function AppPrincipal() {
         <div role="status" style={{ position: "fixed", right: 16, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", zIndex: 400, maxWidth: 360, background: "var(--card)", border: `1px solid ${copiaAviso.ok ? "var(--border)" : "var(--bad)"}`, borderRadius: 10, padding: "10px 14px", fontSize: 13, lineHeight: 1.45, color: copiaAviso.ok ? "var(--text)" : "var(--bad)", boxShadow: "var(--shadow)" }}>
           {copiaAviso.texto}
         </div>
+      )}
+
+      {casoEliminado && (
+        <AvisoDeshacer key={casoEliminado.papeleraId} texto={`Caso de ${casoEliminado.nombre} eliminado`}
+          onDeshacer={() => handleRestaurarCaso(casoEliminado.papeleraId)} onCerrar={cerrarAvisoEliminado} />
       )}
 
       {/* MODALES */}

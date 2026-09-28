@@ -16,7 +16,7 @@ const COLUMNAS = ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.k
 
 // Tablero por etapas: arrastrás un caso a otra columna para cambiarle el estado (mismo flujo que la ficha:
 // fecha de la etapa, nota en la bitácora, próxima acción sugerida y aviso al cliente). Tocar un caso abre la ficha.
-export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal }) {
+export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCasoLocal }) {
   const margenes = useMargenes();
   const [arrastrando, setArrastrando] = useState(null); // id del caso
   const [sobre, setSobre] = useState(null); // estado de la columna bajo el cursor
@@ -88,6 +88,7 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal 
                   onDragStart={e => { setArrastrando(c.id); e.dataTransfer.effectAllowed = "move"; }}
                   onDragEnd={() => { setArrastrando(null); setSobre(null); }}
                   onClick={() => onAbrir(c)}
+                  onContextMenu={onMenu ? e => onMenu(e, c) : undefined}
                   style={{ textAlign: "left", font: "inherit", color: "var(--text)", cursor: "grab", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", display: "flex", flexDirection: "column", gap: 3, opacity: arrastrando === c.id ? 0.5 : 1 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado || "Sin nombre"}</span>
                   <span style={{ fontSize: 12, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

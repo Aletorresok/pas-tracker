@@ -2,7 +2,7 @@ import { Fragment, useState, useMemo, useCallback } from "react";
 import { fmtMoney, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { aplanarCasos, esActivo } from "../utils/metricas.js";
-import { deleteCaso } from "../utils/storage.js";
+import Papelera from "./casos/Papelera.jsx";
 import { useEsCelular } from "../hooks/useEsCelular.js";
 import EstadoPill from "./ui/EstadoPill.jsx";
 import Icono from "./ui/Icono.jsx";
@@ -10,6 +10,7 @@ import CasoOverlay from "./caso/CasoOverlay.jsx";
 import FilaExpandida from "./casos/FilaExpandida.jsx";
 import TableroCasos from "./casos/TableroCasos.jsx";
 import { QUIEN, quienTiene } from "../utils/pelota.js";
+import { useMenuContextual } from "./ui/MenuContextual.jsx";
 
 const VISTA_GUARDADA = "pas_casos_vista";
 const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
@@ -57,7 +58,8 @@ function coincide(c, texto) {
 // Caso en curso sin DNI cargado: el cliente no puede consultar su reclamo
 const sinDni = c => esActivo(c) && !/\d{3}/.test(String(c.dni_asegurado || "").replace(/\D/g, ""));
 
-export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMode, pasManuales = [] }) {
+export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, onCasoLocal, darkMode, pasManuales = [] }) {
+  const [papelera, setPapelera] = useState(false);
   const esCelular = useEsCelular();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("activos"); // activos | todos | sin_dni | <estado>
@@ -105,11 +107,20 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
   const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k === "mov" || k === "monto" }));
 
   const handleDelete = async (caso) => {
-    if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
-    await deleteCaso(caso.id);
-    setAbiertoId(null);
-    onQuitarCaso(caso._pasId, caso.id);
+    if (await onEliminarCaso(caso, caso._pasId)) setAbiertoId(null);
   };
+
+  const { abrirMenu, menu } = useMenuContextual();
+  const copiar = texto => navigator.clipboard?.writeText(texto).catch(() => {});
+  const menuCaso = (e, c) => abrirMenu(e, [
+    { label: "Abrir ficha completa", onClick: () => setFicha({ caso: c, pasId: c._pasId }) },
+    vista === "tabla" && { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
+    (c.patente || c.nro_siniestro) && { separador: true },
+    c.patente && { label: `Copiar patente (${c.patente})`, onClick: () => copiar(c.patente) },
+    c.nro_siniestro && { label: "Copiar N° de siniestro", onClick: () => copiar(c.nro_siniestro) },
+    { separador: true },
+    { label: "Eliminar caso", peligro: true, onClick: () => handleDelete(c) },
+  ]);
 
   // Guarda en memoria el caso editado desde la fila (ya se guardó en Supabase)
   const casoEditado = useCallback((pasId) => (actualizado) => {
@@ -151,8 +162,12 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Casos PAS</h1>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           {vista === "tabla" && <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {allCasos.length}</span>}
+          <button type="button" onClick={() => setPapelera(true)} title="Casos eliminados en los últimos 30 días"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "inherit", fontSize: 13, padding: "5px 10px", border: "1px solid var(--border)", borderRadius: 8, background: "var(--card)", color: "var(--sub)", cursor: "pointer" }}>
+            <Icono nombre="papelera" size={15} />Papelera
+          </button>
           <span role="group" aria-label="Vista" style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
             {[["tabla", "Tabla"], ["tablero", "Tablero"]].map(([k, l]) => (
               <button key={k} type="button" aria-pressed={vista === k} onClick={() => elegirVista(k)}
@@ -174,6 +189,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
           casos={allCasos.filter(c => esActivo(c) && coincide(c, busqueda))}
           todosLosPas={todosLosPas}
           onAbrir={c => setFicha({ caso: c, pasId: c._pasId })}
+          onMenu={menuCaso}
           onCasoLocal={c => casoEditado(c._pasId)(c)} />
       )}
 
@@ -198,7 +214,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
           {filtrados.map((c, i) => (
             <Fragment key={c.id}>
-              <button type="button" onClick={() => alternar(c.id)} aria-expanded={abiertoId === c.id}
+              <button type="button" onClick={() => alternar(c.id)} onContextMenu={e => menuCaso(e, c)} aria-expanded={abiertoId === c.id}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === c.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.asegurado || "Sin nombre"}</span>
                 <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : ""}</span>
@@ -241,7 +257,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
                 const celda = { padding: "10px 14px", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", background: abierto ? "var(--card2)" : undefined };
                 return (
                   <Fragment key={c.id}>
-                    <tr onClick={() => alternar(c.id)} style={{ cursor: "pointer" }} className="fila-caso">
+                    <tr onClick={() => alternar(c.id)} onContextMenu={e => menuCaso(e, c)} style={{ cursor: "pointer" }} className="fila-caso">
                       <td style={celda}>
                         <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(c.id); }}
                           style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -276,9 +292,12 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
           caso={ficha.caso} pasId={ficha.pasId} casos={casos} todosLosPas={todosLosPas}
           onCasoLocal={onCasoLocal} darkMode={darkMode}
           onCambio={updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))}
+          onEliminarCaso={onEliminarCaso}
           onClose={() => { setFicha(null); setAbiertoId(null); }}
         />
       )}
+      {papelera && <Papelera todosLosPas={todosLosPas} onRestaurar={onRestaurarCaso} onClose={() => setPapelera(false)} />}
+      {menu}
     </div>
   );
 }
