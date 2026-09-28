@@ -27,6 +27,7 @@ const PATHS = {
   buscar: <><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></>,
   balanza: <><path d="M12 3v18M7 21h10M5 7h14M3 7l2 7a3 3 0 0 0 6 0L9 7M15 7l-2 7a3 3 0 0 0 6 0l2-7" /></>,
   calendario: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
+  papelera: <><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" /></>,
 };
 
 export default function Icono({ nombre, size = 18, stroke = 1.8, style }) {

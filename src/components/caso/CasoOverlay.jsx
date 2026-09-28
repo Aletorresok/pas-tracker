@@ -1,12 +1,12 @@
 import CasoDetalle from "../../CasoUnificado.jsx";
 import { useEffect } from "react";
 import { useCompanias } from "./CompaniaSelector.jsx";
-import { marcarRevisado, deleteCaso } from "../../utils/storage.js";
+import { marcarRevisado } from "../../utils/storage.js";
 
 // Abre la ficha de un caso por encima de cualquier pantalla. La ficha ya guarda su caso en Supabase;
 // acá solo se refleja el cambio en memoria (sin volver a guardar todos los casos).
-// Con onQuitarCaso, la ficha muestra "Eliminar".
-export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, onQuitarCaso, darkMode }) {
+// Con onEliminarCaso (App.handleEliminarCaso: confirma, manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
+export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, onEliminarCaso, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 
   // Abrir un caso nuevo del portal lo saca de la bandeja "Nuevos del portal"
@@ -24,12 +24,7 @@ export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosL
   const pas = todosLosPas.find(p => String(p.id) === String(pasId));
   const pasNombre = pas?.nombre || caso._pasNombre || "";
 
-  const eliminar = async () => {
-    if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
-    if (!(await deleteCaso(caso.id))) { window.alert("No se pudo eliminar el caso. Probá de nuevo."); return; }
-    onQuitarCaso(pasId, caso.id);
-    onClose();
-  };
+  const eliminar = async () => { if (await onEliminarCaso(caso, pasId)) onClose(); };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: "var(--bg)" }}>
@@ -42,7 +37,7 @@ export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosL
           onCambio?.(updated);
         }}
         onClose={onClose}
-        onEliminar={onQuitarCaso ? eliminar : undefined}
+        onEliminar={onEliminarCaso ? eliminar : undefined}
       />
     </div>
   );

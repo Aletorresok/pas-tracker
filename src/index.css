@@ -103,6 +103,7 @@ input:focus, select:focus, textarea:focus {
 .app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }
 .sidebar { display: flex; }
 .bottom-nav { display: none; }
+.aviso-deshacer { bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
 .buscar-movil { display: none; }
 
 /* Vista del cliente: en PC, el estado del reclamo a la izquierda y lo demás a la derecha */
@@ -129,6 +130,7 @@ input:focus, select:focus, textarea:focus {
     background: var(--card); border-top: 1px solid var(--border);
     padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
   }
+  .aviso-deshacer { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   /* Grillas que en compu son de varias columnas pasan a una o dos */
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .grid-3, .grid-2 { grid-template-columns: minmax(0, 1fr) !important; }
