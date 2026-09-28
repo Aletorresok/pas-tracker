@@ -22,9 +22,6 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
   const alEnviarWhatsApp = ({ para, plantilla }) => {
     if (para === "cliente" && plantilla === "primer_contacto" && !formData.fecha_contacto_asegurado) onChange("fecha_contacto_asegurado", fechaLocalISO());
   };
-  // Gmail no se puede abrir dentro de la app: se abre aparte, ya buscando los mails del caso
-  const busquedaGmail = [formData.patente, nroSiniestro, formData.asegurado].map(v => String(v || "").trim()).filter(Boolean).map(v => `"${v}"`).join(" OR ");
-  const linkGmail = busquedaGmail ? `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(busquedaGmail)}` : null;
   const tieneDni = /\d{3}/.test(String(formData.dni_asegurado || "").replace(/\D/g, ""));
   const copiarLink = async () => {
     const url = `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent((formData.patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
@@ -126,13 +123,6 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
       <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
       <AgendaCaso casoId={casoId} caso={{ ...formData, nro_siniestro: nroSiniestro }} onChange={onChange} Th={Th} />
       <ContactoCompania casoId={casoId} compania={formData.compania_aseguradora} Th={Th} />
-      {linkGmail && (
-        <a href={linkGmail} target="_blank" rel="noreferrer" title={`Busca en Gmail: ${busquedaGmail}`}
-          style={{ ...caja, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, textDecoration: "none", color: Th.text, fontSize: 14, fontWeight: 600, padding: "12px 16px" }}>
-          Mails del caso en Gmail
-          <span style={{ color: "var(--accent-ink)", fontSize: 13 }}>Abrir →</span>
-        </a>
-      )}
 
       <div style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
