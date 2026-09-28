@@ -96,6 +96,15 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Presentación al cliente, ficha más simple y "Mails del caso"
+*   **Presentate al cliente** (ficha → Resumen, mientras el caso está en Doc. pendiente o Iniciado y no hay `fecha_contacto_asegurado`): botón que abre el WhatsApp de "Primer contacto" con quién sos, qué PAS lo derivó ("Juan, tu productor de seguros"), la documentación que hace falta y, si hay patente y DNI, **el link a la vista del cliente para que la suba él mismo** (llega a Hoy → Documentación recibida). Al abrir WhatsApp queda registrada la fecha de contacto; "Ya me presenté" la marca sin mandar nada. La plantilla "Pedir documentación" también trae el link (`mensajes.clientePuedeEntrar`, `comoMandarDocs`). `AvisarWhatsApp` suma `plantillaInicial`, `onEnviado` y `onCerrar`.
+*   **Mails del caso en Gmail** (Resumen, columna derecha): Gmail no se puede mostrar dentro de la app (Google lo bloquea); el botón lo abre en otra pestaña buscando la patente, el N° de siniestro y el asegurado. Se responde desde ahí, en el mismo hilo.
+*   **Honorarios unificados:** queda un solo monto, "Mis honorarios" (`monto_cobro_yo`, en Montos). `monto_honorarios` ya no se edita: al abrir un caso viejo que solo tenía ese, pasa a "Mis honorarios", y al guardar se copia igual (compatibilidad). El estado (sin facturar / facturado / cobrado) **ya no se elige**: sale de las fechas (`metricas.estadoHonorarios`); la sección pasa a "Factura de honorarios" con solo la fecha de factura. El cobro se sigue tildando en Pagos.
+*   **Fechas según la etapa** (`SeccionFechas`): se ven las de las etapas a las que llegó el caso y la siguiente, más las que ya tienen fecha; el resto con "Ver todas las fechas". Mediación y juicio solo si el caso está ahí. "Fecha de pago" pasa a **"Pago estimado (según el acuerdo)"** (con "Según firma + plazo: … Usar esta") e "Indemnización pagada" a **"Cobro efectivo de la indemnización"**.
+*   **Mediación y Juicio escondidos en la línea de etapas** hasta que el caso esté ahí; "+ Mediación o juicio" los muestra. En celular los botones bajan a otra línea.
+*   **Hoy → Para hacer:** "A la firma" (aceptado hace más de 4 días sin firma, `DIAS_A_LA_FIRMA`) y "Dato faltante: monto reclamado" (casos activos después de Doc. pendiente). En Montos, el campo avisa si falta.
+*   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular.
+
 ### 2026-09-28 — Hoy unificado y pestaña Rutina con objetivos (etapas 5 y 6 del plan ATG Lex)
 *   **Hoy:**
     *   **"Ahora toca"** (`dashboard/AhoraToca.jsx`): el bloque de la rutina en curso (o el próximo) con sus tareas para tildar; al terminar los bloques, cuántas quedan sin tildar. Al lado, **Objetivo anual** (el primero medible del año) con su anillo. Sin rutina ni objetivos, una línea "Ir a Rutina".

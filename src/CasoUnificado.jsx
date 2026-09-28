@@ -25,6 +25,7 @@ import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "./utils/ofertas.js";
 import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
+import { estadoHonorarios } from "./utils/metricas.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
 import AdjuntosPAS from "./components/caso/AdjuntosPAS.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
@@ -83,7 +84,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     fecha_reclamo: casoProp.fecha_reclamo || "", fecha_ultimo_reclamo: casoProp.fecha_ultimo_reclamo || "", fecha_ofrecimiento: casoProp.fecha_ofrecimiento || "",
     fecha_reconsideracion: casoProp.fecha_reconsideracion || "", fecha_aceptacion: casoProp.fecha_aceptacion || "", fecha_firma: casoProp.fecha_firma || "",
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
-    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
+    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || casoProp.monto_honorarios || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
     documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || "", plazo_pago: casoProp.plazo_pago || "",
@@ -167,7 +168,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     setGuardando(true);
     setEstadoGuardado("guardando");
     try {
-      const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: formData.estado_honorarios || "NO_FACTURADO" };
+      const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: estadoHonorarios(formData), monto_honorarios: formData.monto_cobro_yo || null };
       const fila = pickCols(updated);
       // Si la columna del plazo todavía no existe en la base, no la mandamos (evita error al guardar)
       if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;

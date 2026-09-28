@@ -23,6 +23,9 @@ export function aplanarCasos(casos, todosLosPas) {
 // Un caso en "Cobrado" cuenta como pagado del todo (los casos viejos no tienen las fechas por separado)
 export const indemnizacionPagada = c => Boolean(c.fecha_cobro) || c.estado === "cobrado";
 export const honorariosCobrados = c => Boolean(c.fecha_cobro_honorarios) || c.estado_honorarios === "COBRADO" || c.estado === "cobrado";
+// El estado de los honorarios sale de las fechas (factura / cobro). Casos viejos "COBRADO" sin fecha se respetan.
+export const estadoHonorarios = c => c.fecha_cobro_honorarios ? "COBRADO"
+  : c.estado_honorarios === "COBRADO" ? "COBRADO" : c.fecha_factura ? "FACTURADO" : "NO_FACTURADO";
 export const tieneHonorarios = c => (Number(c.monto_cobro_yo) || 0) > 0;
 // Comisión del PAS pagada: por su fecha (SQL 20). Sin esa columna todavía, como antes: pagada cuando cobraste los honorarios.
 export const comisionPagada = c => (c.fecha_pago_comision !== undefined ? Boolean(c.fecha_pago_comision) : honorariosCobrados(c));
@@ -163,6 +166,8 @@ export function reclamosQuietos(allCasos, hoy = new Date(), margenes = {}) {
 
 // Primer pedido de respuesta a la compañía: entre estos días después de Iniciado
 export const VENTANA_RECLAMO = { desde: 7, hasta: 14 };
+// Días que puede estar un acuerdo aceptado sin firmar antes de avisar
+export const DIAS_A_LA_FIRMA = 4;
 
 // Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final). Los cobros van en su propia tarjeta.
 export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) {
@@ -199,11 +204,25 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
         : `Iniciado hace ${dias} d: se pasó la ventana de ${VENTANA_RECLAMO.desde} a ${VENTANA_RECLAMO.hasta} d para pedirle respuesta a ${cia}` });
   });
 
+  // Acuerdo aceptado sin firmar: no debería pasar de unos días
+  allCasos.filter(c => esActivo(c) && c.fecha_aceptacion && !c.fecha_firma).forEach(c => {
+    const desde = aISO(c.fecha_aceptacion);
+    const dias = diasEntre(desde, hoyISO);
+    if (dias === null || dias <= DIAS_A_LA_FIRMA) return;
+    tareas.push({ id: `firma-${c.id}`, tipo: "firma", vence: sumarDias(desde, DIAS_A_LA_FIRMA), titulo: c.asegurado || "Sin nombre", caso: c,
+      detalle: `Aceptado hace ${dias} d y todavía sin firmar el convenio${c.compania_aseguradora ? ` con ${c.compania_aseguradora}` : ""}` });
+  });
+
+  // Monto reclamado: tiene que estar desde que se inicia el reclamo
+  allCasos.filter(c => esActivo(c) && c.estado !== "doc_pendiente" && !(Number(c.monto_reclamado) > 0)).forEach(c => {
+    tareas.push({ id: `monto-${c.id}`, tipo: "dato", vence: null, titulo: c.asegurado || "Sin nombre", caso: c, detalle: "Falta cargar el monto reclamado" });
+  });
+
   allCasos.forEach(c => {
     if (c.estado_honorarios === "FACTURADO" && c.fecha_factura && !c.fecha_cobro_honorarios) {
       const vence = sumarDias(String(c.fecha_factura).slice(0, 10), 30);
       if (vence && vence <= enUnaSemana) {
-        tareas.push({ id: `hon-${c.id}`, tipo: "honorarios", vence, titulo: c.asegurado || "Sin nombre", detalle: "Honorarios facturados sin cobrar", monto: Number(c.monto_honorarios) || null, caso: c });
+        tareas.push({ id: `hon-${c.id}`, tipo: "honorarios", vence, titulo: c.asegurado || "Sin nombre", detalle: "Honorarios facturados sin cobrar", monto: Number(c.monto_cobro_yo || c.monto_honorarios) || null, caso: c });
       }
     }
   });

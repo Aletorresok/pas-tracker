@@ -29,8 +29,16 @@ export const linkWhatsApp = (tel, texto) => {
 export const linkVistaCliente = (patente) =>
   `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent(String(patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
 
+// El cliente entra a su vista con la patente y los últimos 3 números del DNI: sin los dos, el link no le sirve
+export const clientePuedeEntrar = c => Boolean(c.patente) && String(c.dni_asegurado || "").replace(/\D/g, "").length >= 3;
+const DOCS_PEDIDOS = "DNI (frente y dorso), cédula del vehículo, denuncia del siniestro, certificado de cobertura, fotos de los daños y presupuesto del taller";
+const comoMandarDocs = c => clientePuedeEntrar(c)
+  ? `Los podés subir directo acá, sacándoles una foto con el celular: ${linkVistaCliente(c.patente)} (entrás con la patente ${c.patente} y los últimos 3 números de tu DNI). Ahí también vas a ver cómo avanza tu reclamo.`
+  : "Me los podés mandar por acá.";
+
 // Los asegurados se cargan como "APELLIDO NOMBRE": el saludo usa la segunda palabra
 const nombreCliente = (c) => primerNombre(c.asegurado || "");
+const primerNombreProductor = (n) => `${primerNombre(n)}, tu productor de seguros,`;
 const cia = (c) => c.compania_aseguradora || "la compañía";
 const monto = (v) => (Number(v) > 0 ? fmtMoney(Number(v)) : "");
 
@@ -39,11 +47,11 @@ export const PLANTILLAS_CLIENTE = [
   {
     k: "primer_contacto", l: "Primer contacto",
     cuerpo: (c) => `Recibimos tu caso y nos vamos a encargar del reclamo ante ${cia(c)}.`,
-    texto: (c, x) => `Hola ${nombreCliente(c)}, ¿cómo estás? Soy el ${FIRMA}, abogado. ${x.pasNombre ? `${x.pasNombre} me pasó tu caso` : "Me pasaron tu caso"} por el siniestro${c.patente ? ` del vehículo ${c.patente}` : ""}. Me voy a encargar del reclamo ante ${cia(c)}. ¿Tenés un minuto para que hablemos?`,
+    texto: (c, x) => `Hola ${nombreCliente(c)}, ¿cómo estás? Soy el ${FIRMA}, abogado. ${x.pasNombre ? `${primerNombreProductor(x.pasNombre)} me pasó tu caso` : "Me pasaron tu caso"} por el siniestro${c.patente ? ` del vehículo ${c.patente}` : ""} y me voy a encargar del reclamo ante ${cia(c)}.\n\nPara arrancar necesito: ${DOCS_PEDIDOS}. ${comoMandarDocs(c)}\n\nCualquier duda, escribime por acá.`,
   },
   {
     k: "documentacion", l: "Pedir documentación",
-    cuerpo: () => "Para avanzar con el reclamo necesitamos: denuncia administrativa, fotos de los daños, DNI (frente y dorso), cédula verde y certificado de cobertura.",
+    cuerpo: (c) => `Para avanzar con el reclamo necesitamos: ${DOCS_PEDIDOS}. ${comoMandarDocs(c)}`,
   },
   {
     k: "reclamo", l: "Reclamo presentado",

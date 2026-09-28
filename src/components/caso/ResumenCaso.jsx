@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { clientePuedeEntrar } from "../../utils/mensajes.js";
+import { estadoHonorarios } from "../../utils/metricas.js";
 import { fmtMoney, formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
@@ -14,6 +16,15 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [presentando, setPresentando] = useState(false);
+  // Presentarse al cliente apenas llega el caso: el mensaje trae qué documentación mandar y el link para subirla
+  const faltaPresentarse = !formData.fecha_contacto_asegurado && ["doc_pendiente", "iniciado"].includes(formData.estado);
+  const alEnviarWhatsApp = ({ para, plantilla }) => {
+    if (para === "cliente" && plantilla === "primer_contacto" && !formData.fecha_contacto_asegurado) onChange("fecha_contacto_asegurado", fechaLocalISO());
+  };
+  // Gmail no se puede abrir dentro de la app: se abre aparte, ya buscando los mails del caso
+  const busquedaGmail = [formData.patente, nroSiniestro, formData.asegurado].map(v => String(v || "").trim()).filter(Boolean).map(v => `"${v}"`).join(" OR ");
+  const linkGmail = busquedaGmail ? `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(busquedaGmail)}` : null;
   const tieneDni = /\d{3}/.test(String(formData.dni_asegurado || "").replace(/\D/g, ""));
   const copiarLink = async () => {
     const url = `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent((formData.patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
@@ -49,6 +60,23 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
             <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>Guardar →</span>
           </button>
         )}
+        {faltaPresentarse && (
+          <div style={{ ...caja, borderColor: "color-mix(in srgb, var(--accent) 45%, var(--border))", background: "color-mix(in srgb, var(--accent) 6%, var(--card))" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>Presentate al cliente</div>
+            <div style={{ fontSize: 13, color: Th.sub, margin: "4px 0 10px", lineHeight: 1.45 }}>
+              Un WhatsApp con quién sos, qué documentación necesitás y {clientePuedeEntrar(formData) ? "el link para que la suba él mismo (te llega a Hoy → Documentación recibida)." : "cómo mandártela."}
+              {!clientePuedeEntrar(formData) && <> Con <b>patente y DNI</b> cargados, el mensaje trae el link para que la suba solo. <button type="button" onClick={() => irA("datos")} style={{ ...link, fontSize: 13 }}>Cargar datos</button></>}
+            </div>
+            {presentando
+              ? <AvisarWhatsApp caso={{ ...formData, tercero_contacto }} pasNombre={pasNombre} pasTelefono={pasTelefono} abiertoInicial plantillaInicial="primer_contacto"
+                  onTelefonoCliente={v => onChange("telefono_asegurado", v)} onUsarComoMensaje={t => onChange("mensaje_cliente", t)}
+                  onEnviado={alEnviarWhatsApp} onCerrar={() => setPresentando(false)} />
+              : <span style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <button type="button" onClick={() => setPresentando(true)} className="btn-wa-grande" style={{ padding: "8px 14px", fontSize: 14, border: "none", cursor: "pointer", font: "inherit", fontWeight: 600 }}>Presentarme al cliente</button>
+                  <button type="button" onClick={() => onChange("fecha_contacto_asegurado", fechaLocalISO())} style={{ ...link, color: Th.muted, fontWeight: 500 }}>Ya me presenté</button>
+                </span>}
+          </div>
+        )}
         <AvisoPrescripcion caso={formData} />
         <AvisoEstadoCliente caso={formData} onCambiar={e => onChange("estado", e)} />
         <CasoProximaAccion formData={formData} onChange={onChange} Th={Th} />
@@ -68,7 +96,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
           <div style={{ marginTop: 10 }}>
             <AvisarWhatsApp caso={{ ...formData, tercero_contacto }} pasNombre={pasNombre} pasTelefono={pasTelefono}
               onTelefonoCliente={v => onChange("telefono_asegurado", v)}
-              onUsarComoMensaje={t => onChange("mensaje_cliente", t)} />
+              onUsarComoMensaje={t => onChange("mensaje_cliente", t)} onEnviado={alEnviarWhatsApp} />
           </div>
         </div>
 
@@ -98,6 +126,13 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
       <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
       <AgendaCaso casoId={casoId} caso={{ ...formData, nro_siniestro: nroSiniestro }} onChange={onChange} Th={Th} />
       <ContactoCompania casoId={casoId} compania={formData.compania_aseguradora} Th={Th} />
+      {linkGmail && (
+        <a href={linkGmail} target="_blank" rel="noreferrer" title={`Busca en Gmail: ${busquedaGmail}`}
+          style={{ ...caja, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, textDecoration: "none", color: Th.text, fontSize: 14, fontWeight: 600, padding: "12px 16px" }}>
+          Mails del caso en Gmail
+          <span style={{ color: "var(--accent-ink)", fontSize: 13 }}>Abrir →</span>
+        </a>
+      )}
 
       <div style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
@@ -118,7 +153,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
         </div>
         {(["esperando_pago", "cobrado"].includes(formData.estado) || formData.fecha_cobro || formData.fecha_cobro_honorarios)
           ? <SeccionPagos formData={formData} onChange={onChange} Th={Th} compacto />
-          : formData.estado_honorarios === "FACTURADO" && <div style={{ fontSize: 12, color: Th.muted, marginTop: 4 }}>Honorarios: facturados</div>}
+          : estadoHonorarios(formData) === "FACTURADO" && <div style={{ fontSize: 12, color: Th.muted, marginTop: 4 }}>Honorarios: facturados</div>}
       </div>
       </div>
     </div>
