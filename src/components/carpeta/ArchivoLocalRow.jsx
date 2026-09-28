@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { renombrarArchivoLocal } from "../../utils/carpeta.js";
 import { TIPOS_DOC } from "../../constants.js";
 import ArchivoPreviewFlotante from "./ArchivoPreviewFlotante.jsx";
+import { useMenuContextual } from "../ui/MenuContextual.jsx";
 
 export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, onCategorizar, onToast, onPreview }) {
   const [menuOpen, setMenuOpen]        = useState(false);
@@ -13,6 +14,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
   const btnRef = useRef(null);
   const menuRef = useRef(null);
   const filaRef = useRef(null);
+  const { abrirMenu, menu } = useMenuContextual();
 
   useEffect(() => {
     if (menuOpen && btnRef.current) {
@@ -59,9 +61,17 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
       ref={filaRef}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onContextMenu={e => { abrirMenu(e, [
+        { label: "Ver", onClick: () => onPreview(archivo) },
+        { label: "Renombrar…", onClick: iniciarRenombrar },
+        { separador: true },
+        { titulo: "Categorizar como" },
+        ...TIPOS_DOC.map(tipo => ({ label: tipo, onClick: () => handleCategorizar(tipo) })),
+      ]); }}
       style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}
     >
-      <ArchivoPreviewFlotante archivo={archivo} anchorRef={filaRef} activo={hover && !menuOpen && !renombrando} />
+      <ArchivoPreviewFlotante archivo={archivo} anchorRef={filaRef} activo={hover && !menuOpen && !renombrando && !menu} />
+      {menu}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "var(--mono)", color: "var(--muted)", width: 32, textAlign: "center" }}>{esImagen ? "IMG" : "PDF"}</span>

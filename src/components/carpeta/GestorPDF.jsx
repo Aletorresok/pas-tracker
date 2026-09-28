@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { combinarArchivos, esPdf, esImagen } from "../../utils/pdfManager.js";
 import { verificarPermisoCarpeta } from "../../utils/carpeta.js";
 import { TIPOS_DOC } from "../../constants.js";
@@ -26,7 +27,7 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
       .sort((a, b) => indiceTipo(a.archivo.nombre) - indiceTipo(b.archivo.nombre) || a.archivo.nombre.localeCompare(b.archivo.nombre))
   );
   const [portada, setPortada] = useState(true);
-  const [nombreArchivo, setNombreArchivo] = useState("Documentación completa.pdf");
+  const [nombreArchivo, setNombreArchivo] = useState(() => `DOCUMENTACION${caso?.asegurado ? ` - ${caso.asegurado}` : ""}.pdf`);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null); // { blob, url }
@@ -75,8 +76,11 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
   const descargar = () => {
     const a = document.createElement("a");
     a.href = resultado.url;
-    a.download = nombreFinal();
+    // Con tildes, Chrome a veces ignora el nombre y descarga como "download"
+    a.download = nombreFinal().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    document.body.appendChild(a);
     a.click();
+    a.remove();
   };
 
   const guardarEnCarpeta = async () => {
@@ -103,7 +107,8 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
   });
   const iconBtn = { background: "none", border: "none", color: Th.sub, cursor: "pointer", fontSize: 14, padding: "2px 6px" };
 
-  return (
+  // Portal: la ficha del caso tiene transform y recortaría este modal
+  return createPortal(
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.75)", zIndex: 600, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, width: "100%", maxWidth: 620, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: `1px solid ${Th.border}` }}>
@@ -162,6 +167,7 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const RETRASO_MS = 200;
 const ANCHO = 240;
@@ -8,7 +9,8 @@ const IMAGENES = [".jpg", ".jpeg", ".png"];
 
 // Vista previa al hoverear una fila de la carpeta local: imagen o primera página del PDF,
 // sin abrir el modal. Se ancla al lado de la fila y no capta el mouse (pointerEvents: none)
-// para que el hover de la fila decida cuándo se muestra.
+// para que el hover de la fila decida cuándo se muestra. Va en un portal: la ficha del caso
+// tiene transform, y un position: fixed adentro quedaría relativo a la ficha y recortado.
 export default function ArchivoPreviewFlotante({ archivo, anchorRef, activo }) {
   const [url, setUrl] = useState(null);
   const [pos, setPos] = useState(null);
@@ -38,7 +40,7 @@ export default function ArchivoPreviewFlotante({ archivo, anchorRef, activo }) {
   const esImagen = IMAGENES.includes(archivo.ext);
   const esPdf = archivo.ext === ".pdf";
 
-  return (
+  return createPortal(
     <div style={{
       position: "fixed", ...pos, zIndex: 10000, pointerEvents: "none",
       background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10,
@@ -53,6 +55,7 @@ export default function ArchivoPreviewFlotante({ archivo, anchorRef, activo }) {
       {!esImagen && !esPdf && (
         <div style={{ fontSize: 11, color: "var(--muted)", padding: 8, textAlign: "center" }}>Sin vista previa</div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

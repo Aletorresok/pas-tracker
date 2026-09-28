@@ -57,7 +57,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, onEliminar, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -292,6 +292,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                     ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
                     : TEXTO_GUARDADO[estadoGuardado]}
                 </span>
+                {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={onEliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
                 <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
               </div>

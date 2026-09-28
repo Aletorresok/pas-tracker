@@ -36,23 +36,23 @@
     *   `analisis/AnalisisCompanias.jsx` (+ `MargenCompanias.jsx`) · `AnalisisPas.jsx` · `AnalisisEtapas.jsx` · `AnalisisCaja.jsx` · `TablaAnalisis.jsx` (tabla ordenable compartida).
 
 **Ficha del caso**
-*   `CasoUnificado.jsx` — encabezado fijo, línea de etapas (`caso/EtapasCaso.jsx`), pestañas Resumen / Datos / Montos / Documentos / Bitácora, autoguardado (upsert de un caso), PDF, "Generar escrito".
-*   `caso/CasoOverlay.jsx` — abre la ficha encima de cualquier pantalla (marca revisados los casos del portal).
+*   `CasoUnificado.jsx` — encabezado fijo, línea de etapas (`caso/EtapasCaso.jsx`), pestañas Resumen / Datos / Montos / Documentos / Bitácora, autoguardado (upsert de un caso), Eliminar (si se abre desde Casos PAS o el buscador), PDF, "Generar escrito". **Ojo:** `.modal-panel` tiene `transform`, así que lo que use `position: fixed` adentro (flotantes, modales) va con `createPortal` a `document.body`.
+*   `caso/CasoOverlay.jsx` — abre la ficha encima de cualquier pantalla (marca revisados los casos del portal). Con `onQuitarCaso` muestra "Eliminar".
 *   Resumen: `caso/ResumenCaso.jsx` (próxima acción `CasoProximaAccion.jsx`, mensaje al cliente + "Copiar link del cliente" + `AvisarWhatsApp.jsx`, últimos movimientos, `AgendaCaso.jsx`, números).
 *   Datos: `SeccionInfo.jsx` (asegurado, patente, compañía `CompaniaSelector.jsx`, DNI, teléfono) · `SeccionFechas.jsx`. Montos: `SeccionMontos.jsx` · `SeccionHonorarios.jsx`.
-*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access).
+*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access; vista previa al pasar el mouse `carpeta/ArchivoPreviewFlotante.jsx`; click derecho: Ver / Renombrar / Categorizar como) + `carpeta/GestorPDF.jsx` (botón "Gestor de PDF", aparece con la carpeta vinculada).
 *   Bitácora: `SeccionTimeline.jsx`. Otros: `ModalGenerarEscrito.jsx`, `PreviewModal.jsx`, `Toast.jsx`, `EstadoSelector.jsx`.
 
 **Portal PAS y vista del cliente** (`components/portal/`)
 *   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar, "Generar escrito" con el mismo modal de la ficha, `caso/ModalGenerarEscrito.jsx`), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
 *   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio (o texto automático de la etapa, `utils/vistaCliente.js`), montos, "Mandanos tu documentación" (un mail por sesión), mediación con link, WhatsApp.
 
-**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`).
+**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `MenuContextual` (hook `useMenuContextual`: menú de click derecho en portal), `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`).
 
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `hooks/useInstalarApp.js` (botón "Instalar app": menú Apariencia y backup, cabecera del portal, vista del cliente), `context/ThemeContext.jsx` (tema y acento).
 
 **Utilidades** (`utils/`)
-*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `analisis.js` (estadísticas de Análisis: compañías, PAS, embudo, tiempo en estado, flujo de caja) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear).
+*   `metricas.js` (KPIs, tareas, reclamos quietos, tramos) · `analisis.js` (estadísticas de Análisis: compañías, PAS, embudo, tiempo en estado, flujo de caja) · `estadisticasPas.js` (estadísticas por PAS, dormidos, resumen del mes) · `mensajes.js` (plantillas de WhatsApp, normalización de teléfonos) · `agenda.js` (eventos, Google Calendar) · `subidasCliente.js` (subida del cliente y recepción) · `portalStorageUtils.js` (adjuntos del portal + mails EmailJS) · `storage.js` (guardados puntuales, `marcarRevisado`, `registrarReiteracion`, backup) · `formatters.js` (fechas, montos, `primerNombre`) · `theme.js` · `generarEscrito.js` · `exportarCasoPDF.js` · `carpeta.js` (carpeta local: elegir, leer, renombrar, crear) · `pdfManager.js` (Gestor de PDF con `pdf-lib`, import dinámico: combinar PDFs e imágenes, rotar, portada con índice y pie).
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda).
@@ -93,6 +93,14 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-28 — Gestor de PDF, vista previa al pasar el mouse, click derecho y Eliminar en la ficha
+*   **Vista previa al pasar el mouse** por un archivo de la carpeta local (PDF, JPG, PNG), para recategorizar sin abrir cada uno.
+*   **Gestor de PDF** (Documentos → carpeta vinculada → "Gestor de PDF"): arma un solo PDF con los PDFs e imágenes de la carpeta (orden sugerido según `TIPOS_DOC`), permite excluir, reordenar, rotar y sumar imágenes de la PC; portada con datos del caso + índice y pie "ATG Lex Solutions · N / total". Se guarda en la carpeta del caso o se descarga. Dependencia nueva: `pdf-lib` (chunk aparte, ~180 KB gzip, se baja solo al usarlo).
+*   **Click derecho** (`ui/MenuContextual.jsx`): en Casos PAS, tabla y tablero (abrir ficha, ver resumen, copiar patente / N° de siniestro, eliminar) y en los archivos de la carpeta (ver, renombrar, categorizar como…).
+*   **Eliminar caso** vuelve a estar a mano: en la ficha completa (abierta desde Casos PAS o el buscador) y en el click derecho del tablero. Antes solo estaba en la fila desplegada de la tabla. Si Supabase falla, avisa y el caso queda en la lista (antes desaparecía igual).
+*   **Arreglo:** la vista previa y el Gestor de PDF se renderizan con portal; dentro de la ficha (`transform`) quedaban corridos y recortados.
+*   Probado en Chromium con una página de prueba (archivos y Supabase simulados): vista previa de PNG/JPG/PDF, menú, PDF generado (portada + páginas + pie), borrado con error y sin error. **No probado contra la base real:** Eliminar desde la ficha y guardar el PDF en una carpeta real (File System Access no se puede automatizar).
 
 ### 2026-09-26 — Pestaña Expedientes y su ficha (etapa 4 del plan ATG Lex)
 *   **Menú:** "Casos" pasa a **"Casos PAS"** y aparece **"Expedientes"** (ícono balanza). En celular, Expedientes está en "Más".

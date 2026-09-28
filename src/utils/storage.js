@@ -183,6 +183,7 @@ export async function deleteCaso(id) {
 
   const { error } = await supabase.from("pas_casos").delete().eq("id", id);
   if (error) console.error("[deleteCaso] error:", error);
+  return !error;
 }
 
 export async function deletePasManual(id) {

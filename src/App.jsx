@@ -270,6 +270,7 @@ function AppPrincipal() {
         <CasoOverlay caso={casoBuscado.caso} pasId={casoBuscado.pasId} casos={casos} todosLosPas={todosLosPas}
           onCasoLocal={handleCasoLocal} darkMode={darkMode}
           onCambio={updated => setCasoBuscado(b => ({ ...b, caso: { ...updated, _pasId: b.pasId } }))}
+          onQuitarCaso={handleQuitarCaso}
           onClose={() => setCasoBuscado(null)} />
       )}
 

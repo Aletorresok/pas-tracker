@@ -10,6 +10,7 @@ import CasoOverlay from "./caso/CasoOverlay.jsx";
 import FilaExpandida from "./casos/FilaExpandida.jsx";
 import TableroCasos from "./casos/TableroCasos.jsx";
 import { QUIEN, quienTiene } from "../utils/pelota.js";
+import { useMenuContextual } from "./ui/MenuContextual.jsx";
 
 const VISTA_GUARDADA = "pas_casos_vista";
 const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
@@ -106,10 +107,22 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
 
   const handleDelete = async (caso) => {
     if (!window.confirm(`¿Eliminar definitivamente el caso de ${caso.asegurado || "este asegurado"}? Esta acción no se puede deshacer.`)) return;
-    await deleteCaso(caso.id);
+    if (!(await deleteCaso(caso.id))) { window.alert("No se pudo eliminar el caso. Probá de nuevo."); return; }
     setAbiertoId(null);
     onQuitarCaso(caso._pasId, caso.id);
   };
+
+  const { abrirMenu, menu } = useMenuContextual();
+  const copiar = texto => navigator.clipboard?.writeText(texto).catch(() => {});
+  const menuCaso = (e, c) => abrirMenu(e, [
+    { label: "Abrir ficha completa", onClick: () => setFicha({ caso: c, pasId: c._pasId }) },
+    vista === "tabla" && { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
+    (c.patente || c.nro_siniestro) && { separador: true },
+    c.patente && { label: `Copiar patente (${c.patente})`, onClick: () => copiar(c.patente) },
+    c.nro_siniestro && { label: "Copiar N° de siniestro", onClick: () => copiar(c.nro_siniestro) },
+    { separador: true },
+    { label: "Eliminar caso", peligro: true, onClick: () => handleDelete(c) },
+  ]);
 
   // Guarda en memoria el caso editado desde la fila (ya se guardó en Supabase)
   const casoEditado = useCallback((pasId) => (actualizado) => {
@@ -174,6 +187,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
           casos={allCasos.filter(c => esActivo(c) && coincide(c, busqueda))}
           todosLosPas={todosLosPas}
           onAbrir={c => setFicha({ caso: c, pasId: c._pasId })}
+          onMenu={menuCaso}
           onCasoLocal={c => casoEditado(c._pasId)(c)} />
       )}
 
@@ -198,7 +212,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
           {filtrados.map((c, i) => (
             <Fragment key={c.id}>
-              <button type="button" onClick={() => alternar(c.id)} aria-expanded={abiertoId === c.id}
+              <button type="button" onClick={() => alternar(c.id)} onContextMenu={e => menuCaso(e, c)} aria-expanded={abiertoId === c.id}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === c.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.asegurado || "Sin nombre"}</span>
                 <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : ""}</span>
@@ -241,7 +255,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
                 const celda = { padding: "10px 14px", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", background: abierto ? "var(--card2)" : undefined };
                 return (
                   <Fragment key={c.id}>
-                    <tr onClick={() => alternar(c.id)} style={{ cursor: "pointer" }} className="fila-caso">
+                    <tr onClick={() => alternar(c.id)} onContextMenu={e => menuCaso(e, c)} style={{ cursor: "pointer" }} className="fila-caso">
                       <td style={celda}>
                         <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(c.id); }}
                           style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -276,9 +290,11 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
           caso={ficha.caso} pasId={ficha.pasId} casos={casos} todosLosPas={todosLosPas}
           onCasoLocal={onCasoLocal} darkMode={darkMode}
           onCambio={updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))}
+          onQuitarCaso={onQuitarCaso}
           onClose={() => { setFicha(null); setAbiertoId(null); }}
         />
       )}
+      {menu}
     </div>
   );
 }
