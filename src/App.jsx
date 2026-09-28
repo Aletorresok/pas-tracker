@@ -26,6 +26,7 @@ import TabClientes from './components/TabClientes.jsx'
 import TabProspeccion from './components/TabProspeccion.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import TabExpedientes from './components/TabExpedientes.jsx'
+import TabHerramientas from './components/TabHerramientas.jsx'
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
@@ -330,6 +331,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
         </div>

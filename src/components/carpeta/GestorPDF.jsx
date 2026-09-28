@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { combinarArchivos, esPdf, esImagen } from "../../utils/pdfManager.js";
+import { elegirDestino, escribirEn, puedeElegirDestino } from "../../utils/pdfEditor.js";
 import { verificarPermisoCarpeta } from "../../utils/carpeta.js";
 import { TIPOS_DOC } from "../../constants.js";
 
@@ -30,10 +31,7 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
   const [nombreArchivo, setNombreArchivo] = useState(() => `DOCUMENTACION${caso?.asegurado ? ` - ${caso.asegurado}` : ""}.pdf`);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
-  const [resultado, setResultado] = useState(null); // { blob, url }
   const inputImagenRef = useRef(null);
-
-  useEffect(() => () => { if (resultado) URL.revokeObjectURL(resultado.url); }, [resultado]);
 
   const mover = (i, dir) => setItems(prev => {
     const j = i + dir;
@@ -56,47 +54,41 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
     setItems(prev => [...prev, ...nuevos]);
   };
 
-  const generar = async () => {
-    const seleccionados = items.filter(it => it.incluir);
+  const seleccionados = items.filter(it => it.incluir);
+  const nombreFinal = () => (nombreArchivo.trim().toLowerCase().endsWith(".pdf") ? nombreArchivo.trim() : `${nombreArchivo.trim() || "DOCUMENTACION"}.pdf`);
+  const terminar = msg => { onToast({ msg, type: "success" }); onGuardado?.(); onClose(); };
+  const fallo = e => { console.error("[gestor-pdf] guardar:", e); setError(`No se pudo guardar el PDF: ${e.message}`); };
+
+  // Un click: se arma y se guarda directo en la carpeta vinculada del caso
+  const guardarEnCarpeta = async () => {
     if (!seleccionados.length) { setError("Elegí al menos un archivo."); return; }
-    setProcesando(true); setError(""); setResultado(null);
+    setError("");
+    const nombre = nombreFinal();
     try {
+      if (!(await verificarPermisoCarpeta(dirHandle))) { setError("Sin permiso para escribir en la carpeta. Volvé a vincularla."); return; }
+      const existe = await dirHandle.getFileHandle(nombre).then(() => true, () => false);
+      if (existe && !window.confirm(`Ya hay un archivo "${nombre}" en la carpeta del caso. ¿Reemplazarlo?`)) return;
+      setProcesando(true);
       const bytes = await combinarArchivos({ items: seleccionados, portada, caso });
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      setResultado({ blob, url: URL.createObjectURL(blob) });
-    } catch (e) {
-      console.error("[gestor-pdf] generar:", e);
-      setError(`No se pudo generar el PDF: ${e.message}`);
-    }
+      await escribirEn(await dirHandle.getFileHandle(nombre, { create: true }), bytes, nombre);
+      terminar(`${nombre} guardado en la carpeta del caso`);
+    } catch (e) { fallo(e); }
     setProcesando(false);
   };
 
-  const nombreFinal = () => (nombreArchivo.trim().toLowerCase().endsWith(".pdf") ? nombreArchivo.trim() : `${nombreArchivo.trim()}.pdf`);
-
-  const descargar = () => {
-    const a = document.createElement("a");
-    a.href = resultado.url;
-    // Con tildes, Chrome a veces ignora el nombre y descarga como "download"
-    a.download = nombreFinal().normalize("NFD").replace(/[̀-ͯ]/g, "");
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-
-  const guardarEnCarpeta = async () => {
+  // Abre el explorador (ya parado en la carpeta del caso, si hay) para elegir dónde y con qué nombre
+  const guardarComo = async () => {
+    if (!seleccionados.length) { setError("Elegí al menos un archivo."); return; }
+    setError("");
     try {
-      const permiso = await verificarPermisoCarpeta(dirHandle);
-      if (!permiso) { onToast({ msg: "Sin permiso para escribir en la carpeta", type: "error" }); return; }
-      const handle = await dirHandle.getFileHandle(nombreFinal(), { create: true });
-      const writable = await handle.createWritable();
-      await writable.write(resultado.blob);
-      await writable.close();
-      onToast({ msg: `${nombreFinal()} guardado en la carpeta`, type: "success" });
-      onGuardado?.();
-      onClose();
-    } catch (e) {
-      onToast({ msg: `Error al guardar: ${e.message}`, type: "error" });
-    }
+      const destino = await elegirDestino(nombreFinal(), dirHandle);
+      if (!destino) return;
+      setProcesando(true);
+      const bytes = await combinarArchivos({ items: seleccionados, portada, caso });
+      const nombre = await escribirEn(destino, bytes, nombreFinal());
+      terminar(destino === "descargar" ? `${nombre} descargado` : `${nombre} guardado`);
+    } catch (e) { fallo(e); }
+    setProcesando(false);
   };
 
   const boton = (variante = "normal") => ({
@@ -153,16 +145,12 @@ export default function GestorPDF({ archivos, dirHandle, caso, Th, onToast, onGu
         </div>
 
         <div style={{ padding: "12px 18px", borderTop: `1px solid ${Th.border}`, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          {!resultado ? (
-            <button onClick={generar} disabled={procesando} style={{ ...boton("primario"), opacity: procesando ? 0.6 : 1 }}>
-              {procesando ? "Generando…" : "Generar PDF"}
-            </button>
+          {procesando ? (
+            <span style={{ fontSize: 13, color: Th.sub, fontWeight: 600 }}>Armando el PDF…</span>
           ) : (
             <>
-              <span style={{ fontSize: 13, color: "var(--ok)", fontWeight: 600 }}>PDF listo ✓</span>
-              {dirHandle && <button onClick={guardarEnCarpeta} style={boton("primario")}>Guardar en la carpeta</button>}
-              <button onClick={descargar} style={boton()}>Descargar</button>
-              <button onClick={() => setResultado(null)} style={{ ...iconBtn, fontSize: 12 }}>Volver a editar</button>
+              {dirHandle && <button onClick={guardarEnCarpeta} style={boton("primario")}>Guardar en la carpeta del caso</button>}
+              <button onClick={guardarComo} style={dirHandle ? boton() : boton("primario")}>{puedeElegirDestino() ? "Guardar como…" : "Descargar"}</button>
             </>
           )}
         </div>

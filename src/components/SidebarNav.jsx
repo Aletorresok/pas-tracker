@@ -13,6 +13,7 @@ const TABS = [
   { k: "prospeccion", l: "Contactos", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
   { k: "analisis", l: "Análisis", icon: "grafico" },
+  { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];
 
 // En celular entran 4 pestañas + "Más"

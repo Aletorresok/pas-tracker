@@ -2,6 +2,7 @@
 // con portada + índice y membrete institucional. Usa pdf-lib (import dinámico:
 // solo se descarga cuando se abre el Gestor de PDF, no infla el bundle principal).
 import { DORADO, AZUL } from "./pdfMembrete.js";
+import { normalizarImagen } from "./pdfEditor.js";
 
 const A4 = [595.28, 841.89];
 const MARGEN = 40;
@@ -15,7 +16,8 @@ export const esPdf = archivo => archivo.ext === ".pdf";
 export const esImagen = archivo => [".jpg", ".jpeg", ".png"].includes(archivo.ext);
 
 async function agregarPaginaImagen(pdfDoc, PDFLib, archivo, rotacion) {
-  const bytes = await archivo.blob.arrayBuffer();
+  // Endereza las fotos del celular (orientación EXIF) y achica las enormes; los PNG siguen siendo PNG
+  const bytes = await (await normalizarImagen(archivo.blob)).blob.arrayBuffer();
   const img = archivo.ext === ".png" ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
   const page = pdfDoc.addPage(A4);
   const maxW = A4[0] - MARGEN * 2, maxH = A4[1] - MARGEN * 2;
