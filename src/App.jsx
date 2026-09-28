@@ -26,6 +26,7 @@ import TabClientes from './components/TabClientes.jsx'
 import TabProspeccion from './components/TabProspeccion.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import TabExpedientes from './components/TabExpedientes.jsx'
+import TabRutina from './components/TabRutina.jsx'
 import TabHerramientas from './components/TabHerramientas.jsx'
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
@@ -57,6 +58,8 @@ function AppPrincipal() {
 
   // ── STATE GLOBAL
   const [mainTab, setMainTab] = useState("dashboard");
+  const [expedienteAbrir, setExpedienteAbrir] = useState(null); // id a abrir al ir a Expedientes desde Hoy o Rutina
+  const abrirExpediente = useCallback(id => { setExpedienteAbrir(id); setMainTab("expedientes"); }, []);
   const [modalPas, setModalPas] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [buscando, setBuscando] = useState(false);
@@ -327,10 +330,11 @@ function AppPrincipal() {
           )}
 
           {/* TABS CONTENT */}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "rutina" && <TabRutina pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} darkMode={darkMode} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}

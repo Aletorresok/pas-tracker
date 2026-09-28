@@ -161,6 +161,9 @@ export function reclamosQuietos(allCasos, hoy = new Date(), margenes = {}) {
     .filter(q => q && q.dias > q.umbral);
 }
 
+// Primer pedido de respuesta a la compañía: entre estos días después de Iniciado
+export const VENTANA_RECLAMO = { desde: 7, hasta: 14 };
+
 // Lista única de "Para hacer", ordenada por vencimiento (sin fecha, al final). Los cobros van en su propia tarjeta.
 export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) {
   const tareas = [];
@@ -182,6 +185,18 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
     if (c.proxima_accion?.trim()) {
       tareas.push({ id: `accion-${c.id}`, tipo: "accion", vence: c.proxima_accion_vence || null, titulo: c.asegurado || "Sin nombre", detalle: c.proxima_accion.trim(), caso: c });
     }
+  });
+
+  // Primer pedido de respuesta: entre 7 y 14 días después de Iniciado (avisa desde el día 7, vence el 14)
+  allCasos.filter(c => c.estado === "iniciado" && !c.fecha_reclamo).forEach(c => {
+    const desde = aISO(c.fecha_inicio_reclamo);
+    const dias = diasEntre(desde, hoyISO);
+    if (!desde || dias === null || dias < VENTANA_RECLAMO.desde) return;
+    const cia = c.compania_aseguradora || "la compañía";
+    tareas.push({ id: `pedir-${c.id}`, tipo: "pedir_respuesta", vence: sumarDias(desde, VENTANA_RECLAMO.hasta), titulo: c.asegurado || "Sin nombre", caso: c,
+      detalle: dias <= VENTANA_RECLAMO.hasta
+        ? `Iniciado hace ${dias} d: ya podés pedirle respuesta a ${cia}`
+        : `Iniciado hace ${dias} d: se pasó la ventana de ${VENTANA_RECLAMO.desde} a ${VENTANA_RECLAMO.hasta} d para pedirle respuesta a ${cia}` });
   });
 
   allCasos.forEach(c => {

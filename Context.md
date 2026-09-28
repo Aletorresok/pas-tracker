@@ -96,6 +96,21 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Hoy unificado y pestaña Rutina con objetivos (etapas 5 y 6 del plan ATG Lex)
+*   **Hoy:**
+    *   **"Ahora toca"** (`dashboard/AhoraToca.jsx`): el bloque de la rutina en curso (o el próximo) con sus tareas para tildar; al terminar los bloques, cuántas quedan sin tildar. Al lado, **Objetivo anual** (el primero medible del año) con su anillo. Sin rutina ni objetivos, una línea "Ir a Rutina".
+    *   **Para hacer** suma los **plazos procesales y escritos pendientes** de la tabla `plazos` (expedientes abiertos y casos PAS), con el chip de días hábiles / "Colgado N d"; tocar uno de un expediente abre su ficha en Expedientes (`TabExpedientes` recibe `abrirId`).
+    *   **Pedir respuesta** (`metricas.VENTANA_RECLAMO`): casos en Iniciado sin "Primer pedido de respuesta" aparecen desde el día 7 ("ya podés pedirle respuesta a…") y vencen el 14; pasado eso, "se pasó la ventana".
+    *   **Prospección del día** (`dashboard/ProspeccionHoy.jsx`, `ui/BarraMeta.jsx`): WhatsApp a PAS N de 15 y mails de presentación N de 30 (del historial de hoy), con "Seguir en Contactos".
+*   **Rutina** (pestaña nueva en el menú; en celular, en "Más"; `TabRutina.jsx`, `rutina/*`, `utils/rutina.js`, `utils/objetivos.js`, `hooks/useRutina.js`). Usa las tablas del SQL 25, sin SQL nuevo.
+    *   **Día / Semana / Mes:** checklist por bloques con horario (el bloque en curso se marca "Ahora"), prioridad (imprescindible se ve en rojo) y accesos directos (pestañas de la app, Gmail, PJN, MEV). Lo tildado va a `rutina_registro` con la fecha del día, el lunes o el 1 del mes. Las tareas semanales y mensuales con día aparecen desde ese día hasta que termina el período.
+    *   **Listas de hoy** (automáticas): preparar para mañana (mediaciones/audiencias de la agenda), clientes sin novedades hace 15 días (según el último mensaje al cliente), documentación pendiente, ofrecimientos sin respuesta y escritos colgados. Tocar una fila abre el caso o el expediente.
+    *   **Días de escuela** (Editar rutina): rango de fechas + horario (+ fines de semana opcional). Lo que choca: imprescindible queda con aviso, importante pasa a la hora de salida, postergable va a "Hoy no, por la escuela".
+    *   **Editar rutina:** alta/edición/baja de tareas, pausar sin borrar, y **"Cargar rutina sugerida"** (arranque con PJN/MEV/mails, siniestros, prospección, escritos, cierre, revisión semanal y cierre del mes).
+    *   **Objetivos** del mes, trimestre, semestre y año en curso. Medibles: casos nuevos, casos cobrados, honorarios cobrados (neto), PAS contactados, PAS derivando (90 días; si falta, avisa cuántos PAS dormidos hay), días de la derivación al cobro (mediana, meta a la baja) y rutina cumplida (% de lo diario tildado de lunes a viernes). Los demás se tildan a mano. **Anillo** con lo hecho (verde a tiempo, naranja un poco atrás —80 % del ritmo—, rojo muy atrás), **rayita** de dónde deberías estar hoy y frase ("a este ritmo cerrás el año en…").
+*   **Queda pendiente del plan:** mostrar los objetivos medibles también en Análisis.
+*   Probado en Chromium con una página de prueba (Supabase simulado en memoria, datos de ejemplo), en compu y celular: Hoy con plazos, ventana 7–14 y prospección; abrir un expediente desde Hoy; cargar la rutina sugerida, tildar, días de escuela reacomodando bloques, objetivos medibles y manuales, editar tarea. **Falta probarlo contra la base real.**
+
 ### 2026-09-28 — Adjuntos del PAS en la ficha del caso
 *   **Ficha → Documentos → "Adjuntos del PAS"** (`caso/AdjuntosPAS.jsx`, `utils/adjuntosPas.js`): lista lo que el PAS adjuntó desde el portal (bucket `adjuntos`, lo mismo que llega linkeado en el mail) con **Ver**, **Descargar** (a la PC, con su nombre original), **A la carpeta** (si hay carpeta vinculada; no pisa: "nombre (2)") y **Descargar todo**. No se borran de la nube (los links del mail siguen andando).
 *   Desde ahora `subirArchivosYNotificar` recibe `casoId` y guarda en `adjuntos/<pas_id>/<pas_casos.id>/`; lo usan `NuevoCasoModal` (alta) y `PortalCasoCard` (documentación nueva). La política de Storage ya lo permite (primera carpeta = `mi_pas_id()`), sin SQL.
@@ -107,7 +122,7 @@
 *   **Intereses y actualización:** capital + dos fechas → tasa activa BNA (interés simple con la tasa vigente cada día), IPC (relación de índices mensuales; si el mes final no se publicó, llega al último y lo avisa), IPC + 3% anual (puro, sobre el capital actualizado) e ICL. Detalle y "Copiar texto" por método. Datos en `indices`: IPC e ICL con "Actualizar desde internet" (no se pudieron verificar las APIs desde el entorno de desarrollo: si fallan, "Pegar desde Excel"); la tasa activa BNA se carga a mano (tasa y desde cuándo rige). **No se cargó ningún dato histórico inventado.**
 *   **Carta documento:** texto posicionado para el formulario preimpreso de Correo Argentino (oficio). Caso opcional que completa remitente (el cliente) o "Yo (el estudio)" (se guarda en `pas_ajustes`), destinatario (la compañía; recuerda su domicilio en `pas_companias`), modelos base (intimación de pago, reclamo de tercero, art. 56) y propios (`modelos_carta`), contador de renglones (máximo 15), vista previa real, "Imprimir" (oficio, escala 100 %) y "Guardar PDF…". Ajuste de impresora en mm guardado por compu.
 *   Probado: posiciones de la carta comparadas palabra por palabra con el PDF de ejemplo (mismos cortes de renglón y posiciones; la fecha queda ~0,4 mm corrida); cálculos de intereses contra cuentas a mano; SQL 27 en Postgres 16 (dos veces); las 4 herramientas en la app real en Chromium con Supabase y APIs simuladas, en compu y celular (plazos con el feriado del 12/10, detección de la hoja a menos de 10 px). **Falta:** probar las APIs reales de IPC/ICL desde el navegador y una impresión real sobre el formulario.
-*   **Pendiente del plan ATG Lex:** etapa 5 (Hoy unificado) y etapa 6 (**Rutina** con objetivos): las tablas existen desde el SQL 25, falta la pantalla.
+*   **Pendiente del plan ATG Lex:** etapa 5 (Hoy unificado) y etapa 6 (**Rutina** con objetivos): las tablas existen desde el SQL 25, falta la pantalla. (Hechas el 28/09, ver arriba.)
 
 ### 2026-09-28 — Pestaña Herramientas con Editor de PDF; guardar del Gestor; nuevo mensaje a PAS
 *   **Herramientas** (menú lateral; en celular, en "Más"): pestaña pensada para ir sumando herramientas. La primera es el **Editor de PDF**, independiente de los casos: juntar PDFs e imágenes, ordenar, rotar y sacar páginas, quedarse con algunas, firma/sello/imagen sobre una página (con "Quitar fondo blanco" para firmas fotografiadas en papel), comprimir y guardar eligiendo la carpeta. Todo en el navegador, nada se sube. Dependencia nueva: `pdfjs-dist` 4.10 (chunk aparte, se baja al abrir el editor).
@@ -169,7 +184,7 @@
     *   **PAS:** casos derivados, % que termina cobrado, honorario promedio, desistidos, tiempo de documentación de sus clientes.
     *   Cada tiempo muestra la mediana, la tendencia contra el período anterior y con cuántos casos se calcula. Viven en Análisis (pestaña nueva **Prospección**, más Compañías y PAS); cualquiera se puede elegir como objetivo en Rutina → Anual.
 *   Queda afuera la "organización personal" de Agenda Legal (objetivos personales, hábitos, ideas).
-*   **Etapas:** 1) nombre ATG Lex ✅ · 2) SQL (expedientes, plazos, feriados, rutina) · 3) motor de plazos · 4) Expedientes + ficha · 5) Hoy unificado · 6) Rutina · 7) vista del cliente para expedientes · 8) migración de datos, plantillas y baja de Agenda Legal.
+*   **Etapas:** 1) nombre ATG Lex ✅ · 2) SQL (expedientes, plazos, feriados, rutina) ✅ · 3) motor de plazos ✅ · 4) Expedientes + ficha ✅ · 5) Hoy unificado ✅ · 6) Rutina ✅ (falta: objetivos en Análisis) · 7) vista del cliente para expedientes · 8) migración de datos, plantillas y baja de Agenda Legal.
 *   Propuesta visual (HTML con los tokens de la app) aprobada el 26/09.
 
 ### 2026-09-26 — Condiciones de cada compañía, en una sola tabla

@@ -80,6 +80,13 @@ export async function cargarPlazosExpedientes() {
   return data || [];
 }
 
+// Plazos y escritos pendientes de todo (expedientes y casos PAS), para Hoy. null si la tabla no existe.
+export async function cargarPlazosPendientes() {
+  const { data, error } = await supabase.from("plazos").select("*").eq("estado", "pendiente");
+  if (error) { console.error("[plazos] cargar pendientes:", error.message); return null; }
+  return data || [];
+}
+
 const CAMPOS_PLAZO = ["caso_id", "expediente_id", "tipo", "titulo", "fecha_notificacion", "dias", "computo", "clase", "vence", "fecha_objetivo", "estado", "cumplido_en", "notas"];
 const aFilaPlazo = p => Object.fromEntries(CAMPOS_PLAZO.filter(k => k in p).map(k => [k, p[k] === "" || p[k] === undefined ? null : k === "dias" ? Number(p[k]) || null : p[k]]));
 
