@@ -86,6 +86,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       // Llamada limpia a la utilidad compartida
       await subirArchivosYNotificar({
         pasId,
+        casoId: data?.id,
         pasNombre,
         casoData: formData,
         archivos

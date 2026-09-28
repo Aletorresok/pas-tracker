@@ -73,6 +73,7 @@ export default function PortalCasoCard({ caso, proximoEvento, plazoCia }) {
     try {
       await subirArchivosYNotificar({
         pasId: caso.pas_id,
+        casoId: caso.id,
         pasNombre: caso.pas_nombre || "Productor",
         casoData: {
           asegurado: caso.asegurado + " (NUEVA DOCUMENTACIÓN)",

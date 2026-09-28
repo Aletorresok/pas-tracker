@@ -26,6 +26,7 @@ import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comision
 import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
+import AdjuntosPAS from "./components/caso/AdjuntosPAS.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
 import ResumenCaso from "./components/caso/ResumenCaso.jsx";
 import Boton from "./components/ui/Boton.jsx";
@@ -351,6 +352,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
               </div>
               <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+              <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <div style={{ marginBottom: 16 }}><ChecklistDocumental documentacion={formData.documentacion} onChange={v => handleFormChange("documentacion", v)} Th={Th} /></div>
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>

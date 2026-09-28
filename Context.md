@@ -96,6 +96,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Adjuntos del PAS en la ficha del caso
+*   **Ficha → Documentos → "Adjuntos del PAS"** (`caso/AdjuntosPAS.jsx`, `utils/adjuntosPas.js`): lista lo que el PAS adjuntó desde el portal (bucket `adjuntos`, lo mismo que llega linkeado en el mail) con **Ver**, **Descargar** (a la PC, con su nombre original), **A la carpeta** (si hay carpeta vinculada; no pisa: "nombre (2)") y **Descargar todo**. No se borran de la nube (los links del mail siguen andando).
+*   Desde ahora `subirArchivosYNotificar` recibe `casoId` y guarda en `adjuntos/<pas_id>/<pas_casos.id>/`; lo usan `NuevoCasoModal` (alta) y `PortalCasoCard` (documentación nueva). La política de Storage ya lo permite (primera carpeta = `mi_pas_id()`), sin SQL.
+*   Los adjuntos anteriores quedaron sueltos en `adjuntos/<pas_id>/` sin caso: se ven en la ficha de cualquier caso de ese PAS, plegados, en "Anteriores de este PAS, sin caso asignado".
+
 ### 2026-09-28 — Herramientas: escáner, plazos, intereses y carta documento (SQL 27 ⚠️ pendiente de correr)
 *   **Escáner** (tipo CamScanner): sacar fotos con el celular o elegirlas, detección automática de la hoja, esquinas ajustables a mano, corrección de perspectiva, filtros Mejorada (sin sombras, fondo blanco) / Original / Grises / Blanco y negro, rotar, ordenar, "filtro para todas", calidad Normal o Liviana y "Guardar PDF…". Fotos del celular derechas (EXIF).
 *   **Calculadora de plazos:** días hábiles judiciales o corridos, jurisdicción CABA / PBA / Federal, vencimiento, plazo de gracia, días que no se contaron, conteo día por día y "Copiar texto". Modo "días entre dos fechas".

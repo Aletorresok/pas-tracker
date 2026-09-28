@@ -10,8 +10,9 @@ const LINK_APP = "https://pas-tracker20.vercel.app";
 
 /**
  * Sube múltiples archivos al bucket de Supabase y notifica por EmailJS.
+ * Con `casoId` (pas_casos.id) se guardan en <pas_id>/<caso>/, así la ficha del caso los muestra.
  */
-export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, archivos }) {
+export async function subirArchivosYNotificar({ pasId, casoId, pasNombre, casoData, archivos }) {
   const subidos = []; // { nombre, link }
   const fallidos = [];
 
@@ -19,7 +20,7 @@ export async function subirArchivosYNotificar({ pasId, pasNombre, casoData, arch
     for (let file of archivos) {
       // Se guarda con su nombre original (sin tildes ni símbolos, que Storage no acepta) para que el link se entienda
       const limpio = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9._-]+/g, "_").replace(/_+/g, "_").slice(-80);
-      const filePath = `${pasId}/${Date.now()}_${limpio || "archivo"}`;
+      const filePath = `${pasId}/${casoId ? `${casoId}/` : ""}${Date.now()}_${limpio || "archivo"}`;
 
       const { error: uploadError } = await supabase.storage.from("adjuntos").upload(filePath, file);
       if (uploadError) { console.error("[adjuntos] no se pudo subir", file.name, uploadError); fallidos.push(file.name); continue; }
