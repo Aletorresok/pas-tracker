@@ -160,6 +160,28 @@ create table public.pas_papelera (
   eliminado_en  timestamptz not null default now()
 );
 
+-- Herramientas (SQL 27). Además: pas_casos.domicilio_asegurado/cp_/localidad_/provincia_asegurado
+-- y pas_companias.domicilio/cp/localidad/provincia (los completa la carta documento).
+-- ipc = variación mensual % (fecha = primer día del mes); icl = valor diario; tasa_activa_bna = TNA % desde esa fecha
+create table public.indices (
+  serie        text not null check (serie in ('ipc', 'icl', 'tasa_activa_bna')),
+  fecha        date not null,
+  valor        numeric not null,
+  actualizado  timestamptz not null default now(),
+  primary key (serie, fecha)
+);
+create table public.modelos_carta (
+  id      uuid primary key default gen_random_uuid(),
+  titulo  text not null,
+  texto   text not null,
+  creado  timestamptz not null default now()
+);
+create table public.pas_ajustes (      -- clave 'remitente_estudio': datos de remitente para las cartas
+  clave        text primary key,
+  valor        jsonb not null,
+  actualizado  timestamptz not null default now()
+);
+
 
 -- ── Prospección de PAS ───────────────────────────────────────
 
