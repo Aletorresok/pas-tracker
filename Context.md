@@ -76,7 +76,8 @@
 - [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
 - [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
-- [ ] Algo básico con PJN / MEV (no prioritario).
+- [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): aprobarlo y arrancar por la fase 0.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
 - [ ] SQL 26 (papelera) y SQL 27 (herramientas): confirmar si ya se corrieron.
@@ -106,6 +107,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Plan de funciones nuevas (análisis de las 10 funciones de Lex-Doctor / IUSNET / LegalSurf; PROPUESTO)
+*   `docs/plan-funciones/`: `ANALISIS.md` (qué hay, utilidad, complejidad, prioridad y balance de cada función), `PLAN.md` (fases 0–7 con esquemas, archivos y criterios de "listo"), `presentacion.html` (cómo se vería cada pantalla), borradores SQL 31–38 en `sql/`, motor de plantillas `codigo/plantillas.js` (+ pruebas) y la Edge Function del calendario `funciones/calendario.ts`.
+*   **Orden propuesto:** 0) preparación (links `?abrir=caso-ID`, datos del estudio) → 1) auditoría (SQL 31) → 2) escritos con modelos (SQL 32) → 3) plazos condicionados + aviso de plazos en el push (SQL 33) → 4) calendario suscribible .ics (SQL 34) → 5) movimientos visibles + vista del cliente de expedientes = etapa 7 (SQL 35) → 6) resultado por caso y liquidaciones (SQL 36) → 7) opcionales: bandeja PJN/MEV manual (SQL 37) y búsqueda en documentos (SQL 38).
+*   **Descartado:** scraping de PJN/MEV, sincronización bidireccional con la API de Google Calendar, OCR por ahora, registro de horas.
+*   Los SQL 31–38 se probaron en Postgres 16 local con el esquema real (dos corridas cada uno); **no se corrió nada en la base real ni se tocó el código de la app.**
+*   Hallazgos: el resumen diario (`notificar`) no incluye la tabla `plazos` (un plazo fatal de expediente no llega por push); `?caso=` en la URL ya lo usa la vista del cliente (los links directos a una ficha necesitan otro parámetro).
 
 ### 2026-09-29 — Compañías: directorio único que alimenta al resto (⚠️ requiere SQL 30)
 *   Pestaña **Compañías** en el menú: lista las compañías con ficha y las que aparecen en casos, con casos en curso/total, contactos y qué le falta a la ficha. Filtros: todas, con casos en curso, ficha incompleta. Click derecho: copiar razón social / CUIT, mails.
