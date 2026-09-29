@@ -84,11 +84,14 @@
 - [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
 - [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
-- [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
+- [x] ✅ Algo básico con PJN / MEV: bandeja de novedades judiciales pegadas a mano (fase 7a, 29/09). Sin scraping ni claves guardadas.
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) , fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**) , fase 5 ✅ (el usuario avisó el 29/09 que corrió el SQL pendiente) fase 6 ✅ (**falta correr el SQL 36**) y fase 7a ✅ (SQL 37 corrido el 29/09); queda la 7b (opcional: búsqueda en documentos, SQL 38). Publicado en `main` el 29/09.
+- [x] ✅ **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`) **cerrado el 29/09**: fases 0 a 6 y 7a hechas y publicadas en `main` (SQL 31 a 37). La 7b (búsqueda dentro de los documentos, SQL 38) **se descartó**. Quedan del lado del usuario:
+  - [ ] Confirmar que corrió los SQL 34, 35 y 36 (consulta de control en el Registro de Cambios del 29/09, "Cierre de la semana").
+  - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
+  - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
-- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones (falta SQL 35); etapa 8 (migración y baja de Agenda Legal) pendiente.
+- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones; etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
@@ -116,6 +119,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Cierre de la semana del plan de funciones
+*   Publicado en `main` todo el plan: fases 0 (links `?abrir=` y Mis datos), 1 (auditoría), 2 (escritos con modelos, PDF y Word), 3 (plazos del catálogo y aviso de fatales), 4 (calendario en el celular), 5 (novedades y vista del cliente de expedientes), 6 (neto por caso, gastos a recuperar, liquidaciones) y 7a (bandeja PJN/MEV manual). **7b descartada.**
+*   Control de SQL 34, 35 y 36 (en el SQL Editor; tiene que dar todo `true`):
+    `select to_regclass('public.calendario_tokens') is not null as sql34, exists(select 1 from information_schema.columns where table_name='acciones' and column_name='visible_cliente') as sql35, to_regclass('public.liquidaciones') is not null and to_regclass('public.resultado_casos') is not null as sql36;`
+*   Deploy de funciones: `notificar` (redesplegar con el código de `supabase/functions/notificar/index.ts`) y `calendario` (nueva, sin verificación de JWT). Paso a paso en la conversación del 29/09: panel de Supabase → Edge Functions → editar/pegar el código → Deploy; o CLI `supabase functions deploy notificar` y `supabase functions deploy calendario --no-verify-jwt`.
 
 ### 2026-09-29 — Fase 7a del plan de funciones: bandeja de novedades judiciales (SQL 37, corrido)
 *   **SQL 37** (`sql/2026-09-29_37_novedades_judiciales.sql`): `expedientes.portal` (pjn | mev | otro), `url_portal`, `numero_normalizado` (generado); tabla `novedades_judiciales` con `hash` único (trigger) para no cargar dos veces lo mismo. Sin scraping ni claves guardadas: todo se pega a mano.

@@ -1,7 +1,7 @@
 # Plan de acción: funciones nuevas de ATG Lex
 
 > Fecha: 2026-09-29 · Análisis y fundamentos: [`ANALISIS.md`](ANALISIS.md) · Presentación: [`presentacion.html`](presentacion.html)
-> Estado: **EN CURSO** (fases 0 a 6 y 7a hechas y publicadas en `main` el 29/09; queda la 7b). Ver el tablero de fases.
+> Estado: **CERRADO** (fases 0 a 6 y 7a hechas y publicadas en `main` el 29/09; la 7b se descartó). Ver el tablero de fases.
 
 ## Cómo retomar en la próxima sesión
 
@@ -41,7 +41,7 @@ docs/plan-funciones/
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [x] 29/09 (falta correr el SQL 34 y desplegar calendario sin JWT) |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [x] 29/09 (falta correr el SQL 35) |
 | 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [x] 29/09 (falta correr el SQL 36) |
-| 7 | Opcionales: bandeja de novedades judiciales (7a hecha), búsqueda en documentos (7b) | 37, 38 | 1–2 c/u | [~] 7a [x] · 7b [ ] |
+| 7 | Opcionales: bandeja de novedades judiciales (7a hecha), búsqueda en documentos (7b) | 37, 38 | 1–2 c/u | 7a [x] · 7b descartada |
 
 ---
 
@@ -242,7 +242,7 @@ y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resu
 - Fase 2 posible: leer los mails de aviso de notificación de Gmail (si llegan) y cargarlos como `fuente = 'mail'`.
 - **Nunca:** guardar tu clave del PJN/MEV ni hacer scraping.
 
-### 7b · Búsqueda dentro de los documentos — SQL 38
+### 7b · Búsqueda dentro de los documentos — SQL 38 · DESCARTADA (29/09)
 - `documentos_texto (id, caso_id, expediente_id, ruta, nombre, tamanio, modificado, origen, texto, tsv, indexado_en)` + `buscar_documentos(q)` (probado: "póliza 44532" encuentra el PDF y devuelve el fragmento con «resaltado»).
 - Pantalla: en Documentos, "Indexar carpeta" (pdf.js `getTextContent`; OCR con tesseract.js solo si el PDF no tiene texto y solo en la PC) → Ctrl+K suma "En documentos".
 - Alternativa más barata primero: **"Detectar datos"** en la denuncia (patente, n.° de siniestro, póliza, fecha) para completar la ficha.
