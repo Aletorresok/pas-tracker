@@ -10,9 +10,9 @@ const coef = n => Number(n).toLocaleString("es-AR", { minimumFractionDigits: 4, 
 const dma = iso => (iso ? iso.split("-").reverse().join("/") : "");
 const mesAnio = ym => { const [a, m] = ym.split("-"); return `${m}/${a}`; };
 
-const campo = { padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 15, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
+const campo = { padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 15, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
 const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16 };
 const celda = { padding: "10px 12px", borderBottom: "1px solid var(--border)", textAlign: "right", whiteSpace: "nowrap" };
 
 function textoParaCopiar(m, r, capital, desde, hasta) {

@@ -35,7 +35,7 @@ export default function SelectorArchivos({ archivos, onChange, disabled }) {
       {archivos.length > 0 && (
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 4 }}>
           {archivos.map((f, i) => (
-            <li key={`${f.name}-${f.size}-${i}`} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: "var(--card2)", border: "1px solid var(--border)", fontSize: 13 }}>
+            <li key={`${f.name}-${f.size}-${i}`} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: "var(--r-sm)", background: "var(--card2)", border: "1px solid var(--border)", fontSize: 13 }}>
               <Icono nombre={f.type === "application/pdf" ? "escrito" : "camara"} size={14} />
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text)" }}>{f.name}</span>
               <span className="num" style={{ color: "var(--muted)", fontSize: 12 }}>{peso(f.size)}</span>

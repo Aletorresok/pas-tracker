@@ -107,7 +107,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   };
 
   return (
-    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
@@ -126,7 +126,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
         {sigue && <div className="num" style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{sigue}</div>}
 
         {proximoEvento && (
-          <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text)", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 8, padding: "8px 10px" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text)", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "8px 10px" }}>
             <Icono nombre="calendario" size={16} />
             <span><b>{proximoEvento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> <span className="num">{new Date(proximoEvento.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}, {new Date(proximoEvento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs</span></span>
           </div>
@@ -139,7 +139,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
         )}
 
         {caso.mensaje_cliente && (
-          <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: 8, padding: "10px 12px" }}>
+          <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent-ink)", marginBottom: 3 }}>Mensaje del estudio</div>
             <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.45 }}>{caso.mensaje_cliente}</div>
           </div>
@@ -159,14 +159,14 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
           <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
             {linkCliente && (
               <a href={linkCliente} target="_blank" rel="noreferrer" title="Le manda por WhatsApp el link para que siga el caso solo"
-                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
                 <Icono nombre="mensaje" size={14} />Pasale el seguimiento al cliente
               </a>
             )}
             {conEscrito && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
             {consulta && !caso._demo && (
               <a href={consulta} target="_blank" rel="noreferrer" title="Te abre WhatsApp con el caso ya identificado"
-                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
                 <Icono nombre="telefono" size={14} />Consultar al estudio
               </a>
             )}
@@ -179,7 +179,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
           {montos.length > 0 && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
               {montos.map(m => (
-                <div key={m.k} style={{ background: "var(--card)", borderRadius: 8, padding: "8px 10px", border: "1px solid var(--border)" }}>
+                <div key={m.k} style={{ background: "var(--card)", borderRadius: "var(--r-sm)", padding: "8px 10px", border: "1px solid var(--border)" }}>
                   <div style={{ fontSize: 12, color: "var(--sub)" }}>{m.l}</div>
                   <div className="num" style={{ fontSize: 16, fontWeight: 700, color: m.destacado ? "var(--accent-ink)" : "var(--text)" }}>{fmtMoney(caso[m.k])}</div>
                   {m.k === "monto_comision_pas" && caso.fecha_pago_comision !== undefined && (

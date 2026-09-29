@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-export const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+export const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 export const tono = pct => `color-mix(in srgb, var(--accent) ${pct}%, var(--card))`;
 
 // Valor con la cantidad de casos sobre la que se calculó: "32 d · 7"

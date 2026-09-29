@@ -18,7 +18,7 @@ const soloPatente = v => String(v || "").replace(/[^A-Za-z0-9]/g, "").toUpperCas
 
 const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 6 };
 const opcional = { fontWeight: 500, color: "var(--muted)" };
-const campo = { width: "100%", boxSizing: "border-box", background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 8, padding: "10px 12px", color: "var(--text)", font: "inherit", fontSize: 15, outline: "none" };
+const campo = { width: "100%", boxSizing: "border-box", background: "var(--card)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: "10px 12px", color: "var(--text)", font: "inherit", fontSize: 15, outline: "none" };
 const ayuda = { display: "block", fontSize: 12, color: "var(--muted)", marginTop: 4, lineHeight: 1.4 };
 
 // Derivar un caso desde el portal: datos del asegurado, compañía del tercero y documentación.
@@ -97,7 +97,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     <div className="modal-portal" role="dialog" aria-modal="true" aria-label="Derivar un caso"
       onClick={e => e.target === e.currentTarget && !enviando && onClose()}
       style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, width: "100%", maxWidth: 480, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto", boxSizing: "border-box" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", width: "100%", maxWidth: 480, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto", boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{listo ? "Caso derivado" : "Derivar un caso"}</h2>
           <button type="button" onClick={onClose} disabled={enviando} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", display: "flex", padding: 4 }}><Icono nombre="cerrar" size={18} /></button>
@@ -105,7 +105,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
         {listo ? <Confirmacion {...listo} pasNombre={pasNombre} onOtro={otro} onListo={onClose} /> : (
           <form onSubmit={enviar} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {error && <div role="alert" style={{ background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid var(--bad)", borderRadius: 8, padding: "10px 12px", color: "var(--bad)", fontSize: 13 }}>{error}</div>}
+            {error && <div role="alert" style={{ background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid var(--bad)", borderRadius: "var(--r-sm)", padding: "10px 12px", color: "var(--bad)", fontSize: 13 }}>{error}</div>}
 
             <label><span style={etiqueta}>Titular (apellido y nombre)</span>
               <input value={form.asegurado} onChange={e => cambiar("asegurado", e.target.value)} placeholder="Ej: Pérez Juan" autoComplete="off" style={campo} />
@@ -167,12 +167,12 @@ function Confirmacion({ caso, fallidos, pasNombre, onOtro, onListo }) {
         </div>
       </div>
       {fallidos.length > 0 && (
-        <div role="alert" style={{ fontSize: 13, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 10%, var(--card))", borderRadius: 8, padding: "10px 12px" }}>
+        <div role="alert" style={{ fontSize: 13, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 10%, var(--card))", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
           {fallidos.length === 1 ? "Un archivo no se pudo subir" : `${fallidos.length} archivos no se pudieron subir`} ({fallidos.join(", ")}). Mandalos desde la tarjeta del caso → "Adjuntar documentación".
         </div>
       )}
       {wa && (
-        <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 12 }}>
+        <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: 12 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Avisale a tu cliente</div>
           <div style={{ fontSize: 13, color: "var(--sub)", marginBottom: 10, lineHeight: 1.45 }}>
             Un WhatsApp contándole que el estudio lo va a contactar{puede ? " y con el link para seguir el caso y mandar la documentación" : ""}.

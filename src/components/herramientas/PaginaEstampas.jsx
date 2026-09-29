@@ -99,7 +99,7 @@ export default function PaginaEstampas({ fuente, pagina, onGuardar, onCerrar }) 
   return createPortal(
     <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
       <div role="dialog" aria-modal="true" aria-label="Imágenes sobre la página" onClick={e => e.stopPropagation()}
-        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 980, maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", width: "100%", maxWidth: 980, maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Firma, sello o imagen sobre la página</div>
@@ -112,7 +112,7 @@ export default function PaginaEstampas({ fuente, pagina, onGuardar, onCerrar }) 
         </div>
 
         <div className="estampas-cuerpo" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 240px", gridAutoRows: "max-content", gap: 16, padding: 16, overflow: "auto", minHeight: 0 }}>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", background: "var(--card2)", borderRadius: 10, padding: 12, minHeight: 200 }}>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", background: "var(--card2)", borderRadius: "var(--r-sm)", padding: 12, minHeight: 200 }}>
             {!fondo && !error && <div style={{ fontSize: 13, color: "var(--muted)", alignSelf: "center" }}>Cargando página…</div>}
             {error && <div role="alert" style={{ fontSize: 13, color: "var(--bad)", alignSelf: "center" }}>{error}</div>}
             {fondo && (
@@ -133,7 +133,7 @@ export default function PaginaEstampas({ fuente, pagina, onGuardar, onCerrar }) 
             <input ref={inputRef} type="file" accept="image/png,image/jpeg" hidden onChange={agregar} />
             <Boton variante="primario" onClick={() => inputRef.current?.click()} disabled={trabajando || !fondo}>+ Agregar imagen</Boton>
             {actual ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 12, border: "1px solid var(--border)", borderRadius: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 12, border: "1px solid var(--border)", borderRadius: "var(--r-sm)" }}>
                 <label style={{ fontSize: 13, color: "var(--sub)" }}>
                   Tamaño <span className="num" style={{ color: "var(--text)", fontWeight: 600 }}>{Math.round(actual.ancho * 100)}%</span>
                   <input type="range" min="5" max="100" value={Math.round(actual.ancho * 100)}

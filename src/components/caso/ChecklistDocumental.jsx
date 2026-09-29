@@ -25,7 +25,7 @@ export default function ChecklistDocumental({ documentacion, onChange, Th }) {
   return (
     <div>
       <div style={{
-        borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10,
+        borderRadius: "var(--r-sm)", padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10,
         background: listo ? "color-mix(in srgb, var(--ok) 8%, transparent)" : "color-mix(in srgb, var(--warn) 8%, transparent)",
         border: `1px solid ${listo ? "color-mix(in srgb, var(--ok) 27%, transparent)" : "color-mix(in srgb, var(--warn) 30%, transparent)"}`,
       }}>
@@ -41,7 +41,7 @@ export default function ChecklistDocumental({ documentacion, onChange, Th }) {
           const requerido = DOCS_REQUERIDOS_RECLAMO.includes(t);
           return (
             <label key={t} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", minWidth: 0,
+              display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: "var(--r-sm)", cursor: "pointer", minWidth: 0,
               border: `1px solid ${ok ? "color-mix(in srgb, var(--ok) 40%, transparent)" : Th.border}`,
               background: ok ? "color-mix(in srgb, var(--ok) 6%, var(--card))" : "var(--card)",
             }}>

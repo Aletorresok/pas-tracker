@@ -103,8 +103,8 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
 
   const faltan = diasHasta(borrador.proxima_accion_vence);
   const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 };
-  const area = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", resize: "vertical", minHeight: 40 };
-  const chip = activo => ({ padding: "4px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" });
+  const area = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-xs)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", resize: "vertical", minHeight: 40 };
+  const chip = activo => ({ padding: "4px 10px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" });
 
   const textoGuardado = { guardado: "✓ Guardado", pendiente: "Cambios sin guardar…", guardando: "Guardando…", error: "No se pudo guardar · reintentar" }[estadoGuardado];
   const colorGuardado = { guardado: "var(--ok)", pendiente: "var(--muted)", guardando: "var(--muted)", error: "var(--warn)" }[estadoGuardado];
@@ -127,7 +127,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
               return (
                 <button key={e.key} type="button" role="radio" aria-checked={activo} onClick={() => cambiarEstado(e.key)}
                   style={{
-                    padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: activo ? 700 : 500, cursor: "pointer",
+                    padding: "4px 10px", borderRadius: "var(--r-xs)", fontSize: 12, fontWeight: activo ? 700 : 500, cursor: "pointer",
                     border: `1px solid ${activo ? e.color : "var(--border)"}`,
                     background: activo ? alpha(e.color, 16) : "var(--card)",
                     color: activo ? "var(--text)" : "var(--sub)",
@@ -138,7 +138,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
             })}
           </div>
           {deshacer && (
-            <div role="status" style={{ marginTop: 8, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>
+            <div role="status" style={{ marginTop: 8, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: "var(--r-sm)", padding: "6px 12px", fontSize: 13 }}>
               Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
               <button type="button" onClick={() => { cambiarEstado(deshacer.anterior, { sinDeshacer: true }); setDeshacer(null); }}
                 style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
@@ -189,7 +189,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
           onUsarComoMensaje={t => cambiar("mensaje_cliente", t)} />
       </div>
 
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
         {MONTOS.map(m => (
           <div key={m.k} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 10, alignItems: "center" }}>
             <label htmlFor={`${m.k}-${caso.id}`} style={{ fontSize: 13, color: "var(--sub)" }}>{m.l}</label>

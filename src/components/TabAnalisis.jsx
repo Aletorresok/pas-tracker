@@ -12,7 +12,7 @@ import AnalisisPas from "./analisis/AnalisisPas.jsx";
 import AnalisisEtapas from "./analisis/AnalisisEtapas.jsx";
 import CasosPorEtapa from "./analisis/CasosPorEtapa.jsx";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 
 const VISTAS = [
   { k: "resumen", l: "Resumen" },
@@ -68,7 +68,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
     const activo = vista === key;
     return (
       <button key={key} type="button" onClick={() => elegir(key)} aria-pressed={activo}
-        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer", fontWeight: activo ? 600 : 500,
+        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", fontWeight: activo ? 600 : 500,
           border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" }}>
         {l}
       </button>

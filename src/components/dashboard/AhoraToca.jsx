@@ -5,7 +5,7 @@ import { rangoPeriodo } from "../../utils/objetivos.js";
 import { FilaItem } from "../rutina/ChecklistRutina.jsx";
 import { TarjetaObjetivo } from "../rutina/ObjetivosPanel.jsx";
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 16px" };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "12px 16px" };
 const link = { background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer", whiteSpace: "nowrap" };
 
 // Arriba de Hoy: el bloque de la rutina que toca ahora y la línea del objetivo anual

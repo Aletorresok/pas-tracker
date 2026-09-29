@@ -6,8 +6,8 @@ import Icono from "../ui/Icono.jsx";
 import AnilloObjetivo, { COLOR_NIVEL } from "./AnilloObjetivo.jsx";
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
-const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 
 export function TarjetaObjetivo({ obj, datos, onTildar, onEditar, compacto }) {
   const a = obj.metrica ? avanceObjetivo(obj, datos) : null;

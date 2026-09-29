@@ -87,7 +87,7 @@ function LineaDeTiempo({ caso, textoEnMensaje = false }) {
                 {fecha && (hecho || actual) && <span className="num" style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}{i === 3 && !hecho ? " (estimada)" : ""}</span>}
               </div>
               {actual
-                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: 8, padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{textoEnMensaje ? PASOS_TEXTO[i] : ahora(caso)}</div>
+                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: "var(--r-sm)", padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{textoEnMensaje ? PASOS_TEXTO[i] : ahora(caso)}</div>
                 : <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{PASOS_TEXTO[i]}</div>}
             </div>
           </li>
@@ -180,7 +180,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   };
 
   return (
-    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }}>
+    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18 }}>
       <button type="button" onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
         style={{ width: "100%", display: "flex", gap: 12, alignItems: "center", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
         <Ilustracion nombre="foto" size={48} />
@@ -210,7 +210,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
         return (
           <div key={d.tipo} style={{ padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, flex: "none", display: "grid", placeItems: "center", background: listo ? "var(--ok)" : "transparent", border: `1.5px solid ${listo ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
+              <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: "var(--r-xs)", flex: "none", display: "grid", placeItems: "center", background: listo ? "var(--ok)" : "transparent", border: `1.5px solid ${listo ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
                 {listo && <Icono nombre="check" size={12} />}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
@@ -220,7 +220,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
                   : env.length > 0 && <span style={{ display: "block", fontSize: 12, color: "var(--ok)" }}>Enviado{env.length > 1 ? ` (${env.length})` : ""} · {new Date(env[0].creado).toLocaleDateString("es-AR")}</span>}
               </span>
               <button type="button" onClick={() => elegir(d.tipo)} disabled={!!subiendo}
-                style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "7px 12px", borderRadius: 8, cursor: subiendo ? "default" : "pointer", border: `1px solid ${listo ? "var(--border2)" : "var(--accent)"}`, background: listo ? "var(--card)" : "var(--accent)", color: listo ? "var(--text)" : "var(--on-accent)", opacity: subiendo && subiendo !== d.tipo ? 0.5 : 1, whiteSpace: "nowrap" }}>
+                style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "7px 12px", borderRadius: "var(--r-sm)", cursor: subiendo ? "default" : "pointer", border: `1px solid ${listo ? "var(--border2)" : "var(--accent)"}`, background: listo ? "var(--card)" : "var(--accent)", color: listo ? "var(--text)" : "var(--on-accent)", opacity: subiendo && subiendo !== d.tipo ? 0.5 : 1, whiteSpace: "nowrap" }}>
                 {subiendo === d.tipo ? "Subiendo…" : listo ? "Agregar" : "Subir"}
               </button>
             </div>
@@ -240,7 +240,7 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
   const evento = extras?.proximoEvento;
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
-  const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 };
+  const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18 };
   // Sin mensaje escrito por el estudio, se muestra el texto de la etapa (así la tarjeta nunca queda vacía)
   const mensajeAuto = !caso.mensaje_cliente && caso.estado !== "desistido";
   const mensaje = caso.mensaje_cliente || (mensajeAuto ? ahora(caso) : "");
@@ -254,22 +254,22 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
             <div style={{ fontSize: 13, color: "var(--sub)" }}>Reclamo ante</div>
             <div style={{ fontSize: 19, fontWeight: 700 }}>{caso.compania_aseguradora || "la compañía"}</div>
           </div>
-          {caso.patente && <span style={{ flex: "none", fontFamily: "var(--mono)", fontWeight: 600, fontSize: 13, border: "1.5px solid var(--text)", borderRadius: 4, padding: "1px 7px", letterSpacing: 0.5 }}>{caso.patente}</span>}
+          {caso.patente && <span style={{ flex: "none", fontFamily: "var(--mono)", fontWeight: 600, fontSize: 13, border: "1.5px solid var(--text)", borderRadius: "var(--r-xs)", padding: "1px 7px", letterSpacing: 0.5 }}>{caso.patente}</span>}
         </div>
 
         {caso.estado === "desistido"
-          ? <div style={{ background: "var(--card2)", borderRadius: 8, padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
+          ? <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
           : <LineaDeTiempo caso={caso} textoEnMensaje={mensajeAuto} />}
 
         {evento && (
-          <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: 10, padding: "10px 12px" }}>
+          <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
             <Icono nombre="calendario" size={18} />
             <span style={{ fontSize: 14, lineHeight: 1.45 }}>
               <b>{evento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> {new Date(evento.inicio).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, {new Date(evento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs.
               {evento.lugar && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>Lugar: {evento.lugar}</span>}
               {evento.link && (
                 <a href={evento.link} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "7px 12px", borderRadius: 8, background: "var(--info)", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "7px 12px", borderRadius: "var(--r-sm)", background: "var(--info)", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                   Entrar a la {evento.tipo === "audiencia" ? "audiencia" : "mediación"}
                 </a>
               )}
@@ -366,7 +366,7 @@ export default function PortalCliente() {
 
   const salir = () => { aviso.enviar(); setCasos(null); setDni(""); setError(""); };
   const nombre = primerNombre(casos?.[0]?.asegurado || ""); // "APELLIDO NOMBRE" → Nombre
-  const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 10, color: "var(--text)", padding: "13px 14px", fontSize: 18, width: "100%", boxSizing: "border-box", fontFamily: "var(--mono)", fontWeight: 600, letterSpacing: 1.5, textAlign: "center", outline: "none" };
+  const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", color: "var(--text)", padding: "13px 14px", fontSize: 18, width: "100%", boxSizing: "border-box", fontFamily: "var(--mono)", fontWeight: 600, letterSpacing: 1.5, textAlign: "center", outline: "none" };
   const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 };
 
   return (
@@ -392,7 +392,7 @@ export default function PortalCliente() {
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
 
-            <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+            <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
               <label>
                 <span style={etiqueta}>Patente</span>
                 <input value={patente} onChange={e => setPatente(limpiarPatente(e.target.value).slice(0, 8))} placeholder="AB123CD" autoComplete="off" autoCapitalize="characters" style={campo} />
@@ -402,7 +402,7 @@ export default function PortalCliente() {
                 <input value={dni} onChange={e => setDni(e.target.value.replace(/\D/g, "").slice(0, 3))} placeholder="•••" inputMode="numeric" autoComplete="off" style={{ ...campo, maxWidth: 140, letterSpacing: 6 }} />
               </label>
 
-              {error && <div role="alert" style={{ background: alpha("var(--bad)", 9), border: `1px solid ${alpha("var(--bad)", 25)}`, borderRadius: 8, padding: "10px 12px", color: "var(--bad)", fontSize: 14, lineHeight: 1.45 }}>{error}</div>}
+              {error && <div role="alert" style={{ background: alpha("var(--bad)", 9), border: `1px solid ${alpha("var(--bad)", 25)}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: "var(--bad)", fontSize: 14, lineHeight: 1.45 }}>{error}</div>}
 
               <Boton variante="primario" type="submit" disabled={!puedeBuscar} style={{ width: "100%", padding: 13, fontSize: 15 }}>
                 {cargando ? "Buscando…" : "Ver mi reclamo"}
@@ -426,7 +426,7 @@ export default function PortalCliente() {
                   const activa = i === casoSel;
                   return (
                     <button key={c.id} type="button" role="tab" aria-selected={activa} onClick={() => setCasoSel(i)}
-                      style={{ flex: "none", font: "inherit", textAlign: "left", cursor: "pointer", padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${activa ? "var(--accent)" : "var(--border)"}`, background: activa ? "color-mix(in srgb, var(--accent) 10%, var(--card))" : "var(--card)", color: "var(--text)" }}>
+                      style={{ flex: "none", font: "inherit", textAlign: "left", cursor: "pointer", padding: "10px 16px", borderRadius: "var(--r-md)", border: `1.5px solid ${activa ? "var(--accent)" : "var(--border)"}`, background: activa ? "color-mix(in srgb, var(--accent) 10%, var(--card))" : "var(--card)", color: "var(--text)" }}>
                       <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>Reclamo ante</span>
                       <span style={{ display: "block", fontSize: 15, fontWeight: 700 }}>{c.compania_aseguradora || `Reclamo ${i + 1}`}</span>
                     </button>
@@ -436,7 +436,7 @@ export default function PortalCliente() {
             )}
             {casos[casoSel] && <TarjetaCaso key={casos[casoSel].id} caso={casos[casoSel]} patente={patente} dni={dni} aviso={aviso} />}
             {(aviso.cantidad > 0 || aviso.avisados > 0) && (
-              <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: "var(--r-md)", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 {aviso.cantidad > 0 ? (
                   <>
                     <span style={{ fontSize: 14, lineHeight: 1.45 }}>Recibimos {aviso.cantidad === 1 ? "1 archivo" : `${aviso.cantidad} archivos`}. Cuando termines de mandar todo, avisale al estudio.</span>

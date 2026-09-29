@@ -7,12 +7,12 @@ export default function AvisoEstadoCliente({ caso, onCambiar }) {
   const s = estadoSugerido(caso);
   if (!s) return null;
   return (
-    <div role="status" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 13, lineHeight: 1.45, padding: "8px 12px", borderRadius: 8, color: "var(--text)", background: "color-mix(in srgb, var(--warn) 12%, var(--card))", border: "1px solid color-mix(in srgb, var(--warn) 35%, transparent)" }}>
+    <div role="status" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 13, lineHeight: 1.45, padding: "8px 12px", borderRadius: "var(--r-sm)", color: "var(--text)", background: "color-mix(in srgb, var(--warn) 12%, var(--card))", border: "1px solid color-mix(in srgb, var(--warn) 35%, transparent)" }}>
       <span style={{ flex: "1 1 220px" }}>
         El caso sigue en <b>{s.actualLabel}</b>, pero ya tiene {s.motivo}. El cliente y el PAS lo ven atrasado.
       </span>
       <button type="button" onClick={() => onCambiar(s.estado)}
-        style={{ flex: "none", font: "inherit", fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 6, cursor: "pointer", border: "1px solid var(--warn)", background: "var(--card)", color: "var(--text)" }}>
+        style={{ flex: "none", font: "inherit", fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: "var(--r-xs)", cursor: "pointer", border: "1px solid var(--warn)", background: "var(--card)", color: "var(--text)" }}>
         Pasar a {s.label}
       </button>
     </div>
@@ -22,7 +22,7 @@ export default function AvisoEstadoCliente({ caso, onCambiar }) {
 // Etiqueta junto al título del campo "Mensaje para el cliente"
 export function EtiquetaMensajeCliente() {
   return (
-    <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: 5, padding: "1px 7px", whiteSpace: "nowrap" }}>
+    <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 7px", whiteSpace: "nowrap" }}>
       Lo leen el cliente y el PAS
     </span>
   );
@@ -45,7 +45,7 @@ export function AvisoPrescripcion({ caso }) {
   const p = prescripcion(caso);
   if (!p) return null;
   return (
-    <div role="status" style={{ fontSize: 13, lineHeight: 1.45, padding: "8px 12px", borderRadius: 8, color: "var(--text)", background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--bad) 35%, transparent)" }}>
+    <div role="status" style={{ fontSize: 13, lineHeight: 1.45, padding: "8px 12px", borderRadius: "var(--r-sm)", color: "var(--text)", background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--bad) 35%, transparent)" }}>
       <b>Prescripción:</b> {p.dias < 0
         ? `ya pasaron más de ${PRESCRIPCION_ANIOS} años desde el siniestro (${fmtDate(p.vence)}).`
         : `el ${fmtDate(p.vence)} se cumplen ${PRESCRIPCION_ANIOS} años desde el siniestro (faltan ${p.dias} días).`}

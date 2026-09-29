@@ -1,7 +1,7 @@
 import { bloquesDelDia, ahoraToca, prioridad, acceso as accesoDe, hhmm, DIAS_SEMANA } from "../../utils/rutina.js";
 import Icono from "../ui/Icono.jsx";
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 
 export function BotonAcceso({ k, onIrA }) {
   const a = accesoDe(k);

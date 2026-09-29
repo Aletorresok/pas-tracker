@@ -22,8 +22,8 @@ const VACIO = { caratula: "", fuero: "Civil y Comercial", jurisdiccion: "CABA", 
 const aFormulario = e => Object.fromEntries(CAMPOS_EXPEDIENTE.map(k => [k, e?.[k] ?? (k === "visible_cliente" ? false : "")]));
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
-const campo = { width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16 };
+const campo = { width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16 };
 
 function Campo({ label, k, datos, onChange, tipo = "text", opciones, ancho }) {
   const valor = datos[k] ?? "";
@@ -162,10 +162,10 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={cerrar} />
       <div className="modal-panel" role="dialog" aria-modal="true" aria-label={esNuevo ? "Nuevo expediente" : `Expediente ${datos.caratula}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
+        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
 
           <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
-            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
+            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
               <Icono nombre="cerrar" size={16} />
             </button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
@@ -189,9 +189,9 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
             </div>
 
             {!esNuevo && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, padding: "10px 12px", background: Th.card2, borderRadius: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, padding: "10px 12px", background: Th.card2, borderRadius: "var(--r-sm)", flexWrap: "wrap" }}>
                 <button type="button" role="switch" aria-checked={!!datos.visible_cliente} aria-label="Visible para el cliente" onClick={alternarVisible}
-                  style={{ width: 38, height: 22, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", position: "relative", flex: "none", background: datos.visible_cliente ? "var(--ok)" : "var(--border2)" }}>
+                  style={{ width: 38, height: 22, borderRadius: "var(--r-xl)", border: "none", padding: 0, cursor: "pointer", position: "relative", flex: "none", background: datos.visible_cliente ? "var(--ok)" : "var(--border2)" }}>
                   <span style={{ position: "absolute", top: 3, left: datos.visible_cliente ? 19 : 3, width: 16, height: 16, borderRadius: "50%", background: "var(--card)", transition: "left .15s" }} />
                 </button>
                 <div style={{ flex: "1 1 220px", fontSize: 13 }}>

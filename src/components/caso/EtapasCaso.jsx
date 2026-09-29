@@ -43,12 +43,12 @@ export default function EtapasCaso({ estado, onChange }) {
       </ol>
       {ocultos > 0 && !desistido && (
         <button type="button" onClick={() => setVerTodas(true)} title="Mostrar las etapas de mediación y juicio"
-          style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer", fontWeight: 600, border: "1px solid var(--border)", background: "var(--card)", color: "var(--muted)", whiteSpace: "nowrap" }}>
+          style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", fontWeight: 600, border: "1px solid var(--border)", background: "var(--card)", color: "var(--muted)", whiteSpace: "nowrap" }}>
           + Mediación o juicio
         </button>
       )}
       <button type="button" onClick={() => onChange(desistido ? "iniciado" : "desistido")} aria-pressed={desistido}
-        style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer", fontWeight: 600,
+        style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", fontWeight: 600,
           border: `1px solid ${desistido ? "var(--muted)" : "var(--border)"}`, background: desistido ? "var(--card2)" : "var(--card)", color: desistido ? "var(--text)" : "var(--muted)" }}>
         {desistido ? "Desistido · reactivar" : "Desistir"}
       </button>

@@ -4,8 +4,8 @@ import { fmtDate, fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
-const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 
 const VACIO = { frecuencia: "diaria", bloque: "", hora_inicio: "", hora_fin: "", dia: "", titulo: "", prioridad: "importante", acceso: "", activo: true };
 

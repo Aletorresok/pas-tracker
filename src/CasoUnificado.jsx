@@ -275,18 +275,18 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={cerrar} />
       <div className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
+        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
 
           {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
           <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
-            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
+            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
               <Icono nombre="cerrar" size={16} />
             </button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
               <div style={{ minWidth: 0, flex: "1 1 280px" }}>
                 <div style={{ fontSize: 22, fontWeight: 700, color: Th.text, letterSpacing: -0.3, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
                 <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
-                  {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: 4, padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
+                  {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
                   {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
                   {pasNombre && <span>PAS {pasNombre}</span>}
                   {caso.fecha_derivacion && <span>derivado {formatoFecha(caso.fecha_derivacion)}</span>}
@@ -307,7 +307,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div style={{ marginTop: 16 }}>
               <EtapasCaso estado={formData.estado} onChange={cambiarEstado} />
               {deshacer && (
-                <div role="status" style={{ marginTop: 10, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>
+                <div role="status" style={{ marginTop: 10, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: "var(--r-sm)", padding: "6px 12px", fontSize: 13 }}>
                   Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
                   <button type="button" onClick={() => { handleFormChange("estado", deshacer.anterior); setDeshacer(null); }}
                     style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>

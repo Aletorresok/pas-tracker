@@ -75,7 +75,7 @@ export default function RecorteEscaner({ pagina, onGuardar, onCerrar }) {
   return createPortal(
     <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: 10 }}>
       <div role="dialog" aria-modal="true" aria-label="Ajustar página" onClick={e => e.stopPropagation()}
-        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 1000, maxHeight: "96vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", width: "100%", maxWidth: 1000, maxHeight: "96vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Ajustar página</div>
@@ -88,7 +88,7 @@ export default function RecorteEscaner({ pagina, onGuardar, onCerrar }) {
         </div>
 
         <div className="escaner-cuerpo" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)", gridAutoRows: "max-content", gap: 14, padding: 14, overflow: "auto", minHeight: 0 }}>
-          <div style={{ background: "#111", borderRadius: 10, padding: 8, display: "flex", justifyContent: "center" }}>
+          <div style={{ background: "#111", borderRadius: "var(--r-sm)", padding: 8, display: "flex", justifyContent: "center" }}>
             {!foto ? <div style={{ color: "#aaa", fontSize: 13, padding: 40 }}>Cargando foto…</div> : (
               <div style={{ position: "relative", lineHeight: 0, touchAction: "none" }}>
                 <img src={foto.url} alt="Foto original" draggable={false} style={{ display: "block", maxWidth: "100%", maxHeight: "62vh", userSelect: "none" }} />
@@ -115,11 +115,11 @@ export default function RecorteEscaner({ pagina, onGuardar, onCerrar }) {
             <div role="radiogroup" aria-label="Filtro" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {FILTROS.map(f => (
                 <button key={f.k} type="button" role="radio" aria-checked={filtro === f.k} onClick={() => setFiltro(f.k)}
-                  style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 999, cursor: "pointer", border: `1px solid ${filtro === f.k ? "var(--text)" : "var(--border)"}`, background: filtro === f.k ? "var(--text)" : "var(--card)", color: filtro === f.k ? "var(--bg)" : "var(--sub)" }}>{f.l}</button>
+                  style={{ font: "inherit", fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: "var(--r-xl)", cursor: "pointer", border: `1px solid ${filtro === f.k ? "var(--text)" : "var(--border)"}`, background: filtro === f.k ? "var(--text)" : "var(--card)", color: filtro === f.k ? "var(--bg)" : "var(--sub)" }}>{f.l}</button>
               ))}
             </div>
             <div style={{ fontSize: 12, color: "var(--sub)" }}>Vista previa</div>
-            <div style={{ background: "var(--card2)", borderRadius: 10, padding: 8, display: "flex", justifyContent: "center", minHeight: 160 }}>
+            <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: 8, display: "flex", justifyContent: "center", minHeight: 160 }}>
               {vista ? <img src={vista} alt="Vista previa" style={{ maxWidth: "100%", maxHeight: "42vh", boxShadow: "0 1px 6px rgba(0,0,0,.25)" }} /> : <span style={{ fontSize: 12, color: "var(--muted)", alignSelf: "center" }}>…</span>}
             </div>
           </div>

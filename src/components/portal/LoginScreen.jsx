@@ -36,10 +36,10 @@ export default function LoginScreen({ dark, onToggleDark }) {
 
   return (
     <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, transition: "background .3s" }}>
-      <button type="button" onClick={onToggleDark} aria-label={dark ? "Modo claro" : "Modo oscuro"} style={{ position: "absolute", top: 16, right: 16, background: T.card, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, color: T.sub }}>
+      <button type="button" onClick={onToggleDark} aria-label={dark ? "Modo claro" : "Modo oscuro"} style={{ position: "absolute", top: 16, right: 16, background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "6px 10px", cursor: "pointer", fontSize: 16, color: T.sub }}>
         <Icono nombre={dark ? "sol" : "luna"} size={16} />
       </button>
-      <form onSubmit={handleLogin} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "clamp(28px, 7vw, 40px) clamp(20px, 6vw, 36px)", width: "100%", maxWidth: 400, boxShadow: "var(--shadow)", boxSizing: "border-box" }}>
+      <form onSubmit={handleLogin} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-lg)", padding: "clamp(28px, 7vw, 40px) clamp(20px, 6vw, 36px)", width: "100%", maxWidth: 400, boxShadow: "var(--shadow)", boxSizing: "border-box" }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Logo alto={44} style={{ margin: "0 auto 16px" }} />
           <div style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 700 }}>ATG Lex Solutions</div>
@@ -47,7 +47,7 @@ export default function LoginScreen({ dark, onToggleDark }) {
           <div style={{ fontSize: 14, color: T.muted, marginTop: 8 }}>Ingresá para ver el estado de tus casos</div>
         </div>
         {modo === "enviado" ? (
-          <div role="status" style={{ fontSize: 14, color: T.text, lineHeight: 1.5, background: "color-mix(in srgb, var(--ok) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 25%, transparent)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+          <div role="status" style={{ fontSize: 14, color: T.text, lineHeight: 1.5, background: "color-mix(in srgb, var(--ok) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 25%, transparent)", borderRadius: "var(--r-sm)", padding: "12px 14px", marginBottom: 16 }}>
             Si <b>{email.trim()}</b> tiene acceso al portal, te llega un mail con un link para elegir una contraseña nueva. Revisá también Spam o Promociones.
           </div>
         ) : <>
@@ -67,11 +67,11 @@ export default function LoginScreen({ dark, onToggleDark }) {
               <button type="button" onClick={() => { setModo("recuperar"); setError(""); }} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>Olvidé mi contraseña</button>
             </div>
           )}
-          {error && <div style={{ background: "color-mix(in srgb, var(--bad) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--bad) 20%, transparent)", borderRadius: 10, padding: "10px 14px", color: "var(--bad)", fontSize: 13, marginBottom: 18, textAlign: "center" }}>{error}</div>}
+          {error && <div style={{ background: "color-mix(in srgb, var(--bad) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--bad) 20%, transparent)", borderRadius: "var(--r-sm)", padding: "10px 14px", color: "var(--bad)", fontSize: 13, marginBottom: 18, textAlign: "center" }}>{error}</div>}
           {(() => {
             const deshabilitado = load || !email.trim() || (modo === "ingresar" && !pwd.trim());
             return (
-              <button type="submit" disabled={deshabilitado} style={{ width: "100%", background: deshabilitado ? "var(--border)" : "var(--accent)", border: "none", borderRadius: 12, color: deshabilitado ? T.muted : "var(--on-accent)", padding: "13px", cursor: deshabilitado ? "default" : "pointer", fontSize: 15, fontWeight: 800, transition: "all .2s", letterSpacing: 0.3 }}>
+              <button type="submit" disabled={deshabilitado} style={{ width: "100%", background: deshabilitado ? "var(--border)" : "var(--accent)", border: "none", borderRadius: "var(--r-md)", color: deshabilitado ? T.muted : "var(--on-accent)", padding: "13px", cursor: deshabilitado ? "default" : "pointer", fontSize: 15, fontWeight: 800, transition: "all .2s", letterSpacing: 0.3 }}>
                 {modo === "recuperar" ? (load ? "Mandando…" : "Mandarme el link") : (load ? "Ingresando…" : "Ingresar")}
               </button>
             );

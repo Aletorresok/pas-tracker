@@ -14,7 +14,7 @@ const COLOR_NIVEL = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--
 
 function Segmentos({ opciones, valor, onChange, etiqueta }) {
   return (
-    <div role="radiogroup" aria-label={etiqueta} style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", flexWrap: "wrap" }}>
+    <div role="radiogroup" aria-label={etiqueta} style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden", flexWrap: "wrap" }}>
       {opciones.map(([k, l]) => (
         <button key={k} type="button" role="radio" aria-checked={valor === k} onClick={() => onChange(k)}
           style={{ font: "inherit", fontSize: 13, padding: "8px 12px", border: "none", cursor: "pointer", fontWeight: valor === k ? 600 : 500, background: valor === k ? "var(--text)" : "var(--card)", color: valor === k ? "var(--bg)" : "var(--sub)" }}>{l}</button>
@@ -23,9 +23,9 @@ function Segmentos({ opciones, valor, onChange, etiqueta }) {
   );
 }
 
-const campo = { padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 15, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
+const campo = { padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 15, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
 const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16 };
 
 // Calculadora de plazos procesales: vencimiento en días hábiles judiciales o corridos (con feriados,
 // feria e inhábiles por jurisdicción) y días entre dos fechas. Usa el mismo motor que Expedientes.
@@ -104,7 +104,7 @@ export default function CalculadoraPlazos() {
           <div style={{ fontSize: 13, color: "var(--sub)" }}>Vence el</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
             <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>{largo(vence)}</span>
-            {estado && <span className="num" style={{ fontSize: 13, fontWeight: 700, color: COLOR_NIVEL[estado.nivel], background: `color-mix(in srgb, ${COLOR_NIVEL[estado.nivel]} 14%, transparent)`, padding: "2px 8px", borderRadius: 6 }}>{estado.texto}</span>}
+            {estado && <span className="num" style={{ fontSize: 13, fontWeight: 700, color: COLOR_NIVEL[estado.nivel], background: `color-mix(in srgb, ${COLOR_NIVEL[estado.nivel]} 14%, transparent)`, padding: "2px 8px", borderRadius: "var(--r-xs)" }}>{estado.texto}</span>}
           </div>
           {gracia && <div style={{ fontSize: 14, color: "var(--sub)" }}>Plazo de gracia: hasta las primeras <b>{gracia.horas} horas</b> del despacho del {largo(gracia.fecha).toLowerCase()}.</div>}
           {salteados.length > 0 && (
@@ -119,7 +119,7 @@ export default function CalculadoraPlazos() {
           {verConteo && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 4, marginTop: 4 }}>
               {conteo.map(c => (
-                <div key={c.f} className="num" style={{ fontSize: 12, padding: "4px 8px", borderRadius: 6, background: c.n ? "var(--card2)" : "transparent", color: c.n ? "var(--text)" : "var(--muted)", border: c.f === vence ? "1px solid var(--accent)" : "1px solid transparent" }}>
+                <div key={c.f} className="num" style={{ fontSize: 12, padding: "4px 8px", borderRadius: "var(--r-xs)", background: c.n ? "var(--card2)" : "transparent", color: c.n ? "var(--text)" : "var(--muted)", border: c.f === vence ? "1px solid var(--accent)" : "1px solid transparent" }}>
                   {corto(c.f)} · {c.n ? `día ${c.n}` : c.motivo || "primer hábil"}
                 </div>
               ))}

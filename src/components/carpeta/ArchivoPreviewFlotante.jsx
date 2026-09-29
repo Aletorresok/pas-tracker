@@ -43,14 +43,14 @@ export default function ArchivoPreviewFlotante({ archivo, anchorRef, activo }) {
   return createPortal(
     <div style={{
       position: "fixed", ...pos, zIndex: 10000, pointerEvents: "none",
-      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)",
       boxShadow: "0 12px 32px #0008", padding: 6, width: ANCHO,
     }}>
       {esImagen && (
-        <img src={url} alt="" style={{ width: "100%", maxHeight: ALTO, objectFit: "contain", borderRadius: 6, display: "block" }} />
+        <img src={url} alt="" style={{ width: "100%", maxHeight: ALTO, objectFit: "contain", borderRadius: "var(--r-xs)", display: "block" }} />
       )}
       {esPdf && (
-        <iframe src={`${url}#toolbar=0&view=FitH`} title="Vista previa" style={{ width: "100%", height: ALTO, border: "none", borderRadius: 6 }} />
+        <iframe src={`${url}#toolbar=0&view=FitH`} title="Vista previa" style={{ width: "100%", height: ALTO, border: "none", borderRadius: "var(--r-xs)" }} />
       )}
       {!esImagen && !esPdf && (
         <div style={{ fontSize: 11, color: "var(--muted)", padding: 8, textAlign: "center" }}>Sin vista previa</div>

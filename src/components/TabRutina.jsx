@@ -48,7 +48,7 @@ export default function TabRutina({ pas, casos, pasManuales = [], historial, dar
       </header>
 
       {falta && (
-        <div role="alert" style={{ padding: "10px 14px", borderRadius: 8, background: alpha("var(--bad)", 10), color: "var(--bad)", fontSize: 14 }}>
+        <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", background: alpha("var(--bad)", 10), color: "var(--bad)", fontSize: 14 }}>
           No se pudo cargar la rutina. ¿Está corrido el SQL 25?
         </div>
       )}
@@ -58,7 +58,7 @@ export default function TabRutina({ pas, casos, pasManuales = [], historial, dar
           const activa = vista === v.k;
           return (
             <button key={v.k} type="button" role="tab" aria-selected={activa} onClick={() => setVista(v.k)}
-              style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 14px", borderRadius: 999, fontSize: 13, cursor: "pointer", font: "inherit",
+              style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 14px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", font: "inherit",
                 border: `1px solid ${activa ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activa ? "var(--text)" : "var(--sub)", fontWeight: activa ? 600 : 500 }}>
               {v.l}
             </button>
@@ -67,7 +67,7 @@ export default function TabRutina({ pas, casos, pasManuales = [], historial, dar
       </div>
 
       {sinRutina && (
-        <div style={{ padding: "12px 16px", borderRadius: 12, border: "1px dashed var(--border2)", fontSize: 14, color: "var(--sub)" }}>
+        <div style={{ padding: "12px 16px", borderRadius: "var(--r-md)", border: "1px dashed var(--border2)", fontSize: 14, color: "var(--sub)" }}>
           Todavía no cargaste tu rutina. <button type="button" onClick={() => setVista("editar")} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>Cargarla →</button>
         </div>
       )}

@@ -5,9 +5,9 @@ import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
 import { nombreMes } from "./ResumenMes.jsx";
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
-const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
+const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
 
 const etiquetaCaso = c => `${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}`;
 

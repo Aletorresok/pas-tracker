@@ -63,7 +63,7 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
     sincronizar(lista);
   };
 
-  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 };
+  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 };
   const campo = { ...Th.input, padding: "7px 10px", fontSize: 13 };
 
   if (ofertas === undefined) return null;

@@ -15,7 +15,7 @@ import FichaExpediente from "./expediente/FichaExpediente.jsx";
 function PillEstado({ estado }) {
   const e = estadoExpediente(estado);
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", fontSize: 11, fontWeight: 600, lineHeight: 1.6, padding: "1px 8px 1px 6px", borderRadius: 999, color: e.color, background: alpha(e.color, 14) }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", fontSize: 11, fontWeight: 600, lineHeight: 1.6, padding: "1px 8px 1px 6px", borderRadius: "var(--r-xl)", color: e.color, background: alpha(e.color, 14) }}>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: e.color }} />{e.l}
     </span>
   );
@@ -92,7 +92,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
     if (!n && !activo && k !== "abiertos" && k !== "todos") return null;
     return (
       <button key={k} type="button" onClick={() => setFiltro(k)} aria-pressed={activo}
-        style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer",
+        style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer",
           border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activo ? "var(--text)" : "var(--sub)", fontWeight: activo ? 600 : 500 }}>
         {l} <b className="num" style={{ color: "var(--text)" }}>{n}</b>
       </button>
@@ -120,12 +120,12 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
         <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
       </header>
 
-      {error && <div role="alert" style={{ padding: "10px 14px", borderRadius: 8, background: alpha("var(--bad)", 10), color: "var(--bad)", fontSize: 14 }}>No se pudieron cargar los expedientes. ¿Está corrido el SQL 25?</div>}
+      {error && <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", background: alpha("var(--bad)", 10), color: "var(--bad)", fontSize: 14 }}>No se pudieron cargar los expedientes. ¿Está corrido el SQL 25?</div>}
 
       <div style={{ position: "relative" }}>
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={16} /></span>
         <input value={busqueda} onChange={e => setBusqueda(e.target.value)} aria-label="Buscar expedientes" placeholder="Buscar por carátula, cliente, contraparte, número o juzgado…"
-          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
       </div>
 
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>{FILTROS.map(chip)}</div>
@@ -133,7 +133,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
       {expedientes === null && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando expedientes…</div>}
 
       {expedientes && expedientes.length === 0 && !error && (
-        <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 }}>
+        <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
           <div style={{ fontWeight: 600, fontSize: 16 }}>Cargá tu primer expediente</div>
           <div style={{ color: "var(--sub)", fontSize: 14, margin: "6px 0 14px" }}>Los casos que no son de seguros, con sus plazos procesales y escritos.</div>
           <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
@@ -148,7 +148,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
       )}
 
       {lista.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           {!esCelular && (
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px 170px 120px", gap: 12, padding: "9px 14px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" }}>
               <span>Carátula</span><span>Próximo</span><span>Cliente</span><span>Estado</span>

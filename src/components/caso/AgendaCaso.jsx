@@ -68,7 +68,7 @@ export default function AgendaCaso({ casoId, caso, onChange, Th }) {
   );
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>Agenda</span>
         {!form && <button type="button" onClick={() => { setForm({ ...VACIO }); setError(""); }} style={link}>+ Agregar</button>}
@@ -79,7 +79,7 @@ export default function AgendaCaso({ casoId, caso, onChange, Th }) {
           <div role="group" aria-label="Tipo" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {TIPOS_EVENTO.map(t => (
               <button key={t.k} type="button" aria-pressed={form.tipo === t.k} onClick={() => cambiar("tipo", t.k)}
-                style={{ font: "inherit", fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 999, cursor: "pointer", border: `1px solid ${form.tipo === t.k ? "var(--text)" : "var(--border)"}`, background: form.tipo === t.k ? "var(--text)" : "var(--card)", color: form.tipo === t.k ? "var(--bg)" : "var(--sub)" }}>{t.l}</button>
+                style={{ font: "inherit", fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", border: `1px solid ${form.tipo === t.k ? "var(--text)" : "var(--border)"}`, background: form.tipo === t.k ? "var(--text)" : "var(--card)", color: form.tipo === t.k ? "var(--bg)" : "var(--sub)" }}>{t.l}</button>
             ))}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>

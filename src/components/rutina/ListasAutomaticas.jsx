@@ -7,7 +7,7 @@ import { proximosEventos, tipoEvento, fechaDe, horaDe } from "../../utils/agenda
 
 export const DIAS_SIN_NOVEDADES = 15;
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 
 // Listas que arma la app sola para la rutina del día
 export default function ListasAutomaticas({ allCasos, onAbrirCaso, onAbrirExpediente }) {

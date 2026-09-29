@@ -18,7 +18,7 @@ export default function AvisoDeshacer({ texto, onDeshacer, onCerrar, duracion = 
 
   return (
     <div role="status" className="aviso-deshacer"
-      style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", zIndex: 700, display: "flex", gap: 14, alignItems: "center", maxWidth: "calc(100vw - 32px)", background: "var(--text)", color: "var(--bg)", borderRadius: 10, padding: "10px 14px", fontSize: 14, boxShadow: "var(--shadow)" }}>
+      style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", zIndex: 700, display: "flex", gap: 14, alignItems: "center", maxWidth: "calc(100vw - 32px)", background: "var(--text)", color: "var(--bg)", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 14, boxShadow: "var(--shadow)" }}>
       <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{texto}</span>
       <button type="button" onClick={deshacer} disabled={trabajando}
         style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, fontSize: 14, cursor: "pointer", padding: 0, whiteSpace: "nowrap" }}>

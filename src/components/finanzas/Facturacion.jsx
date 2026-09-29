@@ -3,8 +3,8 @@ import { fmtMoney, fmtDate, fechaLocalISO, diasDesde } from "../../utils/formatt
 import { facturacion, guardarFactura, gastosPorCaso } from "../../utils/finanzas.js";
 import Boton from "../ui/Boton.jsx";
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
-const campo = { boxSizing: "border-box", padding: "6px 8px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 13 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
+const campo = { boxSizing: "border-box", padding: "6px 8px", borderRadius: "var(--r-xs)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 13 };
 const num = v => Number(v) || 0;
 
 // Honorarios: sin facturar (se facturan acá con número y fecha), facturados sin cobrar y cobrados con su neto

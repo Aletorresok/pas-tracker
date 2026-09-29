@@ -1,6 +1,6 @@
 import { casosPorTramo } from "../../utils/metricas.js";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 // Tonos del acento en orden de avance: de suave (arranque) a pleno (cobrado)
 const TONOS = [45, 60, 74, 87, 100];
 const tono = i => `color-mix(in srgb, var(--accent) ${TONOS[i]}%, var(--card))`;
@@ -17,14 +17,14 @@ export default function CasosPorEtapa({ allCasos, onVerCasos }) {
         {onVerCasos && <button type="button" onClick={onVerCasos} style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", padding: 0 }}>Ver casos →</button>}
       </div>
       {total > 0 && (
-        <div style={{ display: "flex", height: 12, borderRadius: 4, overflow: "hidden", gap: 2, marginBottom: 12 }} aria-hidden="true">
+        <div style={{ display: "flex", height: 12, borderRadius: "var(--r-xs)", overflow: "hidden", gap: 2, marginBottom: 12 }} aria-hidden="true">
           {tramos.map((t, i) => t.count > 0 && <div key={t.key} title={`${t.label}: ${t.count}`} style={{ flex: t.count, background: tono(i) }} />)}
         </div>
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "6px 16px" }}>
         {tramos.map((t, i) => (
           <div key={t.key} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", background: tono(i) }} />
+            <span style={{ width: 10, height: 10, borderRadius: "var(--r-xs)", flex: "none", background: tono(i) }} />
             <span style={{ color: "var(--sub)", flex: 1 }}>{t.label}</span>
             <b className="num">{t.count}</b>
           </div>

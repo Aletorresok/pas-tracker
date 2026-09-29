@@ -123,7 +123,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
 
   if (!soportado) {
     return (
-      <div style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, padding: "12px 14px", marginTop: 14, fontSize: 12, color: Th.muted }}>
+      <div style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", padding: "12px 14px", marginTop: 14, fontSize: 12, color: Th.muted }}>
         La vinculación de carpeta local requiere Chrome o Edge. No disponible en este navegador.
       </div>
     );
@@ -143,14 +143,14 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
             <button
               onClick={crearYVincular}
               disabled={cargando}
-              style={{ background: "var(--ok)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+              style={{ background: "var(--ok)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
             >
               {cargando ? "Creando..." : "Crear carpeta"}
             </button>
             <button
               onClick={vincularCarpeta}
               disabled={cargando}
-              style={{ background: "var(--accent)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
+              style={{ background: "var(--accent)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}
             >
               {cargando ? "Abriendo..." : "Vincular carpeta"}
             </button>
@@ -159,7 +159,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
           <div style={{ display: "flex", gap: 6 }}>
             <button
               onClick={() => setGestorPdfAbierto(true)}
-              style={{ background: "var(--accent)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+              style={{ background: "var(--accent)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
             >
               Gestor de PDF
             </button>
@@ -167,13 +167,13 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
               onClick={recargarCarpeta}
               disabled={cargando}
               title="Recargar archivos"
-              style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 7, color: Th.sub, padding: "6px 12px", cursor: "pointer", fontSize: 13 }}
+              style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-xs)", color: Th.sub, padding: "6px 12px", cursor: "pointer", fontSize: 13 }}
             >
               {cargando ? "…" : "Actualizar"}
             </button>
             <button
               onClick={desvincularCarpeta}
-              style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 7, color: Th.muted, padding: "6px 12px", cursor: "pointer", fontSize: 12 }}
+              style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-xs)", color: Th.muted, padding: "6px 12px", cursor: "pointer", fontSize: 12 }}
             >
               ✕ Desvincular
             </button>
@@ -194,7 +194,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       )}
 
       {!dirHandle && (
-        <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 12, background: Th.card2, borderRadius: 8, border: `1px dashed ${Th.border}` }}>
+        <div style={{ textAlign: "center", padding: "16px 0", color: Th.muted, fontSize: 12, background: Th.card2, borderRadius: "var(--r-sm)", border: `1px dashed ${Th.border}` }}>
           Vinculá una carpeta existente o creá una nueva para este caso
         </div>
       )}

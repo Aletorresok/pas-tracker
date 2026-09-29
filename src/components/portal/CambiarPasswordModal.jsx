@@ -24,7 +24,7 @@ export default function CambiarPasswordModal({ onClose, dark, recuperacion = fal
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 24px", width: "100%", maxWidth: 360, boxShadow: "var(--shadow)" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-lg)", padding: "28px 24px", width: "100%", maxWidth: 360, boxShadow: "var(--shadow)" }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: T.text, marginBottom: recuperacion ? 6 : 20 }}>{recuperacion ? "Elegí una contraseña nueva" : "Cambiar contraseña"}</div>
         {recuperacion && <div style={{ fontSize: 13, color: T.sub, marginBottom: 16, lineHeight: 1.45 }}>Entraste con el link del mail. Elegí la contraseña que vas a usar de ahora en más.</div>}
         {[{ label: "Nueva contraseña", val: nueva, set: setNueva }, { label: "Confirmar contraseña", val: confirm, set: setConfirm }].map(f => (
@@ -33,11 +33,11 @@ export default function CambiarPasswordModal({ onClose, dark, recuperacion = fal
             <input type="password" autoComplete="new-password" value={f.val} onChange={e => f.set(e.target.value)} style={T.input} />
           </label>
         ))}
-        {error && <div style={{ color: "var(--bad)", fontSize: 13, marginBottom: 12, background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: 8, padding: "8px 12px" }}>{error}</div>}
-        {msg   && <div style={{ color: "var(--ok)", fontSize: 13, marginBottom: 12, background: "color-mix(in srgb, var(--ok) 7%, transparent)", borderRadius: 8, padding: "8px 12px" }}>{msg}</div>}
+        {error && <div style={{ color: "var(--bad)", fontSize: 13, marginBottom: 12, background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: "var(--r-sm)", padding: "8px 12px" }}>{error}</div>}
+        {msg   && <div style={{ color: "var(--ok)", fontSize: 13, marginBottom: 12, background: "color-mix(in srgb, var(--ok) 7%, transparent)", borderRadius: "var(--r-sm)", padding: "8px 12px" }}>{msg}</div>}
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-          {!recuperacion && <button onClick={onClose} style={{ flex: 1, background: T.card2, border: `1px solid ${T.border}`, borderRadius: 10, color: T.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>}
-          <button onClick={handleCambiar} disabled={load} style={{ flex: 2, background: "var(--accent)", border: "none", borderRadius: 10, color: "var(--on-accent)", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>{load ? "Guardando..." : "Guardar"}</button>
+          {!recuperacion && <button onClick={onClose} style={{ flex: 1, background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", color: T.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>}
+          <button onClick={handleCambiar} disabled={load} style={{ flex: 2, background: "var(--accent)", border: "none", borderRadius: "var(--r-sm)", color: "var(--on-accent)", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>{load ? "Guardando..." : "Guardar"}</button>
         </div>
       </div>
     </div>

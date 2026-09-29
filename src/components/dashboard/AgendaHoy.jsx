@@ -22,7 +22,7 @@ export default function AgendaHoy({ allCasos, onAbrir }) {
   const link = { fontSize: 12, fontWeight: 600, color: "var(--accent-ink)", textDecoration: "none", whiteSpace: "nowrap" };
 
   return (
-    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px" }}>
+    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Agenda</h2>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>próximos {DIAS} días</span>

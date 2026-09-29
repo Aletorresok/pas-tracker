@@ -14,7 +14,7 @@ export default function BarraAvance({ estado, grosor = 6, conPill = true, conEti
     <div>
       <div style={{ display: "flex", gap: 3 }} role="img" aria-label={desistido ? "Caso desistido" : `Paso ${paso} de 5: ${PASOS_SIMPLES[paso - 1] || ""}`}>
         {PASOS_SIMPLES.map((p, i) => (
-          <div key={p} style={{ flex: 1, height: grosor, borderRadius: 3, background: i < paso ? (paso === 5 ? "var(--ok)" : "var(--accent)") : "var(--border)" }} />
+          <div key={p} style={{ flex: 1, height: grosor, borderRadius: "var(--r-xs)", background: i < paso ? (paso === 5 ? "var(--ok)" : "var(--accent)") : "var(--border)" }} />
         ))}
       </div>
       {conEtiquetas && (

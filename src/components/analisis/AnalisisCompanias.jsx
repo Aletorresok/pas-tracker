@@ -73,7 +73,7 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
           <label style={{ fontSize: 13, color: "var(--sub)", display: "flex", alignItems: "center", gap: 8 }}>
             Con al menos
             <select value={minimo} onChange={e => setMinimo(Number(e.target.value))}
-              style={{ font: "inherit", fontSize: 13, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)" }}>
+              style={{ font: "inherit", fontSize: 13, padding: "5px 8px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)" }}>
               {[1, 2, 3, 5, 10].map(n => <option key={n} value={n}>{n} {n === 1 ? "caso" : "casos"}</option>)}
             </select>
           </label>
@@ -137,7 +137,7 @@ function Mediacion({ allCasos, cambios, ofertas }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>¿Conviene ir a mediación?</h2>
         <select value={cia} onChange={e => setCia(e.target.value)} aria-label="Compañía"
-          style={{ font: "inherit", fontSize: 13, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)" }}>
+          style={{ font: "inherit", fontSize: 13, padding: "5px 8px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)" }}>
           <option value="">Todas las compañías</option>
           {companias.map(c => <option key={c} value={c}>{c}</option>)}
         </select>

@@ -2,7 +2,7 @@ import { fmtMoney } from "../../utils/formatters.js";
 import { resultadoDelMes, ultimosMeses } from "../../utils/finanzas.js";
 import { MESES_LARGOS } from "../../utils/estadisticasPas.js";
 
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 const MESES_CORTOS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const mesCorto = mes => `${MESES_CORTOS[Number(mes.slice(5, 7)) - 1]} ${mes.slice(2, 4)}`;
 export const nombreMes = mes => { const m = MESES_LARGOS[Number(mes.slice(5, 7)) - 1]; return `${m.charAt(0).toUpperCase()}${m.slice(1)} ${mes.slice(0, 4)}`; };
@@ -61,7 +61,7 @@ export default function ResumenMes({ allCasos, gastos, mes }) {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                 <span>{c.l}</span><b className="num">{fmtMoney(c.total)}</b>
               </div>
-              <div style={{ height: 4, borderRadius: 999, background: "var(--border)", marginTop: 4, overflow: "hidden" }}>
+              <div style={{ height: 4, borderRadius: "var(--r-xl)", background: "var(--border)", marginTop: 4, overflow: "hidden" }}>
                 <div style={{ width: `${Math.round((c.total / r.gastos) * 100)}%`, height: "100%", background: "var(--accent)" }} />
               </div>
             </div>

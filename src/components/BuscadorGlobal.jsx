@@ -110,13 +110,13 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
     <div className="buscador-fondo" onMouseDown={e => { if (e.target === e.currentTarget) onCerrar(); }}
       style={{ position: "fixed", inset: 0, zIndex: 300, background: "color-mix(in srgb, #000 40%, transparent)", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: "10vh 16px 16px" }}>
       <div className="buscador-panel" role="dialog" aria-modal="true" aria-label="Buscar"
-        style={{ width: "100%", maxWidth: 620, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, boxShadow: "var(--shadow)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "75vh" }}>
+        style={{ width: "100%", maxWidth: 620, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--shadow)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "75vh" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={18} /></span>
           <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={teclas} placeholder="Buscar caso, patente, DNI, siniestro o PAS…" aria-label="Buscar"
             role="combobox" aria-expanded={items.length > 0} aria-controls="buscador-resultados"
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: "var(--text)", fontSize: 16, fontFamily: "inherit" }} />
-          <button type="button" onClick={onCerrar} className="kbd-esc" style={{ font: "inherit", fontSize: 11, border: "1px solid var(--border2)", borderRadius: 5, padding: "1px 6px", background: "none", color: "var(--sub)", cursor: "pointer" }}>Esc</button>
+          <button type="button" onClick={onCerrar} className="kbd-esc" style={{ font: "inherit", fontSize: 11, border: "1px solid var(--border2)", borderRadius: "var(--r-xs)", padding: "1px 6px", background: "none", color: "var(--sub)", cursor: "pointer" }}>Esc</button>
         </div>
 
         <div id="buscador-resultados" role="listbox" ref={listaRef} style={{ overflowY: "auto", paddingBottom: 6 }}>

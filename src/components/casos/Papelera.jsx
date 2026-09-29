@@ -34,13 +34,13 @@ export default function Papelera({ todosLosPas, onRestaurar, onClose }) {
   return createPortal(
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div role="dialog" aria-modal="true" aria-label="Papelera" onClick={e => e.stopPropagation()}
-        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 620, maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", width: "100%", maxWidth: 620, maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>Papelera</div>
             <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Los casos eliminados quedan acá {DIAS} días y después se borran solos.</div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Cerrar" style={{ background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--sub)", width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={{ background: "var(--card2)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", color: "var(--sub)", width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
             <Icono nombre="cerrar" size={16} />
           </button>
         </div>
@@ -67,7 +67,7 @@ export default function Papelera({ todosLosPas, onRestaurar, onClose }) {
                   </div>
                 </div>
                 <button type="button" onClick={() => recuperar(it)} disabled={!!recuperando}
-                  style={{ flex: "none", background: "var(--accent)", border: "none", borderRadius: 7, color: "var(--on-accent)", padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: recuperando ? "default" : "pointer", opacity: recuperando && recuperando !== it.id ? 0.5 : 1 }}>
+                  style={{ flex: "none", background: "var(--accent)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: recuperando ? "default" : "pointer", opacity: recuperando && recuperando !== it.id ? 0.5 : 1 }}>
                   {recuperando === it.id ? "Recuperando…" : "Recuperar"}
                 </button>
               </div>

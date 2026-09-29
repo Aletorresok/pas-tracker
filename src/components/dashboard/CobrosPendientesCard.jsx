@@ -13,7 +13,7 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
   const totalAsegurados = cobrosPendientes.reduce((s, c) => s + c.montoAsegurado, 0);
 
   return (
-    <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.info}` }}>
+    <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", padding: "18px", marginBottom: 20, borderLeft: `3px solid ${COLORES.info}` }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span>Cobros pendientes</span>
         <DashboardBadge color={COLORES.info}>{cobrosPendientes.length}</DashboardBadge>
@@ -37,7 +37,7 @@ export default function CobrosPendientesCard({ cobrosPendientes, darkMode }) {
           const cobraAsegurado = c.montoAsegurado || 0;
 
           return (
-            <div key={c.id} style={{ padding: "10px 12px", marginBottom: 8, background: T.card2, borderRadius: 8, border: `1px solid ${T.border}` }}>
+            <div key={c.id} style={{ padding: "10px 12px", marginBottom: 8, background: T.card2, borderRadius: "var(--r-sm)", border: `1px solid ${T.border}` }}>
               
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>

@@ -142,7 +142,7 @@ export default function EditorPDF() {
     setArrastrando(null); setSobre(null);
   };
 
-  const iconBtn = { background: "none", border: "none", color: "var(--sub)", cursor: "pointer", padding: 4, borderRadius: 6, display: "grid", placeItems: "center" };
+  const iconBtn = { background: "none", border: "none", color: "var(--sub)", cursor: "pointer", padding: 4, borderRadius: "var(--r-xs)", display: "grid", placeItems: "center" };
   const pagEditando = paginas.find(p => p.id === editando);
 
   return (
@@ -150,14 +150,14 @@ export default function EditorPDF() {
       onDragOver={e => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); setSoltandoArchivos(true); } }}
       onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setSoltandoArchivos(false); }}
       onDrop={e => { if (e.dataTransfer.files.length) { e.preventDefault(); setSoltandoArchivos(false); agregarArchivos(e.dataTransfer.files); } }}
-      style={{ display: "flex", flexDirection: "column", gap: 14, outline: soltandoArchivos ? "2px dashed var(--accent)" : "none", outlineOffset: 6, borderRadius: 12 }}>
+      style={{ display: "flex", flexDirection: "column", gap: 14, outline: soltandoArchivos ? "2px dashed var(--accent)" : "none", outlineOffset: 6, borderRadius: "var(--r-md)" }}>
 
       <input ref={inputRef} type="file" accept="application/pdf,image/jpeg,image/png" multiple hidden
         onChange={e => { agregarArchivos(e.target.files); e.target.value = ""; }} />
 
       {!hayArchivos && (
         <button type="button" onClick={() => inputRef.current?.click()}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "48px 16px", border: "2px dashed var(--border2)", borderRadius: 14, background: "var(--card)", color: "var(--sub)", cursor: "pointer", font: "inherit" }}>
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "48px 16px", border: "2px dashed var(--border2)", borderRadius: "var(--r-md)", background: "var(--card)", color: "var(--sub)", cursor: "pointer", font: "inherit" }}>
           <Icono nombre="adjuntar" size={28} />
           <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text)" }}>{cargando || "Elegí o arrastrá PDFs e imágenes"}</span>
           <span style={{ fontSize: 13, maxWidth: 460, lineHeight: 1.5 }}>
@@ -202,7 +202,7 @@ export default function EditorPDF() {
                 onDragOver={e => { if (arrastrando) { e.preventDefault(); setSobre(p.id); } }}
                 onDrop={e => { if (arrastrando) { e.preventDefault(); e.stopPropagation(); soltarEn(i); } }}
                 style={{ background: "var(--card)", border: `1px solid ${p.sel ? "var(--accent)" : sobre === p.id && arrastrando !== p.id ? "var(--accent)" : "var(--border)"}`,
-                  boxShadow: p.sel ? "0 0 0 1px var(--accent)" : "none", borderRadius: 10, padding: 8, display: "flex", flexDirection: "column", gap: 6,
+                  boxShadow: p.sel ? "0 0 0 1px var(--accent)" : "none", borderRadius: "var(--r-sm)", padding: 8, display: "flex", flexDirection: "column", gap: 6,
                   opacity: arrastrando === p.id ? 0.4 : 1, cursor: "grab" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--sub)", cursor: "pointer" }}>
@@ -212,7 +212,7 @@ export default function EditorPDF() {
                   {p.estampas.length > 0 && <span title="Tiene imágenes encima" style={{ color: "var(--accent-ink)", display: "flex" }}><Icono nombre="firma" size={14} /></span>}
                 </div>
                 <button type="button" onClick={() => setEditando(p.id)} title="Poner firma, sello o imagen"
-                  style={{ height: ALTO_MINI, display: "grid", placeItems: "center", background: "var(--card2)", border: "none", borderRadius: 6, cursor: "pointer", padding: 0, overflow: "hidden" }}>
+                  style={{ height: ALTO_MINI, display: "grid", placeItems: "center", background: "var(--card2)", border: "none", borderRadius: "var(--r-xs)", cursor: "pointer", padding: 0, overflow: "hidden" }}>
                   {url
                     ? <img src={url} alt={`Página ${i + 1}`} draggable={false}
                         style={{ maxWidth: girada ? ALTO_MINI - 8 : ANCHO_MINI, maxHeight: girada ? ANCHO_MINI : ALTO_MINI - 8, transform: `rotate(${p.rotacion}deg)`, transition: "transform .15s", boxShadow: "0 1px 4px rgba(0,0,0,.2)", background: "#fff" }} />
@@ -236,16 +236,16 @@ export default function EditorPDF() {
       )}
 
       {hayArchivos && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
             <label style={{ flex: "1 1 260px" }}>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 }}>Nombre del archivo</span>
               <input value={nombre} onChange={e => setNombre(e.target.value)}
-                style={{ width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+                style={{ width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
             </label>
             <div role="radiogroup" aria-label="Compresión" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <span style={{ fontSize: 12, color: "var(--sub)" }}>Comprimir</span>
-              <div style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+              <div style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden" }}>
                 {COMPRESIONES.map(c => (
                   <button key={c.k} type="button" role="radio" aria-checked={compresion === c.k} title={c.desc} onClick={() => { setCompresion(c.k); setResultado(null); }}
                     style={{ font: "inherit", fontSize: 13, padding: "8px 12px", border: "none", cursor: "pointer", fontWeight: compresion === c.k ? 600 : 500, background: compresion === c.k ? "var(--text)" : "var(--card)", color: compresion === c.k ? "var(--bg)" : "var(--sub)" }}>{c.l}</button>

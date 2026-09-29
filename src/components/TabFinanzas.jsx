@@ -45,13 +45,13 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
     const activo = vista === v.k;
     return (
       <button key={v.k} type="button" onClick={() => setVista(v.k)} aria-pressed={activo}
-        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer", font: "inherit", fontWeight: activo ? 600 : 500,
+        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", font: "inherit", fontWeight: activo ? 600 : 500,
           border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" }}>
         {v.l}
       </button>
     );
   };
-  const flecha = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--text)" };
+  const flecha = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--text)" };
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -60,7 +60,7 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
         <div style={{ fontSize: 13, color: "var(--muted)" }}>Lo que entra, lo que sale y lo que falta facturar o cobrar</div>
       </header>
       {faltaSql && (
-        <div role="alert" style={{ padding: "10px 14px", borderRadius: 8, background: alpha("var(--warn)", 12), color: "var(--warn)", fontSize: 14 }}>
+        <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", background: alpha("var(--warn)", 12), color: "var(--warn)", fontSize: 14 }}>
           Para cargar gastos falta correr el SQL 28 (<code>sql/2026-09-28_28_finanzas.sql</code>) en Supabase. Facturación y flujo de caja ya funcionan.
         </div>
       )}

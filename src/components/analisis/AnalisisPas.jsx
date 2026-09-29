@@ -33,7 +33,7 @@ export default function AnalisisPas({ allCasos }) {
     { k: "ritmo", l: "Ritmo", ancho: "12%", ayuda: "Cada cuántos días te deriva (mediana, desde 3 casos). Dormido: pasó el doble de su ritmo sin derivarte",
       valor: f => f.ritmo,
       celda: f => f.ritmo === null ? nada : <span className="num" style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-        {f.dormido && <span title={`Hace ${f.diasDesdeUltimo} días que no te deriva`} style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: 5, padding: "1px 6px" }}>Dormido</span>}
+        {f.dormido && <span title={`Hace ${f.diasDesdeUltimo} días que no te deriva`} style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>Dormido</span>}
         cada {f.ritmo} d
       </span> },
     { k: "tendencia", l: "Últ. 6 meses", ancho: "9%", derecha: true, ayuda: "Casos derivados en los últimos 6 meses contra los 6 anteriores",
@@ -69,7 +69,7 @@ export default function AnalisisPas({ allCasos }) {
           <div style={{ position: "relative", width: 260, maxWidth: "100%" }}>
             <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={15} /></span>
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar PAS…" aria-label="Buscar PAS"
-              style={{ width: "100%", padding: "7px 10px 7px 32px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 13 }} />
+              style={{ width: "100%", padding: "7px 10px 7px 32px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 13 }} />
           </div>
         </div>
         <TablaAnalisis columnas={columnas} filas={filas} ordenInicial={{ k: "neto", desc: true }} clave={f => f.pasId} minWidth={1080}

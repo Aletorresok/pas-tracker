@@ -7,7 +7,7 @@ const esLinkGmail = v => /^https:\/\/mail\.google\.com\//.test(String(v || "").t
 export default function HiloGmail({ formData, onChange, Th }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState("");
-  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: "12px 16px" };
+  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: "12px 16px" };
   const link = { background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer", textDecoration: "none", whiteSpace: "nowrap" };
 
   if (!("hilo_gmail" in formData)) {

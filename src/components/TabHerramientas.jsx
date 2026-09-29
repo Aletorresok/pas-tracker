@@ -72,8 +72,8 @@ export default function TabHerramientas({ casos = {}, todosLosPas = [] }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
         {HERRAMIENTAS.map(x => (
           <button key={x.k} type="button" onClick={() => setAbierta(x.k)}
-            style={{ textAlign: "left", font: "inherit", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <span style={{ flex: "none", width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center", background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent-ink)" }}>
+            style={{ textAlign: "left", font: "inherit", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16, cursor: "pointer", display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <span style={{ flex: "none", width: 40, height: 40, borderRadius: "var(--r-sm)", display: "grid", placeItems: "center", background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent-ink)" }}>
               <Icono nombre={x.icono} size={20} />
             </span>
             <span>

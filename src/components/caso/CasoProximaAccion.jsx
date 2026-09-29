@@ -16,7 +16,7 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
   const plazo = describirPlazo(vence);
 
   const chip = (activo) => ({
-    padding: "5px 11px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer",
+    padding: "5px 11px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: 600, cursor: "pointer",
     border: `1px solid ${activo ? "var(--text)" : Th.border}`,
     background: activo ? "var(--text)" : Th.card,
     color: activo ? "var(--bg)" : Th.sub,
@@ -27,7 +27,7 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
       background: Th.card,
       border: `1px solid ${Th.border}`,
       borderLeft: "4px solid var(--warn)",
-      borderRadius: 12,
+      borderRadius: "var(--r-md)",
       padding: 16,
       marginBottom: 16
     }}>

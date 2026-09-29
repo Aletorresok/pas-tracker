@@ -15,7 +15,7 @@ export default function TabProspeccion(props) {
     const activo = filtro === k;
     return (
       <button key={k} type="button" onClick={() => setFiltro(k)} aria-pressed={activo}
-        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer", fontWeight: activo ? 600 : 500,
+        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", fontWeight: activo ? 600 : 500,
           border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" }}>
         {l}{n !== undefined && <b className="num" style={{ marginLeft: 6, color: activo ? "var(--bg)" : "var(--text)" }}>{n}</b>}
       </button>

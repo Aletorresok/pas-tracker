@@ -3,7 +3,7 @@ import { fmtMoney, fmtDate } from "../../utils/formatters.js";
 import { honorariosPorMes, netoYo } from "../../utils/metricas.js";
 import GraficoBarraMensual from "../dashboard/GraficoBarraMensual.jsx";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 
 // Honorarios netos cobrados por mes, últimos 12 (Análisis → Flujo de caja). Tocando un mes se ven sus casos.
 export default function HonorariosPorMes({ allCasos, onAbrirCaso }) {

@@ -28,12 +28,12 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
   const estimada = !formData.fecha_pago ? fechaPagoEstimada({ ...formData, fecha_pago: null }) : null;
 
   const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, color: Th.sub, marginBottom: 6 };
-  const campo = { width: "100%", boxSizing: "border-box", background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, padding: "10px 12px", color: Th.text, fontSize: 14, outline: "none", font: "inherit" };
+  const campo = { width: "100%", boxSizing: "border-box", background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: Th.text, fontSize: 14, outline: "none", font: "inherit" };
   const ayuda = { display: "block", fontSize: 12, color: Th.muted, marginTop: 4 };
   const link = { background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" };
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 20, marginBottom: 20 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 20, marginBottom: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Fechas del expediente</span>
         {(ocultas > 0 || todas) && (

@@ -20,7 +20,7 @@ export default function ProspeccionHoy({ historial, derivadores = {}, descartado
   const paraRecordar = Object.entries(historial || {}).filter(([id, lista]) => !derivadores[id] && !descartados[id] && recordatorioPendiente(lista)).length;
   const listo = whatsapp >= WHATSAPP_POR_DIA && mails >= MAILS_POR_DIA;
   return (
-    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px" }}>
+    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Prospección del día</h2>
         <button type="button" onClick={onIr} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>

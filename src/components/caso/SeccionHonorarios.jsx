@@ -11,7 +11,7 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
   const texto = { COBRADO: "Cobrados", FACTURADO: `Facturados${diasDesdeFactura !== null ? ` hace ${diasDesdeFactura} días` : ""}, sin cobrar`, NO_FACTURADO: "Sin facturar" }[estado];
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Factura de honorarios</span>
         <span style={{ fontSize: 12, fontWeight: 600, color: vencidos ? "var(--bad)" : estado === "COBRADO" ? "var(--ok)" : Th.sub }}>

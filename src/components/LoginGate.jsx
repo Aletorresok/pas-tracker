@@ -94,12 +94,12 @@ export default function LoginGate({ children }) {
 
   if (paso === "adentro") return children;
 
-  const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 8, color: "var(--text)", padding: "11px 12px", fontSize: 15, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" };
+  const campo = { background: "var(--card)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", color: "var(--text)", padding: "11px 12px", fontSize: 15, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" };
   const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "32px 24px", maxWidth: 360, width: "100%", boxShadow: "var(--shadow)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "32px 24px", maxWidth: 360, width: "100%", boxShadow: "var(--shadow)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <Logo alto={26} />
           <div>

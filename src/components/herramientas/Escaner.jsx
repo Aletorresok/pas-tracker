@@ -115,7 +115,7 @@ export default function Escaner() {
   };
 
   const pagEditando = paginas.find(p => p.id === editando);
-  const iconBtn = { background: "none", border: "none", color: "var(--sub)", cursor: "pointer", padding: 4, borderRadius: 6, display: "grid", placeItems: "center" };
+  const iconBtn = { background: "none", border: "none", color: "var(--sub)", cursor: "pointer", padding: 4, borderRadius: "var(--r-xs)", display: "grid", placeItems: "center" };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -129,7 +129,7 @@ export default function Escaner() {
       </div>
 
       {!paginas.length && !procesando && (
-        <div style={{ background: "var(--card)", border: "1px dashed var(--border2)", borderRadius: 14, padding: "28px 18px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
+        <div style={{ background: "var(--card)", border: "1px dashed var(--border2)", borderRadius: "var(--r-md)", padding: "28px 18px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>Escaneá DNI, denuncias, cédulas o cualquier papel</div>
           Apoyá la hoja sobre una superficie <b>oscura</b>, con buena luz, y sacá la foto desde arriba. La app encuentra la hoja, la endereza y la deja blanca como un escaneo. Podés sacar varias fotos y se juntan en un solo PDF. En la compu podés elegir fotos que ya tengas.
         </div>
@@ -145,13 +145,13 @@ export default function Escaner() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
             {paginas.map((p, i) => (
-              <div key={p.id} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+              <div key={p.id} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: 8, display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                   <b className="num">{i + 1}</b>
                   <span style={{ color: "var(--muted)" }}>{FILTROS.find(f => f.k === p.filtro)?.l}</span>
                 </div>
                 <button type="button" onClick={() => setEditando(p.id)} title="Ajustar recorte y filtro"
-                  style={{ height: 190, display: "grid", placeItems: "center", background: "var(--card2)", border: "none", borderRadius: 6, cursor: "pointer", padding: 4 }}>
+                  style={{ height: 190, display: "grid", placeItems: "center", background: "var(--card2)", border: "none", borderRadius: "var(--r-xs)", cursor: "pointer", padding: 4 }}>
                   <img src={p.url} alt={`Página ${i + 1}`} style={{ maxWidth: "100%", maxHeight: 180, boxShadow: "0 1px 4px rgba(0,0,0,.25)" }} />
                 </button>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -165,14 +165,14 @@ export default function Escaner() {
             ))}
           </div>
 
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 16, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
             <label style={{ flex: "1 1 240px" }}>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 }}>Nombre del archivo</span>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} style={{ width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+              <input value={nombre} onChange={e => setNombre(e.target.value)} style={{ width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
             </label>
             <div role="radiogroup" aria-label="Calidad">
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 }}>Calidad</span>
-              <div style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+              <div style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden" }}>
                 {CALIDADES.map(c => (
                   <button key={c.k} type="button" role="radio" aria-checked={calidad === c.k} onClick={() => setCalidad(c.k)}
                     style={{ font: "inherit", fontSize: 13, padding: "8px 12px", border: "none", cursor: "pointer", fontWeight: calidad === c.k ? 600 : 500, background: calidad === c.k ? "var(--text)" : "var(--card)", color: calidad === c.k ? "var(--bg)" : "var(--sub)" }}>{c.l}</button>

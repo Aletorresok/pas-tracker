@@ -9,8 +9,8 @@ export default function BarraMeta({ etiqueta, hecho, meta }) {
         <span className="num" style={{ fontWeight: 700, color: "var(--text)" }}>{hecho} <span style={{ fontWeight: 400, color: "var(--muted)" }}>de {meta}</span></span>
       </div>
       <div role="progressbar" aria-label={etiqueta} aria-valuenow={hecho} aria-valuemin={0} aria-valuemax={meta}
-        style={{ height: 6, borderRadius: 999, background: "var(--border)", overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 999, transition: "width .3s" }} />
+        style={{ height: 6, borderRadius: "var(--r-xl)", background: "var(--border)", overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: "var(--r-xl)", transition: "width .3s" }} />
       </div>
     </div>
   );

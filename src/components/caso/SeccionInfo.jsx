@@ -5,7 +5,7 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
   const inputStyle = Th.input;
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 14 }}>Datos del siniestro</div>
       
       {/* GRILLA DE 3 COLUMNAS PARA INCLUIR LA PATENTE */}

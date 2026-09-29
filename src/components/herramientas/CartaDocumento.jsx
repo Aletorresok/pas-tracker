@@ -10,9 +10,9 @@ const VACIO = { nombre: "", domicilio: "", cp: "", localidad: "", provincia: "" 
 const CLAVE_AJUSTE = "carta_documento_ajuste"; // corrimiento de la impresora: queda en esta compu
 const leerAjuste = () => { try { return { x: 0, y: 0, ...JSON.parse(localStorage.getItem(CLAVE_AJUSTE) || "{}") }; } catch { return { x: 0, y: 0 }; } };
 
-const campo = { padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
+const campo = { padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
 const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 3 };
-const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 10 };
+const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 14, display: "flex", flexDirection: "column", gap: 10 };
 const titulo = { fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" };
 
 function Persona({ valor, onChange, sugerencias }) {
@@ -206,7 +206,7 @@ export default function CartaDocumento({ allCasos = [] }) {
             <div style={{ position: "relative" }}>
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por asegurado, patente o siniestro para completar los datos" style={campo} />
               {coincidencias.length > 0 && (
-                <div style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 20, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, boxShadow: "var(--shadow)", marginTop: 4, overflow: "hidden" }}>
+                <div style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 20, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", boxShadow: "var(--shadow)", marginTop: 4, overflow: "hidden" }}>
                   {coincidencias.map(c => (
                     <button key={c.id} type="button" onClick={() => elegirCaso(c)} style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 10px", background: "none", border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer", font: "inherit", fontSize: 13, color: "var(--text)" }}>
                       <b>{c.asegurado || "Sin nombre"}</b> <span style={{ color: "var(--muted)" }}>{[c.patente, c.compania_aseguradora].filter(Boolean).join(" · ")}</span>

@@ -36,13 +36,13 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
 
   const chipOrden = (k, l) => (
     <button key={k} type="button" onClick={() => setOrden(k)} aria-pressed={orden === k}
-      style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: orden === k ? 700 : 500, cursor: "pointer", border: `1px solid ${orden === k ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: orden === k ? "var(--text)" : "var(--sub)" }}>{l}</button>
+      style={{ padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: orden === k ? 700 : 500, cursor: "pointer", border: `1px solid ${orden === k ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: orden === k ? "var(--text)" : "var(--sub)" }}>{l}</button>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <input value={busqueda} onChange={e => { setBusqueda(e.target.value); setMostrar(POR_TANDA); }} placeholder="Buscar por nombre, mail o teléfono…" aria-label="Buscar contactados"
-        style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+        style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>Ordenar:</span>
         {chipOrden("recientes", "Contacto más reciente")}
@@ -54,7 +54,7 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
       {filtro === "recordar" && <AyudaRecordatorio pas={pas} historial={historial} derivadores={derivadores} />}
 
       {filtro === "recordar" && lista.length > 0 ? (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           {lista.slice(0, mostrar).map((p, i) => {
             const r = recordatorioPendiente(historial[p.id]);
             const wa = (p.telefonos || [])[0] ? linkWhatsApp(p.telefonos[0], textoRecordatorio(p.nombre)) : null;
@@ -75,7 +75,7 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
       ) : lista.length === 0 ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--sub)", fontSize: 14 }}>No hay PAS en "{def.l}"{busqueda.trim() ? " con esa búsqueda" : ""}.</div>
       ) : (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           {lista.slice(0, mostrar).map(p => (
             <PASCard key={p.id} pas={p} historial={historial} derivadores={derivadores} descartados={descartados}
               onContactar={onContactar} onToggleDerivador={onToggleDerivador} onToggleDescartado={onToggleDescartado}
@@ -96,7 +96,7 @@ function AyudaRecordatorio({ pas, historial, derivadores }) {
   const conRecordatorio = pas.filter(p => recibioRecordatorio(historial[p.id]));
   const derivaron = conRecordatorio.filter(p => derivadores[p.id]).length;
   return (
-    <div style={{ fontSize: 13, color: "var(--sub)", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", lineHeight: 1.5 }}>
+    <div style={{ fontSize: 13, color: "var(--sub)", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "10px 14px", lineHeight: 1.5 }}>
       PAS que te dijeron que te iban a tener en cuenta y en {DIAS_RECORDATORIO} días no derivaron. Se les manda <b>un solo</b> recordatorio útil y después salen de la lista.
       {conRecordatorio.length > 0 && <> De {conRecordatorio.length} {conRecordatorio.length === 1 ? "recordatorio enviado" : "recordatorios enviados"}, <b>{derivaron}</b> {derivaron === 1 ? "derivó" : "derivaron"}.</>}
     </div>
