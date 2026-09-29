@@ -64,7 +64,7 @@ export default function TabCompanias({ allCasos = [] }) {
 
       {dir?.faltaSql && (
         <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-md)", background: "color-mix(in srgb, var(--warn) 10%, transparent)", color: "var(--warn)", fontSize: 13 }}>
-          Falta correr el SQL 30 (<code>sql/2026-09-28_30_companias.sql</code>) en Supabase para guardar razón social, CUIT, domicilio legal y contactos.
+          Falta correr el SQL 30 (<code>sql/2026-09-28_30_companias.sql</code>) en Supabase para guardar razón social, CUIT y contactos.
         </div>
       )}
       {!dir?.faltaSql && incompletasActivas > 0 && (

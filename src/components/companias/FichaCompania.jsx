@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
-  TIPOS_CONTACTO, useDirectorio, fichaDe, guardarCompania, guardarContactoCia, borrarContactoCia,
-  cuitValido, formatearCuit, faltantes, domicilioLegal, textoDomicilio,
+  TIPOS_CONTACTO, useDirectorio, fichaDe, guardarCompania, guardarContactoCia, borrarContactoCia, eliminarCompania,
+  cuitValido, formatearCuit, faltantes, domicilioDe, textoDomicilio,
 } from "../../utils/companias.js";
 import { useMargenes, guardarMargen, margenPara } from "../../utils/margenes.js";
 import { esActivo } from "../../utils/metricas.js";
@@ -164,7 +164,7 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
 
           {ficha && (
             <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
-              {dir?.faltaSql && <div role="alert" style={{ ...seccion, display: "block", color: "var(--warn)", fontSize: 13 }}>Falta correr el SQL 30 (<code>sql/2026-09-28_30_companias.sql</code>) en Supabase: hasta entonces no se guardan razón social, CUIT, domicilio legal ni contactos.</div>}
+              {dir?.faltaSql && <div role="alert" style={{ ...seccion, display: "block", color: "var(--warn)", fontSize: 13 }}>Falta correr el SQL 30 (<code>sql/2026-09-28_30_companias.sql</code>) en Supabase: hasta entonces no se guardan razón social, CUIT ni contactos.</div>}
               {falta.length > 0 && !dir?.faltaSql && (
                 <div style={{ fontSize: 13, padding: "10px 14px", borderRadius: "var(--r-md)", background: "color-mix(in srgb, var(--warn) 10%, transparent)", color: "var(--warn)" }}>
                   Para usarla en escritos y cartas falta: <b>{falta.join(", ")}</b>.
@@ -181,14 +181,12 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {ficha.razon_social && <Boton tamaño="sm" variante="fantasma" icono="copiar" onClick={() => copiar(ficha.razon_social)}>Copiar razón social</Boton>}
                   {ficha.cuit && <Boton tamaño="sm" variante="fantasma" icono="copiar" onClick={() => copiar(ficha.cuit)}>Copiar CUIT</Boton>}
-                  {ficha.legal_domicilio && <Boton tamaño="sm" variante="fantasma" icono="copiar" onClick={() => copiar(textoDomicilio(domicilioLegal(ficha)))}>Copiar domicilio legal</Boton>}
+                  {ficha.domicilio && <Boton tamaño="sm" variante="fantasma" icono="copiar" onClick={() => copiar(textoDomicilio(domicilioDe(ficha)))}>Copiar domicilio</Boton>}
                 </div>
               </section>
 
               <section style={seccion}>
-                <h3 style={titulo}>Domicilio legal <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>· escritos</span></h3>
-                <Domicilio ficha={ficha} pref="legal_" guardar={guardar} />
-                <h3 style={{ ...titulo, marginTop: 6 }}>Domicilio para notificar <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>· cartas documento; si queda vacío se usa el legal</span></h3>
+                <h3 style={titulo}>Domicilio <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>· legal y para notificar: lo usan los escritos y las cartas documento</span></h3>
                 <Domicilio ficha={ficha} pref="" guardar={guardar} />
               </section>
 
@@ -218,7 +216,16 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
 
               <section style={seccion}>
                 <h3 style={titulo}>Casos <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>· {casos.length}</span></h3>
-                {!casos.length && <div style={{ fontSize: 13, color: "var(--muted)" }}>Todavía no hay casos con esta compañía.</div>}
+                {!casos.length && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 13, color: "var(--muted)" }}>
+                    Todavía no hay casos con esta compañía.
+                    {dir?.fichas[ficha.compania] && <Boton tamaño="sm" variante="peligro" icono="papelera" onClick={async () => {
+                      if (!window.confirm(`¿Eliminar ${ficha.compania} y sus contactos del directorio?`)) return;
+                      const err = await eliminarCompania(ficha.compania);
+                      if (err) setEstado(`No se eliminó: ${err}`); else onClose();
+                    }}>Eliminar compañía</Boton>}
+                  </div>
+                )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {casos.slice(0, 50).map(c => (
                     <button key={c.id} type="button" className="fila-simple" onClick={() => onAbrirCaso?.(c)}>

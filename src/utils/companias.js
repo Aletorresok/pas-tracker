@@ -82,6 +82,13 @@ export async function guardarContactoCia(contacto) {
   return error ? { error: error.message } : { data };
 }
 
+// Solo para compañías sin casos (los contactos se borran solos: on delete cascade)
+export async function eliminarCompania(nombre) {
+  const { error } = await supabase.from("pas_companias").delete().eq("compania", nombre);
+  if (!error) avisar();
+  return error ? error.message : null;
+}
+
 export async function borrarContactoCia(id) {
   const { error } = await supabase.from("pas_compania_contactos").delete().eq("id", id);
   if (!error) avisar();
@@ -117,13 +124,11 @@ export const fichaDe = buscar;
 
 export const nombreLegal = (cia, nombre) => cia?.razon_social?.trim() || cia?.compania || nombre || "";
 
-const domicilio = (cia, pref) => ({
-  domicilio: cia?.[`${pref}domicilio`] || "", cp: cia?.[`${pref}cp`] || "",
-  localidad: cia?.[`${pref}localidad`] || "", provincia: cia?.[`${pref}provincia`] || "",
+// Un solo domicilio por compañía (legal = para notificar): columnas domicilio, cp, localidad, provincia.
+// Las columnas legal_* del SQL 30 quedaron sin uso.
+export const domicilioDe = cia => ({
+  domicilio: cia?.domicilio || "", cp: cia?.cp || "", localidad: cia?.localidad || "", provincia: cia?.provincia || "",
 });
-export const domicilioLegal = cia => domicilio(cia, "legal_");
-// Para cartas documento: el de notificaciones; si no hay, el legal
-export const domicilioNotificar = cia => (cia?.domicilio ? domicilio(cia, "") : domicilioLegal(cia));
 export const textoDomicilio = d => [d.domicilio, [d.cp && `(${d.cp})`, d.localidad].filter(Boolean).join(" "), d.provincia].filter(Boolean).join(", ");
 
 // Qué le falta a la ficha para que sirva en escritos y cartas
@@ -132,6 +137,6 @@ export function faltantes(cia) {
   if (!cia?.razon_social) f.push("razón social");
   if (!cia?.cuit) f.push("CUIT");
   else if (cuitValido(cia.cuit) === false) f.push("CUIT válido");
-  if (!cia?.legal_domicilio) f.push("domicilio legal");
+  if (!cia?.domicilio) f.push("domicilio");
   return f;
 }

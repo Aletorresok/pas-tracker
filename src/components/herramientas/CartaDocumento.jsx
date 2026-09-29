@@ -5,7 +5,7 @@ import { abrirPdf, dibujarPagina, canvasABlob } from "../../utils/pdfjs.js";
 import { elegirDestino, escribirEn, puedeElegirDestino } from "../../utils/pdfEditor.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
-import { useDirectorio, guardarCompania, nombreLegal, domicilioNotificar } from "../../utils/companias.js";
+import { useDirectorio, guardarCompania, nombreLegal, domicilioDe } from "../../utils/companias.js";
 import { abrirCompania } from "../../utils/companiaAbierta.js";
 
 const VACIO = { nombre: "", domicilio: "", cp: "", localidad: "", provincia: "" };
@@ -75,8 +75,8 @@ export default function CartaDocumento({ allCasos = [] }) {
     const n = (nombre || "").trim().toLowerCase();
     return n ? companias.find(c => c.compania.toLowerCase() === n || (c.razon_social || "").trim().toLowerCase() === n) : null;
   };
-  // Destinatario = la compañía: razón social y domicilio para notificar (o el legal) de su ficha
-  const destinoCompania = (cia, nombreCorto) => ({ nombre: nombreLegal(cia, nombreCorto), ...domicilioNotificar(cia) });
+  // Destinatario = la compañía: razón social y domicilio de su ficha
+  const destinoCompania = (cia, nombreCorto) => ({ nombre: nombreLegal(cia, nombreCorto), ...domicilioDe(cia) });
   const cambiarDest = v => {
     const c = v.nombre !== dest.nombre ? datosCompania(v.nombre) : null;
     if (c) { setCiaDest(c.compania); setDest({ ...destinoCompania(c), ...Object.fromEntries(Object.entries(v).filter(([k, x]) => k !== "nombre" && x)) }); return; }
@@ -160,7 +160,7 @@ export default function CartaDocumento({ allCasos = [] }) {
     const d = { domicilio: dest.domicilio || null, cp: dest.cp || null, localidad: dest.localidad || null, provincia: dest.provincia || null };
     // Solo si es una compañía y su ficha todavía no tiene domicilio (no pisa lo que cargaste en Compañías)
     const ficha = ciaDest && datosCompania(ciaDest);
-    if (ciaDest && dest.domicilio && !ficha?.domicilio && !ficha?.legal_domicilio) await guardarCompania(ciaDest, d);
+    if (ciaDest && dest.domicilio && !ficha?.domicilio) await guardarCompania(ciaDest, d);
     if (caso && tipoRem === "cliente" && rem.domicilio)
       await supabase.from("pas_casos").update({ domicilio_asegurado: rem.domicilio, cp_asegurado: rem.cp || null, localidad_asegurado: rem.localidad || null, provincia_asegurado: rem.provincia || null }).eq("id", caso.id);
   };
@@ -246,10 +246,10 @@ export default function CartaDocumento({ allCasos = [] }) {
           <Persona valor={dest} onChange={cambiarDest} sugerencias />
           {ciaDest && (() => {
             const f = datosCompania(ciaDest);
-            const sinDom = !f?.domicilio && !f?.legal_domicilio;
+            const sinDom = !f?.domicilio;
             return (
               <div style={{ fontSize: 12, color: sinDom ? "var(--warn)" : "var(--muted)", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                {sinDom ? `${ciaDest} no tiene domicilio en su ficha: el que escribas acá se guarda al imprimir.` : `Datos de la ficha de ${ciaDest}${f?.domicilio ? " (domicilio para notificar)" : " (domicilio legal)"}.`}
+                {sinDom ? `${ciaDest} no tiene domicilio en su ficha: el que escribas acá se guarda al imprimir.` : `Datos de la ficha de ${ciaDest}.`}
                 <button type="button" onClick={() => abrirCompania(ciaDest)} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>{sinDom ? "Completar ficha" : "Ver ficha"}</button>
               </div>
             );

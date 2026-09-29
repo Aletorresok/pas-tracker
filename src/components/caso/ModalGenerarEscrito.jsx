@@ -55,7 +55,7 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
             const falta = faltantes(ficha || {});
             return (
               <div style={{ fontSize: 12, marginBottom: 14, padding: "8px 12px", borderRadius: "var(--r-sm)", background: falta.length ? "color-mix(in srgb, var(--warn) 10%, transparent)" : "color-mix(in srgb, var(--ok) 10%, transparent)", color: falta.length ? "var(--warn)" : "var(--ok)" }}>
-                {falta.length ? `A la ficha de ${caso.compania_aseguradora} le falta ${falta.join(", ")}: el escrito sale con lo que haya. ` : `Encabezado con la razón social, CUIT y domicilio legal de ${caso.compania_aseguradora}. `}
+                {falta.length ? `A la ficha de ${caso.compania_aseguradora} le falta ${falta.join(", ")}: el escrito sale con lo que haya. ` : `Encabezado con la razón social, CUIT y domicilio de ${caso.compania_aseguradora}. `}
                 <button type="button" onClick={() => { onClose(); abrirCompania(caso.compania_aseguradora); }} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--accent-ink)", cursor: "pointer" }}>{falta.length ? "Completar ficha" : "Ver ficha"}</button>
               </div>
             );

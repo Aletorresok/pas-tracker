@@ -27,7 +27,7 @@ export async function generarEscrito({
   dni, 
   dirHandle, 
   opcionesDoc = {},
-  compania: ficha = null, // ficha de la compañía (pestaña Compañías): razón social, CUIT y domicilio legal
+  compania: ficha = null, // ficha de la compañía (pestaña Compañías): razón social, CUIT y domicilio
   onSuccess, 
   onError 
 }) {
@@ -40,8 +40,8 @@ export async function generarEscrito({
     const fechaSiniestro = formatoFecha(caso.fecha_siniestro || caso.fecha_derivacion);
     const nombreCompleto = (caso.asegurado || "NOMBRE NO DISPONIBLE").toUpperCase();
     const compania = (ficha?.razon_social || caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
-    const domLegal = ficha?.legal_domicilio
-      ? [ficha.legal_domicilio, [ficha.legal_cp && `(${ficha.legal_cp})`, ficha.legal_localidad].filter(Boolean).join(" "), ficha.legal_provincia].filter(Boolean).join(", ")
+    const domLegal = ficha?.domicilio
+      ? [ficha.domicilio, [ficha.cp && `(${ficha.cp})`, ficha.localidad].filter(Boolean).join(" "), ficha.provincia].filter(Boolean).join(", ")
       : "";
 
     // Armado del listado limpio
