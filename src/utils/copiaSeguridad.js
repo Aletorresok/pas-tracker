@@ -7,7 +7,7 @@ import { fechaLocalISO } from "./formatters.js";
 export const TABLAS_COPIA = [
   "pas_casos", "acciones", "pas_eventos", "pas_subidas_cliente", "pas_margen_companias",
   "pas_historial", "pas_derivadores", "pas_descartados", "pas_manuales", "pas_lista", "pas_portal_users",
-  "pas_ofertas", "pas_caso_contactos", "pas_companias",
+  "pas_ofertas", "pas_caso_contactos", "pas_companias", "pas_compania_contactos",
   "pas_contactos",
   // ATG Lex (SQL 25 a 28): si alguna tabla todavía no existe, se saltea y la copia sale igual
   "expedientes", "plazos", "dias_inhabiles", "rutina_items", "rutina_registro", "dias_escuela", "objetivos",

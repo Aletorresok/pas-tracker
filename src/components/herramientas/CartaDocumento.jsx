@@ -5,6 +5,8 @@ import { abrirPdf, dibujarPagina, canvasABlob } from "../../utils/pdfjs.js";
 import { elegirDestino, escribirEn, puedeElegirDestino } from "../../utils/pdfEditor.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import { useDirectorio, guardarCompania, nombreLegal, domicilioDe } from "../../utils/companias.js";
+import { abrirCompania } from "../../utils/companiaAbierta.js";
 
 const VACIO = { nombre: "", domicilio: "", cp: "", localidad: "", provincia: "" };
 const CLAVE_AJUSTE = "carta_documento_ajuste"; // corrimiento de la impresora: queda en esta compu
@@ -46,7 +48,8 @@ export default function CartaDocumento({ allCasos = [] }) {
   const [firma, setFirma] = useState(["", ""]);
   const [ajuste, setAjuste] = useState(leerAjuste);
   const [referencias, setReferencias] = useState(false);
-  const [companias, setCompanias] = useState([]);
+  const dir = useDirectorio(); // directorio de compañías (pestaña Compañías)
+  const [ciaDest, setCiaDest] = useState(null); // nombre corto de la compañía destinataria, si es una
   const [misDatos, setMisDatos] = useState(null);
   const [modelos, setModelos] = useState([]);
   const [vista, setVista] = useState(null);
@@ -57,10 +60,6 @@ export default function CartaDocumento({ allCasos = [] }) {
 
   // Datos guardados (si falta el SQL 27, la carta igual funciona, solo no recuerda domicilios)
   useEffect(() => {
-    supabase.from("pas_companias").select("compania, domicilio, cp, localidad, provincia").then(({ data, error }) => {
-      if (!error) setCompanias(data || []);
-      else supabase.from("pas_companias").select("compania").then(r => setCompanias(r.data || []));
-    });
     supabase.from("pas_ajustes").select("valor").eq("clave", "remitente_estudio").maybeSingle().then(({ data }) => {
       if (data?.valor) { setMisDatos(data.valor); setRem(r => (r.nombre ? r : { ...VACIO, ...data.valor })); setFirma(f => (f[0] ? f : [data.valor.nombre || "", data.valor.firma2 || ""])); setLugar(l => l || data.valor.localidad || ""); }
     });
@@ -70,16 +69,26 @@ export default function CartaDocumento({ allCasos = [] }) {
 
   useEffect(() => { try { localStorage.setItem(CLAVE_AJUSTE, JSON.stringify(ajuste)); } catch { /* sin almacenamiento */ } }, [ajuste]);
 
-  const datosCompania = nombre => companias.find(c => c.compania.toLowerCase() === (nombre || "").trim().toLowerCase());
+  // Busca por nombre corto o por razón social
+  const companias = useMemo(() => Object.values(dir?.fichas || {}), [dir]);
+  const datosCompania = nombre => {
+    const n = (nombre || "").trim().toLowerCase();
+    return n ? companias.find(c => c.compania.toLowerCase() === n || (c.razon_social || "").trim().toLowerCase() === n) : null;
+  };
+  // Destinatario = la compañía: razón social y domicilio de su ficha
+  const destinoCompania = (cia, nombreCorto) => ({ nombre: nombreLegal(cia, nombreCorto), ...domicilioDe(cia) });
   const cambiarDest = v => {
     const c = v.nombre !== dest.nombre ? datosCompania(v.nombre) : null;
-    setDest(c ? { ...v, domicilio: v.domicilio || c.domicilio || "", cp: v.cp || c.cp || "", localidad: v.localidad || c.localidad || "", provincia: v.provincia || c.provincia || "" } : v);
+    if (c) { setCiaDest(c.compania); setDest({ ...destinoCompania(c), ...Object.fromEntries(Object.entries(v).filter(([k, x]) => k !== "nombre" && x)) }); return; }
+    if (v.nombre !== dest.nombre) setCiaDest(null);
+    setDest(v);
   };
 
   const elegirCaso = c => {
     setCaso(c); setBusqueda("");
     const comp = datosCompania(c.compania_aseguradora);
-    setDest({ nombre: c.compania_aseguradora || "", domicilio: comp?.domicilio || "", cp: comp?.cp || "", localidad: comp?.localidad || "", provincia: comp?.provincia || "" });
+    setCiaDest(c.compania_aseguradora || null);
+    setDest(destinoCompania(comp, c.compania_aseguradora || ""));
     if (tipoRem === "cliente") usarCliente(c);
     if (texto) setTexto(completarModelo(texto, c));
   };
@@ -149,7 +158,9 @@ export default function CartaDocumento({ allCasos = [] }) {
   // La próxima vez, los domicilios se completan solos
   const recordarDomicilios = async () => {
     const d = { domicilio: dest.domicilio || null, cp: dest.cp || null, localidad: dest.localidad || null, provincia: dest.provincia || null };
-    if (dest.nombre.trim() && dest.domicilio) await supabase.from("pas_companias").upsert({ compania: dest.nombre.trim(), ...d }, { onConflict: "compania" });
+    // Solo si es una compañía y su ficha todavía no tiene domicilio (no pisa lo que cargaste en Compañías)
+    const ficha = ciaDest && datosCompania(ciaDest);
+    if (ciaDest && dest.domicilio && !ficha?.domicilio) await guardarCompania(ciaDest, d);
     if (caso && tipoRem === "cliente" && rem.domicilio)
       await supabase.from("pas_casos").update({ domicilio_asegurado: rem.domicilio, cp_asegurado: rem.cp || null, localidad_asegurado: rem.localidad || null, provincia_asegurado: rem.provincia || null }).eq("id", caso.id);
   };
@@ -193,7 +204,7 @@ export default function CartaDocumento({ allCasos = [] }) {
 
   return (
     <div className="carta-cuerpo" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 0.8fr)", gap: 16, alignItems: "start" }}>
-      <datalist id="companias-carta">{companias.map(c => <option key={c.compania} value={c.compania} />)}</datalist>
+      <datalist id="companias-carta">{companias.map(c => <option key={c.compania} value={c.razon_social || c.compania}>{c.razon_social ? c.compania : ""}</option>)}</datalist>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={tarjeta}>
           <div style={titulo}>Caso (opcional)</div>
@@ -233,6 +244,16 @@ export default function CartaDocumento({ allCasos = [] }) {
         <div style={tarjeta}>
           <div style={titulo}>Destinatario</div>
           <Persona valor={dest} onChange={cambiarDest} sugerencias />
+          {ciaDest && (() => {
+            const f = datosCompania(ciaDest);
+            const sinDom = !f?.domicilio;
+            return (
+              <div style={{ fontSize: 12, color: sinDom ? "var(--warn)" : "var(--muted)", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                {sinDom ? `${ciaDest} no tiene domicilio en su ficha: el que escribas acá se guarda al imprimir.` : `Datos de la ficha de ${ciaDest}.`}
+                <button type="button" onClick={() => abrirCompania(ciaDest)} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>{sinDom ? "Completar ficha" : "Ver ficha"}</button>
+              </div>
+            );
+          })()}
         </div>
 
         <div style={tarjeta}>

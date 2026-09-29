@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { guardarCompania } from "../../utils/ofertas.js";
+import { guardarCompania } from "../../utils/companias.js";
 import { proyeccion } from "../../utils/analisis.js";
 import { plazosRespuesta } from "../../utils/metricas.js";
 import { useMargenes, guardarMargen, GENERAL, MARGEN_DEFECTO } from "../../utils/margenes.js";

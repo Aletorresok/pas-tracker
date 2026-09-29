@@ -28,6 +28,8 @@ const TabExpedientes = lazy(() => import('./components/TabExpedientes.jsx'))
 const TabRutina = lazy(() => import('./components/TabRutina.jsx'))
 const TabFinanzas = lazy(() => import('./components/TabFinanzas.jsx'))
 const TabHerramientas = lazy(() => import('./components/TabHerramientas.jsx'))
+const TabCompanias = lazy(() => import('./components/TabCompanias.jsx'))
+const CompaniaHost = lazy(() => import('./components/companias/FichaCompania.jsx').then(m => ({ default: m.CompaniaHost })))
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
@@ -298,6 +300,7 @@ function AppPrincipal() {
         onBuscar={() => setBuscando(true)}
       />
 
+      <Suspense fallback={null}><CompaniaHost allCasos={allCasos} onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })} /></Suspense>
       <BuscadorGlobal abierto={buscando} onCerrar={() => setBuscando(false)}
         allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores}
         onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })}
@@ -348,6 +351,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "companias" && <TabCompanias allCasos={allCasos} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}

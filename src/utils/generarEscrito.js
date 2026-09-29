@@ -27,6 +27,7 @@ export async function generarEscrito({
   dni, 
   dirHandle, 
   opcionesDoc = {},
+  compania: ficha = null, // ficha de la compañía (pestaña Compañías): razón social, CUIT y domicilio
   onSuccess, 
   onError 
 }) {
@@ -38,7 +39,10 @@ export async function generarEscrito({
   try {
     const fechaSiniestro = formatoFecha(caso.fecha_siniestro || caso.fecha_derivacion);
     const nombreCompleto = (caso.asegurado || "NOMBRE NO DISPONIBLE").toUpperCase();
-    const compania = (caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
+    const compania = (ficha?.razon_social || caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
+    const domLegal = ficha?.domicilio
+      ? [ficha.domicilio, [ficha.cp && `(${ficha.cp})`, ficha.localidad].filter(Boolean).join(" "), ficha.provincia].filter(Boolean).join(", ")
+      : "";
 
     // Armado del listado limpio
     const listaDocumental = [...DOCUMENTAL_FIJA];
@@ -63,6 +67,8 @@ export async function generarEscrito({
     y += 6;
 
     doc.setFont("helvetica", "normal");
+    if (ficha?.cuit) { doc.text(`CUIT ${ficha.cuit}`, margin, y); y += 6; }
+    if (domLegal) { doc.text(doc.splitTextToSize(`Domicilio: ${domLegal}`, contentWidth), margin, y); y += 6; }
     doc.text("Reclamo de Terceros:", margin, y);
     y += 12;
 

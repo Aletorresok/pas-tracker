@@ -63,6 +63,10 @@ src/
 - `pas_portal_users` — Mapeo usuario portal → PAS
 - `pas_lista` — Info PAS para portal
 - `acciones` — Timeline de acciones por caso
+- `pas_companias` — Ficha única de cada compañía (clave = nombre corto de `compania_aseguradora`): razón social, CUIT, domicilio (`domicilio`, `cp`, `localidad`, `provincia`; es el legal y el de notificar; las columnas `legal_*` no se usan), mail/teléfono general, honorarios %, plazo de pago
+- `pas_compania_contactos` — Contactos por compañía (siniestros, estudio gestor, analista, mediación, facturación)
+
+Los datos de una compañía se leen siempre del directorio (`utils/companias.js`: `useDirectorio`, `fichaDe`, `nombreLegal`, `domicilioDe`) y la ficha se abre desde cualquier lado con `abrirCompania(nombre)`.
 
 En `pas_casos` usar siempre `patente` y `compania_aseguradora` (las columnas `dominio` y `compania` son legacy, no usarlas).
 Migraciones SQL manuales en `sql/` (se corren a mano en el SQL Editor de Supabase). Mantener `Context.md` actualizado con cada cambio.

@@ -328,3 +328,20 @@ input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled),
 .cargando-tab { padding: 48px 0; text-align: center; color: var(--muted); font-size: 14px; animation: fadeIn .4s var(--ease) .15s both; }
 /* Hoy: con poco ancho (ventana chica o panel lateral) las dos columnas pasan a una, así no se cortan los nombres */
 @media (max-width: 1180px) { .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* ── COMPAÑÍAS ─────────────────────────────────────────────────────────── */
+.fondo-modal { position: fixed; inset: 0; z-index: 450; background: rgba(0, 0, 0, .45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fadeIn .2s var(--ease); }
+.contacto-cia { display: grid; grid-template-columns: 170px minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--card2) 60%, transparent); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+.fila-simple { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; width: 100%; text-align: left; font: inherit; font-size: 14px; color: var(--text); padding: 9px 12px; border-radius: var(--r-sm); border: 1px solid transparent; background: none; cursor: pointer; transition: background-color .2s var(--ease), border-color .2s var(--ease); }
+.fila-simple:hover { background: var(--card2); border-color: var(--border); }
+.cia-falta { font-size: 11px; font-weight: 600; color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: var(--r-pill); padding: 2px 8px; white-space: nowrap; }
+.cia-ok { font-size: 11px; font-weight: 600; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-radius: var(--r-pill); padding: 2px 8px; white-space: nowrap; }
+@media (max-width: 900px) {
+  .contacto-cia { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .contacto-cia > span { grid-column: 1 / -1; }
+}
+.fila-cia { grid-template-columns: minmax(150px, 1.2fr) minmax(0, 1.6fr) 90px 90px 160px; }
+@media (max-width: 1180px) {
+  .fila-cia { grid-template-columns: minmax(140px, 1fr) minmax(0, 1fr) 70px 140px; }
+  .fila-cia > .col-contactos { display: none; }
+}
