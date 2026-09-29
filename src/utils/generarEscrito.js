@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { dibujarPie } from "./pdfMembrete.js";
+import { cargarEstudio } from "./estudio.js";
 
 function formatoFecha(iso) {
   if (!iso) return "—";
@@ -73,7 +74,8 @@ export async function generarEscrito({
     y += 12;
 
     // Cuerpo con alineación justificada
-    const textoBase = `Alexis Torres Gaveglio, abogado, inscripto al T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R, responsable monotributo CUIT 20-39340318-8 en representación de ${nombreCompleto}, DNI ${formatearDni(dni)}, constituyendo domicilio en Pte. Saenz Peña 943, Depto 76 piso 7, CABA, vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.`;
+    const est = await cargarEstudio(); // tus datos (Herramientas → Mis datos); en el portal PAS, los de base
+    const textoBase = `${est.abogado}, abogado, inscripto al ${est.matriculas}, ${est.condicion_fiscal} CUIT ${est.cuit} en representación de ${nombreCompleto}, DNI ${formatearDni(dni)}, constituyendo domicilio en ${est.domicilio}, vengo a iniciar formal reclamo por el siniestro ocurrido el día ${fechaSiniestro}.`;
 
     const lineasCuerpo = doc.splitTextToSize(textoBase, contentWidth);
     doc.text(lineasCuerpo, margin, y, { align: "justify", maxWidth: contentWidth });

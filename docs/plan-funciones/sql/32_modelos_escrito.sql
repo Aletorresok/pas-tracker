@@ -64,7 +64,7 @@ end $$;
 -- 3) Datos del estudio (hoy fijos en src/utils/generarEscrito.js)
 insert into public.pas_ajustes (clave, valor) values ('estudio', jsonb_build_object(
   'abogado',     'Alexis Torres Gaveglio',
-  'matriculas',  'T°142 F°636 C.P.A.C.F. y L° IV F° 20 del C.A.M.G.R.',
+  'matriculas',  'T°142 F°636 C.P.A.C.F y al L° IV F° 20 del C.A.M.G.R',
   'condicion_fiscal', 'responsable monotributo',
   'cuit',        '20-39340318-8',
   'domicilio',   'Pte. Saenz Peña 943, Depto 76 piso 7, CABA',

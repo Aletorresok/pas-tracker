@@ -39,6 +39,13 @@ const HERRAMIENTAS = [
     icono: "sobre",
     Componente: lazy(() => import("./herramientas/CartaDocumento.jsx")),
   },
+  {
+    k: "misdatos",
+    titulo: "Mis datos",
+    desc: "Nombre, matrículas, CUIT y domicilio constituido que salen en los escritos.",
+    icono: "firma",
+    Componente: lazy(() => import("./herramientas/MisDatos.jsx")),
+  },
 ];
 
 export default function TabHerramientas({ casos = {}, todosLosPas = [] }) {

@@ -37,7 +37,7 @@ docs/plan-funciones/
 
 | Fase | Qué | SQL | Sesiones | Estado |
 |---|---|---|:-:|---|
-| 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [ ] |
+| 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (falta que confirmes SQL 26/27) |
 | 1 | Auditoría de cambios | 31 | ½–1 | [ ] |
 | 2 | Motor de escritos con modelos | 32 | 2 | [ ] |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [ ] |
@@ -60,6 +60,14 @@ docs/plan-funciones/
 3. Confirmar si los **SQL 26 (papelera) y 27 (herramientas)** están corridos (pendiente en `Context.md`).
 
 **Listo cuando:** abrir `/?abrir=caso-<id>` en el navegador entra a la ficha de ese caso después del PIN.
+
+**Hecho (29/09):** `utils/enlaces.js` + `App.jsx` + `public/sw.js` (con la app abierta, la notificación manda el link por mensaje) + "Copiar link de la ficha" en el click derecho; `utils/estudio.js` + Herramientas → **Mis datos**; `generarEscrito.js` lee `cargarEstudio()`. El SQL 32 carga las matrículas con el mismo texto que `ESTUDIO_BASE`, así el reclamo no cambia.
+
+Para confirmar el punto 3, correr en el SQL Editor:
+```sql
+select to_regclass('public.pas_papelera') is not null as sql26_papelera,
+       to_regclass('public.indices') is not null and to_regclass('public.pas_ajustes') is not null as sql27_herramientas;
+```
 
 ---
 

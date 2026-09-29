@@ -30,13 +30,17 @@ self.addEventListener("push", e => {
   }));
 });
 
-// Al tocarla: vuelve a la app si ya está abierta; si no, la abre
+// Al tocarla: vuelve a la app si ya está abierta; si no, la abre.
+// Si el aviso trae un link a una ficha (?abrir=caso-ID / expediente-ID), la app abierta la recibe por mensaje (utils/enlaces.js).
 self.addEventListener("notificationclick", e => {
   e.notification.close();
   const url = new URL(e.notification.data?.url || "/", self.location.origin).href;
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(ws => {
-    const abierta = ws.find(w => { const u = new URL(w.url); return u.origin === self.location.origin && !u.pathname.startsWith("/portal") && !u.searchParams.has("vista"); });
-    if (abierta) return abierta.focus();
+    const abierta = ws.find(w => { const u = new URL(w.url); return u.origin === self.location.origin && !u.pathname.startsWith("/portal") && !u.searchParams.has("vista") && !u.searchParams.has("caso"); });
+    if (abierta) {
+      if (new URL(url).searchParams.has("abrir")) abierta.postMessage({ tipo: "abrir", url });
+      return abierta.focus();
+    }
     return self.clients.openWindow(url);
   }));
 });
