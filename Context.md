@@ -97,7 +97,7 @@
 ### 2026-09-28 — Filosofía visual en toda la app (redonda, con aire, responde al tacto)
 *   Tokens nuevos en `index.css`: radios `--r-xs/sm/md/lg/xl/pill`, elevación `--sh-1/2/3` (reposo, hover, levantado) y movimiento `--ease`/`--spring`. Ya no se escriben radios en número: los ~230 `borderRadius` de los componentes pasaron a `var(--r-*)`.
 *   Piezas comunes: `.lift` (sube al hover; lo usa `Boton`, ahora en cápsula), `.tarjeta` / `.tarjeta-lift`, `.panel-vidrio`. Las `card` de Hoy y Análisis llevan sombra. Fondo con dos halos de color muy suaves.
-*   Menú lateral flotante de vidrio con ítems que se corren al hover (`.nav-item`); en celular, la barra inferior es una cápsula flotante. Columnas y tarjetas del Tablero de Casos con el mismo estilo.
+*   Menú lateral flotante de vidrio con ítems que se corren al hover (`.nav-item`); en celular, la barra inferior es una cápsula flotante. El Tablero de Casos pasa a `@dnd-kit` (antes arrastre nativo del navegador, que no andaba en celular): mouse, dedo con pulsación larga y teclado; la tarjeta levantada flota con sombra y las columnas se resaltan al pasar por encima. Misma lógica de cambio de estado de siempre.
 *   Listas arrastrables de Hoy: botón "Restablecer orden" (vuelve al orden por vencimiento).
 
 ### 2026-09-28 — Hoy: paneles redondos y tarjetas arrastrables
