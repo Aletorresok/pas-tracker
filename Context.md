@@ -107,6 +107,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-29 — Compañías: directorio único que alimenta al resto (⚠️ requiere SQL 30)
+*   Pestaña **Compañías** en el menú: lista las compañías con ficha y las que aparecen en casos, con casos en curso/total, contactos y qué le falta a la ficha. Filtros: todas, con casos en curso, ficha incompleta. Click derecho: copiar razón social / CUIT, mails.
+*   Ficha (`companias/FichaCompania.jsx`, se abre de cualquier lado con `abrirCompania`): razón social, CUIT (valida dígito verificador), domicilio legal, domicilio para notificar, mail y teléfono general, contactos (siniestros, estudio gestor, analista, mediación, facturación), honorarios %, plazo de pago, margen para reiterar, y los casos de la compañía.
+*   Alimenta: **Carta documento** (destinatario = razón social + domicilio para notificar o legal; solo guarda domicilio si la ficha no tenía), **escritos** (encabezado con razón social, CUIT y domicilio legal), **ficha del caso** (contactos de la compañía con mail/teléfono/WhatsApp), menú del caso ("Ver compañía"), selector de compañía de los casos (sugiere las del directorio; agregar una crea su ficha).
+*   SQL 30 (`sql/2026-09-28_30_companias.sql`): columnas razon_social, cuit, legal_* en pas_companias + tabla pas_compania_contactos. Sin correrlo la pestaña avisa y no guarda esos datos.
+
 ### 2026-09-28 — Una sola filosofía de interacción + optimización de carga
 *   Regla única en toda la app: tocar abre, click derecho da las acciones, arrastrar solo para reordenar (Hoy) o cambiar de etapa (tableros). Detalle en CLAUDE.md → "Filosofía de interfaz".
 *   Menú de acciones único (`MenuHost` + `propsMenu`) con teclado (flechas, Escape, tecla Menú) y menús por entidad en `utils/menus.js`. Ahora tienen click derecho: tareas y cobros de Hoy, Agenda, Nuevos del portal, Recepción, Contactos (PAS), Clientes (PAS y sus casos), Casos (tabla y tablero), Expedientes.

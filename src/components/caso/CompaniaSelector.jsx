@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useDirectorio, guardarCompania } from "../../utils/companias.js";
 
 const STORAGE_KEY = "pas_tracker_companias";
 
@@ -10,14 +11,18 @@ function saveCompaniasExtra(list) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
+// Compañías para elegir: las del directorio (pestaña Compañías), las que ya tienen casos y las agregadas antes en este navegador
 export function useCompanias(casos) {
   const [extra, setExtra] = useState(loadCompaniasExtra);
+  const dir = useDirectorio();
 
   const todas = useMemo(() => {
     const fromCasos = Object.values(casos || {}).flat().map(c => c.compania_aseguradora?.trim()).filter(Boolean);
-    const merged = [...new Set([...fromCasos, ...extra])].sort((a, b) => a.localeCompare(b, "es"));
-    return merged;
-  }, [casos, extra]);
+    const delDirectorio = Object.keys(dir?.fichas || {});
+    const vistos = new Map();
+    [...delDirectorio, ...fromCasos, ...extra].forEach(n => { const k = n.trim().toLowerCase(); if (k && !vistos.has(k)) vistos.set(k, n.trim()); });
+    return [...vistos.values()].sort((a, b) => a.localeCompare(b, "es"));
+  }, [casos, extra, dir]);
 
   const agregar = (nombre) => {
     const trimmed = nombre.trim();
@@ -25,6 +30,7 @@ export function useCompanias(casos) {
     const updated = [...extra, trimmed];
     setExtra(updated);
     saveCompaniasExtra(updated);
+    guardarCompania(trimmed, {}); // queda en el directorio para completarle los datos
   };
 
   return { companias: todas, agregarCompania: agregar };

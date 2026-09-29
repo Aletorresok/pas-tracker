@@ -3,6 +3,8 @@
 // Cada pantalla pasa solo las acciones que puede resolver; las que faltan no aparecen.
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar } from "./mensajes.js";
 import { primerNombre } from "./formatters.js";
+import { abrirCompania } from "./companiaAbierta.js";
+import { cuitValido } from "./companias.js";
 
 export const copiar = texto => navigator.clipboard?.writeText(String(texto)).catch(() => {});
 const abrirLink = url => url && window.open(url, "_blank", "noopener");
@@ -23,6 +25,7 @@ export function itemsCaso(c, { abrir, resumen, eliminar, mover, extra = [] } = {
     abrir && { label: "Abrir ficha", onClick: () => abrir(c) },
     resumen && { label: resumen.label, onClick: resumen.onClick },
     ...extra,
+    c.compania_aseguradora && { label: `Ver compañía (${c.compania_aseguradora})`, onClick: () => abrirCompania(c.compania_aseguradora) },
     whatsapp(tel, c.asegurado, "WhatsApp al cliente"),
     clientePuedeEntrar(c) && { label: "Copiar link de la vista del cliente", onClick: () => copiar(linkVistaCliente(c.patente)) },
     ...moverA(c.estado, mover?.estados || [], mover && (estado => mover.onMover(c, estado))),
@@ -67,5 +70,19 @@ export function itemsPAS(p, { abrir, contactar, mail, nuevoCaso, resumen, editar
     { separador: true },
     tel && { label: "Copiar teléfono", onClick: () => copiar(tel) },
     p.mail && { label: "Copiar mail", onClick: () => copiar(p.mail) },
+  ];
+}
+
+// ── Compañía ────────────────────────────────────────────────────
+export function itemsCompania(nombre, ficha = {}, contactos = []) {
+  const conMail = [ficha.mail && { label: "general", mail: ficha.mail }, ...contactos.filter(c => c.mail).map(c => ({ label: c.nombre || c.tipo, mail: c.mail }))].filter(Boolean);
+  return [
+    { label: "Abrir ficha", onClick: () => abrirCompania(nombre) },
+    ...conMail.slice(0, 3).map(m => ({ label: `Mail a ${m.label}`, onClick: () => window.open(`mailto:${m.mail}`) })),
+    { separador: true },
+    ficha.razon_social && { label: "Copiar razón social", onClick: () => copiar(ficha.razon_social) },
+    ficha.cuit && { label: `Copiar CUIT${cuitValido(ficha.cuit) === false ? " (revisar)" : ""}`, onClick: () => copiar(ficha.cuit) },
+    ficha.mail && { label: "Copiar mail general", onClick: () => copiar(ficha.mail) },
+    ficha.telefono && { label: "Copiar teléfono general", onClick: () => copiar(ficha.telefono) },
   ];
 }

@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
-import { cargarContacto, guardarContacto, cargarCompania, guardarCompania } from "../../utils/ofertas.js";
+import { cargarContacto, guardarContacto } from "../../utils/ofertas.js";
+import { useDirectorio, fichaDe, tipoContacto, faltantes } from "../../utils/companias.js";
+import { abrirCompania } from "../../utils/companiaAbierta.js";
+import { linkWhatsApp } from "../../utils/mensajes.js";
 
 // Ficha → Resumen: quién lleva el siniestro en la compañía (de este caso) y los datos generales de la compañía
-// (sirven para todos sus casos). Se guarda al salir de cada campo. Solo lo ve el estudio.
+// (salen de la pestaña Compañías y se editan ahí). Se guarda al salir de cada campo. Solo lo ve el estudio.
 export default function ContactoCompania({ casoId, compania, Th }) {
   const [contacto, setContacto] = useState(undefined); // undefined = cargando, null = falta el SQL 21
-  const [cia, setCia] = useState({});
+  const dir = useDirectorio();
+  const cia = (compania && dir && fichaDe(dir.fichas, compania)) || {};
+  const contactosCia = (dir?.contactos || []).filter(c => c.compania === cia.compania);
   const [estado, setEstado] = useState(""); // "" | "ok" | error
 
   useEffect(() => { if (casoId) cargarContacto(casoId).then(setContacto); }, [casoId]);
-  useEffect(() => { cargarCompania(compania).then(d => setCia(d || {})); }, [compania]);
 
   const aviso = err => { setEstado(err ? "No se guardó: " + err : "ok"); setTimeout(() => setEstado(""), 1500); };
   const guardarCaso = async () => aviso(await guardarContacto(casoId, { nombre: contacto.nombre || null, telefono: contacto.telefono || null, mail: contacto.mail || null, notas: contacto.notas || null }));
-  const guardarCia = async () => { if (compania) aviso(await guardarCompania(compania, { mail: cia.mail || null, telefono: cia.telefono || null })); };
-  const guardarPlazo = async () => { if (compania) { const n = parseInt(cia.plazo_pago_dias, 10); aviso(await guardarCompania(compania, { plazo_pago_dias: n >= 1 && n <= 365 ? n : null })); } };
 
   const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16 };
   const campo = { width: "100%", boxSizing: "border-box", padding: "6px 9px", borderRadius: "var(--r-xs)", border: `1px solid ${Th.border}`, background: "var(--card)", color: "var(--text)", fontSize: 13, fontFamily: "inherit" };
@@ -49,16 +51,27 @@ export default function ContactoCompania({ casoId, compania, Th }) {
       </div>
 
       {compania && (
-        <>
-          <div style={{ fontSize: 12, color: Th.sub, margin: "12px 0 6px", paddingTop: 10, borderTop: `1px solid ${Th.border}` }}>{compania} · para todos sus casos</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {Campo({ l: "Mail de siniestros", valor: cia.mail, set: v => setCia(c => ({ ...c, mail: v })), onBlur: guardarCia, tipo: "email",
-              accion: cia.mail ? <a href={`mailto:${cia.mail}`} style={link}>Escribir</a> : null })}
-            {Campo({ l: "Teléfono", valor: cia.telefono, set: v => setCia(c => ({ ...c, telefono: v })), onBlur: guardarCia, tipo: "tel",
-              accion: cia.telefono ? <a href={`tel:${cia.telefono.replace(/[^\d+]/g, "")}`} style={link}>Llamar</a> : null })}
-            {Campo({ l: "Plazo de pago habitual (días)", valor: cia.plazo_pago_dias ?? "", set: v => setCia(c => ({ ...c, plazo_pago_dias: v })), onBlur: guardarPlazo, tipo: "number", ph: "Ej: 15" })}
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${Th.border}`, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: Th.sub }}>
+              <b style={{ color: Th.text }}>{compania}</b>{cia.razon_social ? ` · ${cia.razon_social}` : ""}{cia.cuit ? ` · CUIT ${cia.cuit}` : ""}
+            </span>
+            <button type="button" onClick={() => abrirCompania(compania)} style={{ ...link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 12 }}>
+              {faltantes(cia).length || !cia.compania ? "Completar ficha de la compañía" : "Ver ficha de la compañía"}
+            </button>
           </div>
-        </>
+          {[cia.mail || cia.telefono ? { id: "general", tipo: "General", mail: cia.mail, telefono: cia.telefono } : null, ...contactosCia].filter(Boolean).map(c => (
+            <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: 13 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: Th.muted, minWidth: 110 }}>{c.id === "general" ? "General" : tipoContacto(c.tipo)}</span>
+              {c.nombre && <span style={{ fontWeight: 600, color: Th.text }}>{c.nombre}</span>}
+              {c.mail && <a href={`mailto:${c.mail}`} style={link}>{c.mail}</a>}
+              {c.telefono && <a href={`tel:${c.telefono.replace(/[^\d+]/g, "")}`} style={link}>{c.telefono}</a>}
+              {c.telefono && linkWhatsApp(c.telefono, "") && <a href={linkWhatsApp(c.telefono, "")} target="_blank" rel="noreferrer" style={link}>WhatsApp</a>}
+            </div>
+          ))}
+          {!cia.mail && !cia.telefono && !contactosCia.length && <div style={{ fontSize: 12, color: Th.muted }}>Sin contactos cargados para esta compañía.</div>}
+          {cia.plazo_pago_dias ? <div style={{ fontSize: 12, color: Th.muted }}>Suele pagar a los {cia.plazo_pago_dias} días de la firma.</div> : null}
+        </div>
       )}
     </div>
   );

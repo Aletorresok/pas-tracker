@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { cargarCompania } from "../../utils/ofertas.js";
+import { faltantes } from "../../utils/companias.js";
+import { abrirCompania } from "../../utils/companiaAbierta.js";
 
 export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpen, onClose, caso, pasId, dirHandle, onSuccess, onError, Th }) {
   const [dniEscrito, setDniEscrito] = useState("");
@@ -9,6 +12,8 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
     cartaFranquicia: false,
   });
   const [generandoEscrito, setGenerandoEscrito] = useState(false);
+  const [ficha, setFicha] = useState(null); // datos de la compañía para el encabezado
+  useEffect(() => { if (isOpen && caso?.compania_aseguradora) cargarCompania(caso.compania_aseguradora).then(setFicha); }, [isOpen, caso?.compania_aseguradora]);
 
   // Si el caso ya tiene DNI cargado, se completa solo
   useEffect(() => { if (isOpen) setDniEscrito(dniInicial || ""); }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -24,6 +29,7 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
       dni: dniEscrito,
       dirHandle,
       opcionesDoc,
+      compania: ficha,
       onSuccess: (res) => {
         // Si el caso no tenía DNI, queda guardado (lo usa el acceso del cliente)
         if (!String(dniInicial || "").trim() && dniEscrito.trim()) onDniNuevo?.(dniEscrito.trim());
@@ -45,6 +51,16 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
         <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "28px 24px", maxWidth: 420, width: "100%" }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>Generar escrito</div>
           
+          {caso?.compania_aseguradora && (() => {
+            const falta = faltantes(ficha || {});
+            return (
+              <div style={{ fontSize: 12, marginBottom: 14, padding: "8px 12px", borderRadius: "var(--r-sm)", background: falta.length ? "color-mix(in srgb, var(--warn) 10%, transparent)" : "color-mix(in srgb, var(--ok) 10%, transparent)", color: falta.length ? "var(--warn)" : "var(--ok)" }}>
+                {falta.length ? `A la ficha de ${caso.compania_aseguradora} le falta ${falta.join(", ")}: el escrito sale con lo que haya. ` : `Encabezado con la razón social, CUIT y domicilio legal de ${caso.compania_aseguradora}. `}
+                <button type="button" onClick={() => { onClose(); abrirCompania(caso.compania_aseguradora); }} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--accent-ink)", cursor: "pointer" }}>{falta.length ? "Completar ficha" : "Ver ficha"}</button>
+              </div>
+            );
+          })()}
+
           <label style={{ display: "block", marginBottom: 16 }}>
             <span style={labelStyle}>DNI del asegurado *</span>
             <input value={dniEscrito} onChange={e => setDniEscrito(e.target.value)} placeholder="Ej: 25123456" style={Th.input} />
