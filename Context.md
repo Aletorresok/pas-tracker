@@ -107,7 +107,7 @@
 *   **PAS interesados** (pregunta 16, aceptada a prueba): "Registrar contacto" suma **"Interesado"** (queda en Contactados, se guarda como resultado `interesado` en `pas_historial`, sin SQL). A los 30 días sin derivar aparece en **Contactos → "Para recordar"** con **"Mandar recordatorio"** (WhatsApp con un texto útil, `mensajes.textoRecordatorio`) o "No mandar"; cualquiera de los dos lo saca de la lista (resultado `recordatorio_interesado`) y no vuelve a aparecer. Arriba de la lista: "De N recordatorios enviados, M derivaron", para decidir si sirve. Filtro **"Interesados"** en Contactos. En Hoy → Prospección del día, cuántos hay para recordar.
 *   Probado en Chromium con la página de prueba: contacto "Interesado", lista Para recordar, mandar y salir de la lista, contador de conversión.
 
-### 2026-09-28 — Portal PAS: revisión completa (SQL 29 ⚠️ pendiente de correr)
+### 2026-09-28 — Portal PAS: revisión completa (SQL 29 ✅ ejecutado el 29/09)
 *   **Derivar un caso** (`portal/NuevoCasoModal.jsx`, reescrito): etiquetas como el resto de la app; patente y DNI marcados "recomendado" (avisa si faltan: sin ellos el cliente no sigue su caso ni manda documentación por el link); **aviso de patente ya derivada** por ese PAS; compañía con **buscador** (conocidas de Argentina + las que ya tienen casos, `utils/companias.js`); fecha del siniestro no puede ser futura; Esc cierra.
     *   **Errores separados:** si no se guarda el caso, dice que no se guardó nada (antes decía "el caso se guardó, pero…" aunque no se hubiera guardado) y el borrador queda. Si el caso se guardó y falla algún archivo, lo avisa con los nombres.
     *   **Confirmación:** "Caso derivado" + **"Avisale a tu cliente"** (WhatsApp del PAS al cliente contando que el estudio lo va a contactar y, con patente y DNI, el link para seguir el caso y mandar la documentación) + "Derivar otro" / "Listo".
@@ -118,7 +118,7 @@
 *   `sql/2026-09-28_29_portal_ver_adjuntos.sql`: política `pas_ve_adjuntos` (el PAS lista solo su carpeta del bucket `adjuntos`). Si alguna vez se vuelve a correr el SQL 07 (borra las políticas de Storage), correr el 29 después. Probado en Postgres 16.
 *   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular: validación, patente repetida, alta con archivo y confirmación, enviar documentación desde el caso, lista de lo enviado, menú Cuenta, botón flotante al bajar/subir e ingreso.
 
-### 2026-09-28 — Finanzas: gastos, facturación y resultado del mes; hilo de Gmail del caso (SQL 28 ⚠️ pendiente de correr)
+### 2026-09-28 — Finanzas: gastos, facturación y resultado del mes; hilo de Gmail del caso (SQL 28 ✅ ejecutado el 29/09)
 *   **Pestaña Finanzas** (menú, entre Clientes y Análisis; en celular, en "Más"; `TabFinanzas.jsx`, `finanzas/*`, `utils/finanzas.js`):
     *   **Mes** (con flechas para ir a meses anteriores): honorarios cobrados, comisiones pagadas a PAS, gastos y **resultado** (honorarios − comisiones − gastos); tabla de los últimos 6 meses; gastos por categoría; lista de gastos del mes con alta/edición/baja.
     *   **Gastos** (`gastos`, SQL 28): categoría (matrícula, aportes, mediaciones, cartas documento, tasas y sellados, movilidad, software y suscripciones, otros), monto, detalle, fecha, **"se repite todos los meses"** (desde la fecha, con "hasta" opcional) y **caso opcional** para la ganancia neta por caso.
