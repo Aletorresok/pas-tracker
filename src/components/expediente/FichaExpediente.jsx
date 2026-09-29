@@ -56,6 +56,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
   const [cargandoAcciones, setCargandoAcciones] = useState(false);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [creando, setCreando] = useState(false);
+  const [versionAuditoria, setVersionAuditoria] = useState(0); // recarga "Cambios de datos" después de cada guardado
   const actualRef = useRef(expediente);
   const dirHandleRef = useRef(null);
   useEffect(() => { actualRef.current = expediente; }, [expediente]);
@@ -78,6 +79,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
     actualRef.current = data;
     onGuardado(data);
     setEstadoGuardado("guardado");
+    setVersionAuditoria(v => v + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datos, onGuardado]);
   useEffect(() => {
@@ -329,7 +331,9 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                 </div>
               </div>
               <div {...panel("bitacora")}>
-                <SeccionTimeline acciones={acciones} loading={cargandoAcciones} onCrear={crearAccion} onActualizar={actualizarAccion} onEliminar={eliminarAccion} Th={Th} />
+                <SeccionTimeline acciones={acciones} loading={cargandoAcciones} onCrear={crearAccion} onActualizar={actualizarAccion} onEliminar={eliminarAccion} Th={Th}
+                  cambios={{ tabla: "expedientes", filaId: id, version: versionAuditoria, puedeRestaurar: k => CAMPOS_EXPEDIENTE.includes(k),
+                    valorActual: k => datos[k], onRestaurar: cambiar }} />
               </div>
             </>}
           </div>

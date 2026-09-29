@@ -14,6 +14,8 @@
 --     cliente_es_dueno, autorizar_subida_cliente, subida_autorizada, confirmar_subida_cliente,
 --     documentos_enviados_cliente, extras_cliente, eliminar_caso(caso_id), restaurar_caso(papelera_id) (SQL 26).
 --   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
+--   · Trigger trg_auditar (SQL 31) en pas_casos, expedientes, plazos, pas_eventos, gastos, pas_ofertas y pas_companias:
+--     registra en auditoria cada alta, cambio (solo los campos que cambiaron) y borrado. Función historial_de(tabla, id).
 --   · Storage: 'adjuntos' (público por link; subida solo a <pas_id>/ propio) y 'recepcion'
 --     (privado; lo que sube el cliente, con autorización de 15 minutos).
 --   · Copias de seguridad: esquemas backup_20260922, backup_20260924 (limpieza, SQL 15) y backup_fechas (SQL 16).
@@ -266,4 +268,16 @@ create table public.pas_admins (
 create table public.pas_cliente_intentos (
   patente  text not null,
   creado   timestamp with time zone not null default now()
+);
+
+-- Auditoría de cambios (sql/2026-09-29_31). Solo lectura para el administrador; escribe el trigger auditar().
+create table public.auditoria (
+  id         bigint generated always as identity primary key,
+  tabla      text        not null,
+  fila_id    text        not null,
+  operacion  text        not null,                    -- INSERT | UPDATE | DELETE
+  cambios    jsonb       not null default '{}'::jsonb, -- UPDATE: {campo: [antes, despues]} · INSERT/DELETE: fila completa
+  usuario    uuid,                                     -- auth.uid(); vacío = sistema
+  rol        text        not null default 'sistema',   -- admin | pas | cliente | sistema
+  en         timestamp with time zone not null default now()
 );

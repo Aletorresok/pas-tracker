@@ -58,6 +58,7 @@
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda) · `pas_papelera` (SQL 26: casos eliminados, 30 días; `eliminar_caso` / `restaurar_caso`, cron `vaciar_papelera`). SQL 27: `pas_casos.domicilio_asegurado` / `cp_` / `localidad_` / `provincia_asegurado` y `pas_companias.domicilio` / `cp` / `localidad` / `provincia` (los completa la carta documento).
+*   **Auditoría (SQL 31):** `auditoria` (tabla, fila_id, operacion, cambios jsonb, usuario, rol, en) + trigger `auditar()` en las tablas principales; la ve Bitácora → Cambios de datos.
 *   **Herramientas (SQL 27):** `indices` (serie ipc | icl | tasa_activa_bna, fecha, valor) · `modelos_carta` · `pas_ajustes` (clave → jsonb; `remitente_estudio`).
 *   **Prospección:** `pas_contactos` (~51 mil), `pas_historial`, `pas_derivadores`, `pas_descartados`, `pas_manuales`. **Config:** `pas_margen_companias` (margen de reclamo quieto; `*` = general).
 *   **Portal y acceso:** `pas_lista`, `pas_portal_users`, `pas_admins`, `pas_cliente_intentos`, `pas_subidas_cliente`.
@@ -78,10 +79,10 @@
 - [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fase 0 ✅ (29/09); sigue la fase 1 (auditoría, SQL 31).
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fase 0 ✅ y fase 1 ✅ (29/09, **falta correr el SQL 31**); sigue la fase 2 (escritos con modelos, SQL 32).
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
-- [ ] SQL 26 (papelera) y SQL 27 (herramientas): confirmar si ya se corrieron.
+- [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
@@ -108,6 +109,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Fase 1 del plan de funciones: auditoría de cambios (⚠️ requiere SQL 31)
+*   **SQL 31** (`sql/2026-09-29_31_auditoria.sql`): tabla `auditoria` + trigger `auditar()` en `pas_casos`, `expedientes`, `plazos`, `pas_eventos`, `gastos`, `pas_ofertas` y `pas_companias`. Cada alta, cambio o borrado queda registrado con **solo los campos que cambiaron** (`{campo: [antes, después]}`), quién (`admin` / `pas` / `cliente` / `sistema`) y cuándo. Un guardado sin cambios reales (el autoguardado reenvía el caso entero) no deja nada. Ignora `created_at`, `updated_at`, `revisado_en` y `mensaje_cliente_fecha`. Solo lectura para el administrador (nadie puede editar ni borrar desde la app). Limpieza automática semanal de lo que tenga más de 18 meses (pg_cron). Función `historial_de(tabla, id)`.
+*   **Bitácora → "Cambios de datos"** (segmentado Movimientos / Cambios de datos, en la ficha del caso y del expediente): fecha y hora, quién (Vos / PAS / Cliente / Automático), "Último ofrecimiento: ~~$ 1.200.000~~ → $ 1.500.000", el checklist como "tildó DNI", altas y bajas. **"Volver a este valor"** cambia el campo en la ficha y lo guarda el autoguardado (así la vuelta atrás también queda registrada y no la pisa el autoguardado). No aparece para `estado_honorarios` y `monto_honorarios`, que los calcula el guardado. Sin el SQL 31 avisa "Falta correr el SQL 31".
+*   Archivos: `utils/auditoria.js` (lectura, etiquetas legibles de cada campo, formato de valores), `caso/CambiosDatos.jsx`, `caso/SeccionTimeline.jsx` (prop `cambios`), `CasoUnificado.jsx` y `expediente/FichaExpediente.jsx` (recargan la lista después de cada guardado). `schema.sql` actualizado.
+*   Probado: el SQL en Postgres 16 local junto con la papelera real (SQL 26): el PAS deriva (rol pas), el autoguardado con cambios deja un registro y sin cambios ninguno, eliminar y recuperar quedan como baja y alta, el administrador lee, un PAS y un visitante no ven nada, borrar/editar/insertar a mano no se puede; se puede volver a correr. La pantalla en Chromium con Supabase simulado (compu y celular): lista, "Volver a este valor" en un caso (sale el guardado con la fecha anterior) y en un expediente, y el aviso sin SQL. **Falta:** correr el SQL 31 en Supabase y verlo con datos reales.
+*   No entra en la copia de seguridad semanal (puede crecer mucho y no hace falta para restaurar).
 
 ### 2026-09-29 — Fase 0 del plan de funciones: links a una ficha y "Mis datos"
 *   **Links que abren una ficha:** `/?abrir=caso-<id>` y `/?abrir=expediente-<id>` (`utils/enlaces.js`: `linkFicha`, `leerAbrir`, `limpiarAbrir`). `App.jsx` lo resuelve apenas cargan los casos (después de cuenta + PIN) y saca el parámetro de la barra; si el caso no existe avisa "puede estar en la papelera". `?caso=` sigue siendo la vista del cliente. Click derecho en casos y expedientes: **"Copiar link de la ficha"**. Lo van a usar el calendario (fase 4) y los avisos push (fase 3).
@@ -227,7 +235,7 @@
 *   Desde ahora `subirArchivosYNotificar` recibe `casoId` y guarda en `adjuntos/<pas_id>/<pas_casos.id>/`; lo usan `NuevoCasoModal` (alta) y `PortalCasoCard` (documentación nueva). La política de Storage ya lo permite (primera carpeta = `mi_pas_id()`), sin SQL.
 *   Los adjuntos anteriores quedaron sueltos en `adjuntos/<pas_id>/` sin caso: se ven en la ficha de cualquier caso de ese PAS, plegados, en "Anteriores de este PAS, sin caso asignado".
 
-### 2026-09-28 — Herramientas: escáner, plazos, intereses y carta documento (SQL 27 ⚠️ pendiente de correr)
+### 2026-09-28 — Herramientas: escáner, plazos, intereses y carta documento (SQL 27 ✅ confirmado el 29/09)
 *   **Escáner** (tipo CamScanner): sacar fotos con el celular o elegirlas, detección automática de la hoja, esquinas ajustables a mano, corrección de perspectiva, filtros Mejorada (sin sombras, fondo blanco) / Original / Grises / Blanco y negro, rotar, ordenar, "filtro para todas", calidad Normal o Liviana y "Guardar PDF…". Fotos del celular derechas (EXIF).
 *   **Calculadora de plazos:** días hábiles judiciales o corridos, jurisdicción CABA / PBA / Federal, vencimiento, plazo de gracia, días que no se contaron, conteo día por día y "Copiar texto". Modo "días entre dos fechas".
 *   **Intereses y actualización:** capital + dos fechas → tasa activa BNA (interés simple con la tasa vigente cada día), IPC (relación de índices mensuales; si el mes final no se publicó, llega al último y lo avisa), IPC + 3% anual (puro, sobre el capital actualizado) e ICL. Detalle y "Copiar texto" por método. Datos en `indices`: IPC e ICL con "Actualizar desde internet" (no se pudieron verificar las APIs desde el entorno de desarrollo: si fallan, "Pegar desde Excel"); la tasa activa BNA se carga a mano (tasa y desde cuándo rige). **No se cargó ningún dato histórico inventado.**
@@ -241,7 +249,7 @@
 *   **Mensaje de WhatsApp a PAS** (`formatters.waLink`, botones de Contactos): texto nuevo, que menciona el padrón de la SSN y los reclamos de terceros. El nombre sigue siendo la segunda palabra del contacto (`primerNombre`: "APELLIDO NOMBRE" → Nombre).
 *   Probado en Chromium con la app real (Supabase simulado), en compu y celular: PDF de 3 páginas + foto, rotar/sacar/mover, firma con fondo quitado (sale con transparencia real), guardar todo y solo algunas, compresión de un escaneo de 7,4 MB a 1,5 MB en ~3 s, y el orden explorador → armado → escritura. La posición de la firma se verificó en páginas rotadas 0/90/180/270° con otro motor (PyMuPDF). El explorador de archivos nativo y la carpeta real no se pueden automatizar: se probaron con dobles.
 
-### 2026-09-28 — Papelera de casos y "Deshacer" (SQL 26 ⚠️ pendiente de correr)
+### 2026-09-28 — Papelera de casos y "Deshacer" (SQL 26 ✅ confirmado el 29/09)
 *   **Eliminar un caso ya no es definitivo:** pide confirmación, lo saca de la vista y muestra abajo "Caso de X eliminado · **Deshacer**" (8 s). Si no, queda en **Casos PAS → Papelera** 30 días, con "Recuperar". Después se borra solo.
 *   `sql/2026-09-28_26_papelera.sql`: tabla `pas_papelera` (solo administrador) y funciones `eliminar_caso(caso_id)` / `restaurar_caso(papelera_id)`. Eliminar guarda una copia completa (caso, bitácora, agenda, ofertas, contacto en la compañía, plazos, documentación del cliente y el vínculo con expedientes) y borra, todo en una sola operación: ya no se puede perder la bitácora si algo falla a mitad de camino. Recuperar lo vuelve a crear igual (mismo id). El trigger `aviso_caso_nuevo` se recrea para que recuperar un caso del portal no mande la notificación de "caso nuevo". Cron diario `vaciar_papelera` (4:00 hs) borra lo de más de 30 días.
 *   La ficha guarda los cambios pendientes antes de eliminar, así "Deshacer" recupera la última versión.

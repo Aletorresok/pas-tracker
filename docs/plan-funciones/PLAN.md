@@ -37,8 +37,8 @@ docs/plan-funciones/
 
 | Fase | Qué | SQL | Sesiones | Estado |
 |---|---|---|:-:|---|
-| 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (falta que confirmes SQL 26/27) |
-| 1 | Auditoría de cambios | 31 | ½–1 | [ ] |
+| 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (SQL 26 y 27 confirmados) |
+| 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (falta correr el SQL 31) |
 | 2 | Motor de escritos con modelos | 32 | 2 | [ ] |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [ ] |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [ ] |
@@ -82,6 +82,8 @@ select to_regclass('public.pas_papelera') is not null as sql26_papelera,
 - `caso/SeccionTimeline.jsx` y la Bitácora del expediente: segmentado **"Movimientos · Cambios de datos"**. Cada cambio: fecha y hora, quién (Vos / PAS / Sistema), "Monto ofrecido: $ 1.200.000 → $ 1.500.000" y botón **"Volver a este valor"** (hace el update puntual; queda auditado también).
 
 **Listo cuando:** cambiar un monto en la ficha lo muestra en "Cambios de datos" y "Volver a este valor" lo restaura.
+
+**Hecho (29/09):** `sql/2026-09-29_31_auditoria.sql`, `utils/auditoria.js`, `caso/CambiosDatos.jsx`, segmentado en `SeccionTimeline.jsx`, conectado en la ficha del caso y del expediente. "Volver a este valor" pasa por el formulario de la ficha (no escribe directo en la base) para que el autoguardado no lo pise. Pendiente para más adelante: mostrar también los cambios de las tablas hijas (plazos, eventos, ofertas) dentro de la ficha.
 
 ---
 
