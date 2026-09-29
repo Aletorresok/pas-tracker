@@ -8,6 +8,7 @@ import Logo from "./ui/Logo.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
+  { k: "rutina", l: "Rutina", icon: "rutina" },
   { k: "casos", l: "Casos PAS", icon: "casos" },
   { k: "expedientes", l: "Expedientes", icon: "balanza" },
   { k: "prospeccion", l: "Contactos", icon: "telefono" },

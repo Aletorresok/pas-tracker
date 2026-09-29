@@ -131,7 +131,7 @@ input:focus, select:focus, textarea:focus {
     padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
   }
   .aviso-deshacer { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
-  .carta-cuerpo[style] { grid-template-columns: minmax(0, 1fr) !important; }
+  .carta-cuerpo[style], .rutina-hoy[style] { grid-template-columns: minmax(0, 1fr) !important; }
   .carta-cuerpo[style] > div:last-child { position: static !important; }
   .estampas-cuerpo[style], .escaner-cuerpo[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 10px !important; }
   /* Grillas que en compu son de varias columnas pasan a una o dos */
