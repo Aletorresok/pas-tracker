@@ -96,6 +96,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-29 — "Olvidé mi contraseña" en el portal; copia de seguridad con las tablas de ATG Lex
+*   El usuario corrió los **SQL 28 y 29** y configuró la URL del portal en Supabase (Authentication → URL Configuration).
+*   **Portal → Ingreso → "Olvidé mi contraseña":** pide el mail y manda el link de Supabase (`resetPasswordForEmail`, vuelve a `/portal?recuperar=1`). Al volver, el portal abre **"Elegí una contraseña nueva"** (`CambiarPasswordModal` con `recuperacion`, sin Cancelar; se detecta por el evento `PASSWORD_RECOVERY`, `#type=recovery` o `?recuperar=1`). Link vencido o ya usado: el ingreso lo avisa. La ayuda por WhatsApp queda para "no tenés acceso o no te llega el mail".
+*   **Copia de seguridad completa:** suma `expedientes`, `plazos`, `dias_inhabiles`, `rutina_items`, `rutina_registro`, `dias_escuela`, `objetivos`, `pas_papelera`, `indices`, `modelos_carta`, `pas_ajustes` y `gastos`. Una tabla que todavía no existe se saltea (queda en `tablas_sin_crear` dentro del archivo) en vez de hacer fallar toda la copia.
+*   Probado en Chromium: pedir el link, mensaje de enviado, link vencido.
+
 ### 2026-09-28 — Avisos de ofrecimiento y cobro al cliente y al PAS; recordatorio único a PAS interesados
 *   **Avisos:** al pasar a "Con ofrecimiento" o "Esperando pago" ya se proponía el WhatsApp al cliente; ahora, después de mandarlo, aparece **"Avisarle también al PAS →"** (misma caja, plantilla "Novedad del caso"). En Hoy → Para hacer, **"Fecha de pago"**: casos en Esperando pago cuya fecha estimada (firma + plazo) es mañana, hoy o ya pasó, sin la indemnización tildada: "confirmalo y avisale al cliente y al PAS".
 *   **PAS interesados** (pregunta 16, aceptada a prueba): "Registrar contacto" suma **"Interesado"** (queda en Contactados, se guarda como resultado `interesado` en `pas_historial`, sin SQL). A los 30 días sin derivar aparece en **Contactos → "Para recordar"** con **"Mandar recordatorio"** (WhatsApp con un texto útil, `mensajes.textoRecordatorio`) o "No mandar"; cualquiera de los dos lo saca de la lista (resultado `recordatorio_interesado`) y no vuelve a aparecer. Arriba de la lista: "De N recordatorios enviados, M derivaron", para decidir si sirve. Filtro **"Interesados"** en Contactos. En Hoy → Prospección del día, cuántos hay para recordar.
