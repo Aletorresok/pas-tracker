@@ -350,3 +350,20 @@ create table public.calendario_tokens (
 -- acciones (sql/2026-09-29_35): + visible_cliente boolean not null default false, + texto_cliente text (cómo lo lee el cliente).
 -- Funciones (anon): movimientos_cliente(patente, dni, caso_id) → novedades del caso; consultar_expediente_cliente(dni, codigo)
 -- → vista del cliente de un expediente visible. La política pas_ve_movimientos (SQL 06) sigue igual.
+
+-- gastos (sql/2026-09-29_36): + recuperable boolean not null default false, + recuperar_de text (cliente | compania | costas), + recuperado_en date.
+-- Vista resultado_casos (security_invoker): honorarios, comision_pas, gastos, gastos_por_recuperar, neto y dias_hasta_cobro por caso.
+create table public.liquidaciones (
+  id             uuid primary key default gen_random_uuid(),
+  caso_id        uuid,                       -- pas_casos.id (cascade); o
+  expediente_id  uuid,                       -- expedientes.id (cascade)
+  titulo         text not null default 'Liquidación',
+  capital        numeric not null,
+  desde          date not null,
+  hasta          date not null,
+  metodo         text not null,              -- clave de utils/intereses.js (METODOS)
+  resultado      numeric not null,
+  detalle        jsonb not null default '{}'::jsonb,
+  texto          text not null,              -- el "Copiar texto" de la calculadora; lo usa {{liquidacion}}
+  created_at     timestamp with time zone not null default now()
+);

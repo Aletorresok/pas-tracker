@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fmtMoney, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
-import { CATEGORIAS_GASTO, categoria, gastosDelMes, guardarGasto, borrarGasto } from "../../utils/finanzas.js";
+import { CATEGORIAS_GASTO, categoria, gastosDelMes, guardarGasto, borrarGasto, hayRecuperables, RECUPERAR_DE, recuperarDe } from "../../utils/finanzas.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
 import { nombreMes } from "./ResumenMes.jsx";
@@ -15,6 +15,8 @@ const etiquetaCaso = c => `${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.
 export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
   const [form, setForm] = useState(null);
   const [guardando, setGuardando] = useState(false);
+  const [conRecuperables, setConRecuperables] = useState(false); // SQL 36
+  useEffect(() => { hayRecuperables().then(setConRecuperables); }, []);
   const delMes = gastosDelMes(gastos, mes).sort((a, b) => (a.recurrente === b.recurrente ? String(b.fecha).localeCompare(String(a.fecha)) : a.recurrente ? -1 : 1));
   const total = delMes.reduce((s, g) => s + (Number(g.monto) || 0), 0);
   const porId = useMemo(() => Object.fromEntries(allCasos.map(c => [c.id, c])), [allCasos]);
@@ -34,7 +36,9 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
     if (!form.fecha) return setToast({ msg: "Poné la fecha", type: "error" });
     if (form.recurrente && form.hasta && form.hasta < form.fecha) return setToast({ msg: "El \"hasta\" tiene que ser después de la fecha", type: "error" });
     setGuardando(true);
-    const ok = await guardarGasto({ ...form, monto: Number(form.monto), descripcion: form.descripcion.trim(), hasta: form.recurrente ? form.hasta : "", caso_id: form.caso_id || null });
+    const { recuperable, recuperar_de, recuperado_en, ...resto } = form;
+    const recup = conRecuperables ? { recuperable: !!recuperable, recuperar_de: recuperable ? recuperar_de || "cliente" : null, recuperado_en: recuperable ? recuperado_en || null : null } : {};
+    const ok = await guardarGasto({ ...resto, ...recup, monto: Number(form.monto), descripcion: form.descripcion.trim(), hasta: form.recurrente ? form.hasta : "", caso_id: form.caso_id || null });
     setGuardando(false);
     if (!ok) return setToast({ msg: "No se pudo guardar el gasto", type: "error" });
     setForm(null);
@@ -66,6 +70,11 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
               <span style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>
                 {[categoria(g.categoria).l, g.recurrente ? `todos los meses${g.hasta ? ` hasta ${nombreMes(g.hasta.slice(0, 7)).toLowerCase()}` : ""}` : fmtDate(g.fecha), c && `caso ${c.asegurado || ""}`].filter(Boolean).join(" · ")}
               </span>
+              {g.recuperable && (
+                <span style={{ display: "inline-block", marginTop: 3, fontSize: 11.5, fontWeight: 600, padding: "1px 8px", borderRadius: "var(--r-pill)", background: `color-mix(in srgb, ${g.recuperado_en ? "var(--ok)" : "var(--warn)"} 14%, transparent)`, color: g.recuperado_en ? "var(--ok)" : "var(--warn)" }}>
+                  {g.recuperado_en ? `Recuperado ${fmtDate(g.recuperado_en)}` : `Se recupera ${recuperarDe(g.recuperar_de).toLowerCase()}`}
+                </span>
+              )}
             </span>
             <b className="num" style={{ fontSize: 14, whiteSpace: "nowrap" }}>{fmtMoney(Number(g.monto))}</b>
           </button>
@@ -105,6 +114,22 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
               <datalist id="casos-gasto">{opcionesCaso.map(c => <option key={c.id} value={etiquetaCaso(c)} />)}</datalist>
               {form.casoTexto && !form.caso_id && <span style={{ fontSize: 12, color: "var(--warn)" }}>Elegí un caso de la lista (o dejalo vacío).</span>}
             </label>
+            {conRecuperables && <>
+              <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, color: "var(--sub)" }}>
+                <input type="checkbox" checked={!!form.recuperable} onChange={e => setForm(f => ({ ...f, recuperable: e.target.checked }))} style={{ accentColor: "var(--accent)" }} />
+                Se recupera (lo paga otro después)
+              </label>
+              {form.recuperable ? (
+                <select value={form.recuperar_de || "cliente"} onChange={e => setForm(f => ({ ...f, recuperar_de: e.target.value }))} style={campo} aria-label="De quién se recupera">
+                  {RECUPERAR_DE.map(x => <option key={x.k} value={x.k}>{x.l}</option>)}
+                </select>
+              ) : <span />}
+              {form.recuperable && (
+                <label style={{ gridColumn: "1 / -1" }}><span style={etiqueta}>Recuperado el (vacío = todavía no)</span>
+                  <input type="date" value={form.recuperado_en || ""} onChange={e => setForm(f => ({ ...f, recuperado_en: e.target.value }))} style={campo} />
+                </label>
+              )}
+            </>}
             <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", gridColumn: "1 / -1", marginTop: 4 }}>
               {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
               <span style={{ display: "flex", gap: 8 }}>

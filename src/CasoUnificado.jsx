@@ -10,6 +10,7 @@ import SeccionMontos from "./components/caso/SeccionMontos.jsx";
 import HistorialOfertas from "./components/caso/HistorialOfertas.jsx";
 import SeccionPagos from "./components/caso/SeccionPagos.jsx";
 import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
+import ResultadoCaso from "./components/caso/ResultadoCaso.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
@@ -364,6 +365,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
               <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
               <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+              {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
             </div>
             <div {...panel("documentos")}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>

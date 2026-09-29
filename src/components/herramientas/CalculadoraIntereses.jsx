@@ -4,6 +4,8 @@ import { SERIES, cargarSerie, guardarSerie, borrarDato, leerPegado, leerNumero, 
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { useEsCelular } from "../../hooks/useEsCelular.js";
 import Boton from "../ui/Boton.jsx";
+import { guardarLiquidacion } from "../../utils/finanzas.js";
+import { cargarExpedientes } from "../../utils/expedientes.js";
 
 const pesos = n => `$ ${Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const coef = n => Number(n).toLocaleString("es-AR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
@@ -22,6 +24,61 @@ function textoParaCopiar(m, r, capital, desde, hasta) {
   const hastaTxt = r.parcial ? `${dma(hasta)} (último índice publicado: ${m.serie === "ipc" ? mesAnio(r.hastaDato) : dma(r.hastaDato)})` : dma(hasta);
   const act = `${base} Actualizado por ${m.serie === "ipc" ? "IPC (INDEC)" : "ICL (BCRA)"} al ${hastaTxt}: coeficiente ${coef(r.factor)}, ${pesos(capital * r.factor)}.`;
   return m.k === "ipc3" ? `${act} Más interés puro del 3% anual sobre el capital actualizado (${r.dias} días): ${pesos(r.interes)}. Total: ${pesos(r.total)}.` : act;
+}
+
+// Guardar un resultado en un caso o expediente (SQL 36) para usarlo en los escritos con {{liquidacion}}
+function GuardarEnCaso({ resultados, capital, desde, hasta, allCasos }) {
+  const validos = resultados.filter(x => !x.r.error);
+  const [metodo, setMetodo] = useState(validos[0]?.m.k || "");
+  const [texto, setTexto] = useState("");
+  const [expedientes, setExpedientes] = useState([]);
+  const [aviso, setAviso] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  useEffect(() => { cargarExpedientes().then(e => setExpedientes(e || [])).catch(() => {}); }, []);
+  useEffect(() => { if (!validos.some(x => x.m.k === metodo) && validos[0]) setMetodo(validos[0].m.k); }, [validos, metodo]);
+
+  const opciones = useMemo(() => [
+    ...allCasos.map(c => ({ tipo: "caso", id: c.id, l: `Caso: ${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}` })),
+    ...expedientes.map(e => ({ tipo: "expediente", id: e.id, l: `Expediente: ${e.caratula}` })),
+  ].sort((a, b) => a.l.localeCompare(b.l)), [allCasos, expedientes]);
+  const elegido = opciones.find(o => o.l === texto);
+  const sel = validos.find(x => x.m.k === metodo);
+  if (!validos.length) return null;
+
+  const guardar = async () => {
+    if (!elegido || !sel) return;
+    setGuardando(true); setAviso(null);
+    const { m, r } = sel;
+    const { error } = await guardarLiquidacion({
+      [elegido.tipo === "caso" ? "caso_id" : "expediente_id"]: elegido.id,
+      titulo: `${m.l} al ${dma(hasta)}`, capital, desde, hasta, metodo: m.k, resultado: Math.round(r.total * 100) / 100,
+      detalle: { coeficiente: r.factor ?? null, actualizacion: r.actualizacion ?? null, interes: r.interes ?? null, dias: r.dias ?? null, parcial: !!r.parcial, hasta_dato: r.hastaDato ?? null },
+      texto: textoParaCopiar(m, r, capital, desde, hasta),
+    });
+    setGuardando(false);
+    setAviso(error ? { error: /liquidaciones/.test(error) ? "Falta correr el SQL 36 (liquidaciones) en Supabase." : `No se pudo guardar: ${error}` }
+      : { ok: `Guardada en ${elegido.l.replace(/^(Caso|Expediente): /, "")}. En "Generar escrito" se usa con {{liquidacion}}.` });
+  };
+
+  return (
+    <div style={{ ...tarjeta, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 12, alignItems: "end" }}>
+      <div style={{ gridColumn: "1 / -1", fontSize: 14, fontWeight: 700 }}>Guardar en un caso o expediente</div>
+      <label><span style={etiqueta}>Método</span>
+        <select value={metodo} onChange={e => setMetodo(e.target.value)} style={campo}>
+          {validos.map(({ m, r }) => <option key={m.k} value={m.k}>{m.l} · {pesos(r.total)}</option>)}
+        </select>
+      </label>
+      <label><span style={etiqueta}>Caso o expediente</span>
+        <input id="liq-destino" value={texto} onChange={e => { setTexto(e.target.value); setAviso(null); }} list="liq-destinos" placeholder="Escribí el asegurado, la patente o la carátula" style={campo} />
+        <datalist id="liq-destinos">{opciones.map(o => <option key={`${o.tipo}-${o.id}`} value={o.l} />)}</datalist>
+      </label>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <Boton variante="primario" onClick={guardar} disabled={!elegido || guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
+      </div>
+      {texto && !elegido && <div style={{ gridColumn: "1 / -1", fontSize: 12, color: "var(--warn)" }}>Elegí uno de la lista.</div>}
+      {aviso && <div role="status" style={{ gridColumn: "1 / -1", fontSize: 13, color: aviso.error ? "var(--bad)" : "var(--ok)" }}>{aviso.error || aviso.ok}</div>}
+    </div>
+  );
 }
 
 function Detalle({ m, r }) {
@@ -122,7 +179,7 @@ function PanelSerie({ serie, filas, onCambio }) {
 }
 
 // Actualización de montos e intereses: compara tasa activa BNA, IPC, IPC + 3% e ICL para el mismo capital y período.
-export default function CalculadoraIntereses() {
+export default function CalculadoraIntereses({ allCasos = [] }) {
   const esCelular = useEsCelular();
   const [series, setSeries] = useState({ ipc: null, icl: null, tasa_activa_bna: null });
   const [errorSeries, setErrorSeries] = useState("");
@@ -235,6 +292,7 @@ export default function CalculadoraIntereses() {
           </table>
         </div>
       )}
+      {listo && <GuardarEnCaso resultados={resultados} capital={monto} desde={desde} hasta={hasta} allCasos={allCasos} />}
       {listo && <div style={{ fontSize: 12, color: "var(--muted)" }}>Tasa activa BNA: interés simple con la tasa vigente cada día. IPC: relación entre los índices del mes inicial y el final. IPC + 3%: además, 3% anual puro sobre el capital actualizado. ICL: relación entre los valores diarios.</div>}
 
       <div style={tarjeta}>

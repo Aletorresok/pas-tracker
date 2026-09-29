@@ -1,7 +1,7 @@
 # Plan de acción: funciones nuevas de ATG Lex
 
 > Fecha: 2026-09-29 · Análisis y fundamentos: [`ANALISIS.md`](ANALISIS.md) · Presentación: [`presentacion.html`](presentacion.html)
-> Estado: **EN CURSO** (fases 0 a 5 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
+> Estado: **EN CURSO** (fases 0 a 6 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
 
 ## Cómo retomar en la próxima sesión
 
@@ -23,7 +23,7 @@ docs/plan-funciones/
     (33 ya está en sql/: 2026-09-29_33)
     (34 ya está en sql/: 2026-09-29_34; la función en supabase/functions/calendario)
     (35 ya está en sql/: 2026-09-29_35)
-    36_finanzas_caso.sql           — fase 6 (gastos a recuperar, resultado por caso, liquidaciones)
+    (36 ya está en sql/: 2026-09-29_36)
     37_novedades_judiciales.sql    — fase 7, opcional (bandeja PJN/MEV manual)
     38_indice_documentos.sql       — fase 7, opcional (búsqueda en el texto de los documentos)
   codigo/
@@ -40,7 +40,7 @@ docs/plan-funciones/
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [x] 29/09 (falta correr el SQL 33 y redesplegar notificar) |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [x] 29/09 (falta correr el SQL 34 y desplegar calendario sin JWT) |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [x] 29/09 (falta correr el SQL 35) |
-| 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [ ] |
+| 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [x] 29/09 (falta correr el SQL 36) |
 | 7 | Opcionales: bandeja de novedades judiciales, búsqueda en documentos | 37, 38 | 1–2 c/u | [ ] |
 
 ---
@@ -229,6 +229,8 @@ y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resu
 - Opcional: cron mensual que actualiza IPC e ICL (misma lógica que `utils/indices.js`, en una Edge Function).
 
 **Listo cuando:** un caso cobrado muestra su neto, y la "Nota al cliente con la liquidación" sale con la tabla de la calculadora.
+
+**Hecho (29/09):** con un cambio: la rentabilidad por compañía y por PAS quedó en **Finanzas → Rentabilidad** (ahí ya se cargan los gastos) en lugar de columnas en Análisis. La liquidación entra al escrito como el texto de la calculadora (no como tabla). Quedó afuera el cron mensual de IPC/ICL.
 
 ---
 

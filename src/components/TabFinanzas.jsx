@@ -7,6 +7,7 @@ import { fechaLocalISO } from "../utils/formatters.js";
 import ResumenMes, { nombreMes } from "./finanzas/ResumenMes.jsx";
 import Gastos from "./finanzas/Gastos.jsx";
 import Facturacion from "./finanzas/Facturacion.jsx";
+import Rentabilidad from "./finanzas/Rentabilidad.jsx";
 import AnalisisCaja from "./analisis/AnalisisCaja.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import Toast from "./caso/Toast.jsx";
@@ -16,6 +17,7 @@ const VISTAS = [
   { k: "mes", l: "Mes" },
   { k: "facturacion", l: "Facturación" },
   { k: "caja", l: "Flujo de caja" },
+  { k: "rentabilidad", l: "Rentabilidad" },
 ];
 
 const moverMes = (mes, n) => { const d = new Date(`${mes}-15T12:00:00`); d.setMonth(d.getMonth() + n); return fechaLocalISO(d).slice(0, 7); };
@@ -78,6 +80,7 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
         </>
       )}
       {vista === "facturacion" && <Facturacion allCasos={allCasos} gastos={gastos || []} conNumero={conNumero} onCasoLocal={onCasoLocal} onAbrirCaso={abrirCaso} setToast={setToast} />}
+      {vista === "rentabilidad" && <Rentabilidad allCasos={allCasos} gastos={gastos || []} onAbrirCaso={abrirCaso} />}
       {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={c => abrirCaso(c)} companias={companias} comisiones={comisiones} />}
 
       {abierto && (

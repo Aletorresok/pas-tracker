@@ -25,7 +25,45 @@ export async function cargarGastos() {
   return data || [];
 }
 
-const CAMPOS = ["fecha", "categoria", "descripcion", "monto", "recurrente", "hasta", "caso_id", "expediente_id"];
+// recuperable, recuperar_de y recuperado_en son del SQL 36: solo se mandan si vienen en el gasto
+const CAMPOS = ["fecha", "categoria", "descripcion", "monto", "recurrente", "hasta", "caso_id", "expediente_id", "recuperable", "recuperar_de", "recuperado_en"];
+
+// Gastos a recuperar (SQL 36): a quién se le cobra el gasto después
+export const RECUPERAR_DE = [
+  { k: "cliente", l: "Al cliente" },
+  { k: "compania", l: "A la compañía" },
+  { k: "costas", l: "En costas" },
+];
+export const recuperarDe = k => RECUPERAR_DE.find(r => r.k === k)?.l || "";
+
+// ¿Está corrido el SQL 36? (una consulta por sesión)
+let soporte36 = null;
+export function hayRecuperables() {
+  if (!soporte36) soporte36 = supabase.from("gastos").select("recuperable").limit(1).then(({ error }) => !error);
+  return soporte36;
+}
+
+// Gastos de un caso PAS o de un expediente. null si falla o falta la tabla.
+export async function cargarGastosDe({ casoId, expedienteId }) {
+  if (!casoId && !expedienteId) return [];
+  const q = supabase.from("gastos").select("*").order("fecha", { ascending: false });
+  const { data, error } = await (casoId ? q.eq("caso_id", casoId) : q.eq("expediente_id", expedienteId));
+  if (error) { console.warn("[gastos] del caso:", error.message); return null; }
+  return data || [];
+}
+
+// Resultado de un caso: honorarios − comisión del PAS − gastos + lo ya recuperado
+export function resultadoDeCaso(caso, gastos = []) {
+  const honorarios = num(caso.monto_cobro_yo || caso.monto_honorarios);
+  const comision = num(caso.monto_comision_pas);
+  const total = gastos.reduce((s, g) => s + num(g.monto), 0);
+  const porRecuperar = gastos.filter(g => g.recuperable && !g.recuperado_en).reduce((s, g) => s + num(g.monto), 0);
+  const recuperado = gastos.filter(g => g.recuperable && g.recuperado_en).reduce((s, g) => s + num(g.monto), 0);
+  const dias = caso.fecha_derivacion && caso.fecha_cobro_honorarios
+    ? Math.round((new Date(String(caso.fecha_cobro_honorarios).slice(0, 10)) - new Date(String(caso.fecha_derivacion).slice(0, 10))) / 86400000) : null;
+  return { honorarios, comision, gastos: total, porRecuperar, recuperado, neto: honorarios - comision - total + recuperado, dias };
+}
+
 export async function guardarGasto(g) {
   const fila = Object.fromEntries(CAMPOS.filter(k => k in g).map(k => [k, g[k] === "" || g[k] === undefined ? null : g[k]]));
   const q = g.id ? supabase.from("gastos").update(fila).eq("id", g.id) : supabase.from("gastos").insert(fila);
@@ -90,6 +128,22 @@ export function facturacion(allCasos) {
     facturadoSinCobrar: con.filter(c => c.fecha_factura && !honorariosCobrados(c)).sort((a, b) => String(a.fecha_factura).localeCompare(String(b.fecha_factura))),
     cobrados: con.filter(honorariosCobrados).sort(orden),
   };
+}
+
+// ── Liquidaciones (SQL 36) ────────────────────────────────────────────────────
+// Resultado de la calculadora de intereses guardado en un caso o expediente, para usarlo en los escritos
+export async function cargarLiquidaciones({ casoId, expedienteId }) {
+  if (!casoId && !expedienteId) return [];
+  const q = supabase.from("liquidaciones").select("*").order("created_at", { ascending: false });
+  const { data, error } = await (casoId ? q.eq("caso_id", casoId) : q.eq("expediente_id", expedienteId));
+  if (error) { console.warn("[liquidaciones] cargar:", error.message); return null; }
+  return data || [];
+}
+
+export async function guardarLiquidacion(l) {
+  const { data, error } = await supabase.from("liquidaciones").insert(l).select().single();
+  if (error) { console.error("[liquidaciones] guardar:", error.message); return { error: error.message }; }
+  return { data };
 }
 
 // Gastos cargados a cada caso: Map caso_id → total

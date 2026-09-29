@@ -9,6 +9,7 @@ import { cargarCompania } from "../../utils/ofertas.js";
 import { faltantes as faltantesCompania } from "../../utils/companias.js";
 import { abrirCompania } from "../../utils/companiaAbierta.js";
 import { registrarAccion } from "../../utils/storage.js";
+import { cargarLiquidaciones } from "../../utils/finanzas.js";
 import { elegirDestino, escribirEn } from "../../utils/pdfEditor.js";
 import { nombreArchivo, armarEscritoPDF } from "../../utils/escritoPDF.js";
 import { suscribirEscritos, escritosAbierto, cerrarEscritos } from "../../utils/escritoAbierto.js";
@@ -63,10 +64,13 @@ export default function ModalEscritos({ caso = null, expediente = null, dirHandl
   const [textoEditado, setTextoEditado] = useState(null); // null = sale del modelo
   const [trabajando, setTrabajando] = useState(false);
   const [aviso, setAviso] = useState(null); // { ok } | { error }
+  const [liquidaciones, setLiquidaciones] = useState([]); // de la calculadora de intereses (SQL 36)
+  const [liqId, setLiqId] = useState("");
 
   useEffect(() => {
     cargarModelos({ soloActivos: true }).then(ms => setModelos(ms && ms.filter(m => modeloSirvePara(m, ambito))));
     cargarEstudio().then(setEstudio);
+    cargarLiquidaciones({ casoId: expediente ? null : caso?.id, expedienteId: expediente?.id }).then(ls => { setLiquidaciones(ls || []); if (ls?.length) setLiqId(ls[0].id); });
     if (caso?.compania_aseguradora) cargarCompania(caso.compania_aseguradora).then(c => setCompania(c || {}));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -79,16 +83,18 @@ export default function ModalEscritos({ caso = null, expediente = null, dirHandl
   const modelo = modelos?.find(m => m.id === elegido) || null;
   const preguntas = useMemo(() => (modelo ? preguntasDe(modelo.cuerpo) : []), [modelo]);
   const usaDocumental = !!modelo?.cuerpo.includes("{{documental}}");
+  const usaLiquidacion = !!modelo?.cuerpo.includes("{{liquidacion");
+  const liquidacion = liquidaciones.find(l => l.id === liqId) || null;
 
   const variables = useMemo(() => {
     const documental = [...DOCUMENTAL_FIJA, ...DOCUMENTAL_OPCIONAL.filter(d => opcionales[d.k]).map(d => d.l)];
-    const v = variablesDe({ caso, expediente, compania: compania && Object.keys(compania).length ? compania : null, estudio, documental });
+    const v = variablesDe({ caso, expediente, compania: compania && Object.keys(compania).length ? compania : null, estudio, documental, liquidacion });
     Object.entries(aMano).forEach(([k, val]) => {
       if (!String(val).trim()) return;
       v[k] = k === "dni" ? formatearDni(val) : k === "patente" ? val.trim().toUpperCase() : val.trim();
     });
     return v;
-  }, [caso, expediente, compania, estudio, opcionales, aMano]);
+  }, [caso, expediente, compania, estudio, opcionales, aMano, liquidacion]);
 
   const resultado = useMemo(() => (modelo ? completar(modelo.cuerpo, variables, respuestas, preguntas) : { texto: "", faltantes: [] }), [modelo, variables, respuestas, preguntas]);
   const texto = textoEditado ?? resultado.texto;
@@ -206,9 +212,19 @@ export default function ModalEscritos({ caso = null, expediente = null, dirHandl
                     </div>
                   </section>
 
-                  {modelo && (preguntas.length > 0 || usaDocumental) && (
+                  {modelo && (preguntas.length > 0 || usaDocumental || usaLiquidacion) && (
                     <section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 10, minWidth: 0 }}>
                       <h3 style={titulo}>2 · Completar</h3>
+                      {usaLiquidacion && (liquidaciones.length > 0 ? (
+                        <label htmlFor="liq-escrito">
+                          <span style={etiqueta}>Liquidación a usar</span>
+                          <select id="liq-escrito" value={liqId} onChange={e => { setLiqId(e.target.value); setTextoEditado(null); }} style={campo}>
+                            {liquidaciones.map(l => <option key={l.id} value={l.id}>{l.titulo} · {Number(l.resultado).toLocaleString("es-AR", { style: "currency", currency: "ARS" })}</option>)}
+                          </select>
+                        </label>
+                      ) : (
+                        <div style={{ fontSize: 13, color: "var(--sub)" }}>Este modelo usa una liquidación y {expediente ? "el expediente" : "el caso"} no tiene ninguna guardada. Hacela en Herramientas → Intereses y actualización → "Guardar en un caso o expediente".</div>
+                      ))}
                       {preguntas.map(p => (
                         <label key={p.clave} htmlFor={`preg-${p.clave}`}>
                           <span style={etiqueta}>{p.etiqueta}</span>
