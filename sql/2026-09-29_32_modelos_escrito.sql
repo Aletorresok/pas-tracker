@@ -1,5 +1,5 @@
--- SQL 32 · Modelos de escritos con variables (BORRADOR del plan de funciones, 2026-09-29).
--- Al implementarlo: copiar a sql/AAAA-MM-DD_32_modelos_escrito.sql. Se puede volver a correr sin problema.
+-- SQL 32 · Modelos de escritos con variables (2026-09-29, fase 2 del plan de funciones).
+-- Se puede volver a correr sin problema (no pisa los modelos que hayas editado). Se usan desde "Generar escrito" y Herramientas → Modelos.
 --
 -- 1) modelos_escrito: plantillas propias (reclamo, reiteración, aceptación, intimación, mediación, judiciales...).
 --    Sintaxis del cuerpo (la interpreta src/utils/plantillas.js):

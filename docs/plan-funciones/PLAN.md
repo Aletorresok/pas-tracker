@@ -27,8 +27,7 @@ docs/plan-funciones/
     37_novedades_judiciales.sql    — fase 7, opcional (bandeja PJN/MEV manual)
     38_indice_documentos.sql       — fase 7, opcional (búsqueda en el texto de los documentos)
   codigo/
-    plantillas.js                  — motor de escritos (funciones puras) → src/utils/plantillas.js
-    plantillas.test.mjs            — pruebas: node docs/plan-funciones/codigo/plantillas.test.mjs
+    plantillas.test.mjs            — pruebas del motor (src/utils/plantillas.js): node docs/plan-funciones/codigo/plantillas.test.mjs
   funciones/
     calendario.ts                  — Edge Function del feed .ics → supabase/functions/calendario/index.ts
 ```
@@ -38,8 +37,8 @@ docs/plan-funciones/
 | Fase | Qué | SQL | Sesiones | Estado |
 |---|---|---|:-:|---|
 | 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (SQL 26 y 27 confirmados) |
-| 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (falta correr el SQL 31) |
-| 2 | Motor de escritos con modelos | 32 | 2 | [ ] |
+| 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (SQL 31 corrido) |
+| 2 | Motor de escritos con modelos | 32 | 2 | [x] 29/09 (falta correr el SQL 32) |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [ ] |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [ ] |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [ ] |
@@ -141,6 +140,8 @@ src/components/herramientas/Modelos.jsx — editor: lista, título, categoría, 
 
 **Pruebas:** `plantillas.test.mjs` + generar los 9 modelos con un caso completo y uno vacío, PDF y Word, en compu y celular.
 **Listo cuando:** desde un caso se genera "Aceptación de ofrecimiento" con el monto preguntado en letras, se guarda en la carpeta y aparece en la Bitácora.
+
+**Hecho (29/09):** como está planeado, con estos cambios: el modal se abre desde cualquier lado con `abrirEscritos()` (`utils/escritoAbierto.js` + `EscritosHost`), igual que la ficha de compañía; sin carpeta vinculada guarda con el explorador; los faltantes simples (DNI, patente, siniestro, fecha) se completan en el modal; cada Enter es un renglón y la línea en blanco separa párrafos; un `{{#si}}` vacío saca su renglón; las cartas a la compañía llevan fecha y destinatario; el reclamo base firma "cliente" (Firma / Aclaración / DNI, como siempre). El motor quedó en `src/utils/plantillas.js` (el borrador de `codigo/` se borró; las pruebas siguen en `codigo/plantillas.test.mjs`).
 
 ---
 

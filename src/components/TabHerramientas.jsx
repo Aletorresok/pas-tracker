@@ -40,6 +40,13 @@ const HERRAMIENTAS = [
     Componente: lazy(() => import("./herramientas/CartaDocumento.jsx")),
   },
   {
+    k: "modelos",
+    titulo: "Modelos de escritos",
+    desc: "Los textos que usa \"Generar escrito\": reclamo, pedido de respuesta, aceptación, intimación y los tuyos, con los datos del caso.",
+    icono: "escrito",
+    Componente: lazy(() => import("./herramientas/Modelos.jsx")),
+  },
+  {
     k: "misdatos",
     titulo: "Mis datos",
     desc: "Nombre, matrículas, CUIT y domicilio constituido que salen en los escritos.",

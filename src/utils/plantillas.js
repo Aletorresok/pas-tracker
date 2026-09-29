@@ -1,5 +1,5 @@
-// BORRADOR (plan de funciones, 2026-09-29) — al implementarlo va a src/utils/plantillas.js.
-// Motor de modelos de escritos: funciones puras (sin React ni Supabase), probadas con plantillas.test.mjs.
+// Motor de modelos de escritos (tabla modelos_escrito, SQL 32): funciones puras, sin React ni Supabase.
+// Pruebas: node docs/plan-funciones/codigo/plantillas.test.mjs
 //
 // Sintaxis del cuerpo de un modelo (tabla modelos_escrito, SQL 32):
 //   {{campo}} / {{compania.cuit}}              → valor; si falta queda "[campo]" resaltado para completarlo a mano
@@ -7,6 +7,8 @@
 //                                                disponible como {{clave}} y, si es monto, {{clave_letras}}
 //   {{#si campo}} ... {{/si}}                  → el bloque sale solo si el campo tiene valor (se pueden anidar)
 //   # Título · **negrita** · "1. ítem"         → formato mínimo que entienden el PDF y el Word
+
+import { primerNombre } from "./formatters.js";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const dos = n => String(n).padStart(2, "0");
@@ -123,13 +125,6 @@ export function variablesDe({ caso = null, expediente = null, compania = null, e
   return plano;
 }
 
-// Misma regla que formatters.primerNombre: "APELLIDO NOMBRE" → "Nombre" (al implementarlo, importarla de ahí)
-export function primerNombre(nombre) {
-  const partes = String(nombre || "").trim().split(/\s+/).filter(Boolean);
-  const raw = partes.length >= 2 ? partes[1] : partes[0] || "";
-  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
-}
-
 export function formatearDni(dni) {
   const d = String(dni || "").replace(/\D/g, "");
   return d.length === 7 || d.length === 8 ? d.replace(/\B(?=(\d{3})+$)/g, ".") : String(dni || "").trim();
@@ -163,11 +158,13 @@ export function valoresDeRespuestas(preguntas, respuestas = {}) {
 const tieneValor = x => x !== undefined && x !== null && String(x).trim() !== "";
 
 // Resuelve {{#si}} de adentro hacia afuera
+const VACIO = "\u0000";
 function condicionales(texto, valores) {
   const RE = /\{\{#si\s+([\w.]+)\s*\}\}((?:(?!\{\{#si\s)[\s\S])*?)\{\{\/si\}\}/;
   let t = texto, m;
-  while ((m = t.match(RE))) t = t.replace(m[0], tieneValor(valores[m[1]]) ? m[2] : "");
-  return t;
+  // Un bloque vacío deja una marca, para poder sacar el renglón entero si no quedó nada más en él
+  while ((m = t.match(RE))) { const r = tieneValor(valores[m[1]]) ? m[2] : VACIO; t = t.replace(m[0], () => r); }
+  return t.replace(new RegExp(`^[ \\t]*(?:${VACIO}[ \\t]*)+\\n`, "gm"), "").split(VACIO).join("");
 }
 
 /**
@@ -188,21 +185,24 @@ export function completar(cuerpo, variables = {}, respuestas = {}, preguntas = p
 }
 
 // ── Bloques para el PDF / Word ───────────────────────────────────────────────
-// "# Título" → titulo · "1. algo" → item · línea vacía separa párrafos · **x** → tramos en negrita
+// Como en Word: cada Enter es un renglón nuevo y una línea en blanco separa párrafos.
+// Un bloque de un solo renglón es un párrafo (justificado); un bloque de varios renglones son renglones
+// sueltos (encabezado, destinatario, datos). "# Título" → titulo · "1. algo" → item · **x** → negrita.
 export function bloques(texto) {
   const tramos = linea => linea.split(/(\*\*[^*]+\*\*)/).filter(Boolean)
     .map(p => p.startsWith("**") && p.endsWith("**") ? { t: p.slice(2, -2), negrita: true } : { t: p, negrita: false });
   const out = [];
-  let parrafo = [];
-  const cerrar = () => { if (parrafo.length) { out.push({ tipo: "parrafo", tramos: tramos(parrafo.join(" ")) }); parrafo = []; } };
+  let grupo = [];
+  const cerrar = () => {
+    if (grupo.length) out.push(...grupo.map(g => ({ tipo: grupo.length === 1 ? "parrafo" : "linea", tramos: tramos(g) })));
+    grupo = [];
+  };
   String(texto || "").split("\n").forEach(l => {
     const s = l.trim();
     if (!s) return cerrar();
     if (s.startsWith("# ")) { cerrar(); out.push({ tipo: "titulo", tramos: tramos(s.slice(2)) }); return; }
     if (/^\d+\.\s/.test(s)) { cerrar(); out.push({ tipo: "item", tramos: tramos(s) }); return; }
-    // Renglones cortos de encabezado (destinatario, CUIT, "Ref.:") van cada uno en su línea
-    if (/^(\*\*.*\*\*|CUIT |Domicilio:|Ref\.:)/.test(s)) { cerrar(); out.push({ tipo: "linea", tramos: tramos(s) }); return; }
-    parrafo.push(s);
+    grupo.push(s);
   });
   cerrar();
   return out;

@@ -31,6 +31,7 @@ const TabFinanzas = lazy(() => import('./components/TabFinanzas.jsx'))
 const TabHerramientas = lazy(() => import('./components/TabHerramientas.jsx'))
 const TabCompanias = lazy(() => import('./components/TabCompanias.jsx'))
 const CompaniaHost = lazy(() => import('./components/companias/FichaCompania.jsx').then(m => ({ default: m.CompaniaHost })))
+const EscritosHost = lazy(() => import('./components/escritos/ModalEscritos.jsx').then(m => ({ default: m.EscritosHost })))
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
@@ -322,6 +323,7 @@ function AppPrincipal() {
         onBuscar={() => setBuscando(true)}
       />
 
+      <Suspense fallback={null}><EscritosHost /></Suspense>
       <Suspense fallback={null}><CompaniaHost allCasos={allCasos} onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })} /></Suspense>
       <BuscadorGlobal abierto={buscando} onCerrar={() => setBuscando(false)}
         allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores}

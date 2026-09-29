@@ -281,3 +281,34 @@ create table public.auditoria (
   rol        text        not null default 'sistema',   -- admin | pas | cliente | sistema
   en         timestamp with time zone not null default now()
 );
+
+-- Modelos de escritos (sql/2026-09-29_32). Solo administrador. Sintaxis del cuerpo en src/utils/plantillas.js.
+create table public.modelos_escrito (
+  id          uuid primary key default gen_random_uuid(),
+  clave       text unique,                 -- id estable de los 9 modelos base (no se pueden eliminar, sí editar/desactivar)
+  titulo      text not null,
+  categoria   text not null default 'otro', -- reclamo | seguimiento | acuerdo | intimacion | mediacion | judicial | cliente | otro
+  ambito      text not null default 'caso', -- caso | expediente | ambos
+  cuerpo      text not null default '',
+  firma       text not null default 'estudio', -- cliente | estudio | ambos | ninguna
+  membrete    boolean not null default true,
+  orden       integer not null default 100,
+  activo      boolean not null default true,
+  created_at  timestamp with time zone not null default now(),
+  updated_at  timestamp with time zone not null default now()  -- trigger trg_modelos_updated
+);
+
+-- Historial de escritos generados (sql/2026-09-29_32)
+create table public.escritos_generados (
+  id             uuid primary key default gen_random_uuid(),
+  modelo_id      uuid,                      -- modelos_escrito.id (on delete set null)
+  caso_id        uuid,                      -- pas_casos.id (cascade)
+  expediente_id  uuid,                      -- expedientes.id (cascade)
+  titulo         text not null,
+  cuerpo_final   text not null,
+  respuestas     jsonb not null default '{}'::jsonb,
+  formato        text not null default 'pdf', -- pdf | docx | texto
+  archivo        text,
+  created_at     timestamp with time zone not null default now()
+);
+-- pas_ajustes clave 'estudio': datos del abogado para los escritos (Herramientas → Mis datos).

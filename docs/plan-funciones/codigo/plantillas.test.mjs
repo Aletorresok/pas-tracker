@@ -1,6 +1,6 @@
-// Pruebas del borrador de plantillas.js — correr con:  node docs/plan-funciones/codigo/plantillas.test.mjs
+// Pruebas del motor de escritos (src/utils/plantillas.js) — correr con:  node docs/plan-funciones/codigo/plantillas.test.mjs
 import assert from "node:assert/strict";
-import { enteroALetras, montoALetras, variablesDe, preguntasDe, completar, bloques } from "./plantillas.js";
+import { enteroALetras, montoALetras, variablesDe, preguntasDe, completar, bloques } from "../../../src/utils/plantillas.js";
 
 // Números a letras
 assert.equal(enteroALetras(0), "cero");
@@ -49,12 +49,15 @@ assert.ok(r.texto.includes("Dominio AB123CD."), r.texto);        // condicional 
 assert.deepEqual(r.faltantes, ["estudio.matriculas"]);
 assert.ok(r.texto.includes("[estudio matriculas]"));
 
+// Un condicional vacío que ocupa todo el renglón no deja línea en blanco; "$" literal no se rompe
+assert.equal(completar("**X**\n{{#si cuit}}CUIT {{cuit}}{{/si}}\nDomicilio\n\nPago $& $1 {{#si a}}si{{/si}}fin", {}).texto, "**X**\nDomicilio\n\nPago $& $1 fin");
+
 // Sin respuesta: la pregunta queda marcada como faltante
 assert.deepEqual(completar("Monto {{? m | M | monto}}", {}).faltantes, ["m"]);
 
 // Bloques
-const b = bloques("# RECLAMO\n**SANCOR**\nCUIT 30-1\n\nUno dos\ntres **cuatro**.\n\n1. DNI\n2. Fotos");
-assert.deepEqual(b.map(x => x.tipo), ["titulo", "linea", "linea", "parrafo", "item", "item"]);
+const b = bloques("# RECLAMO\n**SANCOR**\nCUIT 30-1\n\nUno dos tres **cuatro**.\n\n1. DNI\n2. Fotos\n\nSeñores\nCalle 1");
+assert.deepEqual(b.map(x => x.tipo), ["titulo", "linea", "linea", "parrafo", "item", "item", "linea", "linea"]);
 assert.deepEqual(b[3].tramos, [{ t: "Uno dos tres ", negrita: false }, { t: "cuatro", negrita: true }, { t: ".", negrita: false }]);
 
 console.log("plantillas: todas las pruebas pasan");

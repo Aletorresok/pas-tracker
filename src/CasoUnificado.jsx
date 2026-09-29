@@ -14,6 +14,7 @@ import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
+import { abrirEscritos } from "./utils/escritoAbierto.js";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
@@ -301,7 +302,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 </span>
                 {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
-                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
+                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({
+                  caso: { ...caso, ...formData }, pasId, dirHandle: dirHandleRef.current,
+                  onDni: v => handleFormChange("dni_asegurado", v),
+                  onGuardadoEnCarpeta: () => setVersionCarpeta(v => v + 1),
+                  onReclamoViejo: () => setModalEscrito(true),
+                })}>Generar escrito</Boton>
               </div>
             </div>
 

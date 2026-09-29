@@ -6,6 +6,7 @@ import { primerNombre } from "./formatters.js";
 import { abrirCompania } from "./companiaAbierta.js";
 import { cuitValido } from "./companias.js";
 import { linkFicha } from "./enlaces.js";
+import { abrirEscritos } from "./escritoAbierto.js";
 
 export const copiar = texto => navigator.clipboard?.writeText(String(texto)).catch(() => {});
 const abrirLink = url => url && window.open(url, "_blank", "noopener");
@@ -26,6 +27,7 @@ export function itemsCaso(c, { abrir, resumen, eliminar, mover, extra = [] } = {
     abrir && { label: "Abrir ficha", onClick: () => abrir(c) },
     resumen && { label: resumen.label, onClick: resumen.onClick },
     ...extra,
+    c.id && { label: "Generar escrito…", onClick: () => abrirEscritos({ caso: c, pasId: c._pasId ?? c.pas_id }) },
     c.compania_aseguradora && { label: `Ver compañía (${c.compania_aseguradora})`, onClick: () => abrirCompania(c.compania_aseguradora) },
     whatsapp(tel, c.asegurado, "WhatsApp al cliente"),
     clientePuedeEntrar(c) && { label: "Copiar link de la vista del cliente", onClick: () => copiar(linkVistaCliente(c.patente)) },
@@ -44,6 +46,7 @@ export function itemsCaso(c, { abrir, resumen, eliminar, mover, extra = [] } = {
 export function itemsExpediente(e, { abrir, mover } = {}) {
   return [
     abrir && { label: "Abrir ficha", onClick: () => abrir(e) },
+    e.id && { label: "Generar escrito…", onClick: () => abrirEscritos({ expediente: e }) },
     whatsapp(e.cliente_telefono, e.cliente_nombre, "WhatsApp al cliente"),
     ...moverA(e.estado, mover?.estados || [], mover && (estado => mover.onMover(e, estado))),
     { separador: true },
