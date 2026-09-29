@@ -96,7 +96,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
   return (
     <div className="modal-portal" role="dialog" aria-modal="true" aria-label="Derivar un caso"
       onClick={e => e.target === e.currentTarget && !enviando && onClose()}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", width: "100%", maxWidth: 480, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto", boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{listo ? "Caso derivado" : "Derivar un caso"}</h2>

@@ -107,6 +107,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Filosofía visual en el resto de la app (etapa 2)
+*   Todas las tarjetas con fondo `card` y radio md/lg llevan sombra `--sh-1` (43 sitios); las sombras sueltas pasan a `--sh-2/--sh-3`; el input de `theme.js` usa `--r-sm`.
+*   Ventanas (fichas y modales): entran con rebote (`modalIn`), el fondo se difumina y el encabezado usa el mismo radio que el panel. Menú de click derecho de vidrio y redondeado. Campos de formulario con transición en hover y foco. Tarjetas de Herramientas se elevan al hover.
+*   Click derecho verificado en Tabla y Tablero de Casos (sigue funcionando; el menú se abre con las mismas opciones).
+
 ### 2026-09-28 — Filosofía visual en toda la app (redonda, con aire, responde al tacto)
 *   Tokens nuevos en `index.css`: radios `--r-xs/sm/md/lg/xl/pill`, elevación `--sh-1/2/3` (reposo, hover, levantado) y movimiento `--ease`/`--spring`. Ya no se escriben radios en número: los ~230 `borderRadius` de los componentes pasaron a `var(--r-*)`.
 *   Piezas comunes: `.lift` (sube al hover; lo usa `Boton`, ahora en cápsula), `.tarjeta` / `.tarjeta-lift`, `.panel-vidrio`. Las `card` de Hoy y Análisis llevan sombra. Fondo con dos halos de color muy suaves.

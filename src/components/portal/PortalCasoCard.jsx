@@ -107,7 +107,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   };
 
   return (
-    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div style={{ minWidth: 0 }}>

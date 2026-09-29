@@ -215,7 +215,7 @@ export default function TabContactos({
         </div>
       )}
 
-      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
       {visibles.map(p => (
         <PASCard
           key={p.id}

@@ -51,7 +51,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   };
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Bitácora</div>
         <button onClick={abrirNueva} style={{ background: "none", border: "none", color: "var(--accent-ink)", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
@@ -94,9 +94,9 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
 
       {modalOpen && createPortal(
         <>
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 9998 }} onClick={cerrar} />
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 9998 }} onClick={cerrar} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9999 }}>
-            <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", padding: "28px 24px", maxWidth: 440, width: "100%" }}>
+            <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "28px 24px", maxWidth: 440, width: "100%" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>
                 {editandoId ? "Editar acción" : "Registrar acción"}
               </div>

@@ -50,8 +50,8 @@ function MenuContextual({ x, y, items, onCerrar }) {
     <div ref={ref} role="menu" onContextMenu={e => e.preventDefault()}
       style={{
         position: "fixed", left: pos.left, top: pos.top, visibility: pos.visible ? "visible" : "hidden",
-        zIndex: 10001, minWidth: 200, maxHeight: "80vh", overflowY: "auto", padding: 4,
-        background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", boxShadow: "0 10px 30px rgba(0,0,0,.35)",
+        zIndex: 10001, minWidth: 200, maxHeight: "80vh", overflowY: "auto", padding: 6,
+        background: "color-mix(in srgb, var(--card) 88%, transparent)", backdropFilter: "blur(14px) saturate(1.2)", WebkitBackdropFilter: "blur(14px) saturate(1.2)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-2)",
       }}>
       {items.map((it, i) => {
         if (it.separador) return <div key={i} style={{ borderTop: "1px solid var(--border)", margin: "4px 0" }} />;
@@ -63,7 +63,7 @@ function MenuContextual({ x, y, items, onCerrar }) {
             onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
             style={{
               display: "block", width: "100%", textAlign: "left", font: "inherit", fontSize: 13, padding: "7px 10px",
-              background: "none", border: "none", borderRadius: "var(--r-xs)", cursor: it.deshabilitado ? "default" : "pointer",
+              background: "none", border: "none", borderRadius: "var(--r-sm)", cursor: it.deshabilitado ? "default" : "pointer",
               color: it.peligro ? "var(--bad)" : "var(--text)", opacity: it.deshabilitado ? 0.4 : 1, fontWeight: it.peligro ? 600 : 400,
             }}>
             {it.label}

@@ -98,7 +98,7 @@ export default function AdjuntosPAS({ pasId, casoId, dirHandleRef, onGuardado, s
 
   const { delCaso, sueltos } = datos;
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 14, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 14, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>Adjuntos del PAS{delCaso.length ? ` · ${delCaso.length}` : ""}</span>
         {accionesTodo(delCaso)}

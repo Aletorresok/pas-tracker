@@ -157,7 +157,7 @@ export default function EditorPDF() {
 
       {!hayArchivos && (
         <button type="button" onClick={() => inputRef.current?.click()}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "48px 16px", border: "2px dashed var(--border2)", borderRadius: "var(--r-md)", background: "var(--card)", color: "var(--sub)", cursor: "pointer", font: "inherit" }}>
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "48px 16px", border: "2px dashed var(--border2)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", background: "var(--card)", color: "var(--sub)", cursor: "pointer", font: "inherit" }}>
           <Icono nombre="adjuntar" size={28} />
           <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text)" }}>{cargando || "Elegí o arrastrá PDFs e imágenes"}</span>
           <span style={{ fontSize: 13, maxWidth: 460, lineHeight: 1.5 }}>
@@ -236,7 +236,7 @@ export default function EditorPDF() {
       )}
 
       {hayArchivos && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
             <label style={{ flex: "1 1 260px" }}>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 }}>Nombre del archivo</span>

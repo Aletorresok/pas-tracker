@@ -70,7 +70,7 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
 
   if (compacto) return <div style={{ marginTop: 6 }}>{contenido}</div>;
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 4 }}>Pagos</div>
       <div style={{ fontSize: 12, color: Th.sub, marginBottom: 6 }}>Tildá cada uno cuando la compañía lo paga. Con los dos, el caso pasa a "Cobrado". La comisión del PAS, cuando se la pagás.</div>
       {contenido}

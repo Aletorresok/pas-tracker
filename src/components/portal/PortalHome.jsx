@@ -219,7 +219,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
         {/* Resumen del PAS */}
         <aside className="portal-resumen" style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 84 }}>
-          <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+          <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
             <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
             <div className="num" style={{ fontSize: 28, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: -0.5 }}>{fmtMoney(comisionTotal || 0)}</div>
             {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>Por pagarte: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
@@ -238,7 +238,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
           </section>
 
           {pagosPendientes.length > 0 && (
-            <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", padding: "12px 16px" }}>
+            <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Próximos cobros</div>
               {/* Usa el alto que queda en la pantalla (la columna es fija al bajar) */}
               <div style={{ maxHeight: "max(240px, calc(100vh - 400px))", overflowY: "auto" }}>

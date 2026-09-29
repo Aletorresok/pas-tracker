@@ -33,7 +33,7 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
   const link = { background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" };
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 20, marginBottom: 20 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 20, marginBottom: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Fechas del expediente</span>
         {(ocultas > 0 || todas) && (

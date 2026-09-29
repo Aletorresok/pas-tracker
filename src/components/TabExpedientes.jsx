@@ -133,7 +133,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
       {expedientes === null && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando expedientes…</div>}
 
       {expedientes && expedientes.length === 0 && !error && (
-        <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+        <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" }}>
           <div style={{ fontWeight: 600, fontSize: 16 }}>Cargá tu primer expediente</div>
           <div style={{ color: "var(--sub)", fontSize: 14, margin: "6px 0 14px" }}>Los casos que no son de seguros, con sus plazos procesales y escritos.</div>
           <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
@@ -148,7 +148,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
       )}
 
       {lista.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {!esCelular && (
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px 170px 120px", gap: 12, padding: "9px 14px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" }}>
               <span>Carátula</span><span>Próximo</span><span>Cliente</span><span>Estado</span>

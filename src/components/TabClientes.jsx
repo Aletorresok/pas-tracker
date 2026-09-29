@@ -265,7 +265,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
       {/* Celular: filas de dos líneas */}
       {esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {filtrados.map((p, i) => (
             <Fragment key={p.id}>
               <button type="button" onClick={() => alternar(p.id)} aria-expanded={abiertoId === p.id}
@@ -283,7 +283,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
       {/* Compu: tabla */}
       {!esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
             <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
             <thead>

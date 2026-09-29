@@ -71,7 +71,7 @@ export default function ListaPendientes({ tipo, expediente, plazos, cal, onCambi
   };
 
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px 10px" }}>
         <div style={{ fontSize: 15, fontWeight: 700 }}>{esPlazo ? "Plazos procesales" : "Escritos pendientes"}</div>
         {!form && <Boton tamaño="sm" variante="primario" icono="agregar" onClick={() => setForm({ ...VACIO[tipo] })}>{esPlazo ? "Nuevo plazo" : "Nuevo escrito"}</Boton>}

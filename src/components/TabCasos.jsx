@@ -211,7 +211,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
 
       {/* ── Celular: filas de dos líneas ── */}
       {esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {filtrados.map((c, i) => (
             <Fragment key={c.id}>
               <button type="button" onClick={() => alternar(c.id)} onContextMenu={e => menuCaso(e, c)} aria-expanded={abiertoId === c.id}
@@ -232,7 +232,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
 
       {/* ── Compu: tabla ── */}
       {!esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
             <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
             <thead>

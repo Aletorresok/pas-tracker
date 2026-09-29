@@ -74,7 +74,7 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
 
       {form && (
         <div role="dialog" aria-modal="true" aria-label={form.id ? "Editar gasto" : "Nuevo gasto"} onClick={e => e.target === e.currentTarget && setForm(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16, overflowY: "auto" }}>
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16, overflowY: "auto" }}>
           <div style={{ ...tarjeta, width: "100%", maxWidth: 460, padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, boxShadow: "var(--shadow)" }}>
             <div style={{ fontSize: 16, fontWeight: 700, gridColumn: "1 / -1" }}>{form.id ? "Editar gasto" : "Nuevo gasto"}</div>
             <label><span style={etiqueta}>Categoría</span>

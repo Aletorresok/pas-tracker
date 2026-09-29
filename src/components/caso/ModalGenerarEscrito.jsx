@@ -40,9 +40,9 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 499 }} onClick={onClose} />
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 499 }} onClick={onClose} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 500 }}>
-        <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", padding: "28px 24px", maxWidth: 420, width: "100%" }}>
+        <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "28px 24px", maxWidth: 420, width: "100%" }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>Generar escrito</div>
           
           <label style={{ display: "block", marginBottom: 16 }}>

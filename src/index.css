@@ -268,3 +268,11 @@ details[open] > .lista-auto svg { transform: none; }
 /* Portal: el botón "Derivar caso" se esconde al bajar (no tapa las tarjetas) y vuelve al subir */
 .fab-derivar { transition: transform .2s ease, opacity .2s ease; }
 .fab-derivar.fab-oculto { transform: translateY(140%); opacity: 0; pointer-events: none; }
+
+/* Ventanas (fichas y modales): entran con un rebote suave y el fondo se difumina */
+@keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(.975); } to { opacity: 1; transform: none; } }
+.modal-panel > div { animation: modalIn .32s var(--spring); }
+/* Campos de formulario: responden al hover y al foco con suavidad */
+input, select, textarea { transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease); }
+input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled), textarea:hover:not(:focus):not(:disabled) { border-color: var(--border2); }
+@media (prefers-reduced-motion: reduce) { .modal-panel > div { animation: none; } }

@@ -21,7 +21,7 @@ export default function RecepcionHoy({ allCasos, onAbrir }) {
   if (!porCaso.length) return null;
 
   return (
-    <section aria-labelledby="recepcion-hoy" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+    <section aria-labelledby="recepcion-hoy" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
         <h2 id="recepcion-hoy" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Documentación recibida</h2>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{pendientes.length} {pendientes.length === 1 ? "archivo" : "archivos"} para guardar</span>

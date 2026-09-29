@@ -45,7 +45,7 @@ const TOKENS = {
   input: {
     background: "var(--card)",
     border: "1px solid var(--border)",
-    borderRadius: 8,
+    borderRadius: "var(--r-sm)",
     color: "var(--text)",
     padding: "10px 14px",
     fontSize: 14,

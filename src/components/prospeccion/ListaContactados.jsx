@@ -54,7 +54,7 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
       {filtro === "recordar" && <AyudaRecordatorio pas={pas} historial={historial} derivadores={derivadores} />}
 
       {filtro === "recordar" && lista.length > 0 ? (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {lista.slice(0, mostrar).map((p, i) => {
             const r = recordatorioPendiente(historial[p.id]);
             const wa = (p.telefonos || [])[0] ? linkWhatsApp(p.telefonos[0], textoRecordatorio(p.nombre)) : null;
@@ -75,7 +75,7 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
       ) : lista.length === 0 ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--sub)", fontSize: 14 }}>No hay PAS en "{def.l}"{busqueda.trim() ? " con esa búsqueda" : ""}.</div>
       ) : (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {lista.slice(0, mostrar).map(p => (
             <PASCard key={p.id} pas={p} historial={historial} derivadores={derivadores} descartados={descartados}
               onContactar={onContactar} onToggleDerivador={onToggleDerivador} onToggleDescartado={onToggleDescartado}
