@@ -16,6 +16,7 @@ import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import { abrirEscritos } from "./utils/escritoAbierto.js";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
+import PlazosCaso from "./components/caso/PlazosCaso.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
 import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
@@ -351,6 +352,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
               <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} plazoCompania={plazoCompania} />
+              {caso.id && <PlazosCaso caso={caso} setToast={setToast} />}
             </div>
             <div {...panel("montos")}>
               <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />

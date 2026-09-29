@@ -20,7 +20,7 @@ docs/plan-funciones/
   sql/                             — BORRADORES probados en Postgres 16 (dos corridas cada uno)
     31_auditoria.sql               — fase 1
     (32 ya está en sql/: 2026-09-29_32, _32b y _32c)
-    33_plazos_condicionados.sql    — fase 3 (catálogo de 23 actuaciones + vista de avisos)
+    (33 ya está en sql/: 2026-09-29_33)
     34_calendario.sql              — fase 4 (token del feed)
     35_portal_movimientos.sql      — fase 5 (movimientos visibles + consulta de expedientes)
     36_finanzas_caso.sql           — fase 6 (gastos a recuperar, resultado por caso, liquidaciones)
@@ -38,8 +38,8 @@ docs/plan-funciones/
 |---|---|---|:-:|---|
 | 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (SQL 26 y 27 confirmados) |
 | 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (SQL 31 corrido) |
-| 2 | Motor de escritos con modelos | 32, 32b, 32c | 2 | [x] 29/09 (falta correr los SQL 32, 32b y 32c) |
-| 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [ ] |
+| 2 | Motor de escritos con modelos | 32, 32b, 32c | 2 | [x] 29/09 (SQL corridos) |
+| 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [x] 29/09 (falta correr el SQL 33 y redesplegar notificar) |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [ ] |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [ ] |
 | 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [ ] |
@@ -172,6 +172,8 @@ const proximos   = (plazos || []).filter(p => p.dias_restantes > 0).length;
 y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resumen): título "Vence hoy: Contestar la demanda", cuerpo con la carátula, `url: "/?abrir=expediente-<id>"`. Marcar `avisado_en = hoy` para no repetir. Redesplegar: `supabase functions deploy notificar`.
 
 **Listo cuando:** cargar "Notificación del traslado de la demanda" (CABA, 15 hábiles) el 01/10 muestra el vencimiento correcto salteando el 12/10, y al día anterior llega el push.
+
+**Hecho (29/09):** como está planeado. El catálogo está en Herramientas → Calculadora de plazos → "Catálogo de actuaciones"; los plazos del caso PAS están en la ficha → Datos. `notificar` manda un aviso por plazo fatal (una vez por día, con link a la ficha) y los cuenta en el resumen. Queda para después: que al cambiar un expediente a "Sentenciado" se ofrezca el plazo de apelación.
 
 ---
 

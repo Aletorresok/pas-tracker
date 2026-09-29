@@ -1,5 +1,5 @@
--- SQL 33 · Plazos condicionados: catálogo de actuaciones → plazo automático, y avisos (BORRADOR, 2026-09-29).
--- Al implementarlo: copiar a sql/AAAA-MM-DD_33_plazos_condicionados.sql. Se puede volver a correr sin problema.
+-- SQL 33 · Plazos condicionados: catálogo de actuaciones → plazo automático, y avisos (2026-09-29, fase 3).
+-- Se puede volver a correr sin problema. Después: redesplegar la función notificar (supabase functions deploy notificar).
 --
 -- La idea: en vez de cargar "15 días hábiles" a mano, se elige qué pasó ("Me notificaron el traslado de la demanda")
 -- y la fecha; la app arma el plazo con los días, el cómputo y la clase del catálogo, y lo calcula con el motor

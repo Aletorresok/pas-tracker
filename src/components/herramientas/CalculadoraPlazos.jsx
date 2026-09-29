@@ -4,6 +4,7 @@ import { calcularVencimiento, diasSalteados, plazoDeGracia, describirPlazoHabil,
 import { JURISDICCIONES } from "../../utils/expedientes.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import CatalogoPlazos from "./CatalogoPlazos.jsx";
 
 const largo = iso => {
   const t = new Date(`${iso}T12:00:00`).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -75,9 +76,16 @@ export default function CalculadoraPlazos() {
     navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }).catch(() => {});
   };
 
+  if (modo === "catalogo") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 900 }}>
+      <Segmentos etiqueta="Qué calcular" valor={modo} onChange={setModo} opciones={[["vencimiento", "Vencimiento de un plazo"], ["entre", "Días entre dos fechas"], ["catalogo", "Catálogo de actuaciones"]]} />
+      <CatalogoPlazos />
+    </div>
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 760 }}>
-      <Segmentos etiqueta="Qué calcular" valor={modo} onChange={setModo} opciones={[["vencimiento", "Vencimiento de un plazo"], ["entre", "Días entre dos fechas"]]} />
+      <Segmentos etiqueta="Qué calcular" valor={modo} onChange={setModo} opciones={[["vencimiento", "Vencimiento de un plazo"], ["entre", "Días entre dos fechas"], ["catalogo", "Catálogo de actuaciones"]]} />
 
       <div style={{ ...tarjeta, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14, alignItems: "end" }}>
         <label><span style={etiqueta}>{modo === "vencimiento" ? "Notificado el" : "Desde"}</span>

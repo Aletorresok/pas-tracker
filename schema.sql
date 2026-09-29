@@ -312,3 +312,25 @@ create table public.escritos_generados (
   created_at     timestamp with time zone not null default now()
 );
 -- pas_ajustes clave 'estudio': datos del abogado para los escritos (Herramientas → Mis datos).
+
+-- Catálogo de actuaciones → plazo (sql/2026-09-29_33). Solo administrador. Los precargados nacen verificado = false.
+create table public.tipos_plazo (
+  id                 uuid primary key default gen_random_uuid(),
+  clave              text unique,           -- id estable de los 23 precargados
+  nombre             text not null,         -- "Contestar la demanda"
+  disparador         text not null,         -- "Notificación del traslado de la demanda"
+  dias               integer not null,
+  computo            text not null default 'habiles',   -- habiles | corridos
+  clase              text not null default 'fatal',     -- fatal | ordinatorio | propio
+  jurisdiccion       text not null default 'todas',     -- todas | CABA | PBA | Federal
+  fuero              text,                  -- vacío = cualquiera
+  ambito             text not null default 'expediente', -- caso | expediente | ambos
+  norma              text,
+  avisar_dias_antes  integer not null default 2,
+  siguiente_clave    text,                  -- al cumplirlo, sugerir este
+  verificado         boolean not null default false,
+  activo             boolean not null default true,
+  orden              integer not null default 100
+);
+-- plazos (SQL 33): + tipo_plazo_id, avisar_dias_antes (default 2), avisado_en (date), jurisdiccion.
+-- Vista plazos_para_avisar (security_invoker): pendientes con vence <= hoy + avisar_dias_antes; la usa la función notificar.

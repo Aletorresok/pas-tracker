@@ -87,8 +87,19 @@ export async function cargarPlazosPendientes() {
   return data || [];
 }
 
-const CAMPOS_PLAZO = ["caso_id", "expediente_id", "tipo", "titulo", "fecha_notificacion", "dias", "computo", "clase", "vence", "fecha_objetivo", "estado", "cumplido_en", "notas"];
-const aFilaPlazo = p => Object.fromEntries(CAMPOS_PLAZO.filter(k => k in p).map(k => [k, p[k] === "" || p[k] === undefined ? null : k === "dias" ? Number(p[k]) || null : p[k]]));
+// tipo_plazo_id, avisar_dias_antes y jurisdiccion son del SQL 33: solo se mandan si vienen en el plazo
+const CAMPOS_PLAZO = ["caso_id", "expediente_id", "tipo", "titulo", "fecha_notificacion", "dias", "computo", "clase", "vence", "fecha_objetivo", "estado", "cumplido_en", "notas",
+  "tipo_plazo_id", "avisar_dias_antes", "jurisdiccion"];
+const NUMEROS = ["dias", "avisar_dias_antes"];
+const aFilaPlazo = p => Object.fromEntries(CAMPOS_PLAZO.filter(k => k in p).map(k => [k, p[k] === "" || p[k] === undefined ? null : NUMEROS.includes(k) ? (Number(p[k]) >= 0 && p[k] !== null ? Number(p[k]) : null) : p[k]]));
+
+// Plazos de un caso PAS (los de la compañía, cargados desde la ficha del caso)
+export async function cargarPlazosDeCaso(casoId) {
+  if (!casoId) return [];
+  const { data, error } = await supabase.from("plazos").select("*").eq("caso_id", casoId);
+  if (error) { console.error("[plazos] del caso:", error.message); return null; }
+  return data || [];
+}
 
 export async function guardarPlazo(plazo) {
   const fila = aFilaPlazo(plazo);

@@ -58,6 +58,7 @@
 
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda) · `pas_papelera` (SQL 26: casos eliminados, 30 días; `eliminar_caso` / `restaurar_caso`, cron `vaciar_papelera`). SQL 27: `pas_casos.domicilio_asegurado` / `cp_` / `localidad_` / `provincia_asegurado` y `pas_companias.domicilio` / `cp` / `localidad` / `provincia` (los completa la carta documento).
+*   **Plazos (SQL 33):** `tipos_plazo` (catálogo) + columnas de aviso en `plazos` + vista `plazos_para_avisar` (la usa `notificar`).
 *   **Escritos (SQL 32):** `modelos_escrito` + `escritos_generados`; los usan "Generar escrito" y Herramientas → Modelos de escritos.
 *   **Auditoría (SQL 31):** `auditoria` (tabla, fila_id, operacion, cambios jsonb, usuario, rol, en) + trigger `auditar()` en las tablas principales; la ve Bitácora → Cambios de datos.
 *   **Herramientas (SQL 27):** `indices` (serie ipc | icl | tasa_activa_bna, fecha, valor) · `modelos_carta` · `pas_ajustes` (clave → jsonb; `remitente_estudio`).
@@ -81,7 +82,7 @@
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 corrido, **falta correr el SQL 32: archivos 32, 32b y 32c en ese orden**); sigue la fase 3 (plazos condicionados + aviso de plazos, SQL 33).
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) y fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**); sigue la fase 4 (calendario suscribible, SQL 34). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
@@ -111,6 +112,14 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Fase 3 del plan de funciones: plazos condicionados y aviso de plazos (⚠️ requiere SQL 33 + redesplegar `notificar`)
+*   **SQL 33** (`sql/2026-09-29_33_plazos_condicionados.sql`): catálogo `tipos_plazo` con **23 actuaciones** (CPCCN, CPCCBA, laboral CABA y Ley 17.418 para casos PAS), todas con **"Revisar norma"** (`verificado = false`) hasta que las confirmes; `plazos` + `tipo_plazo_id`, `avisar_dias_antes`, `avisado_en`, `jurisdiccion`; vista `plazos_para_avisar`.
+*   **Nuevo plazo → "¿Qué pasó?"** (`expediente/ListaPendientes.jsx`): buscás la actuación (filtrada por jurisdicción y fuero del expediente), se completan qué hay que hacer, días, cómputo y clase; ponés la fecha de notificación y ves el vencimiento con los feriados salteados. Se puede seguir cargando a mano. Campo "Avisarme (días antes)". Al marcar **Cumplido** un plazo con siguiente (apelar → expresar agravios) ofrece **"Cargarlo"**.
+*   **Casos PAS:** en la ficha → Datos, sección **Plazos** (`caso/PlazosCaso.jsx`, mismo componente): plazos de la compañía (art. 56 y 49 Ley 17.418, intimaciones). Salen en Hoy como los de expedientes.
+*   **Herramientas → Calculadora de plazos → "Catálogo de actuaciones"** (`herramientas/CatalogoPlazos.jsx`): filtros (CABA, PBA, Federal, Casos PAS, A revisar), tildar **Verificado**, editar días/norma/jurisdicción/fuero/siguiente, crear, desactivar y eliminar los propios. `utils/tiposPlazo.js` (datos y búsqueda).
+*   **Aviso al celular** (`supabase/functions/notificar`): en el cron de las 9, cada **plazo fatal** dentro de sus días de aviso manda su propia notificación ("Vence mañana: Contestar la demanda · PEREZ c/ LOPEZ") que abre la ficha (`?abrir=`), una vez por día; el **resumen del día** suma plazos vencidos, de hoy y próximos. De paso: los eventos de agenda de expedientes salen con la carátula y abren la ficha. **Hay que redesplegar la función:** `supabase functions deploy notificar`.
+*   Probado: SQL en Postgres 16 (dos veces, con la auditoría del SQL 31); la función `notificar` en Node con base simulada (2 avisos fatales con link, resumen con 1 vencido / 1 hoy / 2 próximos, no repite en el mismo día, sin SQL 33 sigue andando); la app en Chromium con Supabase simulado: sugerencias por jurisdicción, vencimiento 01/10 + 15 hábiles = 23/10 salteando el 12/10, guardado con tipo y aviso, cadena apelar → agravios, plazos del caso, catálogo (verificar, crear), celular sin desborde, sin SQL 33 queda como antes. **Falta:** correr el SQL 33, redesplegar `notificar` y ver llegar un aviso real.
 
 ### 2026-09-29 — Fase 2 del plan de funciones: escritos con modelos (⚠️ requiere SQL 32)
 *   **SQL 32, en tres archivos que se corren en orden** (`sql/2026-09-29_32_modelos_escrito.sql` = tablas, `…_32b_modelos_base.sql` = modelos 1 a 5, `…_32c_modelos_base.sql` = modelos 6 a 9 y control final). Se dividió porque al SQL Editor llegaron solo las primeras 100 líneas del archivo original (197) y dio "unterminated dollar-quoted string"; con un error así no se ejecuta nada. `modelos_escrito` (título, categoría, para casos/expedientes/ambos, cuerpo, firma, pie con logo, activo) con **9 modelos base** (reclamo extrajudicial, pedido de respuesta, reiteración, aceptación de ofrecimiento, reconsideración, intimación de pago, nota al cliente de mediación, nota al cliente con la liquidación, escrito judicial) + `escritos_generados` (historial) + `pas_ajustes['estudio']` (si ya guardaste Mis datos, no los pisa). Re-ejecutable: no pisa los modelos editados.
