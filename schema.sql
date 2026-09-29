@@ -334,3 +334,15 @@ create table public.tipos_plazo (
 );
 -- plazos (SQL 33): + tipo_plazo_id, avisar_dias_antes (default 2), avisado_en (date), jurisdiccion.
 -- Vista plazos_para_avisar (security_invoker): pendientes con vence <= hoy + avisar_dias_antes; la usa la función notificar.
+
+-- Calendario suscribible (sql/2026-09-29_34). Solo administrador; la función "calendario" lo lee con service role.
+-- No entra en la copia de seguridad semanal: el token es un secreto (se regenera desde la app).
+create table public.calendario_tokens (
+  token        text primary key,            -- 64 caracteres al azar; va en la URL del calendario
+  nombre       text not null default 'Mi calendario',
+  incluir      jsonb not null,              -- {"eventos": bool, "plazos": bool, "acciones": bool, "escritos": bool}
+  activo       boolean not null default true,
+  creado       timestamp with time zone not null default now(),
+  ultimo_uso   timestamp with time zone     -- última vez que Google (u otro) leyó el calendario
+);
+-- Función nuevo_token_calendario(p_incluir jsonb): solo administrador; apaga los anteriores y devuelve el token nuevo.

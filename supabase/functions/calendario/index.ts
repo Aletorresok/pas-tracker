@@ -1,14 +1,14 @@
-// BORRADOR (plan de funciones, 2026-09-29) — al implementarlo va a supabase/functions/calendario/index.ts
-// y se despliega con:  supabase functions deploy calendario --no-verify-jwt
-// (sin JWT porque Google Calendar pide la URL sin credenciales: el token de la URL es el secreto).
+// Función "calendario" (Supabase Edge Function): tu agenda de ATG Lex como calendario suscribible (iCalendar).
+// Se despliega SIN verificación de JWT, porque Google Calendar pide la URL sin credenciales; el token de la URL es el secreto:
+//   supabase functions deploy calendario --no-verify-jwt      (o en el panel: "Enforce JWT verification" apagado)
 //
-// GET /functions/v1/calendario?t=<token>  →  text/calendar (iCalendar, RFC 5545)
-// Incluye, según calendario_tokens.incluir:
+// GET /functions/v1/calendario?t=<token>  →  text/calendar. Token y qué incluir: tabla calendario_tokens (SQL 34),
+// se crean desde Herramientas → Calendario en el celular. Incluye, según calendario_tokens.incluir:
 //   eventos  → pas_eventos (mediaciones, audiencias, reuniones, vencimientos) con hora, de los últimos 30 días en adelante
-//   plazos   → plazos pendientes (todo el día, "⚠ Vence: ..."; los fatales con alarma el día anterior)
+//   plazos   → plazos pendientes (todo el día, "VENCE (fatal): ..."; los fatales con alarma la tarde anterior)
 //   escritos → escritos pendientes con fecha objetivo (todo el día)
 //   acciones → próxima acción con fecha de los casos activos (todo el día)
-// Cada evento lleva un link que abre la ficha en ATG Lex (?abrir=caso-ID / ?abrir=expediente-ID; ver PLAN.md, fase 0. OJO: ?caso= ya lo usa la vista del cliente).
+// Cada evento lleva el link que abre la ficha en ATG Lex (?abrir=caso-ID / ?abrir=expediente-ID).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -87,7 +87,7 @@ async function armar(incluir: Record<string, boolean>) {
       const url = p.expediente_id ? `${APP}/?abrir=expediente-${p.expediente_id}` : `${APP}/?abrir=caso-${p.caso_id}`;
       if (p.tipo === "plazo" && incluir.plazos && p.vence)
         evs.push({ uid: `plazo-${p.id}`, diaCompleto: p.vence, alarma: p.clase === "fatal",
-                   titulo: `${p.clase === "fatal" ? "⚠ Vence" : "Vence"}: ${p.titulo} · ${de}`, detalle: `Plazo ${p.clase}`, url });
+                   titulo: `${p.clase === "fatal" ? "VENCE (fatal)" : "Vence"}: ${p.titulo} · ${de}`, detalle: `Plazo ${p.clase}`, url });
       if (p.tipo === "escrito" && incluir.escritos && p.fecha_objetivo)
         evs.push({ uid: `escrito-${p.id}`, diaCompleto: p.fecha_objetivo, titulo: `Escrito: ${p.titulo} · ${de}`, url });
     }
@@ -105,11 +105,14 @@ async function armar(incluir: Record<string, boolean>) {
   return evs;
 }
 
+const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+
 Deno.serve(async req => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const token = new URL(req.url).searchParams.get("t") || "";
-  if (token.length < 32) return new Response("No encontrado", { status: 404 });
+  if (token.length < 32) return new Response("No encontrado", { status: 404, headers: CORS });
   const { data: tk } = await sb.from("calendario_tokens").select("token, nombre, incluir").eq("token", token).eq("activo", true).maybeSingle();
-  if (!tk) return new Response("No encontrado", { status: 404 });
+  if (!tk) return new Response("No encontrado", { status: 404, headers: CORS });
   sb.from("calendario_tokens").update({ ultimo_uso: new Date().toISOString() }).eq("token", token).then(() => {});
 
   const ahora = utc(new Date());
@@ -122,6 +125,7 @@ Deno.serve(async req => {
   ].join("\r\n") + "\r\n";
 
   return new Response(cuerpo, { headers: {
+    ...CORS,
     "Content-Type": "text/calendar; charset=utf-8",
     "Content-Disposition": 'inline; filename="atg-lex.ics"',
     "Cache-Control": "max-age=900",

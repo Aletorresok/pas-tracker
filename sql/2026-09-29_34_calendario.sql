@@ -1,7 +1,7 @@
--- SQL 34 · Calendario suscribible (feed .ics para Google Calendar / celular) (BORRADOR, 2026-09-29).
--- Al implementarlo: copiar a sql/AAAA-MM-DD_34_calendario.sql. Se puede volver a correr sin problema.
+-- SQL 34 · Calendario suscribible (feed .ics para Google Calendar / celular) (2026-09-29, fase 4).
+-- Se puede volver a correr sin problema. Después: desplegar la función calendario SIN verificación de JWT.
 --
--- Cómo funciona: la función de Supabase "calendario" (docs/plan-funciones/funciones/calendario.ts) responde
+-- Cómo funciona: la función de Supabase "calendario" (supabase/functions/calendario/index.ts) responde
 --   GET https://<proyecto>.supabase.co/functions/v1/calendario?t=<token>
 -- con un archivo iCalendar con: mediaciones/audiencias/reuniones (pas_eventos), plazos pendientes (todo el día,
 -- con alarma) y, si se elige, las próximas acciones con fecha. Google Calendar se suscribe a esa URL

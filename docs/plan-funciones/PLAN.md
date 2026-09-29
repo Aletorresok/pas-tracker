@@ -1,7 +1,7 @@
 # Plan de acción: funciones nuevas de ATG Lex
 
 > Fecha: 2026-09-29 · Análisis y fundamentos: [`ANALISIS.md`](ANALISIS.md) · Presentación: [`presentacion.html`](presentacion.html)
-> Estado: **PROPUESTO** (falta tu aprobación). Nada de esto está en la app todavía; todo vive en `docs/plan-funciones/`.
+> Estado: **EN CURSO** (fases 0 a 4 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
 
 ## Cómo retomar en la próxima sesión
 
@@ -21,15 +21,13 @@ docs/plan-funciones/
     31_auditoria.sql               — fase 1
     (32 ya está en sql/: 2026-09-29_32, _32b y _32c)
     (33 ya está en sql/: 2026-09-29_33)
-    34_calendario.sql              — fase 4 (token del feed)
+    (34 ya está en sql/: 2026-09-29_34; la función en supabase/functions/calendario)
     35_portal_movimientos.sql      — fase 5 (movimientos visibles + consulta de expedientes)
     36_finanzas_caso.sql           — fase 6 (gastos a recuperar, resultado por caso, liquidaciones)
     37_novedades_judiciales.sql    — fase 7, opcional (bandeja PJN/MEV manual)
     38_indice_documentos.sql       — fase 7, opcional (búsqueda en el texto de los documentos)
   codigo/
     plantillas.test.mjs            — pruebas del motor (src/utils/plantillas.js): node docs/plan-funciones/codigo/plantillas.test.mjs
-  funciones/
-    calendario.ts                  — Edge Function del feed .ics → supabase/functions/calendario/index.ts
 ```
 
 ## Tablero de fases
@@ -40,7 +38,7 @@ docs/plan-funciones/
 | 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (SQL 31 corrido) |
 | 2 | Motor de escritos con modelos | 32, 32b, 32c | 2 | [x] 29/09 (SQL corridos) |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [x] 29/09 (falta correr el SQL 33 y redesplegar notificar) |
-| 4 | Calendario suscribible (.ics) | 34 | 1 | [ ] |
+| 4 | Calendario suscribible (.ics) | 34 | 1 | [x] 29/09 (falta correr el SQL 34 y desplegar calendario sin JWT) |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [ ] |
 | 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [ ] |
 | 7 | Opcionales: bandeja de novedades judiciales, búsqueda en documentos | 37, 38 | 1–2 c/u | [ ] |
@@ -186,6 +184,8 @@ y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resu
 3. Probar el .ics con un validador (icalendar.org) y suscribirlo en Google.
 
 **Listo cuando:** el calendario "ATG Lex" aparece en el Google Calendar del celular con las mediaciones y los plazos, y tocar uno abre la ficha.
+
+**Hecho (29/09):** `sql/2026-09-29_34_calendario.sql`, `supabase/functions/calendario/index.ts` (con CORS para que la app lo pruebe), Herramientas → **Calendario en el celular** con "Agregar a Google Calendar" (link `calendar.google.com/calendar/r?cid=webcal://…`), copiar, probar y regenerar. El .ics se validó con el lector ical.js en lugar de icalendar.org. Los plazos fatales dicen "VENCE (fatal)" (sin emojis).
 
 ---
 

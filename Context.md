@@ -59,6 +59,7 @@
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda) · `pas_papelera` (SQL 26: casos eliminados, 30 días; `eliminar_caso` / `restaurar_caso`, cron `vaciar_papelera`). SQL 27: `pas_casos.domicilio_asegurado` / `cp_` / `localidad_` / `provincia_asegurado` y `pas_companias.domicilio` / `cp` / `localidad` / `provincia` (los completa la carta documento).
 *   **Plazos (SQL 33):** `tipos_plazo` (catálogo) + columnas de aviso en `plazos` + vista `plazos_para_avisar` (la usa `notificar`).
+*   **Calendario (SQL 34):** `calendario_tokens` + función `nuevo_token_calendario`; el feed lo sirve la función `calendario`.
 *   **Escritos (SQL 32):** `modelos_escrito` + `escritos_generados`; los usan "Generar escrito" y Herramientas → Modelos de escritos.
 *   **Auditoría (SQL 31):** `auditoria` (tabla, fila_id, operacion, cambios jsonb, usuario, rol, en) + trigger `auditar()` en las tablas principales; la ve Bitácora → Cambios de datos.
 *   **Herramientas (SQL 27):** `indices` (serie ipc | icl | tasa_activa_bna, fecha, valor) · `modelos_carta` · `pas_ajustes` (clave → jsonb; `remitente_estudio`).
@@ -82,7 +83,7 @@
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) y fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**); sigue la fase 4 (calendario suscribible, SQL 34). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) y fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**); sigue la fase 5 (novedades visibles para el cliente + vista del cliente de expedientes, SQL 35). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
@@ -112,6 +113,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Fase 4 del plan de funciones: calendario en el celular (⚠️ requiere SQL 34 + desplegar la función `calendario` sin JWT)
+*   **SQL 34** (`sql/2026-09-29_34_calendario.sql`): `calendario_tokens` (token secreto de 64 caracteres, qué incluir, `ultimo_uso`) + `nuevo_token_calendario(incluir)` (solo administrador; apaga el link anterior).
+*   **Función `calendario`** (`supabase/functions/calendario/index.ts`, nueva): `GET /functions/v1/calendario?t=<token>` devuelve un iCalendar con mediaciones/audiencias/reuniones (con hora, link y lugar o juzgado), plazos pendientes (todo el día, "VENCE (fatal): …", alarma la tarde anterior), escritos pendientes y, si se elige, las próximas acciones. Cada evento trae el link que abre la ficha (`?abrir=`). Renglones plegados a 75 bytes sin cortar tildes; token inválido → 404. **Se despliega sin verificación de JWT** (Google lo pide sin credenciales): `supabase functions deploy calendario --no-verify-jwt` o, en el panel, "Enforce JWT verification" apagado.
+*   **Herramientas → Calendario en el celular** (`herramientas/CalendarioCelular.jsx`, `utils/calendario.js`): elegir qué incluir, "Crear mi link", **"Agregar a Google Calendar"** (abre Google con el calendario listo para agregar), copiar, **"Probar"** (cuenta los eventos o dice si falta desplegar la función / si pide JWT), "Regenerar link", y cuándo lo leyó Google por última vez. Google relee cada 8–24 h y es de una sola vía; lo urgente sigue llegando por push.
+*   Probado: SQL en Postgres 16 (dos veces; solo el administrador crea links, un visitante no ve nada, regenerar deja uno activo); la función en Node con datos simulados (5 eventos, validado con el lector ical.js, token inválido 404); la pantalla en Chromium con Supabase simulado (ver el registro de pruebas del commit). **Falta:** correr el SQL 34, desplegar la función y suscribirlo en Google.
 
 ### 2026-09-29 — Fase 3 del plan de funciones: plazos condicionados y aviso de plazos (⚠️ requiere SQL 33 + redesplegar `notificar`)
 *   **SQL 33** (`sql/2026-09-29_33_plazos_condicionados.sql`): catálogo `tipos_plazo` con **23 actuaciones** (CPCCN, CPCCBA, laboral CABA y Ley 17.418 para casos PAS), todas con **"Revisar norma"** (`verificado = false`) hasta que las confirmes; `plazos` + `tipo_plazo_id`, `avisar_dias_antes`, `avisado_en`, `jurisdiccion`; vista `plazos_para_avisar`.

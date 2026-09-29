@@ -47,6 +47,13 @@ const HERRAMIENTAS = [
     Componente: lazy(() => import("./herramientas/Modelos.jsx")),
   },
   {
+    k: "calendario",
+    titulo: "Calendario en el celular",
+    desc: "Mediaciones, audiencias y plazos en tu Google Calendar, sin cargarlos dos veces.",
+    icono: "calendario",
+    Componente: lazy(() => import("./herramientas/CalendarioCelular.jsx")),
+  },
+  {
     k: "misdatos",
     titulo: "Mis datos",
     desc: "Nombre, matrículas, CUIT y domicilio constituido que salen en los escritos.",
