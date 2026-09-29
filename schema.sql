@@ -346,3 +346,7 @@ create table public.calendario_tokens (
   ultimo_uso   timestamp with time zone     -- última vez que Google (u otro) leyó el calendario
 );
 -- Función nuevo_token_calendario(p_incluir jsonb): solo administrador; apaga los anteriores y devuelve el token nuevo.
+
+-- acciones (sql/2026-09-29_35): + visible_cliente boolean not null default false, + texto_cliente text (cómo lo lee el cliente).
+-- Funciones (anon): movimientos_cliente(patente, dni, caso_id) → novedades del caso; consultar_expediente_cliente(dni, codigo)
+-- → vista del cliente de un expediente visible. La política pas_ve_movimientos (SQL 06) sigue igual.

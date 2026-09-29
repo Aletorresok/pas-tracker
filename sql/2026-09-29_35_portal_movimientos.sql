@@ -1,9 +1,10 @@
 -- SQL 35 · Movimientos visibles para el cliente + vista del cliente de EXPEDIENTES (etapa 7 del plan ATG Lex)
--- (BORRADOR, 2026-09-29). Al implementarlo: copiar a sql/AAAA-MM-DD_35_portal_movimientos.sql. Re-ejecutable.
+-- (2026-09-29, fase 5 del plan de funciones). Se puede volver a correr sin problema.
 --
 -- 1) acciones.visible_cliente + texto_cliente: en la Bitácora se tilda "Mostrar al cliente" y se escribe (opcional)
 --    cómo lo va a leer ("Presentamos el reclamo" en vez de "Carta a Sancor con doc. completa").
---    Lo ven: el cliente (vista por patente + DNI, o por DNI + código en expedientes) y el PAS (portal).
+--    Lo ve el cliente (vista por patente + DNI, o por DNI + código en expedientes). El PAS sigue viendo toda la
+--    bitácora de sus casos como hasta ahora (política pas_ve_movimientos del SQL 06, que este SQL NO toca).
 -- 2) movimientos_cliente(patente, dni, caso_id): los movimientos visibles de SU caso PAS.
 -- 3) consultar_expediente_cliente(dni, codigo): lo que ve el cliente de un expediente con visible_cliente = true.
 --    Mismo freno que los casos: 5 intentos fallidos en 15 minutos (tabla pas_cliente_intentos).
@@ -11,12 +12,6 @@
 alter table public.acciones add column if not exists visible_cliente boolean not null default false;
 alter table public.acciones add column if not exists texto_cliente   text;
 create index if not exists acciones_visibles_idx on public.acciones (caso_id, fecha desc) where visible_cliente;
-
--- El PAS ve en el portal los movimientos visibles de sus casos (solo lectura)
-drop policy if exists pas_ve_movimientos on public.acciones;
-create policy pas_ve_movimientos on public.acciones for select to authenticated
-  using (visible_cliente and exists (
-    select 1 from public.pas_casos c where c.id::text = acciones.caso_id and c.pas_id::text = (select public.mi_pas_id())));
 
 -- 2) Casos PAS
 create or replace function public.movimientos_cliente(p_patente text, p_dni text, p_caso_id uuid)
@@ -47,7 +42,7 @@ begin
   end if;
 
   select * into e from expedientes
-   where upper(codigo_cliente) = v_codigo and visible_cliente
+   where upper(regexp_replace(coalesce(codigo_cliente, ''), '[^A-Za-z0-9]', '', 'g')) = v_codigo and visible_cliente
      and regexp_replace(coalesce(cliente_dni, ''), '\D', '', 'g') = v_dni;
   if not found then
     insert into pas_cliente_intentos (patente) values (v_clave);

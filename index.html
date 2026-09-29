@@ -20,11 +20,11 @@
       // Cada parte se instala como una app distinta: estudio, portal del PAS y vista del cliente
       (function () {
         var p = location.pathname, q = new URLSearchParams(location.search);
-        var m = p.indexOf("/portal") === 0 ? "manifest-portal" : (q.get("vista") === "cliente" || q.has("caso")) ? "manifest-cliente" : "manifest";
+        var m = p.indexOf("/portal") === 0 ? "manifest-portal" : (q.get("vista") === "cliente" || q.get("vista") === "expediente" || q.has("caso")) ? "manifest-cliente" : "manifest";
         var l = document.createElement("link");
         l.rel = "manifest"; l.href = "/" + m + ".webmanifest";
         document.head.appendChild(l);
-        document.title = m === "manifest-portal" ? "Portal PAS" : m === "manifest-cliente" ? "Mi reclamo · ATG Lex Solutions" : "ATG Lex";
+        document.title = m === "manifest-portal" ? "Portal PAS" : q.get("vista") === "expediente" ? "Mi expediente · ATG Lex Solutions" : m === "manifest-cliente" ? "Mi reclamo · ATG Lex Solutions" : "ATG Lex";
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

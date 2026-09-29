@@ -15,6 +15,7 @@ import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import { abrirEscritos } from "./utils/escritoAbierto.js";
+import { hayNovedadesCliente, avisoNovedad } from "./utils/novedadesCliente.js";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import PlazosCaso from "./components/caso/PlazosCaso.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
@@ -130,12 +131,14 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     setLoadingAcciones(false);
   };
 
-  const handleCrearAccion = async ({ fecha, descripcion }) => {
+  // visible_cliente / texto_cliente (SQL 35) solo vienen si está corrido
+  const handleCrearAccion = async ({ fecha, descripcion, ...paraCliente }) => {
     const { error } = await supabase.from("acciones").insert({ 
       caso_id: caso.id, 
       descripcion, 
       fecha, 
-      tipo: "nota" 
+      tipo: "nota",
+      ...paraCliente,
     });
     if (error) { 
       setToast({ msg: "Error al crear: " + error.message, type: "error" }); 
@@ -145,10 +148,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     await cargarAcciones();
   };
 
-  const handleActualizarAccion = async ({ id, fecha, descripcion }) => {
+  const handleActualizarAccion = async ({ id, fecha, descripcion, ...paraCliente }) => {
     const { error } = await supabase
       .from("acciones")
-      .update({ descripcion, fecha, tipo: "nota" })
+      .update({ descripcion, fecha, tipo: "nota", ...paraCliente })
       .eq("id", id);
       
     if (error) { 
@@ -200,7 +203,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
   const [versionOfertas, setVersionOfertas] = useState(0); // recarga el historial de ofertas
-  const [versionAuditoria, setVersionAuditoria] = useState(0); // recarga "Cambios de datos" después de cada guardado
+  const [versionAuditoria, setVersionAuditoria] = useState(0);
+  const [novedades, setNovedades] = useState(false); // SQL 35: la bitácora puede marcar movimientos para el cliente
+  useEffect(() => { hayNovedadesCliente().then(setNovedades); }, []); // recarga "Cambios de datos" después de cada guardado
   // Plazo de pago por defecto de la compañía y % de comisión del PAS (SQL 24; sin eso, no hacen nada)
   const [plazoCompania, setPlazoCompania] = useState(null);
   const [pctComision, setPctComision] = useState(undefined); // undefined = sin configurar, 0 = no cobra
@@ -374,7 +379,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 cambios={caso.id ? { tabla: "pas_casos", filaId: caso.id, version: versionAuditoria,
                   // estado_honorarios y monto_honorarios los calcula el guardado: se restauran cambiando lo que los origina
                   puedeRestaurar: k => k in formData && !["estado_honorarios", "monto_honorarios"].includes(k),
-                  valorActual: k => formData[k], onRestaurar: handleFormChange } : null} />
+                  valorActual: k => formData[k], onRestaurar: handleFormChange } : null}
+                cliente={novedades && caso.id ? { aviso: texto => avisoNovedad({ caso: { ...caso, ...formData }, texto }) } : null} />
             </div>
           </div>
         </div>

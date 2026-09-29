@@ -1,7 +1,7 @@
 # Plan de acción: funciones nuevas de ATG Lex
 
 > Fecha: 2026-09-29 · Análisis y fundamentos: [`ANALISIS.md`](ANALISIS.md) · Presentación: [`presentacion.html`](presentacion.html)
-> Estado: **EN CURSO** (fases 0 a 4 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
+> Estado: **EN CURSO** (fases 0 a 5 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
 
 ## Cómo retomar en la próxima sesión
 
@@ -22,7 +22,7 @@ docs/plan-funciones/
     (32 ya está en sql/: 2026-09-29_32, _32b y _32c)
     (33 ya está en sql/: 2026-09-29_33)
     (34 ya está en sql/: 2026-09-29_34; la función en supabase/functions/calendario)
-    35_portal_movimientos.sql      — fase 5 (movimientos visibles + consulta de expedientes)
+    (35 ya está en sql/: 2026-09-29_35)
     36_finanzas_caso.sql           — fase 6 (gastos a recuperar, resultado por caso, liquidaciones)
     37_novedades_judiciales.sql    — fase 7, opcional (bandeja PJN/MEV manual)
     38_indice_documentos.sql       — fase 7, opcional (búsqueda en el texto de los documentos)
@@ -39,7 +39,7 @@ docs/plan-funciones/
 | 2 | Motor de escritos con modelos | 32, 32b, 32c | 2 | [x] 29/09 (SQL corridos) |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [x] 29/09 (falta correr el SQL 33 y redesplegar notificar) |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [x] 29/09 (falta correr el SQL 34 y desplegar calendario sin JWT) |
-| 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [ ] |
+| 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [x] 29/09 (falta correr el SQL 35) |
 | 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [ ] |
 | 7 | Opcionales: bandeja de novedades judiciales, búsqueda en documentos | 37, 38 | 1–2 c/u | [ ] |
 
@@ -207,6 +207,8 @@ y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resu
 - **Vista del cliente de expedientes:** `/?vista=expediente` → DNI + código → estado en palabras simples (`ESTADOS_EXPEDIENTE` → texto para el cliente), mensaje del estudio, novedades, próximas audiencias, WhatsApp. En la ficha del expediente: "Copiar link y código para el cliente".
 
 **Listo cuando:** marcar un movimiento como visible lo muestra en la vista del cliente, y un expediente visible se consulta con DNI + código.
+
+**Hecho (29/09):** con un cambio importante: la política `pas_ve_movimientos` del SQL 06 **no se toca** (el PAS sigue viendo toda la bitácora; el borrador le habría ocultado lo interno). También se corrigió que el código del expediente (`ABCD-12`) se compare sin guiones. El portal PAS no cambia.
 
 ---
 

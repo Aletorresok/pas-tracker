@@ -59,6 +59,7 @@
 ## 🗄️ Base de datos (detalle en `schema.sql`, cambios en `sql/`)
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda) · `pas_papelera` (SQL 26: casos eliminados, 30 días; `eliminar_caso` / `restaurar_caso`, cron `vaciar_papelera`). SQL 27: `pas_casos.domicilio_asegurado` / `cp_` / `localidad_` / `provincia_asegurado` y `pas_companias.domicilio` / `cp` / `localidad` / `provincia` (los completa la carta documento).
 *   **Plazos (SQL 33):** `tipos_plazo` (catálogo) + columnas de aviso en `plazos` + vista `plazos_para_avisar` (la usa `notificar`).
+*   **Novedades para el cliente (SQL 35):** `acciones.visible_cliente` + `texto_cliente`; funciones `movimientos_cliente` y `consultar_expediente_cliente` (vista `/?vista=expediente`).
 *   **Calendario (SQL 34):** `calendario_tokens` + función `nuevo_token_calendario`; el feed lo sirve la función `calendario`.
 *   **Escritos (SQL 32):** `modelos_escrito` + `escritos_generados`; los usan "Generar escrito" y Herramientas → Modelos de escritos.
 *   **Auditoría (SQL 31):** `auditoria` (tabla, fila_id, operacion, cambios jsonb, usuario, rol, en) + trigger `auditar()` en las tablas principales; la ve Bitácora → Cambios de datos.
@@ -83,9 +84,9 @@
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) y fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**); sigue la fase 5 (novedades visibles para el cliente + vista del cliente de expedientes, SQL 35). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) , fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**) y fase 5 ✅ (**falta correr el SQL 35**); sigue la fase 6 (resultado por caso, gastos a recuperar y liquidaciones, SQL 36). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
-- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
+- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones (falta SQL 35); etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
@@ -113,6 +114,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Fase 5 del plan de funciones: novedades para el cliente y vista del cliente de expedientes (⚠️ requiere SQL 35) — etapa 7 del plan ATG Lex
+*   **SQL 35** (`sql/2026-09-29_35_portal_movimientos.sql`): `acciones.visible_cliente` + `texto_cliente`; `movimientos_cliente(patente, dni, caso_id)` (novedades del caso para la vista del cliente) y `consultar_expediente_cliente(dni, codigo)` (estado, mensaje, novedades y próximas audiencias; solo expedientes visibles; el código se compara sin guiones; 5 intentos fallidos cada 15 min con la tabla `pas_cliente_intentos`, clave `EXP:<código>`). **No toca** la política `pas_ve_movimientos` del SQL 06: el PAS sigue viendo toda la bitácora de sus casos (el borrador la reemplazaba y le ocultaba lo interno; se descartó).
+*   **Bitácora** (casos y expedientes, `caso/SeccionTimeline.jsx` prop `cliente`): botón **"Mostrar al cliente"** en cada movimiento y casilla "Lo ve el cliente" al crear/editar, con "Cómo lo lee el cliente" (opcional; si queda vacío ve la descripción). Etiqueta verde "Lo ve el cliente: “…”". Al guardar ofrece **"Avisarle por WhatsApp"** con el texto y el link a su vista. Sin el SQL 35 no aparece nada (`utils/novedadesCliente.js → hayNovedadesCliente`).
+*   **Vista del cliente de casos** (`portal/PortalCliente.jsx`): sección **"Novedades de tu reclamo"** (las últimas 5, "Ver las N").
+*   **Vista del cliente de expedientes** (`portal/PortalExpediente.jsx`, `/?vista=expediente&codigo=ABCD-12`): DNI + código (precargado desde el link) → carátula, juzgado y número, estado en palabras simples, próximas audiencias, mensaje del estudio, novedades y WhatsApp. Se instala con el manifiesto de la vista del cliente; título "Mi expediente". En la ficha del expediente (interruptor "Visible para el cliente"): **"Copiar link y código"**.
+*   Probado: SQL en Postgres 16 (dos veces; el cliente ve solo lo marcado con su texto, DNI malo no ve nada, código con o sin guion, el PAS sigue viendo 2 de 2 movimientos); la app en Chromium con Supabase simulado: mostrar al cliente (guarda visible + texto), link de WhatsApp, etiqueta, la novedad en la vista del cliente (y no la interna), copiar link del expediente, vista del expediente (código precargado, DNI malo, datos completos, freno de intentos), 400 px sin desborde, sin SQL 35 todo como antes. **Falta:** correr el SQL 35 y probarlo con un cliente real.
 
 ### 2026-09-29 — Fase 4 del plan de funciones: calendario en el celular (⚠️ requiere SQL 34 + desplegar la función `calendario` sin JWT)
 *   **SQL 34** (`sql/2026-09-29_34_calendario.sql`): `calendario_tokens` (token secreto de 64 caracteres, qué incluir, `ultimo_uso`) + `nuevo_token_calendario(incluir)` (solo administrador; apaga el link anterior).

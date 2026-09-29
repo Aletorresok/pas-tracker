@@ -36,11 +36,13 @@ import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
 const PortalCliente = lazy(() => import('./components/portal/PortalCliente.jsx'));
+const PortalExpediente = lazy(() => import('./components/portal/PortalExpediente.jsx'));
 
 // Vista pública del cliente (sin login) o la app, que primero pide cuenta + PIN.
 // Los datos se cargan recién después de entrar (AppPrincipal).
 export default function App() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get("vista") === "expediente") return <Suspense fallback={null}><PortalExpediente /></Suspense>;
   if (params.has("caso") || params.get("vista") === "cliente") return <Suspense fallback={null}><PortalCliente /></Suspense>;
   return <LoginGate><AppPrincipal /></LoginGate>;
 }

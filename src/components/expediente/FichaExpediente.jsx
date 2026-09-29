@@ -15,6 +15,7 @@ import CasoProximaAccion from "../caso/CasoProximaAccion.jsx";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
 import { abrirEscritos } from "../../utils/escritoAbierto.js";
+import { hayNovedadesCliente, avisoNovedad, linkVistaExpediente } from "../../utils/novedadesCliente.js";
 import Icono from "../ui/Icono.jsx";
 import ChipPendiente from "./ChipPendiente.jsx";
 import ListaPendientes from "./ListaPendientes.jsx";
@@ -57,7 +58,9 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
   const [cargandoAcciones, setCargandoAcciones] = useState(false);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [creando, setCreando] = useState(false);
-  const [versionAuditoria, setVersionAuditoria] = useState(0); // recarga "Cambios de datos" después de cada guardado
+  const [versionAuditoria, setVersionAuditoria] = useState(0);
+  const [novedades, setNovedades] = useState(false); // SQL 35: la bitácora puede marcar movimientos para el cliente
+  useEffect(() => { hayNovedadesCliente().then(setNovedades); }, []); // recarga "Cambios de datos" después de cada guardado
   const actualRef = useRef(expediente);
   const dirHandleRef = useRef(null);
   useEffect(() => { actualRef.current = expediente; }, [expediente]);
@@ -109,13 +112,14 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
   }, [id]);
   useEffect(() => { cargarAcciones(); }, [cargarAcciones]);
   useRealtimeAcciones(id, cargarAcciones);
-  const crearAccion = async ({ fecha, descripcion }) => {
-    const { error } = await supabase.from("acciones").insert({ caso_id: id, descripcion, fecha, tipo: "nota" });
+  // visible_cliente / texto_cliente (SQL 35) solo vienen si está corrido
+  const crearAccion = async ({ fecha, descripcion, ...paraCliente }) => {
+    const { error } = await supabase.from("acciones").insert({ caso_id: id, descripcion, fecha, tipo: "nota", ...paraCliente });
     if (error) { setToast({ msg: "Error al crear: " + error.message, type: "error" }); return; }
     await cargarAcciones();
   };
-  const actualizarAccion = async ({ id: accionId, fecha, descripcion }) => {
-    const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota" }).eq("id", accionId);
+  const actualizarAccion = async ({ id: accionId, fecha, descripcion, ...paraCliente }) => {
+    const { error } = await supabase.from("acciones").update({ descripcion, fecha, tipo: "nota", ...paraCliente }).eq("id", accionId);
     if (error) { setToast({ msg: "Error al actualizar: " + error.message, type: "error" }); return; }
     await cargarAcciones();
   };
@@ -133,6 +137,12 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
     return () => window.removeEventListener("keydown", esc);
   });
 
+  const [copiadoAcceso, setCopiadoAcceso] = useState(false);
+  const copiarAccesoCliente = async () => {
+    const texto = `Podés seguir tu expediente en ${linkVistaExpediente(datos.codigo_cliente)} . Entrás con tu DNI y el código ${datos.codigo_cliente}.`;
+    try { await navigator.clipboard.writeText(texto); setCopiadoAcceso(true); setTimeout(() => setCopiadoAcceso(false), 2000); }
+    catch { window.prompt("Copiá el texto:", texto); }
+  };
   const alternarVisible = () => {
     const visible = !datos.visible_cliente;
     cambiar("visible_cliente", visible);
@@ -202,7 +212,8 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                   <b>Visible para el cliente</b>
                   <div style={{ color: Th.muted }}>
                     {datos.visible_cliente
-                      ? <>Código de acceso <span style={{ fontFamily: "var(--mono)", color: Th.text }}>{datos.codigo_cliente}</span>. La vista del cliente para expedientes llega en una próxima etapa.</>
+                      ? <>Entra con su DNI y el código <span style={{ fontFamily: "var(--mono)", color: Th.text }}>{datos.codigo_cliente}</span>. Ve el estado, tu mensaje y los movimientos que marques "Lo ve el cliente".{" "}
+                          <button type="button" onClick={copiarAccesoCliente} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--accent-ink)", cursor: "pointer" }}>{copiadoAcceso ? "Copiado" : "Copiar link y código"}</button></>
                       : "Apagado: el cliente no ve este expediente."}
                   </div>
                 </div>
@@ -335,7 +346,8 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
               <div {...panel("bitacora")}>
                 <SeccionTimeline acciones={acciones} loading={cargandoAcciones} onCrear={crearAccion} onActualizar={actualizarAccion} onEliminar={eliminarAccion} Th={Th}
                   cambios={{ tabla: "expedientes", filaId: id, version: versionAuditoria, puedeRestaurar: k => CAMPOS_EXPEDIENTE.includes(k),
-                    valorActual: k => datos[k], onRestaurar: cambiar }} />
+                    valorActual: k => datos[k], onRestaurar: cambiar }}
+                  cliente={novedades ? { aviso: texto => avisoNovedad({ expediente: { ...expediente, ...datos }, texto }) } : null} />
               </div>
             </>}
           </div>

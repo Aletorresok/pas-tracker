@@ -14,11 +14,12 @@ import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import Logo from "../ui/Logo.jsx";
 import { textoEtapaCliente, fechaPagoEstimada } from "../../utils/vistaCliente.js";
 import Ilustracion from "../ui/Ilustracion.jsx";
+import { novedadesDelCaso } from "../../utils/novedadesCliente.js";
 
-const WHATSAPP = "5491133133259";
-const ABOGADO = "Dr. Alexis Torres Gaveglio";
+export const WHATSAPP = "5491133133259";
+export const ABOGADO = "Dr. Alexis Torres Gaveglio";
 // Horario de atención que se muestra junto al botón de WhatsApp (vacío = no se muestra)
-const HORARIO_ATENCION = "de lunes a viernes de 9 a 18";
+export const HORARIO_ATENCION = "de lunes a viernes de 9 a 18";
 
 
 const limpiarPatente = v => v.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
@@ -232,11 +233,41 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   );
 }
 
+// Historia del reclamo contada por el estudio: lo que marcó "Lo ve el cliente" en la bitácora
+export function Novedades({ lista, caja, titulo = "Novedades de tu reclamo" }) {
+  const [todas, setTodas] = useState(false);
+  const visibles = todas ? lista : lista.slice(0, 5);
+  return (
+    <section style={caja}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{titulo}</div>
+      <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
+        {visibles.map((n, i) => (
+          <li key={i} style={{ display: "grid", gridTemplateColumns: "10px minmax(0, 1fr)", gap: 10 }}>
+            <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", marginTop: 6, background: i === 0 ? "var(--accent)" : "var(--border2)" }} />
+            <span style={{ minWidth: 0 }}>
+              <span className="num" style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{new Date(n.fecha).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</span>
+              <span style={{ display: "block", fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{n.texto}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      {lista.length > 5 && (
+        <button type="button" onClick={() => setTodas(t => !t)} style={{ marginTop: 10, background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
+          {todas ? "Ver menos" : `Ver las ${lista.length}`}
+        </button>
+      )}
+    </section>
+  );
+}
+
 function TarjetaCaso({ caso, patente, dni, aviso }) {
   const cerrado = ["cobrado", "desistido"].includes(caso.estado);
   const [extras, setExtras] = useState(null);
   const cargarExtras = useCallback(() => extrasCliente({ patente, dni, casoId: caso.id }).then(setExtras), [patente, dni, caso.id]);
   useEffect(() => { if (!cerrado) cargarExtras(); }, [cerrado, cargarExtras]);
+  // Novedades que el estudio marcó para el cliente (SQL 35; sin él, no se muestra nada)
+  const [novedades, setNovedades] = useState(null);
+  useEffect(() => { novedadesDelCaso({ patente, dni, casoId: caso.id }).then(setNovedades); }, [patente, dni, caso.id]);
   const evento = extras?.proximoEvento;
   const ofrecido = Number(caso.monto_ofrecimiento) || 0;
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
@@ -292,6 +323,8 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
         </section>
       )}
+
+      {novedades?.length > 0 && <Novedades lista={novedades} caja={caja} />}
 
       {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} extras={extras} onRecargar={cargarExtras} />}
 
