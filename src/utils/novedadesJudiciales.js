@@ -62,11 +62,11 @@ export async function descartarNovedad(id) {
   return error ? error.message : null;
 }
 
-// Integrar: nota en la Bitácora del expediente y la novedad pasa a "integrada" (con el plazo, si se creó)
+// Integrar: nota en la Bitácora del expediente (tabla acciones, con el id del expediente en caso_id, como la ficha) y la novedad pasa a "integrada" (con el plazo, si se creó)
 export async function integrarNovedad(nov, { plazoId = null, nota = "" } = {}) {
   const tipo = TIPOS_NOVEDAD.find(t => t.k === nov.tipo)?.l || "Novedad";
   const descripcion = `${tipo} del ${new Date(`${nov.fecha}T12:00:00`).toLocaleDateString("es-AR")}: ${nota.trim() || nov.texto.trim()}`;
-  const { error: errAcc } = await supabase.from("acciones").insert({ expediente_id: nov.expediente_id, tipo: "nota", fecha: new Date().toISOString(), descripcion });
+  const { error: errAcc } = await supabase.from("acciones").insert({ caso_id: nov.expediente_id, tipo: "nota", fecha: new Date().toISOString(), descripcion });
   if (errAcc) { console.error("[novedades_judiciales] bitácora:", errAcc.message); return errAcc.message; }
   const { error } = await supabase.from("novedades_judiciales").update({ estado: "integrada", plazo_id: plazoId, resuelta_en: new Date().toISOString() }).eq("id", nov.id);
   return error ? error.message : null;

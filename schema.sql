@@ -367,3 +367,20 @@ create table public.liquidaciones (
   texto          text not null,              -- el "Copiar texto" de la calculadora; lo usa {{liquidacion}}
   created_at     timestamp with time zone not null default now()
 );
+
+-- expedientes (sql/2026-09-29_37): + portal text (pjn | mev | otro), + url_portal text,
+-- + numero_normalizado text generado (solo dígitos y "/" del número) con índice, para enganchar las novedades.
+create table public.novedades_judiciales (
+  id             uuid primary key default gen_random_uuid(),
+  expediente_id  uuid,                       -- expedientes.id (cascade); vacío = sin asignar
+  fuente         text not null default 'manual', -- manual | mail | pjn | mev
+  fecha          date not null default current_date,
+  tipo           text,                       -- despacho | cedula | notificacion | otro
+  texto          text not null,
+  url            text,
+  hash           text unique,                -- md5(fuente|expediente_id|texto), trigger trg_novedad_hash: no se carga dos veces
+  estado         text not null default 'nueva', -- nueva | integrada | descartada
+  plazo_id       uuid,                       -- plazos.id (set null): el plazo creado al integrarla
+  created_at     timestamp with time zone not null default now(),
+  resuelta_en    timestamp with time zone
+);

@@ -22,6 +22,7 @@ export const CAMPOS_EXPEDIENTE = [
   "cliente_nombre", "cliente_dni", "cliente_telefono", "cliente_email", "rol_cliente", "contraparte", "letrado_contrario",
   "honorarios_pactados", "honorarios_cobrados", "proxima_accion", "proxima_accion_vence", "mensaje_cliente",
   "visible_cliente", "codigo_cliente", "notas",
+  "portal", "url_portal", // SQL 37
 ];
 
 // "" se guarda como null; honorarios como número

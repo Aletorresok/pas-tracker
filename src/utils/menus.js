@@ -7,6 +7,7 @@ import { abrirCompania } from "./companiaAbierta.js";
 import { cuitValido } from "./companias.js";
 import { linkFicha } from "./enlaces.js";
 import { abrirEscritos } from "./escritoAbierto.js";
+import { linkPortal, nombrePortal } from "./novedadesJudiciales.js";
 
 export const copiar = texto => navigator.clipboard?.writeText(String(texto)).catch(() => {});
 const abrirLink = url => url && window.open(url, "_blank", "noopener");
@@ -48,6 +49,7 @@ export function itemsExpediente(e, { abrir, mover } = {}) {
     abrir && { label: "Abrir ficha", onClick: () => abrir(e) },
     e.id && { label: "Generar escrito…", onClick: () => abrirEscritos({ expediente: e }) },
     whatsapp(e.cliente_telefono, e.cliente_nombre, "WhatsApp al cliente"),
+    linkPortal(e) && { label: `Abrir en ${nombrePortal(e)}`, onClick: () => window.open(linkPortal(e), "_blank", "noopener") },
     ...moverA(e.estado, mover?.estados || [], mover && (estado => mover.onMover(e, estado))),
     { separador: true },
     e.id && { label: "Copiar link de la ficha", onClick: () => copiar(linkFicha("expediente", e.id)) },

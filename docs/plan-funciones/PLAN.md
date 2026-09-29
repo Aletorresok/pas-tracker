@@ -1,7 +1,7 @@
 # Plan de acción: funciones nuevas de ATG Lex
 
 > Fecha: 2026-09-29 · Análisis y fundamentos: [`ANALISIS.md`](ANALISIS.md) · Presentación: [`presentacion.html`](presentacion.html)
-> Estado: **EN CURSO** (fases 0 a 6 hechas el 29/09 en la rama `claude/tender-babbage-261wer`, sin publicar en producción). Ver el tablero de fases.
+> Estado: **EN CURSO** (fases 0 a 6 y 7a hechas y publicadas en `main` el 29/09; queda la 7b). Ver el tablero de fases.
 
 ## Cómo retomar en la próxima sesión
 
@@ -41,7 +41,7 @@ docs/plan-funciones/
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [x] 29/09 (falta correr el SQL 34 y desplegar calendario sin JWT) |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [x] 29/09 (falta correr el SQL 35) |
 | 6 | Resultado por caso, gastos a recuperar, liquidaciones en escritos | 36 | 1 | [x] 29/09 (falta correr el SQL 36) |
-| 7 | Opcionales: bandeja de novedades judiciales, búsqueda en documentos | 37, 38 | 1–2 c/u | [ ] |
+| 7 | Opcionales: bandeja de novedades judiciales (7a hecha), búsqueda en documentos (7b) | 37, 38 | 1–2 c/u | [~] 7a [x] · 7b [ ] |
 
 ---
 
@@ -236,7 +236,7 @@ y, si hay un fatal que vence hoy o mañana, un **aviso propio** (no solo el resu
 
 ## Fase 7 · Opcionales (solo si hacen falta)
 
-### 7a · Bandeja de novedades judiciales — SQL 37
+### 7a · Bandeja de novedades judiciales — SQL 37 · HECHA (29/09)
 - `expedientes` + `portal`, `url_portal`, `numero_normalizado` (generado) · `novedades_judiciales (id, expediente_id, fuente, fecha, tipo, texto, url, hash único, estado, plazo_id, created_at, resuelta_en)`.
 - Pantalla: en Expedientes, chip **"Novedades (N)"** → lista; "Pegar novedad" (texto + expediente; si el texto trae el número de expediente, se asigna solo); cada una: **Integrar** (nota en la Bitácora + opcional plazo del catálogo con la fecha) o **Descartar**. Botón "Abrir en MEV/PJN" en la ficha.
 - Fase 2 posible: leer los mails de aviso de notificación de Gmail (si llegan) y cargarlos como `fuente = 'mail'`.

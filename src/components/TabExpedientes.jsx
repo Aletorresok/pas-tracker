@@ -16,6 +16,9 @@ import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
 import ChipPendiente from "./expediente/ChipPendiente.jsx";
 import FichaExpediente from "./expediente/FichaExpediente.jsx";
+import BandejaNovedades from "./expediente/BandejaNovedades.jsx";
+import { Toast } from "./casoDetalleComponents.jsx";
+import { hayNovedadesJudiciales, cargarNovedades } from "../utils/novedadesJudiciales.js";
 
 function PillEstado({ estado }) {
   const e = estadoExpediente(estado);
@@ -43,6 +46,9 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
   const [ficha, setFicha] = useState(null); // { id } o { nuevo: true }
   const [vista, setVista] = useState(leerVista); // tabla | tablero
   const [errorMover, setErrorMover] = useState("");
+  const [novedades, setNovedades] = useState(null); // null = falta el SQL 37 (el chip no aparece)
+  const [toast, setToast] = useState(null);
+  const cerrarToast = useCallback(() => setToast(null), []);
   const elegirVista = v => { setVista(v); try { localStorage.setItem(VISTA_GUARDADA, v); } catch { /* sin storage */ } };
 
   useEffect(() => {
@@ -51,6 +57,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
       setExpedientes(exps);
       setPlazos(pls);
     });
+    hayNovedadesJudiciales().then(ok => ok && cargarNovedades().then(setNovedades));
   }, []);
 
   // Desde Hoy: abre la ficha del expediente pedido
@@ -160,7 +167,23 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
       </div>
 
-      <div className="chips">{FILTROS.map(chip)}</div>
+      <div className="chips">
+        {novedades && (novedades.length > 0 || filtro === "novedades") && (
+          <button type="button" onClick={() => setFiltro(filtro === "novedades" ? "abiertos" : "novedades")} aria-pressed={filtro === "novedades"} className="chip"
+            style={novedades.length ? { borderColor: "var(--warn)" } : undefined}>
+            Novedades <b className="num" style={{ color: novedades.length ? "var(--warn)" : "var(--text)" }}>{novedades.length}</b>
+          </button>
+        )}
+        {FILTROS.map(chip)}
+        {novedades && !novedades.length && filtro !== "novedades" && (
+          <button type="button" onClick={() => setFiltro("novedades")} className="chip">Pegar novedad</button>
+        )}
+      </div>
+
+      {filtro === "novedades" && novedades && (
+        <BandejaNovedades novedades={novedades} setNovedades={setNovedades} expedientes={expedientes || []} cal={cal}
+          onAbrirExpediente={id => setFicha({ id })} onPlazo={alCambiarPlazo} setToast={setToast} />
+      )}
 
       {expedientes === null && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando expedientes…</div>}
 
@@ -172,14 +195,14 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
         </div>
       )}
 
-      {expedientes && expedientes.length > 0 && lista.length === 0 && (
+      {filtro !== "novedades" && expedientes && expedientes.length > 0 && lista.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--sub)", fontSize: 14 }}>
           Ningún expediente coincide.{" "}
           <button type="button" onClick={() => { setFiltro("todos"); setBusqueda(""); }} style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer", fontSize: 14 }}>Ver todos</button>
         </div>
       )}
 
-      {lista.length > 0 && vista === "tablero" && (
+      {filtro !== "novedades" && lista.length > 0 && vista === "tablero" && (
         <TableroEtapas columnas={COLUMNAS} items={lista} etapaDe={e => e.estado} onMover={mover} onAbrir={e => setFicha({ id: e.id })} menu={menuExp} anchoColumna={220}
           render={e => (
             <>
@@ -190,7 +213,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           )} />
       )}
 
-      {lista.length > 0 && vista === "tabla" && (
+      {filtro !== "novedades" && lista.length > 0 && vista === "tabla" && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {!esCelular && (
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px 170px 120px", gap: 12, padding: "9px 14px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" }}>
@@ -238,6 +261,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           onClose={() => setFicha(null)}
         />
       )}
+      {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={cerrarToast} />}
     </div>
   );
 }

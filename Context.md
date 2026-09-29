@@ -60,6 +60,7 @@
 *   **Casos:** `pas_casos` (incluye `patente`, `compania_aseguradora`, `dni_asegurado`, `telefono_asegurado`, `mensaje_cliente` + fecha, `origen`/`revisado_en`, `proxima_accion` + `_vence`, `documentacion` jsonb) · `acciones` (bitácora) · `pas_eventos` (agenda) · `pas_papelera` (SQL 26: casos eliminados, 30 días; `eliminar_caso` / `restaurar_caso`, cron `vaciar_papelera`). SQL 27: `pas_casos.domicilio_asegurado` / `cp_` / `localidad_` / `provincia_asegurado` y `pas_companias.domicilio` / `cp` / `localidad` / `provincia` (los completa la carta documento).
 *   **Plazos (SQL 33):** `tipos_plazo` (catálogo) + columnas de aviso en `plazos` + vista `plazos_para_avisar` (la usa `notificar`).
 *   **Finanzas por caso (SQL 36):** `gastos.recuperable` / `recuperar_de` / `recuperado_en`, vista `resultado_casos` y tabla `liquidaciones`.
+*   **Novedades judiciales (SQL 37):** `expedientes.portal` / `url_portal` / `numero_normalizado` (generado) y tabla `novedades_judiciales` (bandeja en Expedientes; `utils/novedadesJudiciales.js`).
 *   **Novedades para el cliente (SQL 35):** `acciones.visible_cliente` + `texto_cliente`; funciones `movimientos_cliente` y `consultar_expediente_cliente` (vista `/?vista=expediente`).
 *   **Calendario (SQL 34):** `calendario_tokens` + función `nuevo_token_calendario`; el feed lo sirve la función `calendario`.
 *   **Escritos (SQL 32):** `modelos_escrito` + `escritos_generados`; los usan "Generar escrito" y Herramientas → Modelos de escritos.
@@ -85,7 +86,7 @@
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [ ] Algo básico con PJN / MEV (no prioritario). Analizado el 29/09: sin scraping; bandeja manual opcional (`docs/plan-funciones/`, fase 7a).
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
-- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) , fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**) , fase 5 ✅ (el usuario avisó el 29/09 que corrió el SQL pendiente) y fase 6 ✅ (**falta correr el SQL 36**); queda la fase 7 (opcional: bandeja PJN/MEV manual y búsqueda en documentos, SQL 37 y 38). Todo está en la rama `claude/tender-babbage-261wer`, sin publicar en producción.
+- [ ] **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`): fases 0, 1 y 2 ✅ (29/09; SQL 31 y 32 corridos) , fase 3 ✅ (**falta correr el SQL 33 y redesplegar `notificar`**) , fase 4 ✅ (**falta correr el SQL 34 y desplegar `calendario` sin JWT**) , fase 5 ✅ (el usuario avisó el 29/09 que corrió el SQL pendiente) fase 6 ✅ (**falta correr el SQL 36**) y fase 7a ✅ (SQL 37 corrido el 29/09); queda la 7b (opcional: búsqueda en documentos, SQL 38). Publicado en `main` el 29/09.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones (falta SQL 35); etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
@@ -115,6 +116,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Fase 7a del plan de funciones: bandeja de novedades judiciales (SQL 37, corrido)
+*   **SQL 37** (`sql/2026-09-29_37_novedades_judiciales.sql`): `expedientes.portal` (pjn | mev | otro), `url_portal`, `numero_normalizado` (generado); tabla `novedades_judiciales` con `hash` único (trigger) para no cargar dos veces lo mismo. Sin scraping ni claves guardadas: todo se pega a mano.
+*   **Expedientes → chip "Novedades (N)"** (o "Pegar novedad" si no hay): `expediente/BandejaNovedades.jsx`. "Pegar novedad" (texto, expediente, fecha, tipo, link); si el texto trae el número de un solo expediente se asigna solo (`expedienteDelTexto`, ignora fechas). Cada novedad: **Integrar** (nota editable en la Bitácora — `acciones` con el id del expediente en `caso_id` — y, opcional, un plazo del catálogo contado desde la fecha de notificación, con el vencimiento en vivo) o **Descartar**. Sin expediente: "Asignar a".
+*   **Ficha del expediente**: en Datos, "Portal donde se consulta" y "Link directo"; arriba, **"Abrir en PJN/MEV"** (el link directo o la consulta general). También en el click derecho del expediente. `novedades_judiciales` entra en la copia de seguridad.
+*   Probado en Chromium con Supabase simulado: detección del número, aviso de duplicada, asignar, descartar, integrar con plazo (traslado 15 días hábiles desde 01/10 → vence 23/10 saltando el 12/10), nota en la Bitácora, link del portal en la ficha, 400 px sin desborde.
 
 ### 2026-09-29 — Fase 6 del plan de funciones: neto por caso, gastos a recuperar y liquidaciones en los escritos (⚠️ requiere SQL 36)
 *   **SQL 36** (`sql/2026-09-29_36_finanzas_caso.sql`): `gastos.recuperable` / `recuperar_de` (cliente | compania | costas) / `recuperado_en`; vista `resultado_casos` (honorarios, comisión, gastos, por recuperar, neto, días hasta el cobro); tabla `liquidaciones` (resultado de la calculadora de intereses guardado en un caso o expediente).

@@ -16,6 +16,7 @@ import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
 import { abrirEscritos } from "../../utils/escritoAbierto.js";
 import { hayNovedadesCliente, avisoNovedad, linkVistaExpediente } from "../../utils/novedadesCliente.js";
+import { PORTALES, linkPortal, nombrePortal } from "../../utils/novedadesJudiciales.js";
 import Icono from "../ui/Icono.jsx";
 import ChipPendiente from "./ChipPendiente.jsx";
 import ListaPendientes from "./ListaPendientes.jsx";
@@ -188,6 +189,13 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
               </div>
               {!esNuevo && (
                 <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  {linkPortal(datos) && (
+                    <a href={linkPortal(datos)} target="_blank" rel="noopener noreferrer" className="lift"
+                      title={datos.url_portal ? "Abre el expediente en el portal" : "Abre la consulta del portal: cargá el link directo en Datos para ir derecho al expediente"}
+                      style={{ display: "inline-flex", alignItems: "center", padding: "6px 14px", borderRadius: "var(--r-pill)", border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
+                      Abrir en {nombrePortal(datos)}
+                    </a>
+                  )}
                   <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({ expediente: { ...expediente, ...datos }, dirHandle: dirHandleRef.current })}>Generar escrito</Boton>
                   <span role="status" style={{ fontSize: 12, fontWeight: 600, color: COLOR_GUARDADO[estadoGuardado] }}>
                     {estadoGuardado === "error"
@@ -296,6 +304,8 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                   <Campo label="Secretaría" k="secretaria" datos={datos} onChange={cambiar} />
                   <Campo label="Número de expediente" k="numero" datos={datos} onChange={cambiar} />
                   <Campo label="Inicio" k="fecha_inicio" datos={datos} onChange={cambiar} tipo="date" />
+                  <Campo label="Portal donde se consulta" k="portal" datos={datos} onChange={cambiar} opciones={PORTALES} />
+                  <Campo label="Link directo al expediente en el portal" k="url_portal" datos={datos} onChange={cambiar} tipo="url" />
                   {esNuevo && <Campo label="Estado" k="estado" datos={datos} onChange={cambiar} opciones={ESTADOS_EXPEDIENTE} />}
                 </div>
               </div>
