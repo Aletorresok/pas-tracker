@@ -1,6 +1,6 @@
 # ATG Lex (antes PAS-Tracker) — Documento de Contexto General
 
-> Última revisión de estructura: 2026-09-24. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
+> Última revisión de estructura: 2026-09-29. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
 
 ## 🛠️ Stack
 *   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
@@ -69,7 +69,18 @@
 *   **Cliente:** entra con patente + DNI, ve su avance y sube documentación → un mail por sesión → Hoy "Documentación recibida" → se guarda en la carpeta del caso y se borra de la nube.
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
-## 🧹 Pendientes de mejora (actualizado 2026-09-24)
+## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+**Próximos pasos acordados (29/09):**
+- [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
+- [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
+- [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
+- [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
+- [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
+- [ ] Algo básico con PJN / MEV (no prioritario).
+- [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
+- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
+- [ ] SQL 26 (papelera) y SQL 27 (herramientas): confirmar si ya se corrieron.
+
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
@@ -95,6 +106,18 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-29 — Cierre de la sesión (PR #74, mergeado)
+*   **Qué entró** (detalle en las entradas de abajo): adjuntos del PAS en la ficha · Hoy unificado (etapa 5) · Rutina con objetivos (etapa 6) · ficha más simple (presentación al cliente, honorarios unificados, hilo de Gmail, fechas por etapa, mediación/juicio escondidos) · Finanzas (gastos, facturación, resultado del mes, flujo de caja) · portal PAS renovado (derivar, archivos, documentación enviada, Consultar al estudio, menú Cuenta, Olvidé mi contraseña) · avisos de fecha de pago y "avisarle también al PAS" · PAS interesados con recordatorio único · copia de seguridad con las tablas de ATG Lex.
+*   **SQL corridos por el usuario:** 28 y 29 (29/09). URL del portal configurada en Supabase para recuperar la contraseña.
+*   **Decisiones tomadas con el usuario:**
+    *   Gmail no se integra por API ni se muestra dentro de la app (Google no lo permite): se guarda el **link del hilo** por caso. La búsqueda automática por patente/siniestro se probó y **se sacó** (los hilos no siempre tienen esos datos).
+    *   No se agrega el estado "A la firma": alcanza con el aviso de acuerdo **aceptado** hace más de 4 días sin firmar.
+    *   Los avisos a cliente y PAS son **botones de WhatsApp con el texto armado**, no envíos automáticos.
+    *   El recordatorio a PAS interesados va **a prueba**: si en unos meses el contador muestra que nadie deriva, se saca.
+    *   Las comisiones a PAS se quieren dejar de ofrecer de a poco; por ahora se siguen mostrando en el portal.
+*   **Mail de derivación que no llegaba (inicio de la sesión):** el código de EmailJS no había cambiado. Quedó en manos del usuario revisar el cupo y el historial de EmailJS y las variables `VITE_EMAILJS_*` en Vercel (no se pudo verificar desde el entorno de desarrollo). Desde esta sesión, si el mail falla, el alta del caso no se corta (el estudio igual recibe la notificación push).
+*   **Herramientas "no se ven" en producción:** `main` tiene las 5 desde el PR #73 y compila bien; se le indicó al usuario recargar sin caché o revisar el deploy de producción en Vercel. El merge del #74 genera un deploy nuevo.
 
 ### 2026-09-29 — "Olvidé mi contraseña" en el portal; copia de seguridad con las tablas de ATG Lex
 *   El usuario corrió los **SQL 28 y 29** y configuró la URL del portal en Supabase (Authentication → URL Configuration).
