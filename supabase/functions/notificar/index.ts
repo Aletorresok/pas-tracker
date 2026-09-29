@@ -2,7 +2,8 @@
 // La llaman:
 //   · Webhook de base de datos en pas_casos (INSERT)            → "Nuevo caso del portal"
 //   · Webhook de base de datos en pas_subidas_cliente (UPDATE)  → "El cliente mandó documentación"
-//   · Cron diario ({"tipo":"agenda"}, 9 hs)                      → mediaciones/audiencias de mañana + resumen del día
+//   · Cron diario ({"tipo":"agenda"}, 9 hs)                      → plazos fatales por vencer (SQL 33) + mediaciones/audiencias
+//                                                                  de mañana + resumen del día (con los plazos)
 //   · La app ({"tipo":"resumen"}, solo el administrador)         → el resumen del día, para probarlo
 //   · La app ({"tipo":"prueba"}, solo el administrador)          → notificación de prueba
 //   · La app ({"tipo":"clave"})                                  → clave pública para activar un dispositivo
@@ -107,18 +108,49 @@ async function subidaCliente(id: string) {
 // Eventos de mañana (hora de Argentina)
 async function agendaDeManana() {
   const manana = new Date(Date.now() - 3 * 3600e3 + 24 * 3600e3).toISOString().slice(0, 10);
-  const { data: evs } = await sb.from("pas_eventos").select("id, caso_id, tipo, inicio, lugar, link")
+  const { data: evs } = await sb.from("pas_eventos").select("id, caso_id, expediente_id, tipo, inicio, lugar, link")
     .gte("inicio", `${manana}T00:00:00-03:00`).lte("inicio", `${manana}T23:59:59-03:00`).order("inicio");
   let enviados = 0;
   for (const ev of evs || []) {
     if (!(await unaVez(`agenda:${ev.id}:${manana}`))) continue;
-    const { data: c } = await sb.from("pas_casos").select("asegurado, compania_aseguradora").eq("id", ev.caso_id).maybeSingle();
+    const { data: c } = ev.expediente_id
+      ? await sb.from("expedientes").select("asegurado:caratula").eq("id", ev.expediente_id).maybeSingle()
+      : await sb.from("pas_casos").select("asegurado, compania_aseguradora").eq("id", ev.caso_id).maybeSingle();
     const hora = new Date(ev.inicio).toLocaleTimeString("es-AR", { timeZone: ZONA, hour: "2-digit", minute: "2-digit", hour12: false });
     enviados += await enviar({
       titulo: `Mañana ${hora} hs · ${TIPOS_EVENTO[ev.tipo] || "Evento"}`,
       cuerpo: [c?.asegurado, c?.compania_aseguradora, ev.link ? "con link" : ev.lugar].filter(Boolean).join(" · "),
-      url: "/", etiqueta: `agenda-${ev.id}`,
+      url: ev.expediente_id ? `/?abrir=expediente-${ev.expediente_id}` : `/?abrir=caso-${ev.caso_id}`, etiqueta: `agenda-${ev.id}`,
     });
+  }
+  return enviados;
+}
+
+// Plazos (SQL 33, vista plazos_para_avisar): los que entraron en sus días de aviso. Los fatales tienen aviso propio
+// (uno por día y por plazo, con link a la ficha); todos cuentan en el resumen. Sin el SQL 33 no hace nada.
+type PlazoAviso = { id: string; titulo: string; vence: string; clase: string; caso_id: string | null; expediente_id: string | null; de: string | null; dias_restantes: number };
+async function plazosParaAvisar(): Promise<PlazoAviso[]> {
+  const { data, error } = await sb.from("plazos_para_avisar").select("*");
+  if (error) { console.warn("[plazos]", error.message); return []; }
+  return (data || []) as PlazoAviso[];
+}
+const cuandoVence = (d: number, vence: string) => {
+  const dm = vence.slice(8, 10) + "/" + vence.slice(5, 7);
+  return d < 0 ? `Venció el ${dm}` : d === 0 ? "Vence hoy" : d === 1 ? "Vence mañana" : `Vence el ${dm}`;
+};
+async function avisosDePlazos() {
+  const hoy = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  let enviados = 0;
+  for (const p of await plazosParaAvisar()) {
+    if (p.clase !== "fatal" || p.dias_restantes < -3) continue; // vencidos hace más de 3 días: solo en el resumen
+    if (!(await unaVez(`plazo:${p.id}:${hoy}`))) continue;
+    enviados += await enviar({
+      titulo: `${cuandoVence(p.dias_restantes, p.vence)}: ${p.titulo}`,
+      cuerpo: `${p.de || "Sin nombre"} · plazo fatal`,
+      url: p.expediente_id ? `/?abrir=expediente-${p.expediente_id}` : `/?abrir=caso-${p.caso_id}`,
+      etiqueta: `plazo-${p.id}`,
+    });
+    await sb.from("plazos").update({ avisado_en: hoy }).eq("id", p.id);
   }
   return enviados;
 }
@@ -153,8 +185,16 @@ async function resumenDelDia(forzar = false) {
   const { count: eventos } = await sb.from("pas_eventos").select("id", { count: "exact", head: true })
     .in("tipo", ["mediacion", "audiencia"]).gte("inicio", `${hoy}T00:00:00-03:00`).lte("inicio", `${agregar(y, m, d, 6)}T23:59:59-03:00`);
 
+  const plazos = await plazosParaAvisar();
+  const plazosVencidos = plazos.filter(p => p.dias_restantes < 0).length;
+  const plazosHoy = plazos.filter(p => p.dias_restantes === 0).length;
+  const plazosProximos = plazos.filter(p => p.dias_restantes > 0).length;
+
   const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
   const partes = [
+    plazosVencidos && plural(plazosVencidos, "plazo vencido sin marcar cumplido", "plazos vencidos sin marcar cumplidos"),
+    plazosHoy && plural(plazosHoy, "plazo vence hoy", "plazos vencen hoy"),
+    plazosProximos && plural(plazosProximos, "plazo vence en los próximos días", "plazos vencen en los próximos días"),
     vencidas && plural(vencidas, "tarea vencida", "tareas vencidas"),
     deHoy && plural(deHoy, "tarea para hoy", "tareas para hoy"),
     pagosVencidos && plural(pagosVencidos, "pago que ya debería haber entrado", "pagos que ya deberían haber entrado"),
@@ -187,7 +227,7 @@ Deno.serve(async (req) => {
     if (body.table === "pas_subidas_cliente" && body.type === "UPDATE" && body.record?.estado === "subida" && body.old_record?.estado !== "subida")
       return responder({ enviados: await subidaCliente(body.record?.id) });
     // Cron
-    if (body.tipo === "agenda") return responder({ enviados: (await agendaDeManana()) + (await resumenDelDia()) });
+    if (body.tipo === "agenda") return responder({ enviados: (await avisosDePlazos()) + (await agendaDeManana()) + (await resumenDelDia()) });
     // Resumen del día a pedido (para probarlo desde la app)
     if (body.tipo === "resumen") {
       if (!(await esAdmin(req))) return responder({ error: "no autorizado" }, 401);

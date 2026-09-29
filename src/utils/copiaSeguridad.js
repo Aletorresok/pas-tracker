@@ -12,6 +12,8 @@ export const TABLAS_COPIA = [
   // ATG Lex (SQL 25 a 28): si alguna tabla todavía no existe, se saltea y la copia sale igual
   "expedientes", "plazos", "dias_inhabiles", "rutina_items", "rutina_registro", "dias_escuela", "objetivos",
   "pas_papelera", "indices", "modelos_carta", "pas_ajustes", "gastos",
+  "modelos_escrito", "escritos_generados", // SQL 32
+  "tipos_plazo", // SQL 33
 ];
 // Tabla que no existe (falta correr su SQL): no se copia, pero no corta la copia
 const noExiste = error => ["42P01", "PGRST205"].includes(error?.code) || /does not exist|Could not find the table/i.test(error?.message || "");

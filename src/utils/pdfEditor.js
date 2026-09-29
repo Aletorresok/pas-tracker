@@ -51,13 +51,19 @@ export const puedeElegirDestino = () => typeof window !== "undefined" && !!windo
 // Abre el explorador para elegir dónde guardar (Chrome/Edge). Hay que llamarlo apenas se hace click,
 // antes de armar el PDF: el navegador solo lo permite justo después de una acción del usuario.
 // Devuelve el archivo elegido, null si se canceló, o "descargar" si el navegador no lo permite.
-export async function elegirDestino(nombre, carpeta) {
+const TIPOS_ARCHIVO = {
+  pdf: { description: "Documento PDF", accept: { "application/pdf": [".pdf"] } },
+  docx: { description: "Documento de Word", accept: { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] } },
+};
+export const tipoMime = nombre => Object.keys(TIPOS_ARCHIVO[/\.docx$/i.test(nombre) ? "docx" : "pdf"].accept)[0];
+
+export async function elegirDestino(nombre, carpeta, tipo = "pdf") {
   if (!puedeElegirDestino()) return "descargar";
   try {
     return await window.showSaveFilePicker({
       suggestedName: nombre,
       startIn: carpeta || "downloads",
-      types: [{ description: "Documento PDF", accept: { "application/pdf": [".pdf"] } }],
+      types: [TIPOS_ARCHIVO[tipo] || TIPOS_ARCHIVO.pdf],
     });
   } catch (e) {
     if (e.name === "AbortError") return null;
@@ -74,7 +80,7 @@ export async function escribirEn(destino, bytes, nombre) {
 }
 
 export function descargar(bytes, nombre) {
-  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const url = URL.createObjectURL(new Blob([bytes], { type: tipoMime(nombre) }));
   const a = document.createElement("a");
   a.href = url;
   // Con tildes, Chrome a veces ignora el nombre y descarga como "download"

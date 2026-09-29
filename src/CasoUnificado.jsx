@@ -14,7 +14,9 @@ import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
+import { abrirEscritos } from "./utils/escritoAbierto.js";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
+import PlazosCaso from "./components/caso/PlazosCaso.jsx";
 import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
 import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
@@ -181,7 +183,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!error) {
         // Ofrecimiento nuevo cargado a mano: el anterior queda en el historial de ofertas
         if (Number(updated.monto_ofrecimiento) && Number(updated.monto_ofrecimiento) !== Number(caso.monto_ofrecimiento)) registrarCambioOfrecimiento(caso, updated.monto_ofrecimiento, fechaLocalISO()).then(ok => ok && setVersionOfertas(v => v + 1));
-        setCaso(updated); setEstadoGuardado("guardado"); onUpdate?.(updated);
+        setCaso(updated); setEstadoGuardado("guardado"); setVersionAuditoria(v => v + 1); onUpdate?.(updated);
       }
       else {
         setEstadoGuardado("error");
@@ -198,6 +200,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
   const [versionOfertas, setVersionOfertas] = useState(0); // recarga el historial de ofertas
+  const [versionAuditoria, setVersionAuditoria] = useState(0); // recarga "Cambios de datos" después de cada guardado
   // Plazo de pago por defecto de la compañía y % de comisión del PAS (SQL 24; sin eso, no hacen nada)
   const [plazoCompania, setPlazoCompania] = useState(null);
   const [pctComision, setPctComision] = useState(undefined); // undefined = sin configurar, 0 = no cobra
@@ -300,7 +303,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 </span>
                 {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
-                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
+                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({
+                  caso: { ...caso, ...formData }, pasId, dirHandle: dirHandleRef.current,
+                  onDni: v => handleFormChange("dni_asegurado", v),
+                  onGuardadoEnCarpeta: () => setVersionCarpeta(v => v + 1),
+                  onReclamoViejo: () => setModalEscrito(true),
+                })}>Generar escrito</Boton>
               </div>
             </div>
 
@@ -344,6 +352,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
               <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} plazoCompania={plazoCompania} />
+              {caso.id && <PlazosCaso caso={caso} setToast={setToast} />}
             </div>
             <div {...panel("montos")}>
               <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
@@ -361,7 +370,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>
             <div {...panel("bitacora")}>
-              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th} />
+              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th}
+                cambios={caso.id ? { tabla: "pas_casos", filaId: caso.id, version: versionAuditoria,
+                  // estado_honorarios y monto_honorarios los calcula el guardado: se restauran cambiando lo que los origina
+                  puedeRestaurar: k => k in formData && !["estado_honorarios", "monto_honorarios"].includes(k),
+                  valorActual: k => formData[k], onRestaurar: handleFormChange } : null} />
             </div>
           </div>
         </div>

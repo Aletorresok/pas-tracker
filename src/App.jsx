@@ -9,6 +9,7 @@ import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
 import { RESULTADO_MAIL, RESULTADO_RECORDATORIO, esMailEnviado } from "./utils/mensajes.js";
 import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/copiaSeguridad.js";
 import { saveStorage, upsertPasManual, insertHistorialEntry, deleteCaso, restaurarCaso } from "./utils/storage.js";
+import { leerAbrir, limpiarAbrir } from "./utils/enlaces.js";
 import AvisoDeshacer from "./components/ui/AvisoDeshacer.jsx";
 
 // ── IMPORTS: HOOKS
@@ -30,6 +31,7 @@ const TabFinanzas = lazy(() => import('./components/TabFinanzas.jsx'))
 const TabHerramientas = lazy(() => import('./components/TabHerramientas.jsx'))
 const TabCompanias = lazy(() => import('./components/TabCompanias.jsx'))
 const CompaniaHost = lazy(() => import('./components/companias/FichaCompania.jsx').then(m => ({ default: m.CompaniaHost })))
+const EscritosHost = lazy(() => import('./components/escritos/ModalEscritos.jsx').then(m => ({ default: m.EscritosHost })))
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
@@ -262,6 +264,27 @@ function AppPrincipal() {
     if (enCompu && copiaPendiente()) hacerCopiaCompleta();
   }, [loading, totalContactos, hacerCopiaCompleta]);
 
+  // Link que abre una ficha (/?abrir=caso-ID o expediente-ID): al entrar por la URL o, con la app ya abierta,
+  // cuando el service worker avisa que se tocó una notificación. Se resuelve cuando terminan de cargar los casos.
+  const [linkPendiente, setLinkPendiente] = useState(() => leerAbrir(window.location.search));
+  useEffect(() => {
+    const sw = navigator.serviceWorker;
+    if (!sw) return;
+    const alMensaje = e => { if (e.data?.tipo === "abrir") setLinkPendiente(leerAbrir(e.data.url)); };
+    sw.addEventListener("message", alMensaje);
+    return () => sw.removeEventListener("message", alMensaje);
+  }, []);
+  useEffect(() => {
+    if (!linkPendiente || loading) return;
+    limpiarAbrir();
+    setLinkPendiente(null);
+    if (linkPendiente.tipo === "expediente") { abrirExpediente(linkPendiente.id); return; }
+    const caso = allCasos.find(c => c.id === linkPendiente.id);
+    if (caso) { setCasoBuscado({ caso, pasId: caso._pasId }); return; }
+    setCopiaAviso({ ok: false, texto: "No se encontró el caso del link. Puede estar en la papelera (Casos PAS → Papelera)." });
+    setTimeout(() => setCopiaAviso(null), 8000);
+  }, [linkPendiente, loading, allCasos, abrirExpediente]);
+
   const handleBackup = useCallback(() => {
     const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, descartados };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
@@ -300,6 +323,7 @@ function AppPrincipal() {
         onBuscar={() => setBuscando(true)}
       />
 
+      <Suspense fallback={null}><EscritosHost /></Suspense>
       <Suspense fallback={null}><CompaniaHost allCasos={allCasos} onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })} /></Suspense>
       <BuscadorGlobal abierto={buscando} onCerrar={() => setBuscando(false)}
         allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores}

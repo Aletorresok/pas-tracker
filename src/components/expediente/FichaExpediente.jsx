@@ -14,6 +14,7 @@ import SeccionTimeline from "../caso/SeccionTimeline.jsx";
 import CasoProximaAccion from "../caso/CasoProximaAccion.jsx";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
+import { abrirEscritos } from "../../utils/escritoAbierto.js";
 import Icono from "../ui/Icono.jsx";
 import ChipPendiente from "./ChipPendiente.jsx";
 import ListaPendientes from "./ListaPendientes.jsx";
@@ -56,6 +57,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
   const [cargandoAcciones, setCargandoAcciones] = useState(false);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [creando, setCreando] = useState(false);
+  const [versionAuditoria, setVersionAuditoria] = useState(0); // recarga "Cambios de datos" después de cada guardado
   const actualRef = useRef(expediente);
   const dirHandleRef = useRef(null);
   useEffect(() => { actualRef.current = expediente; }, [expediente]);
@@ -78,6 +80,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
     actualRef.current = data;
     onGuardado(data);
     setEstadoGuardado("guardado");
+    setVersionAuditoria(v => v + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datos, onGuardado]);
   useEffect(() => {
@@ -174,7 +177,8 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                 {!esNuevo && <div style={{ fontSize: 13, color: Th.sub, marginTop: 4 }}>{subtitulo || "Completá los datos del expediente"}</div>}
               </div>
               {!esNuevo && (
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({ expediente: { ...expediente, ...datos }, dirHandle: dirHandleRef.current })}>Generar escrito</Boton>
                   <span role="status" style={{ fontSize: 12, fontWeight: 600, color: COLOR_GUARDADO[estadoGuardado] }}>
                     {estadoGuardado === "error"
                       ? <button type="button" onClick={guardar} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
@@ -329,7 +333,9 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                 </div>
               </div>
               <div {...panel("bitacora")}>
-                <SeccionTimeline acciones={acciones} loading={cargandoAcciones} onCrear={crearAccion} onActualizar={actualizarAccion} onEliminar={eliminarAccion} Th={Th} />
+                <SeccionTimeline acciones={acciones} loading={cargandoAcciones} onCrear={crearAccion} onActualizar={actualizarAccion} onEliminar={eliminarAccion} Th={Th}
+                  cambios={{ tabla: "expedientes", filaId: id, version: versionAuditoria, puedeRestaurar: k => CAMPOS_EXPEDIENTE.includes(k),
+                    valorActual: k => datos[k], onRestaurar: cambiar }} />
               </div>
             </>}
           </div>

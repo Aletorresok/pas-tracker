@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
+import CambiosDatos from "./CambiosDatos.jsx";
 
-export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, Th }) {
+// cambios (opcional): { tabla, filaId, version, puedeRestaurar, valorActual, onRestaurar } → suma la vista "Cambios de datos"
+export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, cambios, Th }) {
+  const [vista, setVista] = useState("movimientos"); // movimientos | cambios
   const [modalOpen, setModalOpen] = useState(false);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [descripcion, setDescripcion] = useState("");
@@ -53,11 +56,23 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Bitácora</div>
-        <button onClick={abrirNueva} style={{ background: "none", border: "none", color: "var(--accent-ink)", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-          Con otra fecha…
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Bitácora</div>
+          {cambios && (
+            <span role="group" aria-label="Qué ver" className="segmentado">
+              {[["movimientos", "Movimientos"], ["cambios", "Cambios de datos"]].map(([k, l]) => (
+                <button key={k} type="button" aria-pressed={vista === k} onClick={() => setVista(k)}>{l}</button>
+              ))}
+            </span>
+          )}
+        </div>
+        {vista === "movimientos" && (
+          <button onClick={abrirNueva} style={{ background: "none", border: "none", color: "var(--accent-ink)", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+            Con otra fecha…
+          </button>
+        )}
       </div>
+      {vista === "cambios" && cambios ? <CambiosDatos {...cambios} Th={Th} /> : <>
       <form onSubmit={async e => { e.preventDefault(); if (!rapida.trim()) return; setGuardandoRapida(true); await onCrear({ fecha: fechaLocalISO(), descripcion: rapida.trim() }); setRapida(""); setGuardandoRapida(false); }}
         style={{ display: "flex", gap: 8 }}>
         <input value={rapida} onChange={e => setRapida(e.target.value)} placeholder="Agregar movimiento de hoy y Enter…" aria-label="Nuevo movimiento" style={{ ...inputStyle, padding: "8px 12px" }} />
@@ -91,6 +106,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
           </div>
         ))}
       </div>
+      </>}
 
       {modalOpen && createPortal(
         <>

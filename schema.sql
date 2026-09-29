@@ -14,6 +14,8 @@
 --     cliente_es_dueno, autorizar_subida_cliente, subida_autorizada, confirmar_subida_cliente,
 --     documentos_enviados_cliente, extras_cliente, eliminar_caso(caso_id), restaurar_caso(papelera_id) (SQL 26).
 --   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
+--   · Trigger trg_auditar (SQL 31) en pas_casos, expedientes, plazos, pas_eventos, gastos, pas_ofertas y pas_companias:
+--     registra en auditoria cada alta, cambio (solo los campos que cambiaron) y borrado. Función historial_de(tabla, id).
 --   · Storage: 'adjuntos' (público por link; subida solo a <pas_id>/ propio) y 'recepcion'
 --     (privado; lo que sube el cliente, con autorización de 15 minutos).
 --   · Copias de seguridad: esquemas backup_20260922, backup_20260924 (limpieza, SQL 15) y backup_fechas (SQL 16).
@@ -267,3 +269,80 @@ create table public.pas_cliente_intentos (
   patente  text not null,
   creado   timestamp with time zone not null default now()
 );
+
+-- Auditoría de cambios (sql/2026-09-29_31). Solo lectura para el administrador; escribe el trigger auditar().
+create table public.auditoria (
+  id         bigint generated always as identity primary key,
+  tabla      text        not null,
+  fila_id    text        not null,
+  operacion  text        not null,                    -- INSERT | UPDATE | DELETE
+  cambios    jsonb       not null default '{}'::jsonb, -- UPDATE: {campo: [antes, despues]} · INSERT/DELETE: fila completa
+  usuario    uuid,                                     -- auth.uid(); vacío = sistema
+  rol        text        not null default 'sistema',   -- admin | pas | cliente | sistema
+  en         timestamp with time zone not null default now()
+);
+
+-- Modelos de escritos (sql/2026-09-29_32). Solo administrador. Sintaxis del cuerpo en src/utils/plantillas.js.
+create table public.modelos_escrito (
+  id          uuid primary key default gen_random_uuid(),
+  clave       text unique,                 -- id estable de los 9 modelos base (no se pueden eliminar, sí editar/desactivar)
+  titulo      text not null,
+  categoria   text not null default 'otro', -- reclamo | seguimiento | acuerdo | intimacion | mediacion | judicial | cliente | otro
+  ambito      text not null default 'caso', -- caso | expediente | ambos
+  cuerpo      text not null default '',
+  firma       text not null default 'estudio', -- cliente | estudio | ambos | ninguna
+  membrete    boolean not null default true,
+  orden       integer not null default 100,
+  activo      boolean not null default true,
+  created_at  timestamp with time zone not null default now(),
+  updated_at  timestamp with time zone not null default now()  -- trigger trg_modelos_updated
+);
+
+-- Historial de escritos generados (sql/2026-09-29_32)
+create table public.escritos_generados (
+  id             uuid primary key default gen_random_uuid(),
+  modelo_id      uuid,                      -- modelos_escrito.id (on delete set null)
+  caso_id        uuid,                      -- pas_casos.id (cascade)
+  expediente_id  uuid,                      -- expedientes.id (cascade)
+  titulo         text not null,
+  cuerpo_final   text not null,
+  respuestas     jsonb not null default '{}'::jsonb,
+  formato        text not null default 'pdf', -- pdf | docx | texto
+  archivo        text,
+  created_at     timestamp with time zone not null default now()
+);
+-- pas_ajustes clave 'estudio': datos del abogado para los escritos (Herramientas → Mis datos).
+
+-- Catálogo de actuaciones → plazo (sql/2026-09-29_33). Solo administrador. Los precargados nacen verificado = false.
+create table public.tipos_plazo (
+  id                 uuid primary key default gen_random_uuid(),
+  clave              text unique,           -- id estable de los 23 precargados
+  nombre             text not null,         -- "Contestar la demanda"
+  disparador         text not null,         -- "Notificación del traslado de la demanda"
+  dias               integer not null,
+  computo            text not null default 'habiles',   -- habiles | corridos
+  clase              text not null default 'fatal',     -- fatal | ordinatorio | propio
+  jurisdiccion       text not null default 'todas',     -- todas | CABA | PBA | Federal
+  fuero              text,                  -- vacío = cualquiera
+  ambito             text not null default 'expediente', -- caso | expediente | ambos
+  norma              text,
+  avisar_dias_antes  integer not null default 2,
+  siguiente_clave    text,                  -- al cumplirlo, sugerir este
+  verificado         boolean not null default false,
+  activo             boolean not null default true,
+  orden              integer not null default 100
+);
+-- plazos (SQL 33): + tipo_plazo_id, avisar_dias_antes (default 2), avisado_en (date), jurisdiccion.
+-- Vista plazos_para_avisar (security_invoker): pendientes con vence <= hoy + avisar_dias_antes; la usa la función notificar.
+
+-- Calendario suscribible (sql/2026-09-29_34). Solo administrador; la función "calendario" lo lee con service role.
+-- No entra en la copia de seguridad semanal: el token es un secreto (se regenera desde la app).
+create table public.calendario_tokens (
+  token        text primary key,            -- 64 caracteres al azar; va en la URL del calendario
+  nombre       text not null default 'Mi calendario',
+  incluir      jsonb not null,              -- {"eventos": bool, "plazos": bool, "acciones": bool, "escritos": bool}
+  activo       boolean not null default true,
+  creado       timestamp with time zone not null default now(),
+  ultimo_uso   timestamp with time zone     -- última vez que Google (u otro) leyó el calendario
+);
+-- Función nuevo_token_calendario(p_incluir jsonb): solo administrador; apaga los anteriores y devuelve el token nuevo.
