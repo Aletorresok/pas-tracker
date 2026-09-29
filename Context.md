@@ -86,6 +86,7 @@
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [x] ✅ Algo básico con PJN / MEV: bandeja de novedades judiciales pegadas a mano (fase 7a, 29/09). Sin scraping ni claves guardadas.
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
+- Misma regla para las Edge Functions: cada archivo **menos de 100 líneas** (el deploy desde el panel falló el 29/09 con "Expected '}', got '<eof>'" en la línea 100). `notificar` = `index.ts` + `base.ts` + `avisos.ts` + `resumen.ts`; `calendario` = `index.ts` + `ical.ts`. En el panel: un archivo por pestaña, mismos nombres.
 - [x] ✅ **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`) **cerrado el 29/09**: fases 0 a 6 y 7a hechas y publicadas en `main` (SQL 31 a 37). La 7b (búsqueda dentro de los documentos, SQL 38) **se descartó**. Quedan del lado del usuario:
   - [ ] Confirmar que corrió los SQL 34, 35 y 36 (consulta de control en el Registro de Cambios del 29/09, "Cierre de la semana").
   - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
@@ -124,6 +125,7 @@
 *   Publicado en `main` todo el plan: fases 0 (links `?abrir=` y Mis datos), 1 (auditoría), 2 (escritos con modelos, PDF y Word), 3 (plazos del catálogo y aviso de fatales), 4 (calendario en el celular), 5 (novedades y vista del cliente de expedientes), 6 (neto por caso, gastos a recuperar, liquidaciones) y 7a (bandeja PJN/MEV manual). **7b descartada.**
 *   Control de SQL 34, 35 y 36 (en el SQL Editor; tiene que dar todo `true`):
     `select to_regclass('public.calendario_tokens') is not null as sql34, exists(select 1 from information_schema.columns where table_name='acciones' and column_name='visible_cliente') as sql35, to_regclass('public.liquidaciones') is not null and to_regclass('public.resultado_casos') is not null as sql36;`
+*   Funciones partidas en archivos de menos de 100 líneas (el panel cortaba en la 100): `notificar/{index,base,avisos,resumen}.ts`, `calendario/{index,ical}.ts`. Verificado: empaquetadas con esbuild dan el mismo código que antes.
 *   Deploy de funciones: `notificar` (redesplegar con el código de `supabase/functions/notificar/index.ts`) y `calendario` (nueva, sin verificación de JWT). Paso a paso en la conversación del 29/09: panel de Supabase → Edge Functions → editar/pegar el código → Deploy; o CLI `supabase functions deploy notificar` y `supabase functions deploy calendario --no-verify-jwt`.
 
 ### 2026-09-29 — Fase 7a del plan de funciones: bandeja de novedades judiciales (SQL 37, corrido)

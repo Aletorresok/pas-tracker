@@ -9,50 +9,9 @@
 //   escritos → escritos pendientes con fecha objetivo (todo el día)
 //   acciones → próxima acción con fecha de los casos activos (todo el día)
 // Cada evento lleva el link que abre la ficha en ATG Lex (?abrir=caso-ID / ?abrir=expediente-ID).
-import { createClient } from "npm:@supabase/supabase-js@2";
 
-const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-const APP = "https://pas-tracker20.vercel.app";
-const ZONA = "America/Argentina/Buenos_Aires";
-
-const TIPOS: Record<string, string> = {
-  mediacion: "Mediación", audiencia: "Audiencia", vencimiento: "Vencimiento", reunion: "Reunión", otro: "Evento",
-};
-
-// ── iCalendar ────────────────────────────────────────────────────────────────
-const esc = (s: unknown) => String(s ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
-// Plegado de líneas a 75 bytes (RFC 5545 §3.1), sin partir un carácter acentuado
-const bytes = (s: string) => new TextEncoder().encode(s).length;
-function plegar(l: string) {
-  const partes: string[] = []; let actual = "";
-  for (const ch of l) {
-    if (bytes(actual + ch) > (partes.length ? 74 : 75)) { partes.push(actual); actual = ""; }
-    actual += ch;
-  }
-  partes.push(actual);
-  return partes.join("\r\n ");
-}
-const utc = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-const dia = (iso: string) => iso.slice(0, 10).replace(/-/g, "");
-const diaSiguiente = (iso: string) => {
-  const d = new Date(iso.slice(0, 10) + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10).replace(/-/g, "");
-};
-
-type Ev = { uid: string; titulo: string; detalle?: string; url?: string; lugar?: string;
-            inicio?: Date; fin?: Date; diaCompleto?: string; alarma?: boolean };
-
-function vevent(e: Ev, ahora: string) {
-  const l = ["BEGIN:VEVENT", `UID:${e.uid}@atglex`, `DTSTAMP:${ahora}`, `SUMMARY:${esc(e.titulo)}`];
-  if (e.diaCompleto) l.push(`DTSTART;VALUE=DATE:${dia(e.diaCompleto)}`, `DTEND;VALUE=DATE:${diaSiguiente(e.diaCompleto)}`, "TRANSP:TRANSPARENT");
-  else l.push(`DTSTART:${utc(e.inicio!)}`, `DTEND:${utc(e.fin!)}`);
-  if (e.detalle) l.push(`DESCRIPTION:${esc(e.detalle + (e.url ? `\n\nAbrir en ATG Lex: ${e.url}` : ""))}`);
-  if (e.url) l.push(`URL:${e.url}`);
-  if (e.lugar) l.push(`LOCATION:${esc(e.lugar)}`);
-  if (e.alarma) l.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(e.titulo)}`, "TRIGGER:-PT15H", "END:VALARM");
-  l.push("END:VEVENT");
-  return l.map(plegar).join("\r\n");
-}
+import { sb, APP, ZONA, TIPOS, esc, utc, vevent } from "./ical.ts";
+import type { Ev } from "./ical.ts";
 
 // ── Datos ────────────────────────────────────────────────────────────────────
 async function armar(incluir: Record<string, boolean>) {
