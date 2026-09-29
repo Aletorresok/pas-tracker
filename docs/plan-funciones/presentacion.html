@@ -1,0 +1,742 @@
+<title>ATG Lex · Funciones nuevas</title>
+<meta name="description" content="Cómo se verían en ATG Lex las funciones elegidas del análisis de Lex-Doctor, IUSNET y LegalSurf.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura con "pantallas" de la app encastradas; mismos tokens que src/index.css (dorado). */
+:root {
+  --bg: #F7F6F2; --card: #FFFFFF; --card2: #EFEEE8; --border: #E4E2DC; --border2: #D3D0C8;
+  --text: #1A1D24; --sub: #555B6E; --muted: #7D8392;
+  --accent: #A6821F; --accent-ink: #7E6214; --on-accent: #FFFFFF;
+  --ok: #2E7D53; --warn: #B86B29; --bad: #A63C2E; --info: #3B6E9E;
+  --papel: #FFFFFF; --tinta: #1A1D24; --tinta-suave: #7D8392; --regla: #D3D0C8; --resalte: #A6821F;
+  --marca-fondo: #141B2B; --marca-oro: #D4AF37; --equipo: #0E131C;
+  --r-xs: 8px; --r-sm: 12px; --r-md: 18px; --r-lg: 24px; --r-xl: 28px; --r-pill: 999px;
+  --sh-1: 0 1px 2px color-mix(in srgb, var(--text) 6%, transparent), 0 6px 16px color-mix(in srgb, var(--text) 5%, transparent);
+  --sh-2: 0 2px 4px color-mix(in srgb, var(--text) 6%, transparent), 0 16px 32px color-mix(in srgb, var(--text) 12%, transparent);
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --font: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151F; --card: #171E2B; --card2: #1E2738; --border: #252D3D; --border2: #323B4D;
+  --text: #E9E7E1; --sub: #A3A8B4; --muted: #7A8191;
+  --accent: #D4AF37; --accent-ink: #E3C35A; --on-accent: #10151F;
+  --ok: #4FA776; --warn: #D98E4F; --bad: #D0685A; --info: #6E9FCC;
+  --papel: #F4F2EC; --tinta: #1A1D24; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151F; --card: #171E2B; --card2: #1E2738; --border: #252D3D; --border2: #323B4D;
+  --text: #E9E7E1; --sub: #A3A8B4; --muted: #7A8191;
+  --accent: #D4AF37; --accent-ink: #E3C35A; --on-accent: #10151F;
+  --ok: #4FA776; --warn: #D98E4F; --bad: #D0685A; --info: #6E9FCC;
+  --papel: #F4F2EC; --tinta: #1A1D24; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.envoltura { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; display: grid; gap: 56px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: clamp(22px, 3.4vw, 28px); font-weight: 650; }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.sub { color: var(--sub); }
+.muted { color: var(--muted); }
+.eti { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+code, .mono { font-family: var(--mono); font-size: .9em; }
+a { color: var(--accent-ink); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Cabecera */
+.cabecera { display: grid; gap: 18px; }
+.marca { display: flex; align-items: center; gap: 12px; }
+.monograma { width: 44px; height: 44px; border-radius: var(--r-sm); background: var(--marca-fondo); color: var(--marca-oro); display: grid; place-items: center; font-weight: 700; letter-spacing: .04em; font-size: 14px; box-shadow: var(--sh-1); }
+.indice { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); margin-inline: -16px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--r-pill); border: 1px solid var(--border2); background: var(--card); color: var(--sub); font-size: 13px; text-decoration: none; white-space: nowrap; font-family: var(--font); cursor: pointer; transition: background .15s var(--ease), color .15s var(--ease); }
+.chip:hover { color: var(--text); background: var(--card2); }
+.chip[aria-pressed="true"], .chip.activo { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.chip .cuenta { font-size: 11px; opacity: .75; }
+
+/* Secciones */
+.seccion { display: grid; gap: 20px; scroll-margin-top: 70px; }
+.seccion > header { display: grid; gap: 8px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent); color: var(--c, var(--accent-ink)); white-space: nowrap; }
+.pill.ok { --c: var(--ok); } .pill.warn { --c: var(--warn); } .pill.bad { --c: var(--bad); } .pill.info { --c: var(--info); } .pill.gris { --c: var(--muted); }
+.dos { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.dos.inv { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+@media (max-width: 860px) { .dos, .dos.inv { grid-template-columns: minmax(0, 1fr); } }
+.notas { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.notas li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; color: var(--sub); }
+.notas li::before { content: ""; width: 7px; height: 7px; margin: 8px 0 0 6px; border-radius: 50%; background: var(--accent); }
+.notas b { color: var(--text); font-weight: 600; }
+
+/* Pantallas de la app */
+.pantalla { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--sh-2); overflow: hidden; min-width: 0; }
+.barra { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card2); }
+.barra .puntos { display: flex; gap: 5px; } .barra .puntos i { width: 9px; height: 9px; border-radius: 50%; background: var(--border2); }
+.barra .ruta { font-size: 12.5px; color: var(--muted); }
+.cuerpo { padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.tarjeta { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; box-shadow: var(--sh-1); min-width: 0; }
+.fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fila.entre { justify-content: space-between; }
+.segmentado { display: inline-flex; padding: 3px; background: var(--card2); border-radius: var(--r-pill); gap: 2px; }
+.segmentado span, .segmentado button { padding: 5px 12px; border-radius: var(--r-pill); font-size: 13px; color: var(--sub); border: 0; background: transparent; font-family: var(--font); cursor: pointer; }
+.segmentado .on, .segmentado [aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: var(--sh-1); font-weight: 600; }
+.boton { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); border: 1px solid var(--border2); background: var(--card); color: var(--text); font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; white-space: nowrap; }
+.boton.pri { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.boton.chico { padding: 4px 10px; font-size: 12px; }
+.campo { display: grid; gap: 4px; min-width: 0; }
+.campo label { font-size: 12px; color: var(--muted); }
+.input { padding: 8px 12px; border: 1px solid var(--border2); border-radius: var(--r-sm); background: var(--card); color: var(--text); font: inherit; font-size: 14px; width: 100%; min-width: 0; }
+.lista { display: grid; gap: 0; }
+.lista > div { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--border); }
+.lista > div:last-child { border-bottom: 0; }
+.fecha { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cambio { font-size: 13.5px; }
+.cambio s { color: var(--muted); } .cambio .flecha { color: var(--muted); padding: 0 4px; }
+.quien { font-size: 11.5px; padding: 1px 8px; border-radius: var(--r-pill); background: var(--card2); color: var(--sub); }
+.grilla2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .grilla2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Hoja de papel (escritos) */
+.hoja { background: var(--papel); color: var(--tinta); border-radius: var(--r-xs); padding: 26px 28px; box-shadow: var(--sh-1); border: 1px solid var(--border); font-family: var(--serif); font-size: 13.5px; line-height: 1.6; min-height: 280px; overflow-wrap: anywhere; }
+.hoja p { max-width: none; margin: 0 0 10px; text-align: justify; hyphens: auto; }
+.hoja h4 { font-family: var(--font); font-size: 14px; margin: 0 0 10px; letter-spacing: .02em; }
+.hoja .linea { margin: 0; }
+.hoja .falta { background: color-mix(in srgb, var(--warn) 22%, transparent); padding: 0 3px; border-radius: 4px; }
+.hoja .var { background: color-mix(in srgb, var(--resalte) 16%, transparent); border-radius: 4px; padding: 0 2px; }
+.hoja .pie { margin-top: 18px; padding-top: 8px; border-top: 1px solid var(--regla); font-family: var(--font); font-size: 10.5px; color: var(--tinta-suave); display: flex; justify-content: space-between; }
+.codigo { font-family: var(--mono); font-size: 12.5px; background: var(--card2); border-radius: var(--r-sm); padding: 12px 14px; white-space: pre-wrap; color: var(--sub); overflow-x: auto; line-height: 1.55; }
+.codigo .v { color: var(--accent-ink); font-weight: 500; } .codigo .p { color: var(--info); } .codigo .c { color: var(--ok); }
+
+/* Celular */
+.celu { width: 100%; max-width: 330px; margin-inline: auto; border-radius: 34px; padding: 10px; background: var(--equipo); box-shadow: var(--sh-2); }
+.celu .pant { border-radius: 26px; overflow: hidden; background: var(--bg); min-height: 520px; display: grid; grid-template-rows: auto 1fr; }
+.celu .estado { display: flex; justify-content: space-between; padding: 8px 18px 4px; font-size: 11.5px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.celu .contenido { padding: 10px 12px 16px; display: grid; gap: 10px; align-content: start; }
+.push { background: color-mix(in srgb, var(--card) 92%, transparent); border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; box-shadow: var(--sh-1); display: grid; gap: 2px; }
+.push .app { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.push .app i { width: 16px; height: 16px; border-radius: 5px; background: var(--marca-fondo); display: inline-block; }
+.push b { font-size: 13.5px; } .push span { font-size: 12.5px; color: var(--sub); }
+
+/* Calendario */
+.cal { display: grid; grid-template-columns: 34px repeat(3, minmax(0, 1fr)); font-size: 11px; border-top: 1px solid var(--border); }
+.cal > div { border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); min-height: 34px; padding: 3px; position: relative; }
+.cal .hora { border-left: 0; color: var(--muted); font-size: 10px; text-align: right; padding-right: 5px; }
+.cal .cab { font-weight: 600; text-align: center; color: var(--sub); min-height: 0; padding: 6px 2px; }
+.ev { border-radius: 6px; padding: 3px 5px; line-height: 1.25; font-size: 10.5px; color: var(--text); background: color-mix(in srgb, var(--c) 20%, var(--card)); border-left: 3px solid var(--c); }
+.ev.dia { --c: var(--bad); } .ev.med { --c: var(--info); } .ev.acc { --c: var(--accent); }
+
+/* Matriz utilidad × complejidad */
+.matriz-marco { overflow-x: auto; }
+.matriz { display: grid; grid-template-columns: 70px repeat(5, minmax(96px, 1fr)); gap: 4px; min-width: 590px; }
+.matriz .celda { min-height: 64px; border-radius: var(--r-xs); background: var(--card2); padding: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
+.matriz .celda.buena { background: color-mix(in srgb, var(--ok) 11%, var(--card)); }
+.matriz .celda.mala { background: color-mix(in srgb, var(--bad) 8%, var(--card)); }
+.matriz .ejey, .matriz .ejex { font-size: 11.5px; color: var(--muted); display: grid; place-items: center; text-align: center; }
+.matriz .ft { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); background: var(--card); border: 1px solid var(--border2); white-space: nowrap; }
+.matriz .ft.si { border-color: var(--ok); color: var(--ok); } .matriz .ft.luego { border-color: var(--info); color: var(--info); } .matriz .ft.no { border-color: var(--bad); color: var(--bad); } .matriz .ft.hecho { color: var(--muted); }
+
+/* Estado actual */
+.estados { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.estados .tarjeta { display: grid; gap: 6px; padding: 12px 14px; }
+.estados .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.barrita { height: 6px; border-radius: var(--r-pill); background: var(--card2); overflow: hidden; }
+.barrita i { display: block; height: 100%; border-radius: inherit; background: var(--c, var(--accent)); }
+
+/* Fases */
+.fases { display: grid; gap: 0; counter-reset: fase; }
+.fase { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.fase .nro { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--card); border: 1px solid var(--border2); font-variant-numeric: tabular-nums; }
+.fase.clave .nro { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.fase.opcional { opacity: .72; }
+.fase .ses { font-size: 12px; color: var(--muted); white-space: nowrap; text-align: right; }
+@media (max-width: 520px) { .fase { grid-template-columns: 40px minmax(0, 1fr); } .fase .ses { grid-column: 2; text-align: left; } }
+
+/* Demo de escritos */
+.demo-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .demo-grid { grid-template-columns: minmax(0, 1fr); } }
+.faltan { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.faltan .pill { font-weight: 500; }
+
+.pie-pagina { display: grid; gap: 10px; border-top: 1px solid var(--border); padding-top: 24px; color: var(--sub); font-size: 13.5px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="envoltura">
+
+  <header class="cabecera">
+    <div class="marca">
+      <div class="monograma" aria-hidden="true">ATG</div>
+      <div>
+        <div class="eti">ATG Lex · propuesta del 29/09/2026</div>
+        <h1>Funciones nuevas, pantalla por pantalla</h1>
+      </div>
+    </div>
+    <p class="sub">De las 10 funciones que valoran los estudios litigantes (Lex-Doctor, IUSNET, LegalSurf, Legal One), ATG Lex ya tiene cuatro. Esta presentación muestra cómo se verían las que conviene sumar, en el orden en que conviene hacerlas. Los datos de las pantallas son de ejemplo.</p>
+    <nav class="indice" aria-label="Secciones">
+      <div class="chips">
+        <a class="chip" href="#hoy">Dónde estás</a>
+        <a class="chip" href="#balance">Balance</a>
+        <a class="chip" href="#orden">Orden</a>
+        <a class="chip" href="#auditoria">Auditoría</a>
+        <a class="chip" href="#escritos">Escritos</a>
+        <a class="chip" href="#plazos">Plazos</a>
+        <a class="chip" href="#calendario">Calendario</a>
+        <a class="chip" href="#portal">Portal</a>
+        <a class="chip" href="#finanzas">Finanzas</a>
+        <a class="chip" href="#opcionales">Opcionales</a>
+        <a class="chip" href="#afuera">Afuera</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Dónde estás -->
+  <section class="seccion" id="hoy">
+    <header>
+      <div class="eti">Punto de partida</div>
+      <h2>Lo que ATG Lex ya tiene de cada función</h2>
+      <p class="sub">La barra muestra cuánto de cada función ya está en la app. Tu trabajo es sobre todo extrajudicial (unos 95 reclamos de terceros) con 10 a 15 expedientes, así que pesa más lo repetitivo que lo judicial.</p>
+    </header>
+    <div class="estados">
+      <div class="tarjeta"><span class="n">5 · Kanban</span><b>Tablero por etapas</b><div class="barrita"><i style="width:90%;--c:var(--ok)"></i></div><span class="pill ok">Hecho</span></div>
+      <div class="tarjeta"><span class="n">9 · Extranet</span><b>Portal PAS y vista del cliente</b><div class="barrita"><i style="width:70%;--c:var(--ok)"></i></div><span class="pill ok">Casi todo</span></div>
+      <div class="tarjeta"><span class="n">3 · Actualización</span><b>Intereses e índices</b><div class="barrita"><i style="width:70%;--c:var(--ok)"></i></div><span class="pill ok">Casi todo</span></div>
+      <div class="tarjeta"><span class="n">4 · Plazos</span><b>Motor de plazos judiciales</b><div class="barrita"><i style="width:60%;--c:var(--warn)"></i></div><span class="pill warn">Falta catálogo y aviso</span></div>
+      <div class="tarjeta"><span class="n">8 · Finanzas</span><b>Honorarios y gastos</b><div class="barrita"><i style="width:60%;--c:var(--warn)"></i></div><span class="pill warn">Falta el neto por caso</span></div>
+      <div class="tarjeta"><span class="n">2 · Escritos</span><b>Modelos con variables</b><div class="barrita"><i style="width:25%;--c:var(--warn)"></i></div><span class="pill warn">Un escrito fijo</span></div>
+      <div class="tarjeta"><span class="n">10 · Auditoría</span><b>Historial de cambios</b><div class="barrita"><i style="width:30%;--c:var(--warn)"></i></div><span class="pill warn">Bitácora manual</span></div>
+      <div class="tarjeta"><span class="n">6 · Calendario</span><b>Google Calendar</b><div class="barrita"><i style="width:20%;--c:var(--warn)"></i></div><span class="pill warn">Link manual</span></div>
+      <div class="tarjeta"><span class="n">7 · OCR</span><b>Buscar dentro de documentos</b><div class="barrita"><i style="width:0%"></i></div><span class="pill gris">No hay</span></div>
+      <div class="tarjeta"><span class="n">1 · PJN / MEV</span><b>Traer novedades solas</b><div class="barrita"><i style="width:0%"></i></div><span class="pill gris">No hay</span></div>
+    </div>
+  </section>
+
+  <!-- Balance -->
+  <section class="seccion" id="balance">
+    <header>
+      <div class="eti">Balance</div>
+      <h2>Utilidad para tu trabajo contra lo que cuesta hacerlo</h2>
+      <p class="sub">Arriba a la izquierda está lo que conviene: mucha utilidad, poco trabajo. En verde lo que se suma ahora, en azul lo que va después y en rojo lo que no conviene.</p>
+    </header>
+    <div class="tarjeta matriz-marco">
+      <div class="matriz" role="table" aria-label="Utilidad (filas) por complejidad (columnas)">
+        <div class="ejey">Utilidad 5</div>
+        <div class="celda"></div>
+        <div class="celda buena"><span class="ft si">Escritos</span><span class="ft si">Plazos + aviso</span></div>
+        <div class="celda"></div><div class="celda"></div><div class="celda"></div>
+
+        <div class="ejey">4</div>
+        <div class="celda"></div>
+        <div class="celda buena"><span class="ft si">Calendario .ics</span></div>
+        <div class="celda"><span class="ft luego">Portal + movimientos</span></div>
+        <div class="celda mala"><span class="ft no">Google API 2 vías</span></div>
+        <div class="celda"></div>
+
+        <div class="ejey">3</div>
+        <div class="celda buena"><span class="ft si">Auditoría</span><span class="ft luego">Neto por caso</span></div>
+        <div class="celda"><span class="ft luego">Liquidación en escrito</span></div>
+        <div class="celda"></div><div class="celda"></div><div class="celda"></div>
+
+        <div class="ejey">2</div>
+        <div class="celda"><span class="ft hecho">Kanban (hecho)</span></div>
+        <div class="celda"><span class="ft luego">Bandeja manual</span></div>
+        <div class="celda"></div>
+        <div class="celda mala"><span class="ft no">OCR</span></div>
+        <div class="celda mala"><span class="ft no">Scraping PJN/MEV</span></div>
+
+        <div class="ejey">1</div>
+        <div class="celda"></div><div class="celda"></div>
+        <div class="celda mala"><span class="ft no">Registro de horas</span></div>
+        <div class="celda"></div><div class="celda"></div>
+
+        <div></div>
+        <div class="ejex">Complejidad 1</div><div class="ejex">2</div><div class="ejex">3</div><div class="ejex">4</div><div class="ejex">5</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Orden -->
+  <section class="seccion" id="orden">
+    <header>
+      <div class="eti">Orden de trabajo</div>
+      <h2>Ocho fases, unas 9 sesiones</h2>
+      <p class="sub">Cada fase trae su SQL ya escrito y probado en <code>docs/plan-funciones/sql/</code>. La auditoría va primero porque es un solo SQL y protege todo lo que viene después.</p>
+    </header>
+    <div class="tarjeta">
+      <div class="fases">
+        <div class="fase"><span class="nro">0</span><div><b>Preparación</b><div class="sub">Links que abren una ficha (<code>?abrir=caso-ID</code>) y tus datos de abogado fuera del código.</div></div><span class="ses">½ sesión</span></div>
+        <div class="fase clave"><span class="nro">1</span><div><b>Auditoría de cambios</b><div class="sub">Cada cambio de datos queda registrado, con "Volver a este valor". SQL 31.</div></div><span class="ses">½ a 1 sesión</span></div>
+        <div class="fase clave"><span class="nro">2</span><div><b>Escritos con modelos</b><div class="sub">Nueve modelos base, preguntas al generar, montos en letras, PDF y Word. SQL 32.</div></div><span class="ses">2 sesiones</span></div>
+        <div class="fase clave"><span class="nro">3</span><div><b>Plazos condicionados y aviso</b><div class="sub">"Me notificaron el traslado" arma el plazo solo; el push avisa los fatales. SQL 33.</div></div><span class="ses">1 a 2 sesiones</span></div>
+        <div class="fase clave"><span class="nro">4</span><div><b>Calendario en el celular</b><div class="sub">Google Calendar se suscribe a ATG Lex una vez y se actualiza solo. SQL 34.</div></div><span class="ses">1 sesión</span></div>
+        <div class="fase"><span class="nro">5</span><div><b>Portal: novedades visibles y expedientes</b><div class="sub">Tildás qué ve el cliente; los expedientes se consultan con DNI y código. SQL 35.</div></div><span class="ses">2 sesiones</span></div>
+        <div class="fase"><span class="nro">6</span><div><b>Neto por caso y liquidaciones</b><div class="sub">Honorarios menos comisión y gastos; la calculadora se inserta en un escrito. SQL 36.</div></div><span class="ses">1 sesión</span></div>
+        <div class="fase opcional"><span class="nro">7</span><div><b>Opcionales</b><div class="sub">Bandeja de novedades PJN/MEV cargada a mano y búsqueda dentro de los documentos. SQL 37 y 38.</div></div><span class="ses">Si hace falta</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. Auditoría -->
+  <section class="seccion" id="auditoria">
+    <header>
+      <div class="eti">Fase 1 · Función 10</div>
+      <h2>Auditoría: saber qué cambió, cuándo y quién</h2>
+      <div class="meta"><span class="pill ok">Sumar ya</span><span class="pill">Utilidad 3/5</span><span class="pill gris">Complejidad 1/5</span></div>
+    </header>
+    <div class="dos">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Casos PAS › GOMEZ María › Bitácora</span></div>
+        <div class="cuerpo">
+          <div class="fila entre">
+            <div class="segmentado"><span>Movimientos</span><span class="on">Cambios de datos</span></div>
+            <span class="muted" style="font-size:12px">Últimos 30 días</span>
+          </div>
+          <div class="lista">
+            <div><span class="fecha">Hoy 11:42</span><span class="cambio">Monto ofrecido <s>$ 1.200.000</s><span class="flecha">→</span><b class="num">$ 1.500.000</b></span><button class="boton chico" type="button">Volver a este valor</button></div>
+            <div><span class="fecha">Hoy 11:42</span><span class="cambio">Estado <s>Reclamado</s><span class="flecha">→</span><b>Con ofrecimiento</b></span><span class="quien">Vos</span></div>
+            <div><span class="fecha">Ayer 18:05</span><span class="cambio">Fecha de firma <s>12/10/2026</s><span class="flecha">→</span><b>vacía</b></span><button class="boton chico" type="button">Volver a este valor</button></div>
+            <div><span class="fecha">27/09 09:10</span><span class="cambio">Adjuntó 3 fotos desde el portal</span><span class="quien">PAS</span></div>
+            <div><span class="fecha">26/09 16:31</span><span class="cambio">Caso creado desde el portal</span><span class="quien">PAS</span></div>
+          </div>
+        </div>
+      </div>
+      <ul class="notas">
+        <li><span>El caso de "Ayer 18:05" es el que busca resolver: <b>una pestaña vieja que quedó abierta pisó la fecha de firma</b> al autoguardar. Hoy no hay forma de saber qué había; con esto, un toque la recupera.</span></li>
+        <li><span>Guarda <b>solo los campos que cambiaron</b>. Un autoguardado sin cambios no deja rastro, así que la tabla no crece de más.</span></li>
+        <li><span>Nadie puede editarla ni borrarla desde la app: es el registro inalterable de Lex-Doctor, pero para un estudio de un abogado.</span></li>
+        <li><span>También queda lo que hacen los PAS desde el portal.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 2. Escritos -->
+  <section class="seccion" id="escritos">
+    <header>
+      <div class="eti">Fase 2 · Función 2</div>
+      <h2>Escritos: elegís el modelo y sale completo</h2>
+      <div class="meta"><span class="pill ok">Sumar ya</span><span class="pill">Utilidad 5/5</span><span class="pill gris">Complejidad 2/5</span></div>
+      <p class="sub">Esta demo usa el mismo motor que va a tener la app (el de <code>docs/plan-funciones/codigo/plantillas.js</code>). Cambiá el modelo o el monto y mirá la hoja.</p>
+    </header>
+
+    <div class="pantalla">
+      <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Casos PAS › GOMEZ María › Generar escrito</span></div>
+      <div class="cuerpo">
+        <div class="demo-grid">
+          <div style="display:grid;gap:14px;min-width:0">
+            <div class="campo">
+              <span class="eti">1 · Modelo</span>
+              <div class="chips" id="modelos" role="group" aria-label="Modelos"></div>
+            </div>
+            <div class="campo" id="preguntas-caja">
+              <span class="eti">2 · Preguntas del modelo</span>
+              <div id="preguntas" style="display:grid;gap:10px"></div>
+            </div>
+            <div class="campo">
+              <span class="eti">Datos del caso (ejemplo)</span>
+              <div class="tarjeta" style="padding:10px 12px;font-size:13px;display:grid;gap:3px">
+                <span>GOMEZ María · DNI 28.111.222</span>
+                <span>Dominio AA111BB · Siniestro 10/02/2026</span>
+                <span>Aseguradora del Sur S.A. · CUIT 30-00000000-0</span>
+                <span class="muted">Reclamado $ 2.000.000 · Siniestro N° sin cargar</span>
+              </div>
+            </div>
+            <div class="faltan" id="faltan"></div>
+            <div class="fila">
+              <button class="boton pri" type="button">Guardar PDF en la carpeta</button>
+              <button class="boton" type="button">Word</button>
+              <button class="boton" type="button" id="copiar">Copiar texto</button>
+            </div>
+          </div>
+          <div style="min-width:0;display:grid;gap:6px">
+            <span class="eti">3 · Vista previa (se puede editar antes de guardar)</span>
+            <div class="hoja" id="hoja" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dos inv">
+      <div style="display:grid;gap:10px;min-width:0">
+        <h3>Cómo se escribe un modelo</h3>
+        <div class="codigo">Ref.: <span class="p">{{#si nro_siniestro}}</span>Siniestro N° <span class="v">{{nro_siniestro}}</span> · <span class="p">{{/si}}</span><span class="v">{{asegurado}}</span>
+
+En representación de <span class="v">{{asegurado}}</span>, DNI <span class="v">{{dni}}</span>,
+acepto el ofrecimiento de <span class="p">{{? monto_aceptado | Monto aceptado | monto}}</span>
+(<span class="v">{{monto_aceptado_letras}}</span>) formulado por
+<span class="v">{{compania.razon_social}}</span>…</div>
+        <ul class="notas">
+          <li><span><b class="mono">{{variable}}</b> sale de la ficha del caso, de la compañía o de tus datos.</span></li>
+          <li><span><b class="mono">{{? … }}</b> es una pregunta que aparece al generar; si es un monto, también sale en letras.</span></li>
+          <li><span><b class="mono">{{#si …}}</b> muestra el bloque solo si ese dato está cargado.</span></li>
+          <li><span>Si falta un dato queda marcado en naranja, para completarlo en la vista previa.</span></li>
+        </ul>
+      </div>
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Herramientas › Modelos</span></div>
+        <div class="cuerpo">
+          <div class="chips"><span class="chip activo">Todos <span class="cuenta">9</span></span><span class="chip">Reclamo <span class="cuenta">1</span></span><span class="chip">Seguimiento <span class="cuenta">2</span></span><span class="chip">Acuerdo <span class="cuenta">2</span></span><span class="chip">Cliente <span class="cuenta">2</span></span><span class="chip">Judicial <span class="cuenta">1</span></span></div>
+          <div class="lista">
+            <div><span class="pill">Reclamo</span><span>Reclamo extrajudicial (tercero)</span><span class="muted" style="font-size:12px">Firma: ambos</span></div>
+            <div><span class="pill info">Seguim.</span><span>Pedido de respuesta</span><span class="muted" style="font-size:12px">Estudio</span></div>
+            <div><span class="pill info">Seguim.</span><span>Reiteración de reclamo</span><span class="muted" style="font-size:12px">Estudio</span></div>
+            <div><span class="pill ok">Acuerdo</span><span>Aceptación de ofrecimiento</span><span class="muted" style="font-size:12px">Ambos</span></div>
+            <div><span class="pill ok">Acuerdo</span><span>Pedido de reconsideración</span><span class="muted" style="font-size:12px">Estudio</span></div>
+            <div><span class="pill bad">Intim.</span><span>Intimación de pago</span><span class="muted" style="font-size:12px">Estudio</span></div>
+          </div>
+          <div class="fila"><span class="eti">Insertar variable</span><span class="chip">asegurado</span><span class="chip">patente</span><span class="chip">compania.cuit</span><span class="chip">monto_acordado_letras</span><span class="chip">hoy_largo</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Plazos -->
+  <section class="seccion" id="plazos">
+    <header>
+      <div class="eti">Fase 3 · Función 4</div>
+      <h2>Plazos: contás qué pasó y el plazo se arma solo</h2>
+      <div class="meta"><span class="pill ok">Sumar ya</span><span class="pill">Utilidad 5/5</span><span class="pill gris">Complejidad 2/5</span></div>
+    </header>
+    <div class="dos">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Expedientes › GOMEZ c/ PEREZ s/ daños › Plazos › Nuevo</span></div>
+        <div class="cuerpo">
+          <div class="segmentado"><span class="on">Pasó algo</span><span>A mano</span></div>
+          <div class="campo"><label for="buscar-act">¿Qué pasó?</label><input class="input" id="buscar-act" value="Notificación del traslado de la demanda" readonly></div>
+          <div class="tarjeta" style="display:grid;gap:6px">
+            <div class="fila entre"><b>Contestar la demanda (ordinario)</b><span class="pill warn">Revisar norma</span></div>
+            <span class="sub" style="font-size:13px">15 días hábiles judiciales · fatal · CABA · art. 338 CPCCN</span>
+          </div>
+          <div class="grilla2">
+            <div class="campo"><label for="f-notif">Fecha de notificación</label><input class="input" id="f-notif" value="01/10/2026" readonly></div>
+            <div class="campo"><label for="f-aviso">Avisarme antes</label><input class="input" id="f-aviso" value="2 días" readonly></div>
+          </div>
+          <div class="tarjeta" style="background:color-mix(in srgb, var(--bad) 7%, var(--card));display:grid;gap:4px">
+            <span class="eti">Vence</span>
+            <b style="font-size:20px" class="num">Viernes 23/10/2026</b>
+            <span class="sub" style="font-size:13px">Plazo de gracia: lunes 26/10, primeras 2 horas.</span>
+            <span class="muted" style="font-size:12.5px">No se contaron: 3, 4, 10, 11, 17 y 18/10 (fin de semana) y 12/10 (feriado).</span>
+          </div>
+          <div class="fila"><button class="boton pri" type="button">Guardar plazo</button><span class="muted" style="font-size:12.5px">Al cumplirlo te va a sugerir el siguiente.</span></div>
+        </div>
+      </div>
+      <div style="display:grid;gap:18px;min-width:0">
+        <div class="celu">
+          <div class="pant">
+            <div class="estado"><span>9:00</span><span>jueves 22 de octubre</span></div>
+            <div class="contenido">
+              <div class="push"><span class="app"><i></i>ATG Lex · ahora</span><b>Mañana vence: Contestar la demanda</b><span>GOMEZ c/ PEREZ s/ daños · plazo fatal</span></div>
+              <div class="push"><span class="app"><i></i>ATG Lex · ahora</span><b>Tu día en ATG Lex</b><span>1 plazo fatal vence mañana · 3 tareas para hoy · 1 mediación esta semana</span></div>
+            </div>
+          </div>
+        </div>
+        <ul class="notas">
+          <li><span>Hoy el resumen de las 9 hs <b>no mira los plazos de los expedientes</b>: un fatal no te llega al celular. Esta fase lo arregla.</span></li>
+          <li><span>Catálogo de 23 actuaciones (Nación, Provincia, laboral CABA y seguros: arts. 56 y 49 de la Ley 17.418). Todas dicen "Revisar norma" hasta que las confirmes.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Calendario -->
+  <section class="seccion" id="calendario">
+    <header>
+      <div class="eti">Fase 4 · Función 6</div>
+      <h2>Calendario: todo ATG Lex en el Google Calendar del celular</h2>
+      <div class="meta"><span class="pill ok">Sumar ya</span><span class="pill">Utilidad 4/5</span><span class="pill gris">Complejidad 2/5</span></div>
+    </header>
+    <div class="dos inv">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Apariencia y backup › Calendario en el celular</span></div>
+        <div class="cuerpo">
+          <div class="campo"><span class="eti">Qué incluir</span>
+            <div class="chips"><span class="chip activo">Mediaciones y audiencias</span><span class="chip activo">Plazos</span><span class="chip">Escritos</span><span class="chip">Próximas acciones</span></div>
+          </div>
+          <div class="campo"><label for="link-cal">Tu link (es privado)</label><input class="input mono" id="link-cal" value="https://tu-proyecto.supabase.co/functions/v1/calendario?t=7f3a…c91e" readonly></div>
+          <div class="fila"><button class="boton pri" type="button">Copiar link</button><button class="boton" type="button">Regenerar</button><span class="muted" style="font-size:12.5px">Google lo leyó hoy 08:14</span></div>
+          <ol class="sub" style="margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:4px">
+            <li>En Google Calendar (compu): Otros calendarios → + → Desde URL.</li>
+            <li>Pegás el link. Aparece "ATG Lex" también en el celular.</li>
+            <li>Tocar un evento abre la ficha en ATG Lex.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="celu">
+        <div class="pant">
+          <div class="estado"><span>Octubre 2026</span><span>Semana 43</span></div>
+          <div class="contenido" style="padding:0 0 10px">
+            <div class="cal">
+              <div class="hora cab"></div><div class="cab">Mié 21</div><div class="cab">Jue 22</div><div class="cab">Vie 23</div>
+              <div class="hora">día</div><div></div><div></div><div><div class="ev dia">Vence: Contestar la demanda · GOMEZ c/ PEREZ</div></div>
+              <div class="hora">9</div><div></div><div></div><div></div>
+              <div class="hora">10</div><div><div class="ev med">Mediación · LÓPEZ vs Aseg. del Sur (Zoom)</div></div><div></div><div></div>
+              <div class="hora">11</div><div></div><div><div class="ev acc">Reiterar reclamo · DIAZ Carlos</div></div><div></div>
+              <div class="hora">12</div><div></div><div></div><div></div>
+              <div class="hora">15</div><div></div><div><div class="ev med">Audiencia art. 360 · RUIZ c/ …</div></div><div></div>
+              <div class="hora">16</div><div></div><div></div><div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="sub">Es de una vía (lo que cambies en Google no vuelve) y Google lo relee cada 8 a 24 horas. Lo urgente del día igual te llega por el aviso de las 9. La sincronización de dos vías con la API de Google queda afuera: pide OAuth y mantenimiento para un solo usuario.</p>
+  </section>
+
+  <!-- 5. Portal -->
+  <section class="seccion" id="portal">
+    <header>
+      <div class="eti">Fase 5 · Función 9 (etapa 7 del plan)</div>
+      <h2>Portal: el cliente ve la historia, no un solo mensaje</h2>
+      <div class="meta"><span class="pill info">Después</span><span class="pill">Utilidad 4/5</span><span class="pill gris">Complejidad 3/5</span></div>
+    </header>
+    <div class="dos">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Casos PAS › GOMEZ María › Bitácora › Movimientos</span></div>
+        <div class="cuerpo">
+          <div class="lista">
+            <div><span class="fecha">03/11</span><span class="cambio">Aseguradora del Sur ofreció $ 1.500.000 (mail del analista)<br><span class="sub" style="font-size:12.5px">El cliente lee: "La compañía hizo una oferta. Te llamamos para contarte."</span></span><span class="pill ok">Lo ve</span></div>
+            <div><span class="fecha">20/10</span><span class="cambio">Reiteré por mail, sin respuesta</span><span class="pill gris">Interno</span></div>
+            <div><span class="fecha">12/10</span><span class="cambio">Carta a la compañía con doc. completa<br><span class="sub" style="font-size:12.5px">El cliente lee: "Presentamos el reclamo."</span></span><span class="pill ok">Lo ve</span></div>
+          </div>
+          <div class="tarjeta" style="display:grid;gap:8px">
+            <div class="fila entre"><b style="font-size:14px">Nuevo movimiento</b><span class="fila" style="gap:6px;font-size:13px"><span class="pill ok">Lo ve el cliente</span></span></div>
+            <input class="input" value="Pasamos a mediación prejudicial" readonly aria-label="Texto interno">
+            <input class="input" value="Vamos a mediación. No tenés que pagar nada; te avisamos la fecha." readonly aria-label="Texto para el cliente">
+            <div class="fila"><button class="boton pri" type="button">Guardar</button><button class="boton" type="button">Guardar y avisar por WhatsApp</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="celu">
+        <div class="pant">
+          <div class="estado"><span>Mi reclamo</span><span>AA111BB</span></div>
+          <div class="contenido">
+            <div class="tarjeta" style="display:grid;gap:4px"><span class="eti">Tu reclamo</span><b>Con ofrecimiento</b><div class="barrita"><i style="width:60%"></i></div></div>
+            <div class="tarjeta" style="display:grid;gap:8px">
+              <span class="eti">Novedades</span>
+              <div style="display:grid;gap:2px"><span class="fecha">3 de noviembre</span><span style="font-size:13.5px">La compañía hizo una oferta. Te llamamos para contarte.</span></div>
+              <div style="display:grid;gap:2px"><span class="fecha">12 de octubre</span><span style="font-size:13.5px">Presentamos el reclamo.</span></div>
+              <div style="display:grid;gap:2px"><span class="fecha">28 de septiembre</span><span style="font-size:13.5px">Recibimos toda tu documentación.</span></div>
+            </div>
+            <div class="tarjeta" style="display:grid;gap:4px"><span class="eti">Expedientes</span><span style="font-size:13px" class="sub">Los clientes de juicios entran con DNI y un código que les pasás desde la ficha.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Finanzas -->
+  <section class="seccion" id="finanzas">
+    <header>
+      <div class="eti">Fase 6 · Funciones 8 y 3</div>
+      <h2>Cuánto te dejó cada caso, y la liquidación dentro del escrito</h2>
+      <div class="meta"><span class="pill info">Después</span><span class="pill">Utilidad 3/5</span><span class="pill gris">Complejidad 1/5</span></div>
+    </header>
+    <div class="dos">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Casos PAS › ANA Torres › Montos › Resultado del caso</span></div>
+        <div class="cuerpo">
+          <div class="lista num">
+            <div><span class="muted">+</span><span>Honorarios cobrados</span><b>$ 300.000</b></div>
+            <div><span class="muted">−</span><span>Comisión PAS</span><span>$ 30.000</span></div>
+            <div><span class="muted">−</span><span>Mediación <span class="pill warn">Se recupera de la compañía</span></span><span>$ 50.000</span></div>
+            <div><span class="muted">−</span><span>Carta documento</span><span>$ 10.000</span></div>
+            <div><span class="muted">=</span><b>Neto del caso</b><b style="color:var(--ok)">$ 210.000</b></div>
+          </div>
+          <div class="fila entre"><span class="sub" style="font-size:13px">123 días desde la derivación hasta el cobro</span><button class="boton chico" type="button">+ Gasto</button></div>
+        </div>
+      </div>
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Herramientas › Intereses y actualización</span></div>
+        <div class="cuerpo">
+          <div class="grilla2 num">
+            <div class="campo"><label for="cap">Capital</label><input class="input" id="cap" value="$ 1.000.000" readonly></div>
+            <div class="campo"><label for="per">Período</label><input class="input" id="per" value="10/02/2026 → 29/09/2026" readonly></div>
+          </div>
+          <div class="tarjeta fila entre"><span>Tasa activa BNA</span><span class="muted" style="font-size:13px">Resultado según tus índices cargados</span></div>
+          <div class="fila"><button class="boton pri" type="button">Guardar en el caso</button><button class="boton" type="button">Copiar texto</button></div>
+          <span class="muted" style="font-size:12.5px">Guardada, se usa en cualquier escrito con <span class="mono">{{liquidacion}}</span>.</span>
+        </div>
+      </div>
+    </div>
+    <p class="sub">No se suma registro de horas: cobrás por resultado, así que la rentabilidad que importa es neto por caso, por compañía y por PAS, y cuánto tarda en entrar.</p>
+  </section>
+
+  <!-- 7. Opcionales -->
+  <section class="seccion" id="opcionales">
+    <header>
+      <div class="eti">Fase 7 · Funciones 1 y 7 (solo si hacen falta)</div>
+      <h2>Bandeja de novedades judiciales y búsqueda en documentos</h2>
+      <div class="meta"><span class="pill gris">Opcional</span></div>
+    </header>
+    <div class="dos">
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Expedientes › Novedades (2)</span></div>
+        <div class="cuerpo">
+          <div class="tarjeta" style="display:grid;gap:8px">
+            <div class="fila entre"><b style="font-size:14px">GOMEZ c/ PEREZ s/ daños</b><span class="fecha">Pegada hoy · MEV</span></div>
+            <span class="sub" style="font-size:13px;font-family:var(--serif)">"…Córrase traslado de la demanda por el término de quince días…"</span>
+            <div class="fila"><button class="boton pri chico" type="button">Integrar y crear plazo</button><button class="boton chico" type="button">Solo a la Bitácora</button><button class="boton chico" type="button">Descartar</button></div>
+          </div>
+          <div class="tarjeta" style="display:grid;gap:8px">
+            <div class="fila entre"><b style="font-size:14px">Sin asignar</b><span class="fecha">Pegada hoy</span></div>
+            <span class="sub" style="font-size:13px;font-family:var(--serif)">"…Téngase presente. Autos para sentencia…"</span>
+            <div class="fila"><button class="boton chico" type="button">Elegir expediente</button></div>
+          </div>
+          <button class="boton" type="button">Pegar novedad</button>
+        </div>
+      </div>
+      <div class="pantalla">
+        <div class="barra"><span class="puntos"><i></i><i></i><i></i></span><span class="ruta">Buscar (Ctrl+K)</span></div>
+        <div class="cuerpo">
+          <input class="input" value="póliza 44532" readonly aria-label="Búsqueda">
+          <span class="eti">Casos</span>
+          <div class="lista"><div><span class="pill">Caso</span><span>DIAZ Carlos · AB321CD · Aseguradora del Sur</span><span class="fecha">Reclamado</span></div></div>
+          <span class="eti">En documentos</span>
+          <div class="lista">
+            <div><span class="pill info">PDF</span><span style="font-size:13px">poliza.pdf<br><span class="sub">Certificado de cobertura. <mark>Póliza</mark> número <mark>44532</mark> vigente desde…</span></span><span class="fecha">DIAZ C.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="sub">La bandeja se carga pegando el texto de la MEV o el PJN (o, más adelante, desde los mails de aviso). No guarda tu clave ni hace scraping. La búsqueda indexa en tu compu el texto de los PDF de la carpeta del caso; los archivos no se suben.</p>
+  </section>
+
+  <!-- Afuera -->
+  <section class="seccion" id="afuera">
+    <header>
+      <div class="eti">Lo que queda afuera</div>
+      <h2>Qué no conviene sumar, y por qué</h2>
+    </header>
+    <div class="estados">
+      <div class="tarjeta"><b>Scraping de PJN y MEV</b><span class="sub" style="font-size:13.5px">Tu clave guardada en un servidor, captchas, un robot que se rompe cuando cambian la página y que puede fallar sin avisar. Para 15 expedientes no compensa.</span></div>
+      <div class="tarjeta"><b>Google Calendar de dos vías</b><span class="sub" style="font-size:13.5px">OAuth, verificación de Google y tokens que vencen. El calendario suscripto cubre casi todo.</span></div>
+      <div class="tarjeta"><b>OCR de todo</b><span class="sub" style="font-size:13.5px">Pesa, es lento en el celular y tus documentos son pocos y conocidos. Primero, si acaso, leer los datos de la denuncia.</span></div>
+      <div class="tarjeta"><b>Registro de horas</b><span class="sub" style="font-size:13.5px">Cobrás por resultado: cargar horas sería trabajo sin retorno.</span></div>
+      <div class="tarjeta"><b>Editor tipo Word adentro</b><span class="sub" style="font-size:13.5px">La vista previa editable y "Descargar Word" alcanzan.</span></div>
+      <div class="tarjeta"><b>Otra librería de PDF</b><span class="sub" style="font-size:13.5px">Gemini sugiere pdfmake o react-pdf; jsPDF ya está y funciona.</span></div>
+    </div>
+  </section>
+
+  <footer class="pie-pagina">
+    <b style="color:var(--text)">Todo está en el repo, en <code>docs/plan-funciones/</code></b>
+    <span><code>ANALISIS.md</code> (las 10 funciones en detalle) · <code>PLAN.md</code> (fases, esquemas y cómo retomar) · <code>sql/31…38</code> (probados en Postgres 16) · <code>codigo/plantillas.js</code> (motor de esta demo, con pruebas) · <code>funciones/calendario.ts</code>.</span>
+    <span class="muted">Nada de esto está todavía en la app ni en tu base: falta tu aprobación.</span>
+  </footer>
+</div>
+
+<script>
+// Versión compacta del motor de docs/plan-funciones/codigo/plantillas.js (mismas reglas)
+const U = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve", "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
+const D = ["", "", "", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
+const C = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"];
+function hasta999(n) { if (!n) return ""; if (n === 100) return "cien"; const c = Math.floor(n / 100), r = n % 100; let s = C[c]; if (r) s += (s ? " " : "") + (r < 30 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? " y " + U[r % 10] : "")); return s; }
+const apocopar = s => s.replace(/veintiuno$/, "veintiún").replace(/(^|\s)uno$/, "$1un");
+function enteroALetras(n) { n = Math.floor(Math.abs(Number(n) || 0)); if (!n) return "cero"; const mi = Math.floor(n / 1e6), m = Math.floor((n % 1e6) / 1000), r = n % 1000, p = []; if (mi) p.push(mi === 1 ? "un millón" : apocopar(enteroALetras(mi)) + " millones"); if (m) p.push(m === 1 ? "mil" : apocopar(hasta999(m)) + " mil"); if (r) p.push(hasta999(r)); return p.join(" "); }
+const pesos = n => "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const letras = n => { const v = Math.round(Number(n) * 100) / 100, e = Math.floor(v), c = Math.round((v - e) * 100); return `pesos ${apocopar(enteroALetras(e))} con ${String(c).padStart(2, "0")}/100`; };
+
+const VARS = {
+  asegurado: "GOMEZ María", asegurado_mayus: "GOMEZ MARÍA", dni: "28.111.222", patente: "AA111BB", nro_siniestro: "",
+  fecha_siniestro: "10/02/2026", fecha_inicio_reclamo: "01/03/2026", fecha_reclamo: "10/03/2026", hoy_largo: "29 de septiembre de 2026",
+  "compania.razon_social": "Aseguradora del Sur S.A.", "compania.cuit": "30-00000000-0", compania: "Aseguradora del Sur",
+  monto_reclamado: "$ 2.000.000,00", monto_ofrecimiento: "$ 1.200.000,00",
+};
+const MODELOS = [
+  { k: "acept", t: "Aceptación de ofrecimiento", cuerpo:
+`Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
+
+**{{compania.razon_social}}**
+
+De mi consideración:
+
+En representación de {{asegurado}}, DNI {{dni}}, acepto el ofrecimiento de {{? monto_aceptado | Monto aceptado | monto}} ({{monto_aceptado_letras}}) formulado por esa compañía en concepto de indemnización total por los daños derivados del siniestro del {{fecha_siniestro}}. Solicito se me indiquen los pasos para la firma del convenio y el plazo de pago.
+
+Datos para la transferencia: {{? datos_transferencia | CBU o alias | texto}}
+
+Saludo a Uds. atentamente.` },
+  { k: "reit", t: "Reiteración de reclamo", cuerpo:
+`Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
+
+**{{compania.razon_social}}**
+
+De mi consideración:
+
+Reitero el reclamo presentado el {{fecha_inicio_reclamo}} y el pedido de respuesta del {{fecha_reclamo}}, que a la fecha no han sido contestados. Solicito se expidan dentro de los próximos {{? dias | Días para responder | texto}} días, bajo apercibimiento de iniciar la mediación prejudicial obligatoria y las acciones legales que correspondan, con costas.
+
+Saludo a Uds. atentamente.` },
+  { k: "recon", t: "Pedido de reconsideración", cuerpo:
+`Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
+
+**{{compania.razon_social}}**
+
+De mi consideración:
+
+Recibimos el ofrecimiento de {{monto_ofrecimiento}}, que no cubre los daños reclamados ({{monto_reclamado}}). Solicito su reconsideración teniendo en cuenta {{? fundamento | Fundamento | texto}}.
+
+Saludo a Uds. atentamente.` },
+];
+const RESP = { acept: { monto_aceptado: "1500000", datos_transferencia: "" }, reit: { dias: "5" }, recon: { fundamento: "el presupuesto del taller y la privación de uso del vehículo" } };
+const RE_P = /\{\{\?\s*([\w.]+)\s*(?:\|\s*([^|}]*?)\s*)?(?:\|\s*(texto|monto|fecha)\s*)?\}\}/g;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let actual = "acept";
+
+function preguntas(cuerpo) { const m = new Map(); for (const [, k, e, t] of cuerpo.matchAll(RE_P)) if (!m.has(k)) m.set(k, { k, e: e || k, t: t || "texto" }); return [...m.values()]; }
+
+function completar(cuerpo, vals) {
+  let t = cuerpo.replace(RE_P, (_, k) => `{{${k}}}`);
+  const RE = /\{\{#si\s+([\w.]+)\s*\}\}((?:(?!\{\{#si\s)[\s\S])*?)\{\{\/si\}\}/; let m;
+  while ((m = t.match(RE))) t = t.replace(m[0], String(vals[m[1]] ?? "").trim() ? m[2] : "");
+  const faltan = new Set();
+  t = esc(t).replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k) => {
+    const v = vals[k]; if (v !== undefined && String(v).trim() !== "") return `<span class="var">${esc(v)}</span>`;
+    faltan.add(k); return `<span class="falta">[${k.replace(/[._]/g, " ")}]</span>`;
+  });
+  return { html: t, faltan: [...faltan] };
+}
+
+function aHoja(html) {
+  return html.split(/\n{2,}/).map(par => {
+    const p = par.trim().replace(/\n/g, " ").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    if (!p) return "";
+    return /^Ref\.:|^<b>/.test(p) ? `<p class="linea">${p}</p>` : `<p>${p}</p>`;
+  }).join("") + `<div class="pie"><span>ATG Lex Solutions</span><span>1 / 1</span></div>`;
+}
+
+function dibujar() {
+  const m = MODELOS.find(x => x.k === actual), r = RESP[actual], ps = preguntas(m.cuerpo);
+  const vals = { ...VARS };
+  ps.forEach(p => { const v = r[p.k]; if (v === undefined || v === "") return;
+    if (p.t === "monto") { const n = Number(String(v).replace(/\./g, "").replace(",", ".")); if (!isNaN(n) && n > 0) { vals[p.k] = pesos(n); vals[p.k + "_letras"] = letras(n); } }
+    else vals[p.k] = v; });
+  const { html, faltan } = completar(m.cuerpo, vals);
+  document.getElementById("hoja").innerHTML = aHoja(html);
+  document.getElementById("faltan").innerHTML = faltan.length
+    ? `<span class="muted">Faltan:</span>` + faltan.map(f => `<span class="pill warn">${esc(f.replace(/[._]/g, " "))}</span>`).join("")
+    : `<span class="pill ok">Completo</span>`;
+}
+
+function armarPreguntas() {
+  const m = MODELOS.find(x => x.k === actual), cont = document.getElementById("preguntas");
+  cont.innerHTML = preguntas(m.cuerpo).map(p => `<div class="campo"><label for="q-${p.k}">${esc(p.e)}${p.t === "monto" ? " (en pesos)" : ""}</label><input class="input" id="q-${p.k}" data-k="${p.k}" inputmode="${p.t === "monto" ? "decimal" : "text"}" value="${esc(RESP[actual][p.k] || "")}"></div>`).join("");
+  cont.querySelectorAll("input").forEach(i => i.addEventListener("input", e => { RESP[actual][e.target.dataset.k] = e.target.value; dibujar(); }));
+}
+
+function armarModelos() {
+  const cont = document.getElementById("modelos");
+  cont.innerHTML = MODELOS.map(m => `<button type="button" class="chip" data-k="${m.k}" aria-pressed="${m.k === actual}">${esc(m.t)}</button>`).join("");
+  cont.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { actual = b.dataset.k; armarModelos(); armarPreguntas(); dibujar(); }));
+}
+
+document.getElementById("copiar").addEventListener("click", async e => {
+  const texto = document.getElementById("hoja").innerText.replace(/ATG Lex Solutions\s*1 \/ 1\s*$/, "").trim();
+  try { await navigator.clipboard.writeText(texto); e.target.textContent = "Copiado"; }
+  catch { const s = window.getSelection(), rg = document.createRange(); rg.selectNodeContents(document.getElementById("hoja")); s.removeAllRanges(); s.addRange(rg); e.target.textContent = "Seleccionado"; }
+  setTimeout(() => (e.target.textContent = "Copiar texto"), 1600);
+});
+
+armarModelos(); armarPreguntas(); dibujar();
+</script>

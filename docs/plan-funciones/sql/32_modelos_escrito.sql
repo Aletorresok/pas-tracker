@@ -87,7 +87,7 @@ Reclamo de Terceros
 {{documental}}
 $t$),
 ('pedido_respuesta', 'Pedido de respuesta', 'seguimiento', 'caso', 'estudio', 20,
-$t$Ref.: Siniestro {{#si nro_siniestro}}N° {{nro_siniestro}}{{/si}} · {{asegurado}} · Dominio {{patente}}
+$t$Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
 
 De mi consideración:
 
@@ -96,7 +96,7 @@ Me dirijo a Uds. en representación de {{asegurado}}, en relación al reclamo pr
 Sin otro particular, saludo a Uds. atentamente.
 $t$),
 ('reiteracion', 'Reiteración de reclamo', 'seguimiento', 'caso', 'estudio', 30,
-$t$Ref.: Siniestro {{#si nro_siniestro}}N° {{nro_siniestro}}{{/si}} · {{asegurado}} · Dominio {{patente}}
+$t$Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
 
 De mi consideración:
 
@@ -105,7 +105,7 @@ Reitero el reclamo presentado el {{fecha_inicio_reclamo}} y el pedido de respues
 Saludo a Uds. atentamente.
 $t$),
 ('aceptacion_ofrecimiento', 'Aceptación de ofrecimiento', 'acuerdo', 'caso', 'ambos', 40,
-$t$Ref.: Siniestro {{#si nro_siniestro}}N° {{nro_siniestro}}{{/si}} · {{asegurado}} · Dominio {{patente}}
+$t$Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
 
 De mi consideración:
 
@@ -116,7 +116,7 @@ Datos para la transferencia: {{? datos_transferencia | CBU / alias y titular | t
 Saludo a Uds. atentamente.
 $t$),
 ('reconsideracion', 'Pedido de reconsideración del ofrecimiento', 'acuerdo', 'caso', 'estudio', 50,
-$t$Ref.: Siniestro {{#si nro_siniestro}}N° {{nro_siniestro}}{{/si}} · {{asegurado}} · Dominio {{patente}}
+$t$Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
 
 De mi consideración:
 
@@ -125,7 +125,7 @@ Recibimos el ofrecimiento de {{monto_ofrecimiento}}, que no cubre los daños rec
 Saludo a Uds. atentamente.
 $t$),
 ('intimacion_pago', 'Intimación de pago (acuerdo incumplido)', 'intimacion', 'caso', 'estudio', 60,
-$t$Ref.: Siniestro {{#si nro_siniestro}}N° {{nro_siniestro}}{{/si}} · {{asegurado}} · Dominio {{patente}}
+$t$Ref.: {{#si nro_siniestro}}Siniestro N° {{nro_siniestro}} · {{/si}}{{asegurado}} · Dominio {{patente}}
 
 Habiéndose acordado el pago de {{monto_acordado}} ({{monto_acordado_letras}}) con fecha {{fecha_aceptacion}}, a la fecha no se ha efectivizado. INTIMO a que en el plazo de tres (3) días hábiles abonen la suma acordada con más sus intereses, bajo apercibimiento de iniciar las acciones judiciales correspondientes y de efectuar la denuncia ante la Superintendencia de Seguros de la Nación, con costas.
 $t$),

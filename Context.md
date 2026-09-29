@@ -109,7 +109,7 @@
 ## 📝 Registro de Cambios
 
 ### 2026-09-29 — Plan de funciones nuevas (análisis de las 10 funciones de Lex-Doctor / IUSNET / LegalSurf; PROPUESTO)
-*   `docs/plan-funciones/`: `ANALISIS.md` (qué hay, utilidad, complejidad, prioridad y balance de cada función), `PLAN.md` (fases 0–7 con esquemas, archivos y criterios de "listo"), `presentacion.html` (cómo se vería cada pantalla), borradores SQL 31–38 en `sql/`, motor de plantillas `codigo/plantillas.js` (+ pruebas) y la Edge Function del calendario `funciones/calendario.ts`.
+*   `docs/plan-funciones/`: `ANALISIS.md` (qué hay, utilidad, complejidad, prioridad y balance de cada función), `PLAN.md` (fases 0–7 con esquemas, archivos y criterios de "listo"), `presentacion.html` (cómo se vería cada pantalla; publicada como artifact privado: https://claude.ai/artifact/PerhWd53EsETAqEfcWDNec), borradores SQL 31–38 en `sql/`, motor de plantillas `codigo/plantillas.js` (+ pruebas) y la Edge Function del calendario `funciones/calendario.ts`.
 *   **Orden propuesto:** 0) preparación (links `?abrir=caso-ID`, datos del estudio) → 1) auditoría (SQL 31) → 2) escritos con modelos (SQL 32) → 3) plazos condicionados + aviso de plazos en el push (SQL 33) → 4) calendario suscribible .ics (SQL 34) → 5) movimientos visibles + vista del cliente de expedientes = etapa 7 (SQL 35) → 6) resultado por caso y liquidaciones (SQL 36) → 7) opcionales: bandeja PJN/MEV manual (SQL 37) y búsqueda en documentos (SQL 38).
 *   **Descartado:** scraping de PJN/MEV, sincronización bidireccional con la API de Google Calendar, OCR por ahora, registro de horas.
 *   Los SQL 31–38 se probaron en Postgres 16 local con el esquema real (dos corridas cada uno); **no se corrió nada en la base real ni se tocó el código de la app.**
