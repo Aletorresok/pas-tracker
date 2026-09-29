@@ -9,17 +9,17 @@ const VARIANTES = {
 };
 
 export default function Boton({ variante = "secundario", icono, children, style, disabled, tamaño = "md", className, ...rest }) {
-  const pad = tamaño === "sm" ? "6px 10px" : "10px 16px";
+  const pad = tamaño === "sm" ? "6px 14px" : "10px 20px";
   return (
     <button
       type="button"
       disabled={disabled}
-      className={className}
+      className={`lift ${className || ""}`}
       {...rest}
       style={{
         ...VARIANTES[variante],
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-        borderRadius: 8, padding: pad, fontSize: tamaño === "sm" ? 12 : 14, fontWeight: 600,
+        borderRadius: "var(--r-pill)", padding: pad, fontSize: tamaño === "sm" ? 12 : 14, fontWeight: 600,
         cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1, whiteSpace: "nowrap",
         ...style,
       }}

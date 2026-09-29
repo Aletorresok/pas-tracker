@@ -47,8 +47,8 @@ export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) 
               )}
               <div style={{ display: "grid", gridTemplateColumns: "min(33%, 166px) minmax(0, 1fr) 84px", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 13, color: "var(--sub)", textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.label}</span>
-                <div style={{ height: 14, background: "var(--card2)", borderRadius: 4, overflow: "hidden" }} title={`${e.label}: ${e.llegaron} de ${total}`}>
-                  <div style={{ width: `${total ? Math.max(2, (e.llegaron / total) * 100) : 0}%`, height: "100%", borderRadius: 4, background: tono(35 + Math.round((i / (etapas.length - 1)) * 60)) }} />
+                <div style={{ height: 14, background: "var(--card2)", borderRadius: "var(--r-xs)", overflow: "hidden" }} title={`${e.label}: ${e.llegaron} de ${total}`}>
+                  <div style={{ width: `${total ? Math.max(2, (e.llegaron / total) * 100) : 0}%`, height: "100%", borderRadius: "var(--r-xs)", background: tono(35 + Math.round((i / (etapas.length - 1)) * 60)) }} />
                 </div>
                 <span className="num" style={{ fontSize: 13 }}><b>{e.llegaron}</b> <span style={{ color: "var(--muted)" }}>{pct(e.llegaron, total) ?? 0}%</span></span>
               </div>
@@ -145,13 +145,13 @@ function SeccionPelota({ allCasos, cambios }) {
       <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Días que la tiene cada uno, por caso</div>
       {exacto.casos > 0 ? (
         <>
-          <div aria-hidden="true" style={{ display: "flex", height: 12, borderRadius: 4, overflow: "hidden", gap: 2, marginBottom: 8 }}>
+          <div aria-hidden="true" style={{ display: "flex", height: 12, borderRadius: "var(--r-xs)", overflow: "hidden", gap: 2, marginBottom: 8 }}>
             {QUIEN.map(q => exacto.promedio[q.k] > 0 && <div key={q.k} style={{ flex: exacto.promedio[q.k], background: COLOR_QUIEN[q.k] }} />)}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px", fontSize: 13 }}>
             {QUIEN.map(q => (
               <span key={q.k} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 3, background: COLOR_QUIEN[q.k] }} />
+                <span style={{ width: 10, height: 10, borderRadius: "var(--r-xs)", background: COLOR_QUIEN[q.k] }} />
                 <span style={{ color: "var(--sub)" }}>{q.corto}</span>
                 <b className="num">{exacto.promedio[q.k]} d</b>
                 <span className="num" style={{ color: "var(--muted)", fontSize: 12 }}>{totalPromedio ? `${pct(exacto.promedio[q.k], totalPromedio)}%` : ""}</span>

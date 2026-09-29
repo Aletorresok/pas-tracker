@@ -45,7 +45,7 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onCopiaCompleta,
   const { darkMode, toggleDarkMode, T } = useTheme();
   const app = useInstalarApp();
   const push = useNotificaciones();
-  const item = { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", color: T.text, padding: "10px 12px", cursor: "pointer", fontSize: 14, textAlign: "left", borderRadius: 6 };
+  const item = { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", color: T.text, padding: "10px 12px", cursor: "pointer", fontSize: 14, textAlign: "left", borderRadius: "var(--r-xs)" };
   return (
     <>
       {app.puede && <>
@@ -97,7 +97,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
     <>
       {/* ── MENÚ LATERAL (compu) ── */}
       <aside className="sidebar" style={{
-        width: 232, background: T.card, borderRight: `1px solid ${T.border}`,
+        width: 232, background: T.card, border: `1px solid ${T.border}`,
         flexDirection: "column", justifyContent: "space-between",
         position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 100, padding: "20px 12px",
       }}>
@@ -111,9 +111,9 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           </div>
 
           <button type="button" onClick={onBuscar}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 12, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.muted, fontSize: 14, cursor: "pointer", textAlign: "left", font: "inherit" }}>
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 12, borderRadius: "var(--r-sm)", border: `1px solid ${T.border}`, background: T.bg, color: T.muted, fontSize: 14, cursor: "pointer", textAlign: "left", font: "inherit" }}>
             <Icono nombre="buscar" size={16} /><span style={{ flex: 1 }}>Buscar</span>
-            <span style={{ fontSize: 11, border: `1px solid ${T.border2 || T.border}`, borderRadius: 4, padding: "0 5px" }}>Ctrl K</span>
+            <span style={{ fontSize: 11, border: `1px solid ${T.border2 || T.border}`, borderRadius: "var(--r-xs)", padding: "0 5px" }}>Ctrl K</span>
           </button>
 
           <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -123,11 +123,12 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
                 <button
                   key={t.k}
                   type="button"
+                  className="nav-item"
                   onClick={() => setMainTab(t.k)}
                   aria-current={active ? "page" : undefined}
                   style={{
                     display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "9px 10px",
-                    borderRadius: 8, border: "none", background: active ? T.card2 : "transparent",
+                    borderRadius: "var(--r-sm)", border: "none", background: active ? T.card2 : "transparent",
                     color: active ? T.text : T.sub, fontSize: 14, fontWeight: active ? 600 : 500,
                     cursor: "pointer", textAlign: "left",
                   }}
@@ -145,14 +146,14 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
             type="button"
             onClick={() => setShowMenu(v => !v)}
             aria-expanded={showMenu}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", borderRadius: 8, color: T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", borderRadius: "var(--r-sm)", color: T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
           >
             <Icono nombre="paleta" /> Apariencia y backup
           </button>
           {showMenu && (
             <>
               <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setShowMenu(false)} />
-              <div style={{ position: "absolute", left: 0, right: 0, bottom: "100%", marginBottom: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, zIndex: 99, boxShadow: T.shadow }}>
+              <div style={{ position: "absolute", left: 0, right: 0, bottom: "100%", marginBottom: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: 6, zIndex: 99, boxShadow: T.shadow }}>
                 <MenuUtilidades {...utilidades} onClose={() => setShowMenu(false)} />
               </div>
             </>
@@ -185,10 +186,10 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
       {showMas && (
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 140, background: "color-mix(in srgb, #000 35%, transparent)" }} onClick={() => setShowMas(false)} />
-          <div style={{ position: "fixed", left: 8, right: 8, bottom: "calc(70px + env(safe-area-inset-bottom, 0px))", zIndex: 145, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 8, boxShadow: T.shadow }}>
+          <div style={{ position: "fixed", left: 8, right: 8, bottom: "calc(70px + env(safe-area-inset-bottom, 0px))", zIndex: 145, background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", padding: 8, boxShadow: T.shadow }}>
             {TABS.filter(t => !TABS_MOVIL.includes(t.k)).map(t => (
               <button key={t.k} type="button" onClick={() => { setMainTab(t.k); setShowMas(false); }}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: mainTab === t.k ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: 8 }}>
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: mainTab === t.k ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: "var(--r-sm)" }}>
                 <Icono nombre={t.icon} />{t.l}
               </button>
             ))}

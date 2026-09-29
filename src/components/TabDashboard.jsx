@@ -11,7 +11,7 @@ import { registrarReiteracion } from "../utils/storage.js";
 import { useMargenes } from "../utils/margenes.js";
 import { quienTiene } from "../utils/pelota.js";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
+const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 
 function Variacion({ valor, contra }) {
   if (valor === null || valor === undefined) return <span style={{ fontSize: 12, color: "var(--muted)" }}>sin comparación</span>;

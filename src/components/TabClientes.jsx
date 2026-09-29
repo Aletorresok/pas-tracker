@@ -35,7 +35,7 @@ function ComisionPas({ pas, pct, onGuardado }) {
     <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--sub)" }}>
       Comisión
       <input inputMode="decimal" value={texto ?? (pct ?? "")} placeholder="sin" onChange={e => setTexto(e.target.value)} onBlur={guardar} onKeyDown={e => e.key === "Enter" && e.currentTarget.blur()}
-        aria-label={`% de comisión de ${pas.nombre}`} style={{ width: 56, font: "inherit", fontSize: 13, padding: "4px 6px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", textAlign: "right" }} />
+        aria-label={`% de comisión de ${pas.nombre}`} style={{ width: 56, font: "inherit", fontSize: 13, padding: "4px 6px", borderRadius: "var(--r-xs)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", textAlign: "right" }} />
       <span style={{ color: estado === "ok" ? "var(--ok)" : estado === "error" ? "var(--bad)" : "var(--muted)" }}>{estado === "ok" ? "✓" : estado === "error" ? "no se guardó" : "%"}</span>
     </label>
   );
@@ -69,7 +69,7 @@ function Ritmo({ est }) {
   if (!est.ultimo) return <span style={{ color: "var(--muted)" }}>sin casos</span>;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-      {est.dormido && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: 5, padding: "1px 6px" }}>Dormido</span>}
+      {est.dormido && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>Dormido</span>}
       <span className="num" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{est.ritmo !== null ? `cada ${est.ritmo} d · ` : ""}{hace(est.ultimo)}</span>
     </span>
   );
@@ -97,7 +97,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontSize: 13, color: "var(--sub)" }}>
         {pas.mail && <a href={`mailto:${pas.mail}`} style={{ color: "var(--sub)" }}>{pas.mail}</a>}
         {(pas.telefonos || []).map(t => (
-          <a key={t} href={linkWa(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--sub)", border: "1px solid var(--border)", borderRadius: 6, padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>
+          <a key={t} href={linkWa(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--sub)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>
             <Icono nombre="mensaje" size={13} /> {t}
           </a>
         ))}
@@ -115,7 +115,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
       {casos.length === 0
         ? <div style={{ fontSize: 13, color: "var(--muted)", padding: "8px 0" }}>Todavía no derivó casos.</div>
         : (
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden" }}>
             {casos.map((c, i) => (
               <button key={c.id} type="button" onClick={() => onAbrir(c)} className="fila-caso"
                 style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : "minmax(0, 2fr) 150px minmax(0, 1.2fr) 90px 110px", gap: esCelular ? "4px 10px" : 12, alignItems: "center", padding: "9px 12px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit", fontSize: 14 }}>
@@ -246,7 +246,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
           <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={16} /></span>
           <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar PAS por nombre o mail…" aria-label="Buscar PAS"
-            style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+            style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
         </div>
         <Boton icono="agregar" onClick={() => setPasEditando(null)}>PAS manual</Boton>
         <Boton icono="portal" onClick={copiarLinkPortal}>{linkCopiado ? "Link copiado" : "Link del portal"}</Boton>
@@ -265,7 +265,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
       {/* Celular: filas de dos líneas */}
       {esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           {filtrados.map((p, i) => (
             <Fragment key={p.id}>
               <button type="button" onClick={() => alternar(p.id)} aria-expanded={abiertoId === p.id}
@@ -283,7 +283,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
       {/* Compu: tabla */}
       {!esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
             <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
             <thead>
@@ -314,8 +314,8 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
                           style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {p.nombre}
                         </button>
-                        {p.manual && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "0 5px" }}>manual</span>}
-                        {conPortal?.has(String(p.id)) && <span title="Tiene acceso al portal" style={{ marginLeft: 8, fontSize: 11, color: "var(--ok)", border: "1px solid color-mix(in srgb, var(--ok) 40%, transparent)", borderRadius: 4, padding: "0 5px" }}>portal</span>}
+                        {p.manual && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--muted)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "0 5px" }}>manual</span>}
+                        {conPortal?.has(String(p.id)) && <span title="Tiene acceso al portal" style={{ marginLeft: 8, fontSize: 11, color: "var(--ok)", border: "1px solid color-mix(in srgb, var(--ok) 40%, transparent)", borderRadius: "var(--r-xs)", padding: "0 5px" }}>portal</span>}
                       </td>
                       <td className="num" style={{ ...celda, textAlign: "right", fontWeight: p._enCurso ? 600 : 400, color: p._enCurso ? "var(--text)" : "var(--muted)" }}>{p._enCurso}</td>
                       <td className="num" style={{ ...celda, textAlign: "right", color: p._casos.length ? "var(--text)" : "var(--muted)" }}>{p._casos.length}</td>

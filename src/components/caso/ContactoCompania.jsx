@@ -16,8 +16,8 @@ export default function ContactoCompania({ casoId, compania, Th }) {
   const guardarCia = async () => { if (compania) aviso(await guardarCompania(compania, { mail: cia.mail || null, telefono: cia.telefono || null })); };
   const guardarPlazo = async () => { if (compania) { const n = parseInt(cia.plazo_pago_dias, 10); aviso(await guardarCompania(compania, { plazo_pago_dias: n >= 1 && n <= 365 ? n : null })); } };
 
-  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16 };
-  const campo = { width: "100%", boxSizing: "border-box", padding: "6px 9px", borderRadius: 7, border: `1px solid ${Th.border}`, background: "var(--card)", color: "var(--text)", fontSize: 13, fontFamily: "inherit" };
+  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16 };
+  const campo = { width: "100%", boxSizing: "border-box", padding: "6px 9px", borderRadius: "var(--r-xs)", border: `1px solid ${Th.border}`, background: "var(--card)", color: "var(--text)", fontSize: 13, fontFamily: "inherit" };
   const etiqueta = { display: "block", fontSize: 11, color: Th.muted, marginBottom: 3 };
   const link = { fontSize: 12, color: "var(--accent-ink)", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" };
 

@@ -23,7 +23,7 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
   const iStyle = {
     background: "var(--card2)",
     border: `1px solid ${"var(--border)"}`,
-    borderRadius: 10,
+    borderRadius: "var(--r-sm)",
     color: "var(--text)",
     padding: "10px 14px",
     fontSize: 14,
@@ -52,7 +52,7 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: 18, width: "100%", maxWidth: 520, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-lg)", width: "100%", maxWidth: 520, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: "var(--text)" }}>Nuevo caso</div>
         <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 24 }}>{pasNombre}</div>
 
@@ -99,8 +99,8 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: 10, color: "var(--sub)", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={handleSave} disabled={!asegurado.trim()} style={{ flex: 2, background: asegurado.trim() ? "var(--accent)" : "var(--border)", border: "none", borderRadius: 10, color: asegurado.trim() ? "white" : "var(--muted)", padding: "11px", cursor: asegurado.trim() ? "pointer" : "default", fontSize: 14, fontWeight: 700 }}>Crear caso</button>
+          <button onClick={onClose} style={{ flex: 1, background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-sm)", color: "var(--sub)", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
+          <button onClick={handleSave} disabled={!asegurado.trim()} style={{ flex: 2, background: asegurado.trim() ? "var(--accent)" : "var(--border)", border: "none", borderRadius: "var(--r-sm)", color: asegurado.trim() ? "white" : "var(--muted)", padding: "11px", cursor: asegurado.trim() ? "pointer" : "default", fontSize: 14, fontWeight: 700 }}>Crear caso</button>
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ export function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
   const iStyle = {
     background: "var(--card2)",
     border: `1px solid ${"var(--border)"}`,
-    borderRadius: 10,
+    borderRadius: "var(--r-sm)",
     color: "var(--text)",
     padding: "10px 14px",
     fontSize: 14,
@@ -125,7 +125,7 @@ export function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: 18, width: "100%", maxWidth: 420, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-lg)", width: "100%", maxWidth: 420, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 24, color: "var(--text)" }}>
           {pasEdit ? "Editar PAS" : "Nuevo PAS manual"}
         </div>
@@ -138,8 +138,8 @@ export function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
           <input type="email" value={mail} onChange={e => setMail(e.target.value)} style={iStyle} />
         </label>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: 10, color: "var(--sub)", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-          <button onClick={() => onSave({ id: pasEdit?.id, nombre, mail, manual: true })} style={{ flex: 1, background: "var(--accent)", border: "none", borderRadius: 10, color: "var(--on-accent)", padding: "11px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
+          <button onClick={onClose} style={{ flex: 1, background: "var(--card2)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-sm)", color: "var(--sub)", padding: "11px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
+          <button onClick={() => onSave({ id: pasEdit?.id, nombre, mail, manual: true })} style={{ flex: 1, background: "var(--accent)", border: "none", borderRadius: "var(--r-sm)", color: "var(--on-accent)", padding: "11px", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>Guardar</button>
         </div>
       </div>
     </div>

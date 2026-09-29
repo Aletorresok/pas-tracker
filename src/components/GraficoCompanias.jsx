@@ -44,7 +44,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   const selectStyle = {
     background: "var(--card2)",
     border: `1px solid ${"var(--border)"}`,
-    borderRadius: 10,
+    borderRadius: "var(--r-sm)",
     color: "var(--text)",
     padding: "9px 14px",
     fontSize: 13,
@@ -66,7 +66,7 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   ] : [];
 
   return (
-    <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "18px", marginBottom: 20 }}>
+    <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: "var(--r-md)", padding: "18px", marginBottom: 20 }}>
       <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: textColor }}>Plazos por compañía</h2>
 
       <select value={activeComp} onChange={e => setSelectedComp(e.target.value)} style={selectStyle}>

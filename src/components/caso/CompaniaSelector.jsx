@@ -74,7 +74,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
         style={{
           background: bg,
           border: `1px solid ${border}`,
-          borderRadius: 10,
+          borderRadius: "var(--r-sm)",
           color: value ? text : muted,
           padding: "10px 14px",
           fontSize: 14,
@@ -93,7 +93,7 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
       {open && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
-          background: dropBg, border: `1px solid ${border}`, borderRadius: 10,
+          background: dropBg, border: `1px solid ${border}`, borderRadius: "var(--r-sm)",
           marginTop: 4, boxShadow: "0 8px 24px #0003", maxHeight: 260, overflow: "hidden",
           display: "flex", flexDirection: "column",
         }}>
@@ -153,9 +153,9 @@ export default function CompaniaSelector({ value, onChange, companias, onAgregar
                   onKeyDown={e => e.key === "Enter" && handleAgregar()}
                   placeholder="Nombre de la compañía"
                   autoFocus
-                  style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: 6, color: text, padding: "6px 10px", fontSize: 12, outline: "none", fontFamily: "inherit" }}
+                  style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: "var(--r-xs)", color: text, padding: "6px 10px", fontSize: 12, outline: "none", fontFamily: "inherit" }}
                 />
-                <button onClick={handleAgregar} style={{ background: "var(--accent)", border: "none", borderRadius: 6, color: "var(--on-accent)", padding: "6px 10px", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>Agregar</button>
+                <button onClick={handleAgregar} style={{ background: "var(--accent)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "6px 10px", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>Agregar</button>
                 <button onClick={() => setAdding(false)} style={{ background: "none", border: "none", color: muted, cursor: "pointer", fontSize: 14 }}>✕</button>
               </div>
             )}

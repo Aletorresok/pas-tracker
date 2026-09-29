@@ -52,14 +52,14 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
   };
 
   return (
-    <div style={{ background: Th.card2, borderRadius: 8, marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
+    <div style={{ background: Th.card2, borderRadius: "var(--r-sm)", marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "var(--mono)", color: "var(--muted)", width: 32, textAlign: "center" }}>{esImagen ? "IMG" : "PDF"}</span>
           <span style={{
             position: "absolute", top: -4, right: -8,
             fontSize: 11, background: "var(--warn)", color: "var(--on-accent)",
-            borderRadius: 3, padding: "1px 3px", fontWeight: 700, whiteSpace: "nowrap",
+            borderRadius: "var(--r-xs)", padding: "1px 3px", fontWeight: 700, whiteSpace: "nowrap",
           }}>
             LOCAL
           </span>
@@ -74,7 +74,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
 
         <button
           onClick={() => onPreview(archivo)}
-          style={{ background: "color-mix(in srgb, var(--accent) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: 6, color: "var(--accent)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+          style={{ background: "color-mix(in srgb, var(--accent) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 27%, transparent)", borderRadius: "var(--r-xs)", color: "var(--accent)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
         >
           Ver
         </button>
@@ -83,7 +83,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
           <button
             ref={btnRef}
             onClick={() => setMenuOpen(m => !m)}
-            style={{ background: "color-mix(in srgb, var(--warn) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--warn) 27%, transparent)", borderRadius: 6, color: "var(--warn)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
+            style={{ background: "color-mix(in srgb, var(--warn) 13%, transparent)", border: "1px solid color-mix(in srgb, var(--warn) 27%, transparent)", borderRadius: "var(--r-xs)", color: "var(--warn)", padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
           >
             Categorizar ▾
           </button>
@@ -91,7 +91,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
           {menuOpen && (
             <div
               ref={menuRef}
-              style={{ position: "absolute", right: 0, ...(dropUp ? { bottom: "110%" } : { top: "110%" }), background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 10, zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
+              style={{ position: "absolute", right: 0, ...(dropUp ? { bottom: "110%" } : { top: "110%" }), background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", zIndex: 9999, minWidth: 190, boxShadow: "0 8px 24px #0006", overflow: "hidden" }}
               onMouseLeave={() => setMenuOpen(false)}
             >
               {TIPOS_DOC.map((tipo, idx) => (
@@ -138,13 +138,13 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
           <button
             onClick={() => ejecutarRenombrar(nuevoNombre)}
             disabled={guardando || !nuevoNombre.trim()}
-            style={{ background: "var(--ok)", border: "none", borderRadius: 6, color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}
+            style={{ background: "var(--ok)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: guardando ? 0.5 : 1 }}
           >
             {guardando ? "..." : "✓"}
           </button>
           <button
             onClick={() => { setRenombrando(false); setNuevoNombre(""); }}
-            style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 6, color: Th.muted, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}
+            style={{ background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-xs)", color: Th.muted, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}
           >
             ✕
           </button>

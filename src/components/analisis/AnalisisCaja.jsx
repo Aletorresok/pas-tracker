@@ -100,9 +100,9 @@ function Proyeccion({ allCasos, companias, comisiones, onAbrirCaso }) {
   const [ver, setVer] = useState(false);
   const max = Math.max(...p.meses.map(m => m.neto), 1);
   return (
-    <section style={{ border: "1.5px dashed var(--border2)", borderRadius: 12, padding: "14px 16px", background: "color-mix(in srgb, var(--card2) 50%, transparent)" }}>
+    <section style={{ border: "1.5px dashed var(--border2)", borderRadius: "var(--r-md)", padding: "14px 16px", background: "color-mix(in srgb, var(--card2) 50%, transparent)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--warn)", border: "1px solid var(--warn)", borderRadius: 4, padding: "1px 6px" }}>ESTIMADO</span>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--warn)", border: "1px solid var(--warn)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>ESTIMADO</span>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Si todos los casos en curso salen bien</h2>
       </div>
       <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--sub)", lineHeight: 1.5 }}>

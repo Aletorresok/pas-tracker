@@ -41,20 +41,20 @@ export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "",
     }
   };
 
-  const chip = activo => ({ font: "inherit", padding: "4px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)", whiteSpace: "nowrap" });
-  const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" };
+  const chip = activo => ({ font: "inherit", padding: "4px 10px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)", whiteSpace: "nowrap" });
+  const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-xs)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" };
 
   if (!abierto) {
     return (
       <button type="button" onClick={() => setAbierto(true)}
-        style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", padding: "6px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
         <Icono nombre="mensaje" size={15} /> Avisar por WhatsApp
       </button>
     );
   }
 
   return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 10, background: "var(--card)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-sm)", background: "var(--card)", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <div role="group" aria-label="Destinatario" style={{ display: "flex", gap: 4 }}>
           <button type="button" aria-pressed={para === "cliente"} onClick={() => elegirPara("cliente")} style={chip(para === "cliente")}>Al cliente</button>

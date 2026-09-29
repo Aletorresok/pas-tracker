@@ -15,7 +15,7 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
   ];
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 20, marginBottom: 20 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 20, marginBottom: 20 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
         Fechas del expediente
       </div>
@@ -33,7 +33,7 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
                 width: "100%",
                 background: Th.card2,
                 border: `1px solid ${Th.border}`,
-                borderRadius: 8,
+                borderRadius: "var(--r-sm)",
                 padding: "10px 12px",
                 color: Th.text,
                 fontSize: 14,
@@ -48,7 +48,7 @@ export default function SeccionFechas({ formData, onChange, Th, plazoCompania })
           </label>
           <input type="number" min={1} max={365} inputMode="numeric" value={formData.plazo_pago || ""} placeholder={plazoCompania ? String(plazoCompania) : "Ej: 15"}
             onChange={e => onChange("plazo_pago", e.target.value)}
-            style={{ width: "100%", background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, padding: "10px 12px", color: Th.text, fontSize: 14, outline: "none" }} />
+            style={{ width: "100%", background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: Th.text, fontSize: 14, outline: "none" }} />
           <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>
             Desde la firma (o la aceptación). {plazoCompania ? `La compañía suele tener ${plazoCompania} días.` : "Podés cargar el de cada compañía en Análisis → Compañías."}
           </span>

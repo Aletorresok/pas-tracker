@@ -72,7 +72,7 @@ export default function RecepcionCliente({ pendientes, dirHandleRef, onGuardado,
   };
 
   return (
-    <div style={{ background: "color-mix(in srgb, var(--accent) 8%, var(--card))", border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))", borderRadius: 12, padding: 14, marginBottom: 16 }}>
+    <div style={{ background: "color-mix(in srgb, var(--accent) 8%, var(--card))", border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))", borderRadius: "var(--r-md)", padding: 14, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>El cliente mandó {pendientes.length === 1 ? "1 archivo" : `${pendientes.length} archivos`}</span>
         {pendientes.length > 1 && <Boton tamaño="sm" variante="primario" onClick={guardarTodo} disabled={!!trabajando}>{trabajando === "todo" ? "Guardando…" : "Guardar todo"}</Boton>}

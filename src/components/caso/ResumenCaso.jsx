@@ -36,7 +36,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
     setNueva("");
     setGuardandoAccion(false);
   };
-  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16 };
+  const caja = { background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16 };
   const link = { background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", padding: 0 };
 
   return (
@@ -44,7 +44,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
       <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
         {recepcionNuevos > 0 && (
           <button type="button" onClick={() => irA("documentos")}
-            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))", background: "color-mix(in srgb, var(--accent) 8%, var(--card))", color: Th.text, font: "inherit", fontSize: 14, cursor: "pointer", textAlign: "left" }}>
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: "var(--r-sm)", border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))", background: "color-mix(in srgb, var(--accent) 8%, var(--card))", color: Th.text, font: "inherit", fontSize: 14, cursor: "pointer", textAlign: "left" }}>
             <span><b>El cliente mandó {recepcionNuevos === 1 ? "1 archivo" : `${recepcionNuevos} archivos`}</b> desde su vista</span>
             <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>Guardar →</span>
           </button>
@@ -81,7 +81,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
             <input value={nueva} onChange={e => setNueva(e.target.value)} placeholder="Agregar movimiento de hoy y Enter…" aria-label="Nuevo movimiento"
               style={{ ...Th.input, padding: "8px 12px" }} />
             <button type="submit" disabled={guardandoAccion || !nueva.trim()}
-              style={{ flex: "none", padding: "0 14px", borderRadius: 8, border: "none", background: "var(--accent)", color: "var(--on-accent)", fontWeight: 600, cursor: "pointer", opacity: guardandoAccion || !nueva.trim() ? 0.5 : 1 }}>
+              style={{ flex: "none", padding: "0 14px", borderRadius: "var(--r-sm)", border: "none", background: "var(--accent)", color: "var(--on-accent)", fontWeight: 600, cursor: "pointer", opacity: guardandoAccion || !nueva.trim() ? 0.5 : 1 }}>
               {guardandoAccion ? "…" : "Agregar"}
             </button>
           </form>

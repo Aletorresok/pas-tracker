@@ -35,7 +35,7 @@ export default function EtapasCaso({ estado, onChange }) {
         })}
       </ol>
       <button type="button" onClick={() => onChange(desistido ? "iniciado" : "desistido")} aria-pressed={desistido}
-        style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer", fontWeight: 600,
+        style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", fontWeight: 600,
           border: `1px solid ${desistido ? "var(--muted)" : "var(--border)"}`, background: desistido ? "var(--card2)" : "var(--card)", color: desistido ? "var(--text)" : "var(--muted)" }}>
         {desistido ? "Desistido · reactivar" : "Desistir"}
       </button>

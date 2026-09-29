@@ -22,7 +22,7 @@ export default function CampoMonto({ id, value, onChange, onBlur, style, ...rest
         onBlur={e => { setEnfocado(false); onBlur?.(e); }}
         onChange={e => onChange(soloDigitos(e.target.value))}
         style={{
-          width: "100%", boxSizing: "border-box", padding: "7px 10px 7px 22px", borderRadius: 7,
+          width: "100%", boxSizing: "border-box", padding: "7px 10px 7px 22px", borderRadius: "var(--r-xs)",
           border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)",
           fontSize: 14, textAlign: "right", fontVariantNumeric: "tabular-nums", fontFamily: "inherit", ...style,
         }}

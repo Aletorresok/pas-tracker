@@ -10,7 +10,7 @@ const VACIO = { plazo: { titulo: "", fecha_notificacion: fechaLocalISO(), dias: 
   escrito: { titulo: "", fecha_objetivo: "", notas: "" } };
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
-const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
+const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
 
 // Plazos procesales (tipo "plazo") o escritos pendientes (tipo "escrito") de un expediente
 export default function ListaPendientes({ tipo, expediente, plazos, cal, onCambio, setToast }) {
@@ -71,7 +71,7 @@ export default function ListaPendientes({ tipo, expediente, plazos, cal, onCambi
   };
 
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px 10px" }}>
         <div style={{ fontSize: 15, fontWeight: 700 }}>{esPlazo ? "Plazos procesales" : "Escritos pendientes"}</div>
         {!form && <Boton tamaño="sm" variante="primario" icono="agregar" onClick={() => setForm({ ...VACIO[tipo] })}>{esPlazo ? "Nuevo plazo" : "Nuevo escrito"}</Boton>}

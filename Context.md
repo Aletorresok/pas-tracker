@@ -6,7 +6,7 @@
 *   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
 *   **Backend:** Supabase (PostgreSQL con RLS en todas las tablas, Auth, Realtime, Storage). Credenciales por variables de entorno `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
-*   **Librerías:** jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
+*   **Librerías:** framer-motion + @dnd-kit (animaciones y drag-and-drop en Hoy), jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
 *   **Tres "apps" en el mismo sitio:** app del estudio (`/`), portal de productores (`/portal`) y vista del cliente (`/?vista=cliente`).
 *   **App instalable (PWA):** cada una se instala por separado en PC y Android (Chrome/Edge) con su manifiesto (`public/manifest*.webmanifest`, elegido en `index.html` según la ruta). `public/sw.js` no guarda la app en caché (siempre la última versión); solo muestra `public/offline.html` sin conexión. Íconos en `public/icons/`: monograma ATG dorado sobre azul noche (`icono.svg` es la fuente; los PNG se generan desde ahí).
 
@@ -93,6 +93,17 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-09-28 — Filosofía visual en toda la app (redonda, con aire, responde al tacto)
+*   Tokens nuevos en `index.css`: radios `--r-xs/sm/md/lg/xl/pill`, elevación `--sh-1/2/3` (reposo, hover, levantado) y movimiento `--ease`/`--spring`. Ya no se escriben radios en número: los ~230 `borderRadius` de los componentes pasaron a `var(--r-*)`.
+*   Piezas comunes: `.lift` (sube al hover; lo usa `Boton`, ahora en cápsula), `.tarjeta` / `.tarjeta-lift`, `.panel-vidrio`. Las `card` de Hoy y Análisis llevan sombra. Fondo con dos halos de color muy suaves.
+*   Menú lateral flotante de vidrio con ítems que se corren al hover (`.nav-item`); en celular, la barra inferior es una cápsula flotante. Columnas y tarjetas del Tablero de Casos con el mismo estilo.
+*   Listas arrastrables de Hoy: botón "Restablecer orden" (vuelve al orden por vencimiento).
+
+### 2026-09-28 — Hoy: paneles redondos y tarjetas arrastrables
+*   "Para hacer" y "Cobros pendientes" pasan a tarjetas redondas (radio 20) sobre paneles de vidrio (`.panel-vidrio`, `.tc-*` en `index.css`): franja de urgencia, hover que se eleva con rebote, asa de arrastre y acción rápida ("Reiteré hoy") que aparece al pasar el mouse. En táctil las acciones quedan siempre visibles; respeta `prefers-reduced-motion`.
+*   Drag-and-drop con `@dnd-kit` (mouse, táctil con pulsación larga, teclado con Espacio). El orden elegido se recuerda por navegador en localStorage (`orden:paraHacer`, `orden:cobros`); lo nuevo entra arriba.
+*   Componentes nuevos: `ui/TarjetaTarea.jsx` y `ui/ListaOrdenable.jsx` (usa `framer-motion` para la entrada). Dependencias nuevas: framer-motion, @dnd-kit/core, sortable, utilities.
 
 ### 2026-09-26 — Pestaña Expedientes y su ficha (etapa 4 del plan ATG Lex)
 *   **Menú:** "Casos" pasa a **"Casos PAS"** y aparece **"Expedientes"** (ícono balanza). En celular, Expedientes está en "Más".

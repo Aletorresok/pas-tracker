@@ -134,7 +134,7 @@ export default function TabContactos({
   const iStyle = {
     background: "var(--card)",
     border: "1px solid var(--border)",
-    borderRadius: 8,
+    borderRadius: "var(--r-sm)",
     color: "var(--text)",
     padding: "10px 12px",
     fontSize: 14,
@@ -151,7 +151,7 @@ export default function TabContactos({
           const activa = vista === v.key;
           return (
             <button key={v.key} type="button" onClick={() => { setVista(v.key); setBusqueda(""); }} aria-pressed={activa}
-              style={{ flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: 999, fontSize: 12, cursor: "pointer", fontWeight: activa ? 700 : 500,
+              style={{ flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 12, cursor: "pointer", fontWeight: activa ? 700 : 500,
                 border: `1px solid ${activa ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activa ? "var(--text)" : "var(--sub)" }}>
               {v.label}{" "}
               <span className="num" style={{ fontWeight: 700, color: "var(--text)" }}>{conteos[v.key] != null ? conteos[v.key].toLocaleString("es-AR") : "…"}</span>
@@ -176,7 +176,7 @@ export default function TabContactos({
           { key: "mail", label: "Mail" },
         ].map(o => (
           <button key={o.key} type="button" onClick={() => setOrden(o.key)} aria-pressed={orden === o.key} style={{
-            padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: orden === o.key ? 700 : 500,
+            padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: orden === o.key ? 700 : 500,
             border: `1px solid ${orden === o.key ? "var(--text)" : "var(--border)"}`,
             background: "var(--card)",
             color: orden === o.key ? "var(--text)" : "var(--sub)",
@@ -203,7 +203,7 @@ export default function TabContactos({
       </div>
 
       {error && (
-        <div style={{ background: alpha("var(--bad)", 10), border: `1px solid ${alpha("var(--bad)", 30)}`, color: "var(--bad)", borderRadius: 8, padding: "10px 12px", fontSize: 13, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <div style={{ background: alpha("var(--bad)", 10), border: `1px solid ${alpha("var(--bad)", 30)}`, color: "var(--bad)", borderRadius: "var(--r-sm)", padding: "10px 12px", fontSize: 13, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           {error}
           <Boton tamaño="sm" onClick={() => cargar(visibles.length ? offset : 0, !visibles.length)}>Reintentar</Boton>
         </div>
@@ -215,7 +215,7 @@ export default function TabContactos({
         </div>
       )}
 
-      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
       {visibles.map(p => (
         <PASCard
           key={p.id}

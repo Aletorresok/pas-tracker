@@ -10,7 +10,7 @@ export default function EstadoSelector({ value, onChange, darkMode }) {
           <button key={e.key} type="button" onClick={() => onChange(e.key)} style={{
             background: active ? alpha(e.color, 13) : "var(--card2)",
             border: `2px solid ${active ? e.color : "transparent"}`,
-            borderRadius: 8,
+            borderRadius: "var(--r-sm)",
             padding: "8px 2px 6px",
             cursor: "pointer",
             textAlign: "center",

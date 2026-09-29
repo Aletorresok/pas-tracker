@@ -7,7 +7,7 @@ import Boton from "./ui/Boton.jsx";
 
 function Etiqueta({ color, children }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", padding: "1px 8px 1px 6px", borderRadius: 999, color: "var(--text)", background: alpha(color, 14) }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", padding: "1px 8px 1px 6px", borderRadius: "var(--r-xl)", color: "var(--text)", background: alpha(color, 14) }}>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />{children}
     </span>
   );
@@ -16,8 +16,8 @@ function Etiqueta({ color, children }) {
 function Interruptor({ activo, label, detalle, onClick }) {
   return (
     <button type="button" role="switch" aria-checked={activo} onClick={onClick}
-      style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", cursor: "pointer", textAlign: "left", font: "inherit", flex: "1 1 220px" }}>
-      <span style={{ width: 32, height: 18, borderRadius: 999, background: activo ? "var(--accent)" : "var(--border2)", position: "relative", flex: "none" }}>
+      style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", cursor: "pointer", textAlign: "left", font: "inherit", flex: "1 1 220px" }}>
+      <span style={{ width: 32, height: 18, borderRadius: "var(--r-xl)", background: activo ? "var(--accent)" : "var(--border2)", position: "relative", flex: "none" }}>
         <span style={{ position: "absolute", top: 2, left: activo ? 16 : 2, width: 14, height: 14, borderRadius: "50%", background: "var(--card)" }} />
       </span>
       <span>
@@ -59,7 +59,7 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
           ? <Boton tamaño="sm" icono="mensaje" disabled title="Llegaste al tope de mails de hoy">Mail</Boton>
           : <a href={linkMailPresentacion(pas.mail, pas.nombre, window.matchMedia("(max-width: 900px)").matches)} target="_blank" rel="noreferrer"
               onClick={() => onMail(pas)} title={`Mail de presentación a ${pas.mail}`}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
               <Icono nombre="mensaje" size={14} />Mail
             </a>)}
         {telefonos[0] && (
@@ -86,8 +86,8 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {telefonos.map(t => (
                     <span key={t} style={{ display: "inline-flex", gap: 4 }}>
-                      <a href={`tel:${t.replace(/\D/g, "")}`} className="num" style={{ color: "var(--text)", fontSize: 13, border: "1px solid var(--border)", borderRadius: 6, padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>{t}</a>
-                      <a href={waLink(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--sub)", border: "1px solid var(--border)", borderRadius: 6, padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>WhatsApp</a>
+                      <a href={`tel:${t.replace(/\D/g, "")}`} className="num" style={{ color: "var(--text)", fontSize: 13, border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>{t}</a>
+                      <a href={waLink(t, pas.nombre)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--sub)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "2px 8px", textDecoration: "none", background: "var(--card)" }}>WhatsApp</a>
                     </span>
                   ))}
                 </div>

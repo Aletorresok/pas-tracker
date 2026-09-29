@@ -277,7 +277,7 @@ function AppPrincipal() {
       <main className="app-main">
         <div className="app-content">
           {!loading && totalContactos === 0 && !appLoading && (
-            <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: 16, padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
+            <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: "var(--r-lg)", padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
                             <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
               <div style={{ fontSize: 13, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
               <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
@@ -312,7 +312,7 @@ function AppPrincipal() {
       </main>
 
       {copiaAviso && (
-        <div role="status" style={{ position: "fixed", right: 16, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", zIndex: 400, maxWidth: 360, background: "var(--card)", border: `1px solid ${copiaAviso.ok ? "var(--border)" : "var(--bad)"}`, borderRadius: 10, padding: "10px 14px", fontSize: 13, lineHeight: 1.45, color: copiaAviso.ok ? "var(--text)" : "var(--bad)", boxShadow: "var(--shadow)" }}>
+        <div role="status" style={{ position: "fixed", right: 16, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", zIndex: 400, maxWidth: 360, background: "var(--card)", border: `1px solid ${copiaAviso.ok ? "var(--border)" : "var(--bad)"}`, borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, lineHeight: 1.45, color: copiaAviso.ok ? "var(--text)" : "var(--bad)", boxShadow: "var(--shadow)" }}>
           {copiaAviso.texto}
         </div>
       )}

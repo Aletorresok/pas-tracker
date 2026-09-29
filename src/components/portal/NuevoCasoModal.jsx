@@ -106,7 +106,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
   return (
     <div className="modal-portal" style={{ position: "fixed", inset: 0, background: "color-mix(in srgb, #000 60%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-lg)", width: "100%", maxWidth: 460, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>Derivar Nuevo Caso</div>
@@ -114,7 +114,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
         </div>
 
         {error && (
-          <div style={{ background: "color-mix(in srgb, var(--bad) 13%, transparent)", border: "1px solid var(--bad)", borderRadius: 8, padding: "10px 14px", color: "var(--bad)", fontSize: 12, marginBottom: 16 }}>
+          <div style={{ background: "color-mix(in srgb, var(--bad) 13%, transparent)", border: "1px solid var(--bad)", borderRadius: "var(--r-sm)", padding: "10px 14px", color: "var(--bad)", fontSize: 12, marginBottom: 16 }}>
             {error}
           </div>
         )}
@@ -128,7 +128,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               value={formData.asegurado} 
               onChange={handleChange} 
               placeholder="Ej: Pérez Juan"
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
             />
           </div>
 
@@ -141,7 +141,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 value={formData.telefono} 
                 onChange={handleChange} 
                 placeholder="Ej: 11 2345-6789"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
               />
             </div>
             <div>
@@ -152,7 +152,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 value={formData.patente} 
                 onChange={handleChange} 
                 placeholder="Ej: AB123CD"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", textTransform: "uppercase", textAlign: "center" }}
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", textTransform: "uppercase", textAlign: "center" }}
               />
             </div>
             <div>
@@ -164,7 +164,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 value={formData.dni || ""}
                 onChange={handleChange}
                 placeholder="Ej: 25123456"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
               />
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               name="fecha_siniestro" 
               value={formData.fecha_siniestro} 
               onChange={handleChange} 
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
+              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
             />
           </div>
 
@@ -195,7 +195,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                   handleChange(e);
                 }
               }} 
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", appearance: "none" }}
+              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", appearance: "none" }}
             >
               <option value="" disabled>Seleccionar compañía...</option>
               {companias.map((comp) => (
@@ -211,7 +211,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 value={formData.compania} 
                 onChange={handleChange} 
                 placeholder="Escribí el nombre de la compañía"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", marginTop: 8 }}
+                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", marginTop: 8 }}
               />
             )}
           </div>
@@ -228,8 +228,8 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
           </div>
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-            <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-            <button type="submit" disabled={loading} style={{ background: "var(--accent)", border: "none", borderRadius: 8, color: "var(--on-accent)", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+            <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+            <button type="submit" disabled={loading} style={{ background: "var(--accent)", border: "none", borderRadius: "var(--r-sm)", color: "var(--on-accent)", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
               {loading ? "Enviando..." : "Derivar Caso"}
             </button>
           </div>

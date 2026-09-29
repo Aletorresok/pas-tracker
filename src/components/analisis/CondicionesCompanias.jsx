@@ -5,8 +5,8 @@ import { plazosRespuesta } from "../../utils/metricas.js";
 import { useMargenes, guardarMargen, GENERAL, MARGEN_DEFECTO } from "../../utils/margenes.js";
 import { useEsCelular } from "../../hooks/useEsCelular.js";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 };
-const campo = { width: 64, font: "inherit", fontSize: 14, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", textAlign: "right" };
+const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
+const campo = { width: 64, font: "inherit", fontSize: 14, padding: "5px 8px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", textAlign: "right" };
 const ANCHO_COL = 132;
 
 // Campo numérico que guarda al salir o con Enter. Vacío = sin valor propio. `guardar(valor)` devuelve true si se guardó.

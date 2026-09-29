@@ -11,7 +11,7 @@ export default function PlazoChip({ vence }) {
   return (
     <span className="num" style={{
       display: "inline-block", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
-      padding: "2px 8px", borderRadius: 6, color: c, background: alpha(c, 14),
+      padding: "2px 8px", borderRadius: "var(--r-xs)", color: c, background: alpha(c, 14),
     }}>
       {p.texto}
     </span>

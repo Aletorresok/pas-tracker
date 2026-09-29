@@ -54,7 +54,7 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
     <div key={f.k} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: i || compacto ? `1px solid ${Th.border}` : "none", flexWrap: "wrap" }}>
       <button type="button" onClick={f.tildar} aria-pressed={f.ok}
         style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", color: Th.text, flex: "1 1 200px", minWidth: 0, textAlign: "left" }}>
-        <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, flex: "none", display: "grid", placeItems: "center", background: f.ok ? "var(--ok)" : "transparent", border: `1.5px solid ${f.ok ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
+        <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: "var(--r-xs)", flex: "none", display: "grid", placeItems: "center", background: f.ok ? "var(--ok)" : "transparent", border: `1.5px solid ${f.ok ? "var(--ok)" : "var(--border2)"}`, color: "#fff" }}>
           {f.ok && <Icono nombre="check" size={12} />}
         </span>
         <span style={{ minWidth: 0 }}>
@@ -70,7 +70,7 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
 
   if (compacto) return <div style={{ marginTop: 6 }}>{contenido}</div>;
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 4 }}>Pagos</div>
       <div style={{ fontSize: 12, color: Th.sub, marginBottom: 6 }}>Tildá cada uno cuando la compañía lo paga. Con los dos, el caso pasa a "Cobrado". La comisión del PAS, cuando se la pagás.</div>
       {contenido}

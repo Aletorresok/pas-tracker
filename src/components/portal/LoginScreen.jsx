@@ -21,10 +21,10 @@ export default function LoginScreen({ dark, onToggleDark }) {
 
   return (
     <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, transition: "background .3s" }}>
-      <button onClick={onToggleDark} style={{ position: "absolute", top: 16, right: 16, background: T.card, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, color: T.sub }}>
+      <button onClick={onToggleDark} style={{ position: "absolute", top: 16, right: 16, background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-sm)", padding: "6px 10px", cursor: "pointer", fontSize: 16, color: T.sub }}>
         <Icono nombre={dark ? "sol" : "luna"} size={16} />
       </button>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "40px 36px", width: "100%", maxWidth: 400, boxShadow: "var(--shadow)" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-lg)", padding: "40px 36px", width: "100%", maxWidth: 400, boxShadow: "var(--shadow)" }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Logo alto={44} style={{ margin: "0 auto 16px" }} />
           <div style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 3, marginBottom: 8, fontWeight: 700 }}>ATG Lex Solutions</div>
@@ -39,8 +39,8 @@ export default function LoginScreen({ dark, onToggleDark }) {
           <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 7, fontWeight: 600 }}>Contraseña</div>
           <input type="password" value={pwd} onChange={e => setPwd(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="••••••••" style={T.input} />
         </label>
-        {error && <div style={{ background: "color-mix(in srgb, var(--bad) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--bad) 20%, transparent)", borderRadius: 10, padding: "10px 14px", color: "var(--bad)", fontSize: 13, marginBottom: 18, textAlign: "center" }}>{error}</div>}
-        <button onClick={handleLogin} disabled={load || !email.trim() || !pwd.trim()} style={{ width: "100%", background: (load || !email.trim() || !pwd.trim()) ? ("var(--border)") : "var(--accent)", border: "none", borderRadius: 12, color: (load || !email.trim() || !pwd.trim()) ? T.muted : "white", padding: "13px", cursor: (load || !email.trim() || !pwd.trim()) ? "default" : "pointer", fontSize: 15, fontWeight: 800, transition: "all .2s", letterSpacing: 0.3 }}>
+        {error && <div style={{ background: "color-mix(in srgb, var(--bad) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--bad) 20%, transparent)", borderRadius: "var(--r-sm)", padding: "10px 14px", color: "var(--bad)", fontSize: 13, marginBottom: 18, textAlign: "center" }}>{error}</div>}
+        <button onClick={handleLogin} disabled={load || !email.trim() || !pwd.trim()} style={{ width: "100%", background: (load || !email.trim() || !pwd.trim()) ? ("var(--border)") : "var(--accent)", border: "none", borderRadius: "var(--r-md)", color: (load || !email.trim() || !pwd.trim()) ? T.muted : "white", padding: "13px", cursor: (load || !email.trim() || !pwd.trim()) ? "default" : "pointer", fontSize: 15, fontWeight: 800, transition: "all .2s", letterSpacing: 0.3 }}>
           {load ? "Ingresando..." : "Ingresar →"}
         </button>
       </div>

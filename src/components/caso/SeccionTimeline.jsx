@@ -51,7 +51,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   };
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Bitácora</div>
         <button onClick={abrirNueva} style={{ background: "none", border: "none", color: "var(--accent-ink)", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
@@ -61,7 +61,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
       <form onSubmit={async e => { e.preventDefault(); if (!rapida.trim()) return; setGuardandoRapida(true); await onCrear({ fecha: fechaLocalISO(), descripcion: rapida.trim() }); setRapida(""); setGuardandoRapida(false); }}
         style={{ display: "flex", gap: 8 }}>
         <input value={rapida} onChange={e => setRapida(e.target.value)} placeholder="Agregar movimiento de hoy y Enter…" aria-label="Nuevo movimiento" style={{ ...inputStyle, padding: "8px 12px" }} />
-        <button type="submit" disabled={guardandoRapida || !rapida.trim()} style={{ flex: "none", padding: "0 14px", borderRadius: 8, border: "none", background: "var(--accent)", color: "var(--on-accent)", fontWeight: 600, cursor: "pointer", opacity: guardandoRapida || !rapida.trim() ? 0.5 : 1 }}>
+        <button type="submit" disabled={guardandoRapida || !rapida.trim()} style={{ flex: "none", padding: "0 14px", borderRadius: "var(--r-sm)", border: "none", background: "var(--accent)", color: "var(--on-accent)", fontWeight: 600, cursor: "pointer", opacity: guardandoRapida || !rapida.trim() ? 0.5 : 1 }}>
           {guardandoRapida ? "…" : "Agregar"}
         </button>
       </form>
@@ -84,8 +84,8 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
               </div>
               <div style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8 }}>{a.descripcion}</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => abrirEditar(a)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 6, color: "var(--sub)", padding: "3px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Editar</button>
-                <button onClick={() => onEliminar(a.id)} style={{ background: "none", border: "none", borderRadius: 6, color: "var(--bad)", padding: "3px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Eliminar</button>
+                <button onClick={() => abrirEditar(a)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: "var(--r-xs)", color: "var(--sub)", padding: "3px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Editar</button>
+                <button onClick={() => onEliminar(a.id)} style={{ background: "none", border: "none", borderRadius: "var(--r-xs)", color: "var(--bad)", padding: "3px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Eliminar</button>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
         <>
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 9998 }} onClick={cerrar} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9999 }}>
-            <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 16, padding: "28px 24px", maxWidth: 440, width: "100%" }}>
+            <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", padding: "28px 24px", maxWidth: 440, width: "100%" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>
                 {editandoId ? "Editar acción" : "Registrar acción"}
               </div>
@@ -109,8 +109,8 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
                 <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ej: Natalia aceptó el ofrecimiento..." rows={3} style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
               </label>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={cerrar} style={{ flex: 1, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: 8, color: Th.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
-                <button onClick={handleGuardar} disabled={guardando || !descripcion.trim()} style={{ flex: 2, background: guardando || !descripcion.trim() ? Th.card2 : "var(--accent)", border: "none", borderRadius: 8, color: "var(--on-accent)", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700, opacity: guardando || !descripcion.trim() ? 0.5 : 1 }}>
+                <button onClick={cerrar} style={{ flex: 1, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, padding: "10px", cursor: "pointer", fontSize: 14 }}>Cancelar</button>
+                <button onClick={handleGuardar} disabled={guardando || !descripcion.trim()} style={{ flex: 2, background: guardando || !descripcion.trim() ? Th.card2 : "var(--accent)", border: "none", borderRadius: "var(--r-sm)", color: "var(--on-accent)", padding: "10px", cursor: "pointer", fontSize: 14, fontWeight: 700, opacity: guardando || !descripcion.trim() ? 0.5 : 1 }}>
                   {guardando ? "Guardando..." : editandoId ? "✓ Actualizar" : "✓ Guardar acción"}
                 </button>
               </div>

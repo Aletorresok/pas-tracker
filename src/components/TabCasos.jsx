@@ -126,7 +126,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
       <button key={key} type="button" onClick={() => setFiltro(key)} aria-pressed={activo}
         style={{
           display: "inline-flex", alignItems: "center", gap: 6, flex: "none", whiteSpace: "nowrap",
-          padding: "5px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer",
+          padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer",
           border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: "var(--card)",
           color: activo ? "var(--text)" : "var(--sub)", fontWeight: activo ? 600 : 500,
         }}>
@@ -153,7 +153,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Casos PAS</h1>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
           {vista === "tabla" && <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {allCasos.length}</span>}
-          <span role="group" aria-label="Vista" style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+          <span role="group" aria-label="Vista" style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden" }}>
             {[["tabla", "Tabla"], ["tablero", "Tablero"]].map(([k, l]) => (
               <button key={k} type="button" aria-pressed={vista === k} onClick={() => elegirVista(k)}
                 style={{ font: "inherit", fontSize: 13, padding: "5px 12px", border: "none", cursor: "pointer", fontWeight: vista === k ? 600 : 500, background: vista === k ? "var(--text)" : "var(--card)", color: vista === k ? "var(--bg)" : "var(--sub)" }}>{l}</button>
@@ -166,7 +166,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={16} /></span>
         <input value={busqueda} onChange={e => setBusqueda(e.target.value)} aria-label="Buscar casos"
           placeholder="Buscar por asegurado, patente, PAS, compañía o siniestro…"
-          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
       </div>
 
       {vista === "tablero" && (
@@ -195,7 +195,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
 
       {/* ── Celular: filas de dos líneas ── */}
       {esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           {filtrados.map((c, i) => (
             <Fragment key={c.id}>
               <button type="button" onClick={() => alternar(c.id)} aria-expanded={abiertoId === c.id}
@@ -216,7 +216,7 @@ export default function TabCasos({ pas, casos, onQuitarCaso, onCasoLocal, darkMo
 
       {/* ── Compu: tabla ── */}
       {!esCelular && filtrados.length > 0 && (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
             <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
             <thead>

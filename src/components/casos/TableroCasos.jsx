@@ -69,7 +69,7 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal 
         </div>
       )}
 
-      <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(230px, 1fr)", gap: 10, overflowX: "auto", paddingBottom: 6, alignItems: "start" }}>
+      <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(230px, 1fr)", gap: 14, overflowX: "auto", padding: "4px 4px 12px", alignItems: "start" }}>
         {COLUMNAS.map(col => {
           const lista = casos.filter(c => c.estado === col.key);
           const activa = sobre === col.key && arrastrando;
@@ -78,17 +78,17 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal 
               onDragOver={e => { if (arrastrando) { e.preventDefault(); setSobre(col.key); } }}
               onDragLeave={() => setSobre(s => (s === col.key ? null : s))}
               onDrop={e => { e.preventDefault(); soltar(col.key); }}
-              style={{ background: activa ? "color-mix(in srgb, var(--accent) 10%, var(--card2))" : "var(--card2)", border: `1px solid ${activa ? "var(--accent)" : "var(--border)"}`, borderRadius: 12, padding: 8, minHeight: 120, display: "flex", flexDirection: "column", gap: 6 }}>
+              style={{ background: activa ? "color-mix(in srgb, var(--accent) 12%, var(--card2))" : "color-mix(in srgb, var(--card2) 70%, transparent)", border: `1px ${activa ? "dashed" : "solid"} ${activa ? "var(--accent)" : "color-mix(in srgb, var(--border) 70%, transparent)"}`, borderRadius: "var(--r-lg)", padding: 12, minHeight: 140, display: "flex", flexDirection: "column", gap: 10, transition: "background-color .25s var(--ease), border-color .25s var(--ease)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px 4px" }}>
                 <EstadoPill estado={col.key} size="sm" />
                 <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{lista.length}</span>
               </div>
               {lista.map(c => (
-                <button key={c.id} type="button" draggable
+                <button key={c.id} type="button" draggable className="tarjeta tarjeta-lift"
                   onDragStart={e => { setArrastrando(c.id); e.dataTransfer.effectAllowed = "move"; }}
                   onDragEnd={() => { setArrastrando(null); setSobre(null); }}
                   onClick={() => onAbrir(c)}
-                  style={{ textAlign: "left", font: "inherit", color: "var(--text)", cursor: "grab", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", display: "flex", flexDirection: "column", gap: 3, opacity: arrastrando === c.id ? 0.5 : 1 }}>
+                  style={{ textAlign: "left", font: "inherit", color: "var(--text)", cursor: "grab", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4, opacity: arrastrando === c.id ? 0.45 : 1, transform: arrastrando === c.id ? "scale(.97) rotate(-1deg)" : undefined }}>
                   <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado || "Sin nombre"}</span>
                   <span style={{ fontSize: 12, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {c.compania_aseguradora || "Sin compañía"}{c.patente ? ` · ${c.patente}` : ""}

@@ -11,7 +11,7 @@
 
 - React 18 + Vite 5 + React Router 6 (JavaScript, sin TypeScript)
 - Supabase (PostgreSQL + Auth + Realtime)
-- jsPDF (generación de escritos), XLSX (import Excel)
+- jsPDF (generación de escritos), XLSX (import Excel), framer-motion + @dnd-kit (animación y drag-and-drop)
 - Inline styles + tokens de color como variables CSS en `src/index.css` (sin Tailwind). No usar hex en componentes: `T.*`, `COLORES.*`, `var(--x)` y `alpha()` de `utils/theme.js`.
 
 ## Arquitectura

@@ -8,7 +8,7 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
   const honorariosVencidos = formData.estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 14 }}>Honorarios (facturación)</div>
       <label style={{ marginBottom: 12, display: "block" }}>
         <span style={labelStyle}>Monto de honorarios ($)</span>
@@ -19,7 +19,7 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
         <div style={{ display: "flex", gap: 6 }}>
           {ESTADOS_HONORARIOS.map(e => (
             <button key={e} onClick={() => onChange("estado_honorarios", e)} style={{
-              flex: 1, padding: "8px 6px", borderRadius: 6,
+              flex: 1, padding: "8px 6px", borderRadius: "var(--r-xs)",
               border: `1px solid ${formData.estado_honorarios === e ? "var(--accent)" : Th.border}`,
               background: formData.estado_honorarios === e ? "color-mix(in srgb, var(--accent) 13%, transparent)" : "transparent",
               color: formData.estado_honorarios === e ? "var(--accent)" : Th.sub,
@@ -39,12 +39,12 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
         </label>
       </div>
       {formData.estado_honorarios === "FACTURADO" && diasDesdeFactura !== null && (
-        <div style={{ fontSize: 12, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 7%, transparent)", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 7%, transparent)", borderRadius: "var(--r-xs)", padding: "6px 10px", marginBottom: 10 }}>
           Facturado hace {diasDesdeFactura} días
         </div>
       )}
       {honorariosVencidos && (
-        <div style={{ fontSize: 12, color: "var(--bad)", background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--bad)", background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: "var(--r-xs)", padding: "6px 10px", marginBottom: 10 }}>
           Cobro de honorarios vencido
         </div>
       )}
