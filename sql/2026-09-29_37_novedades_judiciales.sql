@@ -1,5 +1,5 @@
--- SQL 37 · Bandeja de novedades judiciales (PJN / MEV) — versión liviana (BORRADOR, OPCIONAL, 2026-09-29).
--- Al implementarlo: copiar a sql/AAAA-MM-DD_37_novedades_judiciales.sql. Se puede volver a correr sin problema.
+-- SQL 37 · Bandeja de novedades judiciales (PJN / MEV) — versión liviana (2026-09-29).
+-- Se puede volver a correr sin problema.
 --
 -- NO es scraping. Es la "bandeja de entrada matutina" de Lex-Doctor/IUSNET pero alimentada por:
 --   · lo que pegás a mano (texto del despacho / cédula copiado de la MEV o del PJN), o
