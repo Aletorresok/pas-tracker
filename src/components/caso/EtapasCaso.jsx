@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ESTADOS_CASO } from "../../constants.js";
 
 const CORTO = {
@@ -6,14 +7,20 @@ const CORTO = {
 };
 const PASOS = ESTADOS_CASO.filter(e => e.key !== "desistido");
 
+// Mediación y juicio son la minoría: solo se muestran si el caso está ahí (o si las pedís)
+const OPCIONALES = { en_mediacion: ["en_mediacion", "en_juicio"], en_juicio: ["en_juicio"] };
+
 // Línea de etapas del caso: clic en una etapa cambia el estado. "Desistido" va aparte.
 export default function EtapasCaso({ estado, onChange }) {
-  const idx = PASOS.findIndex(p => p.key === estado);
+  const [verTodas, setVerTodas] = useState(false);
+  const pasos = PASOS.filter(p => !OPCIONALES[p.key] || verTodas || OPCIONALES[p.key].includes(estado));
+  const ocultos = PASOS.length - pasos.length;
+  const idx = pasos.findIndex(p => p.key === estado);
   const desistido = estado === "desistido";
   return (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-      <ol role="radiogroup" aria-label="Estado del caso" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flex: 1, overflowX: "auto", minWidth: 0 }}>
-        {PASOS.map((p, i) => {
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px 12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+      <ol role="radiogroup" aria-label="Estado del caso" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flex: "1 1 340px", overflowX: "auto", minWidth: 0 }}>
+        {pasos.map((p, i) => {
           const hecho = !desistido && i < idx;
           const actual = i === idx;
           const color = actual ? p.color : hecho ? "var(--accent)" : "var(--border2)";
@@ -34,6 +41,12 @@ export default function EtapasCaso({ estado, onChange }) {
           );
         })}
       </ol>
+      {ocultos > 0 && !desistido && (
+        <button type="button" onClick={() => setVerTodas(true)} title="Mostrar las etapas de mediación y juicio"
+          style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", fontWeight: 600, border: "1px solid var(--border)", background: "var(--card)", color: "var(--muted)", whiteSpace: "nowrap" }}>
+          + Mediación o juicio
+        </button>
+      )}
       <button type="button" onClick={() => onChange(desistido ? "iniciado" : "desistido")} aria-pressed={desistido}
         style={{ flex: "none", fontSize: 12, padding: "4px 10px", borderRadius: "var(--r-xl)", cursor: "pointer", fontWeight: 600,
           border: `1px solid ${desistido ? "var(--muted)" : "var(--border)"}`, background: desistido ? "var(--card2)" : "var(--card)", color: desistido ? "var(--text)" : "var(--muted)" }}>

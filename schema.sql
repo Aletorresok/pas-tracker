@@ -12,7 +12,7 @@
 --     Portal: cada PAS ve/deriva solo sus pas_casos, ve sus acciones, su pas_portal_users y su pas_lista.
 --   · Funciones: es_admin(), mi_pas_id(), plazos_companias(), consultar_caso_cliente(patente, dni),
 --     cliente_es_dueno, autorizar_subida_cliente, subida_autorizada, confirmar_subida_cliente,
---     documentos_enviados_cliente, extras_cliente.
+--     documentos_enviados_cliente, extras_cliente, eliminar_caso(caso_id), restaurar_caso(papelera_id) (SQL 26).
 --   · Trigger trg_pas_casos_fecha_mensaje completa mensaje_cliente_fecha.
 --   · Storage: 'adjuntos' (público por link; subida solo a <pas_id>/ propio) y 'recepcion'
 --     (privado; lo que sube el cliente, con autorización de 15 minutos).
@@ -145,6 +145,41 @@ create table public.pas_config (
 create table public.pas_margen_companias (
   compania  text primary key,
   dias      integer not null check (dias between 1 and 365)
+);
+
+-- Papelera de casos (SQL 26): copia completa del caso eliminado; se recupera con restaurar_caso(id).
+-- La llenan eliminar_caso(caso_id) y la vacía el cron 'vaciar_papelera' a los 30 días.
+create table public.pas_papelera (
+  id            uuid primary key default gen_random_uuid(),
+  caso_id       uuid not null,
+  pas_id        text,
+  asegurado     text,
+  patente       text,
+  compania      text,
+  datos         jsonb not null,   -- { caso, acciones, eventos, ofertas, contactos, plazos, subidas, expedientes }
+  eliminado_en  timestamptz not null default now()
+);
+
+-- Herramientas (SQL 27). Además: pas_casos.domicilio_asegurado/cp_/localidad_/provincia_asegurado
+-- y pas_companias.domicilio/cp/localidad/provincia (los completa la carta documento).
+-- ipc = variación mensual % (fecha = primer día del mes); icl = valor diario; tasa_activa_bna = TNA % desde esa fecha
+create table public.indices (
+  serie        text not null check (serie in ('ipc', 'icl', 'tasa_activa_bna')),
+  fecha        date not null,
+  valor        numeric not null,
+  actualizado  timestamptz not null default now(),
+  primary key (serie, fecha)
+);
+create table public.modelos_carta (
+  id      uuid primary key default gen_random_uuid(),
+  titulo  text not null,
+  texto   text not null,
+  creado  timestamptz not null default now()
+);
+create table public.pas_ajustes (      -- clave 'remitente_estudio': datos de remitente para las cartas
+  clave        text primary key,
+  valor        jsonb not null,
+  actualizado  timestamptz not null default now()
 );
 
 

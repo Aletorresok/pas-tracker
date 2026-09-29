@@ -5,7 +5,7 @@ const NIVEL = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)"
 // Tarjeta redonda de tarea/cobro (estilos .tc-* en index.css).
 // derecha: texto fijo (monto); accion: { texto, onClick, deshabilitada } aparece al pasar el mouse.
 // dragProps: atributos y listeners de dnd-kit (los pone ListaOrdenable).
-export default function TarjetaTarea({ vence, tipo, titulo, detalle, derecha, accion, onClick, dragging = false, dragProps }) {
+export default function TarjetaTarea({ chip, vence, tipo, titulo, detalle, derecha, accion, onClick, dragging = false, dragProps }) {
   const p = vence ? describirPlazo(vence) : null;
   const color = p ? NIVEL[p.nivel] : "var(--muted)";
   const parar = e => e.stopPropagation();
@@ -20,7 +20,7 @@ export default function TarjetaTarea({ vence, tipo, titulo, detalle, derecha, ac
 
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <span className="tc-chip num">{p ? p.texto : "Sin plazo"}</span>
+          {chip || <span className="tc-chip num">{p ? p.texto : "Sin plazo"}</span>}
           {tipo && <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600, letterSpacing: ".02em" }}>{tipo}</span>}
         </div>
         <div style={{ fontSize: 15, fontWeight: 650, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{titulo}</div>

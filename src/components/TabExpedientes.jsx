@@ -23,7 +23,7 @@ function PillEstado({ estado }) {
 
 const juzgadoDe = e => [e.fuero, e.juzgado && `Juzg. ${e.juzgado}`, e.numero && `Expte. ${e.numero}`].filter(Boolean).join(" · ");
 
-export default function TabExpedientes() {
+export default function TabExpedientes({ abrirId, onAbierto }) {
   const esCelular = useEsCelular();
   const cal = useCalendarioJudicial();
   const [expedientes, setExpedientes] = useState(null); // null = cargando
@@ -40,6 +40,13 @@ export default function TabExpedientes() {
       setPlazos(pls);
     });
   }, []);
+
+  // Desde Hoy: abre la ficha del expediente pedido
+  useEffect(() => {
+    if (!abrirId) return;
+    setFicha({ id: abrirId });
+    onAbierto?.();
+  }, [abrirId, onAbierto]);
 
   const hoy = fechaLocalISO();
   const proximo = useMemo(() => proximoPorExpediente(plazos), [plazos]);

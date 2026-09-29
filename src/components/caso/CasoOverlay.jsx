@@ -5,7 +5,8 @@ import { marcarRevisado } from "../../utils/storage.js";
 
 // Abre la ficha de un caso por encima de cualquier pantalla. La ficha ya guarda su caso en Supabase;
 // acá solo se refleja el cambio en memoria (sin volver a guardar todos los casos).
-export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, darkMode }) {
+// Con onEliminarCaso (App.handleEliminarCaso: confirma, manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
+export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, onEliminarCaso, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 
   // Abrir un caso nuevo del portal lo saca de la bandeja "Nuevos del portal"
@@ -22,6 +23,9 @@ export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosL
   if (!caso) return null;
   const pas = todosLosPas.find(p => String(p.id) === String(pasId));
   const pasNombre = pas?.nombre || caso._pasNombre || "";
+
+  const eliminar = async () => { if (await onEliminarCaso(caso, pasId)) onClose(); };
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, overflowY: "auto", background: "var(--bg)" }}>
       <CasoDetalle
@@ -33,6 +37,7 @@ export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosL
           onCambio?.(updated);
         }}
         onClose={onClose}
+        onEliminar={onEliminarCaso ? eliminar : undefined}
       />
     </div>
   );

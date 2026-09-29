@@ -19,7 +19,7 @@ const BUCKET = "recepcion";
 const LADO_MAX = 2000;
 
 // Achica fotos grandes (una foto de celular de 4-6 MB queda en ~0,5 MB). PDF y lo que no se pueda leer, van tal cual.
-async function comprimir(file) {
+export async function comprimir(file) {
   if (!file.type.startsWith("image/") || file.size < 900 * 1024) return file;
   try {
     const bmp = await createImageBitmap(file);

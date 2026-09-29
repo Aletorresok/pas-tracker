@@ -37,17 +37,17 @@ function ContenidoCaso({ c }) {
 
 const estiloCaso = { textAlign: "left", font: "inherit", color: "var(--text)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4, width: "100%" };
 
-function TarjetaCaso({ c, onAbrir }) {
+function TarjetaCaso({ c, onAbrir, onMenu }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: c.id });
   return (
-    <button ref={setNodeRef} type="button" {...attributes} {...listeners} onClick={() => onAbrir(c)}
+    <button ref={setNodeRef} type="button" {...attributes} {...listeners} onClick={() => onAbrir(c)} onContextMenu={onMenu ? e => onMenu(e, c) : undefined}
       className="tarjeta tarjeta-lift" style={{ ...estiloCaso, cursor: "grab", opacity: isDragging ? 0.35 : 1, touchAction: "manipulation" }}>
       <ContenidoCaso c={c} />
     </button>
   );
 }
 
-function Columna({ col, lista, onAbrir }) {
+function Columna({ col, lista, onAbrir, onMenu }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.key });
   return (
     <section ref={setNodeRef} aria-label={col.label}
@@ -61,7 +61,7 @@ function Columna({ col, lista, onAbrir }) {
         <EstadoPill estado={col.key} size="sm" />
         <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{lista.length}</span>
       </div>
-      {lista.map(c => <TarjetaCaso key={c.id} c={c} onAbrir={onAbrir} />)}
+      {lista.map(c => <TarjetaCaso key={c.id} c={c} onAbrir={onAbrir} onMenu={onMenu} />)}
     </section>
   );
 }
@@ -69,7 +69,7 @@ function Columna({ col, lista, onAbrir }) {
 // Tablero por etapas: arrastrás un caso a otra columna para cambiarle el estado (mismo flujo que la ficha:
 // fecha de la etapa, nota en la bitácora, próxima acción sugerida y aviso al cliente). Tocar un caso abre la ficha.
 // Funciona con mouse, con el dedo (mantené apretado un instante) y con teclado (Espacio, flechas, Espacio).
-export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal }) {
+export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCasoLocal }) {
   const margenes = useMargenes();
   const [arrastrando, setArrastrando] = useState(null); // id del caso
   const [sugerencia, setSugerencia] = useState(null); // { caso, estado, accion, avisar }
@@ -134,7 +134,7 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onCasoLocal 
       <DndContext sensors={sensores} collisionDetection={colision}
         onDragStart={({ active }) => setArrastrando(active.id)} onDragEnd={alSoltar} onDragCancel={() => setArrastrando(null)}>
         <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(230px, 1fr)", gap: 14, overflowX: "auto", padding: "4px 4px 12px", alignItems: "start" }}>
-          {COLUMNAS.map(col => <Columna key={col.key} col={col} lista={casos.filter(c => c.estado === col.key)} onAbrir={onAbrir} />)}
+          {COLUMNAS.map(col => <Columna key={col.key} col={col} lista={casos.filter(c => c.estado === col.key)} onAbrir={onAbrir} onMenu={onMenu} />)}
         </div>
         <DragOverlay dropAnimation={{ duration: 220, easing: "cubic-bezier(.34, 1.4, .64, 1)" }}>
           {casoArrastrado && (

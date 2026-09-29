@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabase.js";
 import { cambiosDeEstado } from "../utils/analisis.js";
-import { todasLasOfertas, todasLasCompanias, cargarComisiones } from "../utils/ofertas.js";
+import { todasLasOfertas, todasLasCompanias } from "../utils/ofertas.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
@@ -10,7 +10,6 @@ import CasoOverlay from "./caso/CasoOverlay.jsx";
 import AnalisisCompanias from "./analisis/AnalisisCompanias.jsx";
 import AnalisisPas from "./analisis/AnalisisPas.jsx";
 import AnalisisEtapas from "./analisis/AnalisisEtapas.jsx";
-import AnalisisCaja from "./analisis/AnalisisCaja.jsx";
 import CasosPorEtapa from "./analisis/CasosPorEtapa.jsx";
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
@@ -20,7 +19,6 @@ const VISTAS = [
   { k: "companias", l: "Compañías" },
   { k: "pas", l: "PAS" },
   { k: "etapas", l: "Etapas" },
-  { k: "caja", l: "Flujo de caja" },
 ];
 
 const leerVista = () => {
@@ -44,8 +42,6 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   const [companias, setCompanias] = useState({});
   const cargarCompanias = () => todasLasCompanias().then(setCompanias);
   useEffect(() => { cargarCompanias(); }, []);
-  const [comisiones, setComisiones] = useState(null); // % de comisión por PAS (SQL 24)
-  useEffect(() => { cargarComisiones().then(setComisiones); }, []);
   useEffect(() => {
     let vigente = true;
     (async () => {
@@ -110,7 +106,6 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
       {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} cambios={cambios} directorio={companias} onCompaniasGuardadas={cargarCompanias} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
       {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
-      {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={abrirCaso} companias={companias} comisiones={comisiones} />}
 
       {abierto && (
         <CasoOverlay

@@ -25,7 +25,9 @@ import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "./utils/ofertas.js";
 import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
+import { estadoHonorarios } from "./utils/metricas.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
+import AdjuntosPAS from "./components/caso/AdjuntosPAS.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
 import ResumenCaso from "./components/caso/ResumenCaso.jsx";
 import Boton from "./components/ui/Boton.jsx";
@@ -43,7 +45,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision"
+  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail"
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -57,7 +59,7 @@ const generateUUID = () => {
   });
 };
 
-export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, companias, onAgregarCompania }) {
+export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTelefono = "", pestanaInicial, darkMode, onUpdate, onClose, onEliminar, companias, onAgregarCompania }) {
   const Th = THEME(darkMode);
 
   const [caso, setCaso] = useState(casoProp);
@@ -82,12 +84,14 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     fecha_reclamo: casoProp.fecha_reclamo || "", fecha_ultimo_reclamo: casoProp.fecha_ultimo_reclamo || "", fecha_ofrecimiento: casoProp.fecha_ofrecimiento || "",
     fecha_reconsideracion: casoProp.fecha_reconsideracion || "", fecha_aceptacion: casoProp.fecha_aceptacion || "", fecha_firma: casoProp.fecha_firma || "",
     fecha_pago: casoProp.fecha_pago || "", fecha_cobro: casoProp.fecha_cobro || "", fecha_mediacion: casoProp.fecha_mediacion || "",
-    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || "",
+    fecha_inicio_juicio: casoProp.fecha_inicio_juicio || "", monto_cobro_asegurado: casoProp.monto_cobro_asegurado || "", monto_cobro_yo: casoProp.monto_cobro_yo || casoProp.monto_honorarios || "",
     monto_comision_pas: casoProp.monto_comision_pas || "", proxima_accion: casoProp.proxima_accion || "", proxima_accion_vence: casoProp.proxima_accion_vence || "",
     documentacion: casoProp.documentacion, patente: casoProp.patente || "", dni_asegurado: casoProp.dni_asegurado || "", telefono_asegurado: casoProp.telefono_asegurado || "",
     mensaje_cliente: casoProp.mensaje_cliente || "", plazo_pago: casoProp.plazo_pago || "",
     // Comisión pagada al PAS: solo si la columna ya existe (SQL 20)
-    ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {})
+    ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {}),
+    // Número de factura y link del hilo de Gmail: solo si las columnas ya existen (SQL 28)
+    ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {})
   });
 
   const initialFormRef = useRef(JSON.stringify(formData));
@@ -166,13 +170,14 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     setGuardando(true);
     setEstadoGuardado("guardando");
     try {
-      const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: formData.estado_honorarios || "NO_FACTURADO" };
+      const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: estadoHonorarios(formData), monto_honorarios: formData.monto_cobro_yo || null };
       const fila = pickCols(updated);
       // Si la columna del plazo todavía no existe en la base, no la mandamos (evita error al guardar)
       if (!("proxima_accion_vence" in casoProp) && !fila.proxima_accion_vence) delete fila.proxima_accion_vence;
       // Checklist manual: solo se manda si la columna ya existe en la base
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
+      if (!("nro_factura" in casoProp)) { delete fila.nro_factura; delete fila.hilo_gmail; }
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) {
         // Ofrecimiento nuevo cargado a mano: el anterior queda en el historial de ofertas
@@ -234,14 +239,15 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     return () => clearTimeout(t);
   }, [deshacer]);
 
-  // Al cerrar con cambios sin guardar, guarda primero
-  const cerrar = async () => {
+  // Al cerrar o eliminar con cambios sin guardar, guarda primero (así "Deshacer" lo recupera completo)
+  const guardarPendiente = async () => {
     if (estadoGuardado === "pendiente" || estadoGuardado === "error") {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       await guardarCasoRef.current?.();
     }
-    onClose();
   };
+  const cerrar = async () => { await guardarPendiente(); onClose(); };
+  const eliminar = async () => { await guardarPendiente(); onEliminar(); };
 
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
@@ -292,6 +298,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                     ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
                     : TEXTO_GUARDADO[estadoGuardado]}
                 </span>
+                {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
                 <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => setModalEscrito(true)}>Generar escrito</Boton>
               </div>
@@ -349,6 +356,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
               </div>
               <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+              <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <div style={{ marginBottom: 16 }}><ChecklistDocumental documentacion={formData.documentacion} onChange={v => handleFormChange("documentacion", v)} Th={Th} /></div>
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>

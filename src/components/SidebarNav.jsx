@@ -8,11 +8,14 @@ import Logo from "./ui/Logo.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
+  { k: "rutina", l: "Rutina", icon: "rutina" },
   { k: "casos", l: "Casos PAS", icon: "casos" },
   { k: "expedientes", l: "Expedientes", icon: "balanza" },
   { k: "prospeccion", l: "Contactos", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
+  { k: "finanzas", l: "Finanzas", icon: "finanzas" },
   { k: "analisis", l: "Análisis", icon: "grafico" },
+  { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];
 
 // En celular entran 4 pestañas + "Más"

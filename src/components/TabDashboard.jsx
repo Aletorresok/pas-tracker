@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
@@ -6,6 +6,10 @@ import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
+import ProspeccionHoy from "./dashboard/ProspeccionHoy.jsx";
+import AhoraToca from "./dashboard/AhoraToca.jsx";
+import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto } from "../utils/expedientes.js";
+import { useCalendarioJudicial } from "../hooks/useCalendarioJudicial.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import { registrarReiteracion } from "../utils/storage.js";
 import { useMargenes } from "../utils/margenes.js";
@@ -33,14 +37,38 @@ function Kpi({ label, valor, pie, destacado }) {
   );
 }
 
-export default function TabDashboard({ pas, casos, derivadores, darkMode, pasManuales = [], onCasoLocal, onIrA }) {
+export default function TabDashboard({ pas, casos, derivadores, descartados = {}, historial, darkMode, pasManuales = [], onCasoLocal, onIrA, onAbrirExpediente }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
   const margenes = useMargenes();
-  // Solo tareas de casos (el ritmo de cada PAS se mira en Clientes)
-  const tareas = useMemo(() => tareasPendientes({ allCasos, margenes: margenes || {} })
-    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [allCasos, margenes]);
+  const cal = useCalendarioJudicial();
+
+  // Plazos procesales y escritos pendientes (de expedientes y de casos PAS)
+  const [pendientes, setPendientes] = useState({ plazos: [], expedientes: [] });
+  useEffect(() => {
+    let vivo = true;
+    Promise.all([cargarPlazosPendientes(), cargarExpedientes()]).then(([plazos, expedientes]) => {
+      if (vivo) setPendientes({ plazos: plazos || [], expedientes: expedientes || [] });
+    });
+    return () => { vivo = false; };
+  }, []);
+  const tareasPlazos = useMemo(() => {
+    const exps = Object.fromEntries(pendientes.expedientes.map(e => [e.id, e]));
+    const porCaso = Object.fromEntries(allCasos.map(c => [String(c.id), c]));
+    return pendientes.plazos.flatMap(p => {
+      const exp = p.expediente_id ? exps[p.expediente_id] : null;
+      const caso = p.caso_id ? porCaso[String(p.caso_id)] : null;
+      if (p.expediente_id && (!exp || !expedienteAbierto(exp))) return [];
+      if (p.caso_id && !caso) return [];
+      return [{ id: `plazo-${p.id}`, tipo: p.tipo, vence: fechaClave(p), plazo: p, jurisdiccion: exp?.jurisdiccion, expediente: exp, caso,
+        titulo: exp ? exp.caratula : caso?.asegurado || "Sin nombre", detalle: p.titulo }];
+    });
+  }, [pendientes, allCasos]);
+
+  // Tareas de casos (el ritmo de cada PAS se mira en Clientes) + plazos y escritos, por vencimiento
+  const tareas = useMemo(() => [...tareasPendientes({ allCasos, margenes: margenes || {} }), ...tareasPlazos]
+    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [allCasos, margenes, tareasPlazos]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const teTocan = useMemo(() => allCasos.filter(c => quienTiene(c) === "vos").length, [allCasos]);
   const nDerivadores = Object.values(derivadores).filter(Boolean).length;
@@ -55,7 +83,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
   const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
 
   const abrirTarea = (t) => {
-    if (t.caso) setAbierto({ caso: t.caso, pasId: t.caso._pasId });
+    if (t.expediente) onAbrirExpediente?.(t.expediente.id);
+    else if (t.caso) setAbierto({ caso: t.caso, pasId: t.caso._pasId });
   };
 
   return (
@@ -64,6 +93,8 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Hoy</h1>
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
       </header>
+
+      <AhoraToca allCasos={allCasos} historial={historial} onIrA={onIrA} />
 
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
@@ -79,20 +110,25 @@ export default function TabDashboard({ pas, casos, derivadores, darkMode, pasMan
 
       {/* Dos columnas parejas: lo que hay que hacer y la plata que falta entrar */}
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-        <ParaHacer tareas={tareas} onAbrir={abrirTarea} onReiterar={async c => {
+        <ParaHacer tareas={tareas} cal={cal} onAbrir={abrirTarea} onReiterar={async c => {
           const cambios = await registrarReiteracion(c);
           if (cambios) { const { _pasId, _pasNombre, ...limpio } = c; onCasoLocal(_pasId, { ...limpio, ...cambios }); }
         }} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
+          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("finanzas")} />
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
+          <ProspeccionHoy historial={historial} derivadores={derivadores} descartados={descartados} onIr={() => onIrA?.("prospeccion")} />
         </div>
       </div>
 
-      <button type="button" onClick={() => onIrA?.("analisis")}
-        style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0 }}>
-        Honorarios por mes, casos por etapa, compañías, PAS y flujo de caja → Análisis
-      </button>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        {[["finanzas", "Resultado del mes, gastos, facturación y flujo de caja → Finanzas"], ["analisis", "Casos por etapa, compañías y PAS → Análisis"]].map(([tab, texto]) => (
+          <button key={tab} type="button" onClick={() => onIrA?.(tab)}
+            style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0, textAlign: "left" }}>
+            {texto}
+          </button>
+        ))}
+      </div>
 
       {abierto && (
         <CasoOverlay

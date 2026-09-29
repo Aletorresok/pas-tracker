@@ -2,12 +2,13 @@ import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import TarjetaTarea from "../ui/TarjetaTarea.jsx";
 import ListaOrdenable from "../ui/ListaOrdenable.jsx";
+import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
-const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS", pedir_respuesta: "Pedir respuesta", firma: "A la firma", cobro: "Fecha de pago", dato: "Dato faltante", plazo: "Plazo procesal", escrito: "Escrito" };
 
-// Lista de tareas ordenada por vencimiento; se pueden reordenar arrastrando (el orden se recuerda). Clic abre el caso.
-export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
+// Lista de tareas ordenada por vencimiento (casos PAS, plazos y escritos de expedientes); se puede reordenar arrastrando y el orden se recuerda. Clic abre el caso o el expediente.
+export default function ParaHacer({ tareas, cal, onAbrir, onReiterar }) {
   const [reiterando, setReiterando] = useState(null);
   const reiterar = async (t) => { setReiterando(t.id); await onReiterar?.(t.caso); setReiterando(null); };
   const vencidas = tareas.filter(t => t.vence && t.vence < fechaLocalISO()).length;
@@ -24,7 +25,7 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
       {tareas.length === 0 && (
         <div style={{ padding: "20px 0", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
           <Ilustracion nombre="listo" size={88} style={{ margin: "0 auto 8px" }} />
-          Nada pendiente. Cargá una "Próxima acción" con plazo en un caso y aparece acá.
+          Nada pendiente. Las próximas acciones de los casos y los plazos y escritos de los expedientes aparecen acá.
         </div>
       )}
 
@@ -33,6 +34,7 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
           const reiterable = t.tipo === "quieto" && onReiterar;
           return (
             <TarjetaTarea dragging={dragging} dragProps={dragProps} vence={t.vence} tipo={TIPO[t.tipo]}
+              chip={t.plazo && t.vence ? <ChipPendiente pendiente={t.plazo} cal={cal} jurisdiccion={t.jurisdiccion} /> : undefined}
               titulo={t.titulo} detalle={t.detalle} onClick={() => onAbrir(t)}
               derecha={!reiterable && t.monto ? fmtMoney(t.monto) : undefined}
               accion={reiterable ? {

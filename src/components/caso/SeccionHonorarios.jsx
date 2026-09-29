@@ -1,53 +1,35 @@
 import { diasDesde } from "../../utils/formatters.js";
-import { ESTADOS_HONORARIOS } from "../../constants.js";
+import { estadoHonorarios } from "../../utils/metricas.js";
 
+// Factura de tus honorarios. El monto es "Mis honorarios" (Montos) y el cobro se tilda en Pagos;
+// el estado (sin facturar / facturado / cobrado) sale solo de las fechas.
 export default function SeccionHonorarios({ formData, onChange, Th }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
-  const inputStyle = Th.input;
+  const estado = estadoHonorarios(formData);
   const diasDesdeFactura = formData.fecha_factura ? diasDesde(formData.fecha_factura) : null;
-  const honorariosVencidos = formData.estado_honorarios === "FACTURADO" && diasDesdeFactura && diasDesdeFactura > 30;
+  const vencidos = estado === "FACTURADO" && diasDesdeFactura > 30;
+  const texto = { COBRADO: "Cobrados", FACTURADO: `Facturados${diasDesdeFactura !== null ? ` hace ${diasDesdeFactura} días` : ""}, sin cobrar`, NO_FACTURADO: "Sin facturar" }[estado];
 
   return (
     <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16, marginBottom: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 14 }}>Honorarios (facturación)</div>
-      <label style={{ marginBottom: 12, display: "block" }}>
-        <span style={labelStyle}>Monto de honorarios ($)</span>
-        <input type="number" value={formData.monto_honorarios} onChange={e => onChange("monto_honorarios", e.target.value)} style={inputStyle} />
-      </label>
-      <div style={{ marginBottom: 12 }}>
-        <span style={labelStyle}>Estado</span>
-        <div style={{ display: "flex", gap: 6 }}>
-          {ESTADOS_HONORARIOS.map(e => (
-            <button key={e} onClick={() => onChange("estado_honorarios", e)} style={{
-              flex: 1, padding: "8px 6px", borderRadius: "var(--r-xs)",
-              border: `1px solid ${formData.estado_honorarios === e ? "var(--accent)" : Th.border}`,
-              background: formData.estado_honorarios === e ? "color-mix(in srgb, var(--accent) 13%, transparent)" : "transparent",
-              color: formData.estado_honorarios === e ? "var(--accent)" : Th.sub,
-              cursor: "pointer", fontSize: 12, fontWeight: formData.estado_honorarios === e ? 700 : 400,
-            }}>{e}</button>
-          ))}
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Factura de honorarios</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: vencidos ? "var(--bad)" : estado === "COBRADO" ? "var(--ok)" : Th.sub }}>
+          {texto}{vencidos ? " · cobro vencido" : ""}
+        </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
         <label>
           <span style={labelStyle}>Fecha de factura</span>
-          <input type="date" value={formData.fecha_factura} onChange={e => onChange("fecha_factura", e.target.value)} style={inputStyle} />
+          <input type="date" value={formData.fecha_factura || ""} onChange={e => onChange("fecha_factura", e.target.value)} style={Th.input} />
         </label>
-        <label>
-          <span style={labelStyle}>Fecha cobro honorarios</span>
-          <input type="date" value={formData.fecha_cobro_honorarios} onChange={e => onChange("fecha_cobro_honorarios", e.target.value)} style={inputStyle} />
-        </label>
+        {"nro_factura" in formData
+          ? <label>
+              <span style={labelStyle}>Número de factura</span>
+              <input value={formData.nro_factura || ""} onChange={e => onChange("nro_factura", e.target.value)} placeholder="Ej: 0001-00000123" style={Th.input} />
+            </label>
+          : <span style={{ fontSize: 12, color: Th.muted, alignSelf: "end" }}>Para cargar el número de factura falta correr el SQL 28.</span>}
       </div>
-      {formData.estado_honorarios === "FACTURADO" && diasDesdeFactura !== null && (
-        <div style={{ fontSize: 12, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 7%, transparent)", borderRadius: "var(--r-xs)", padding: "6px 10px", marginBottom: 10 }}>
-          Facturado hace {diasDesdeFactura} días
-        </div>
-      )}
-      {honorariosVencidos && (
-        <div style={{ fontSize: 12, color: "var(--bad)", background: "color-mix(in srgb, var(--bad) 7%, transparent)", borderRadius: "var(--r-xs)", padding: "6px 10px", marginBottom: 10 }}>
-          Cobro de honorarios vencido
-        </div>
-      )}
     </div>
   );
 }

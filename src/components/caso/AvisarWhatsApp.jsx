@@ -5,10 +5,10 @@ import Icono from "../ui/Icono.jsx";
 // "Avisar por WhatsApp": elegís a quién (cliente o PAS) y una plantilla; el texto sale completo con los datos
 // del caso, lo podés retocar y se abre WhatsApp. Para el cliente, opcionalmente queda también como
 // "Mensaje del estudio" (lo ven el PAS en el portal y el cliente en su vista).
-export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "", onTelefonoCliente, onUsarComoMensaje, abiertoInicial = false }) {
+export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "", onTelefonoCliente, onUsarComoMensaje, onEnviado, abiertoInicial = false, plantillaInicial, onCerrar }) {
   const [abierto, setAbierto] = useState(abiertoInicial);
   const [para, setPara] = useState("cliente");
-  const [plantilla, setPlantilla] = useState(() => plantillaSugerida(caso));
+  const [plantilla, setPlantilla] = useState(() => plantillaInicial || plantillaSugerida(caso));
   const [texto, setTexto] = useState("");
   const [tocado, setTocado] = useState(false);
   const [usarComoMensaje, setUsarComoMensaje] = useState(true);
@@ -33,6 +33,7 @@ export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "",
   const sugerido = para === "cliente" && !caso.telefono_asegurado && /\d{8}/.test(String(caso.tercero_contacto || "").replace(/\D/g, "")) ? caso.tercero_contacto : "";
 
   const alEnviar = () => {
+    onEnviado?.({ para, plantilla });
     if (para === "cliente" && usarComoMensaje && actual.cuerpo && !tocado) {
       onUsarComoMensaje?.(actual.cuerpo(caso, extra));
       setAviso("Se abrió WhatsApp y el mensaje quedó también como Mensaje del estudio.");
@@ -60,7 +61,7 @@ export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "",
           <button type="button" aria-pressed={para === "cliente"} onClick={() => elegirPara("cliente")} style={chip(para === "cliente")}>Al cliente</button>
           <button type="button" aria-pressed={para === "pas"} onClick={() => elegirPara("pas")} style={chip(para === "pas")}>Al PAS</button>
         </div>
-        <button type="button" onClick={() => { setAbierto(false); setAviso(""); setTocado(false); }} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", display: "flex" }}><Icono nombre="cerrar" size={16} /></button>
+        <button type="button" onClick={() => { setAbierto(false); setAviso(""); setTocado(false); onCerrar?.(); }} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", display: "flex" }}><Icono nombre="cerrar" size={16} /></button>
       </div>
 
       <div role="group" aria-label="Plantilla" style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -90,7 +91,17 @@ export default function AvisarWhatsApp({ caso, pasNombre = "", pasTelefono = "",
           </label>
         )}
       </div>
-      {aviso && <div role="status" style={{ fontSize: 12, color: "var(--ok)" }}>{aviso}</div>}
+      {aviso && (
+        <div role="status" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: 12, color: "var(--ok)" }}>
+          {aviso}
+          {para === "cliente" && pasTelefono && (
+            <button type="button" onClick={() => { elegirPara("pas"); setAviso(""); }}
+              style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 12, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
+              Avisarle también al PAS →
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

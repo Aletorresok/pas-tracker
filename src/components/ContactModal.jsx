@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { fechaLocalISO } from "../utils/formatters.js";
 import Boton from "./ui/Boton.jsx";
+import { RESULTADO_INTERESADO, DIAS_RECORDATORIO } from "../utils/mensajes.js";
 
 const OPCIONES = [
   { k: "seguimiento", l: "Sigue en seguimiento", d: "Queda en Contactados" },
+  { k: "interesado", l: "Interesado", d: `Te va a tener en cuenta. Si en ${DIAS_RECORDATORIO} días no deriva, la app te propone un recordatorio` },
   { k: "deriva", l: "Deriva casos", d: "Pasa a Derivadores y a Clientes" },
   { k: "descarta", l: "Descartado", d: "Sale de la lista" },
 ];
@@ -16,7 +18,8 @@ export default function ContactModal({ pas, esDerivador, esDescartado, onClose, 
 
   const guardar = async () => {
     setGuardando(true);
-    await onSave({ fecha, resultados: [], nota: "", decision });
+    // "Interesado" sigue en Contactados; queda marcado para el recordatorio de los 30 días
+    await onSave({ fecha, resultados: decision === "interesado" ? [RESULTADO_INTERESADO] : [], nota: "", decision: decision === "interesado" ? "seguimiento" : decision });
   };
 
   return (

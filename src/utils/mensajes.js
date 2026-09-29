@@ -2,6 +2,8 @@
 import { fmtMoney, fmtDate, primerNombre } from "./formatters.js";
 
 export const FIRMA = "Dr. Alexis Torres Gaveglio";
+// WhatsApp del estudio: adonde escriben los PAS con "Consultar al estudio"
+export const TELEFONO_ESTUDIO = "11 3313-3259";
 
 // Número para wa.me en formato argentino de celular: 54 9 + característica + número.
 // Acepta "11 3313-3259", "011 15 3313 3259", "+54 9 11 3313 3259", etc. Devuelve "" si no hay número.
@@ -29,8 +31,16 @@ export const linkWhatsApp = (tel, texto) => {
 export const linkVistaCliente = (patente) =>
   `${window.location.origin}/?vista=cliente&patente=${encodeURIComponent(String(patente || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase())}`;
 
+// El cliente entra a su vista con la patente y los últimos 3 números del DNI: sin los dos, el link no le sirve
+export const clientePuedeEntrar = c => Boolean(c.patente) && String(c.dni_asegurado || "").replace(/\D/g, "").length >= 3;
+const DOCS_PEDIDOS = "DNI (frente y dorso), cédula del vehículo, denuncia del siniestro, certificado de cobertura, fotos de los daños y presupuesto del taller";
+const comoMandarDocs = c => clientePuedeEntrar(c)
+  ? `Los podés subir directo acá, sacándoles una foto con el celular: ${linkVistaCliente(c.patente)} (entrás con la patente ${c.patente} y los últimos 3 números de tu DNI). Ahí también vas a ver cómo avanza tu reclamo.`
+  : "Me los podés mandar por acá.";
+
 // Los asegurados se cargan como "APELLIDO NOMBRE": el saludo usa la segunda palabra
 const nombreCliente = (c) => primerNombre(c.asegurado || "");
+const primerNombreProductor = (n) => `${primerNombre(n)}, tu productor de seguros,`;
 const cia = (c) => c.compania_aseguradora || "la compañía";
 const monto = (v) => (Number(v) > 0 ? fmtMoney(Number(v)) : "");
 
@@ -39,11 +49,11 @@ export const PLANTILLAS_CLIENTE = [
   {
     k: "primer_contacto", l: "Primer contacto",
     cuerpo: (c) => `Recibimos tu caso y nos vamos a encargar del reclamo ante ${cia(c)}.`,
-    texto: (c, x) => `Hola ${nombreCliente(c)}, ¿cómo estás? Soy el ${FIRMA}, abogado. ${x.pasNombre ? `${x.pasNombre} me pasó tu caso` : "Me pasaron tu caso"} por el siniestro${c.patente ? ` del vehículo ${c.patente}` : ""}. Me voy a encargar del reclamo ante ${cia(c)}. ¿Tenés un minuto para que hablemos?`,
+    texto: (c, x) => `Hola ${nombreCliente(c)}, ¿cómo estás? Soy el ${FIRMA}, abogado. ${x.pasNombre ? `${primerNombreProductor(x.pasNombre)} me pasó tu caso` : "Me pasaron tu caso"} por el siniestro${c.patente ? ` del vehículo ${c.patente}` : ""} y me voy a encargar del reclamo ante ${cia(c)}.\n\nPara arrancar necesito: ${DOCS_PEDIDOS}. ${comoMandarDocs(c)}\n\nCualquier duda, escribime por acá.`,
   },
   {
     k: "documentacion", l: "Pedir documentación",
-    cuerpo: () => "Para avanzar con el reclamo necesitamos: denuncia administrativa, fotos de los daños, DNI (frente y dorso), cédula verde y certificado de cobertura.",
+    cuerpo: (c) => `Para avanzar con el reclamo necesitamos: ${DOCS_PEDIDOS}. ${comoMandarDocs(c)}`,
   },
   {
     k: "reclamo", l: "Reclamo presentado",
@@ -148,3 +158,33 @@ export function linkMailPresentacion(mail, nombrePas, celular = false) {
     ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`
     : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(mail)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
+
+// ── PAS interesados: un solo recordatorio a los 30 días ─────────────────────
+// "Interesado" = dijo que te va a tener en cuenta. Si a los 30 días no derivó, la app propone UN recordatorio útil
+// (no "¿tenés algún caso?") y después no vuelve a insistir. Se guarda como resultado del contacto, igual que el mail.
+export const RESULTADO_INTERESADO = "interesado";
+export const RESULTADO_RECORDATORIO = "recordatorio_interesado";
+export const DIAS_RECORDATORIO = 30;
+const tiene = (e, r) => (e?.resultados || []).includes(r);
+
+// { desde, dias } si toca mandarle el recordatorio (el último "interesado" tiene 30 días o más y no se mandó después)
+export function recordatorioPendiente(entradas, hoy = new Date()) {
+  const lista = entradas || [];
+  let i = lista.length - 1;
+  while (i >= 0 && !tiene(lista[i], RESULTADO_INTERESADO)) {
+    if (tiene(lista[i], RESULTADO_RECORDATORIO)) return null;
+    i--;
+  }
+  if (i < 0) return null;
+  const desde = String(lista[i].fecha || "").slice(0, 10);
+  const dias = Math.floor((hoy - new Date(`${desde}T12:00:00`)) / 86400000);
+  return dias >= DIAS_RECORDATORIO ? { desde, dias } : null;
+}
+export const fueInteresado = entradas => (entradas || []).some(e => tiene(e, RESULTADO_INTERESADO));
+export const recibioRecordatorio = entradas => (entradas || []).some(e => tiene(e, RESULTADO_RECORDATORIO));
+
+export const textoRecordatorio = nombrePas => [
+  `Hola ${primerNombre(nombrePas) || ""}, ¿cómo va? Soy Alexis Torres Gaveglio, hablamos hace un mes por los reclamos a terceros.`.replace("Hola , ", "Hola, "),
+  "Te escribo solo para dejarte esto a mano: si a algún cliente tuyo lo chocan y no tuvo la culpa, pasame sus datos por acá y me encargo de todo el reclamo. El cliente no adelanta nada, vos seguís el caso desde el portal sin llamarme y cobrás tu parte cuando se cobra.",
+  "No te vuelvo a escribir por esto; cuando lo necesites, acá estoy.",
+].join("\n\n");
