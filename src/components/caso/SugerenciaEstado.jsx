@@ -29,7 +29,7 @@ export default function SugerenciaEstado({ sugerencia, onUsarAccion, onCerrar, a
       )}
       {avisar && avisoWhatsApp && (
         <div>
-          <div style={{ color: "var(--sub)", marginBottom: 6 }}>{estado === "con_ofrecimiento" ? "¿Le avisás al cliente del ofrecimiento?" : "¿Le avisás al cliente que hay acuerdo y la fecha de pago?"}</div>
+          <div style={{ color: "var(--sub)", marginBottom: 6 }}>{estado === "con_ofrecimiento" ? "¿Le avisás al cliente del ofrecimiento? Después, con un toque, al PAS." : "¿Le avisás al cliente que hay acuerdo y la fecha de pago? Después, con un toque, al PAS."}</div>
           {avisoWhatsApp}
         </div>
       )}

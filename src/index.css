@@ -178,3 +178,12 @@ input:focus, select:focus, textarea:focus {
 .fade-in { animation: fadeIn 0.25s ease-out; }
 .slide-up { animation: slideUp 0.3s ease-out; }
 @media (prefers-reduced-motion: reduce) { .fade-in, .slide-up { animation: none; } * { transition: none !important; } }
+
+/* Rutina: listas automáticas desplegables */
+.lista-auto::-webkit-details-marker { display: none; }
+.lista-auto svg { transform: rotate(-90deg); transition: transform .15s; }
+details[open] > .lista-auto svg { transform: none; }
+
+/* Portal: el botón "Derivar caso" se esconde al bajar (no tapa las tarjetas) y vuelve al subir */
+.fab-derivar { transition: transform .2s ease, opacity .2s ease; }
+.fab-derivar.fab-oculto { transform: translateY(140%); opacity: 0; pointer-events: none; }

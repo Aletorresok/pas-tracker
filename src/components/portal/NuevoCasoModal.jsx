@@ -1,240 +1,188 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../supabase.js";
-import { theme } from "./portalTheme.js";
 import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
+import { listaCompanias } from "../../utils/companias.js";
+import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, FIRMA } from "../../utils/mensajes.js";
+import { primerNombre } from "../../utils/formatters.js";
+import { estadoInfo } from "../../constants.js";
+import SelectorArchivos from "./SelectorArchivos.jsx";
+import Boton from "../ui/Boton.jsx";
+import Icono from "../ui/Icono.jsx";
 
-export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, dark, companias = [] }) {
-  const T = theme(dark);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  
-  const [formData, setFormData] = useState(() => {
-    const borrador = sessionStorage.getItem("draft_nuevo_caso");
-    return borrador ? JSON.parse(borrador) : {
-      asegurado: "",
-      telefono: "",
-      patente: "",
-      dni: "",
-      fecha_siniestro: "",
-      compania: "",
-    };
-  });
-  
+const VACIO = { asegurado: "", telefono: "", patente: "", dni: "", fecha_siniestro: "", compania: "" };
+const BORRADOR = "draft_nuevo_caso";
+const leerBorrador = () => { try { return { ...VACIO, ...JSON.parse(sessionStorage.getItem(BORRADOR) || "{}") }; } catch { return VACIO; } };
+const guardarBorrador = v => { try { sessionStorage.setItem(BORRADOR, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
+const borrarBorrador = () => { try { sessionStorage.removeItem(BORRADOR); sessionStorage.removeItem("draft_otra_compania"); } catch { /* sin almacenamiento */ } };
+const soloPatente = v => String(v || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+
+const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 6 };
+const opcional = { fontWeight: 500, color: "var(--muted)" };
+const campo = { width: "100%", boxSizing: "border-box", background: "var(--card)", border: "1px solid var(--border2)", borderRadius: 8, padding: "10px 12px", color: "var(--text)", font: "inherit", fontSize: 15, outline: "none" };
+const ayuda = { display: "block", fontSize: 12, color: "var(--muted)", marginTop: 4, lineHeight: 1.4 };
+
+// Derivar un caso desde el portal: datos del asegurado, compañía del tercero y documentación.
+// Al terminar muestra la confirmación y ofrece pasarle al cliente el link de seguimiento.
+export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, casos = [], companias = [] }) {
+  const [form, setForm] = useState(leerBorrador);
   const [archivos, setArchivos] = useState([]);
-  
-  const [esOtraCompania, setEsOtraCompania] = useState(() => {
-    return sessionStorage.getItem("draft_otra_compania") === "true";
-  });
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const [listo, setListo] = useState(null); // { caso, fallidos }
 
+  useEffect(() => { if (!listo) guardarBorrador(form); }, [form, listo]);
+  // Esc cierra (si no está enviando)
   useEffect(() => {
-    sessionStorage.setItem("draft_nuevo_caso", JSON.stringify(formData));
-  }, [formData]);
+    const tecla = e => { if (e.key === "Escape" && !enviando) onClose(); };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [enviando, onClose]);
 
-  useEffect(() => {
-    sessionStorage.setItem("draft_otra_compania", esOtraCompania);
-  }, [esOtraCompania]);
+  const opcionesCompania = useMemo(() => listaCompanias(companias), [companias]);
+  const cambiar = (k, v) => setForm(f => ({ ...f, [k]: k === "patente" ? v.toUpperCase() : v }));
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const finalValue = name === "patente" ? value.toUpperCase() : value;
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: finalValue,
-    }));
-  };
+  // Mismo auto ya derivado por este PAS (puede ser otro siniestro: solo avisa)
+  const repetido = useMemo(() => {
+    const p = soloPatente(form.patente);
+    return p.length >= 6 ? casos.find(c => !c._demo && soloPatente(c.patente) === p) : null;
+  }, [form.patente, casos]);
+  const faltaSeguimiento = !soloPatente(form.patente) || String(form.dni).replace(/\D/g, "").length < 3;
 
-  const handleFileChange = (e) => {
-    setArchivos(Array.from(e.target.files));
-  };
-
-  const handleSubmit = async (e) => {
+  const enviar = async (e) => {
     e.preventDefault();
-    if (!formData.asegurado || !formData.telefono || !formData.fecha_siniestro || !formData.compania) {
-      setError("Por favor completa los campos obligatorios.");
+    const faltan = [!form.asegurado.trim() && "el titular", !form.telefono.trim() && "el teléfono", !form.fecha_siniestro && "la fecha del siniestro", !form.compania.trim() && "la compañía"].filter(Boolean);
+    if (faltan.length) { setError(`Falta completar ${faltan.join(", ").replace(/, ([^,]*)$/, " y $1")}.`); return; }
+    setEnviando(true);
+    setError("");
+
+    const nuevoCaso = {
+      pas_id: pasId,
+      asegurado: form.asegurado.trim(),
+      telefono_asegurado: form.telefono.trim(),
+      origen: "portal",
+      patente: soloPatente(form.patente),
+      dni_asegurado: String(form.dni).replace(/\D/g, "") || null,
+      fecha_siniestro: form.fecha_siniestro,
+      compania_aseguradora: form.compania.trim(),
+      estado: "doc_pendiente",
+      fecha_derivacion: new Date().toISOString().slice(0, 10),
+      caso_id: Date.now(),
+    };
+    const { data, error: dbError } = await supabase.from("pas_casos").insert([nuevoCaso]).select().single();
+    if (dbError || !data) {
+      console.error("[derivar] no se guardó el caso:", dbError);
+      setError("No se pudo derivar el caso: no se guardó nada. Revisá la conexión y probá de nuevo (lo que cargaste queda guardado).");
+      setEnviando(false);
       return;
     }
 
-    setLoading(true);
-    setError("");
-
+    // El caso ya está: los archivos y el aviso no lo pueden deshacer
+    let fallidos = [];
     try {
-      const valorPatente = (formData.patente || "").trim();
-
-      const nuevoCaso = {
-        pas_id: pasId,
-        asegurado: formData.asegurado,
-        telefono_asegurado: formData.telefono,
-        origen: "portal",
-        patente: valorPatente,
-        dni_asegurado: (formData.dni || "").trim() || null,
-        fecha_siniestro: formData.fecha_siniestro,
-        compania_aseguradora: formData.compania,
-        estado: "doc_pendiente", 
-        fecha_derivacion: new Date().toISOString().slice(0, 10),
-        caso_id: Date.now(), 
-      };
-
-      const { data, error: dbError } = await supabase
-        .from("pas_casos")
-        .insert([nuevoCaso])
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      // Llamada limpia a la utilidad compartida
-      await subirArchivosYNotificar({
-        pasId,
-        pasNombre,
-        casoData: formData,
-        archivos
-      });
-      
-      sessionStorage.removeItem("draft_nuevo_caso");
-      sessionStorage.removeItem("draft_otra_compania");
-      
-      onCasoCreado?.(data);
-      onClose();
+      const r = await subirArchivosYNotificar({ pasId, casoId: data.id, pasNombre, casoData: form, archivos });
+      fallidos = r.fallidos;
     } catch (err) {
-      console.error("Error al derivar caso o enviar email:", err);
-      setError("El caso se guardó, pero hubo un problema procesando los archivos o enviando el aviso.");
-    } finally {
-      setLoading(false);
+      console.error("[derivar] archivos:", err);
+      fallidos = archivos.map(f => f.name);
     }
+    borrarBorrador();
+    onCasoCreado?.(data);
+    setListo({ caso: data, fallidos });
+    setEnviando(false);
   };
 
+  const otro = () => { setForm(VACIO); setArchivos([]); setListo(null); setError(""); };
+
   return (
-    <div className="modal-portal" style={{ position: "fixed", inset: 0, background: "color-mix(in srgb, #000 60%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, width: "100%", maxWidth: 460, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto" }}>
-        
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>Derivar Nuevo Caso</div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 18, cursor: "pointer" }}>✕</button>
+    <div className="modal-portal" role="dialog" aria-modal="true" aria-label="Derivar un caso"
+      onClick={e => e.target === e.currentTarget && !enviando && onClose()}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16, overflowY: "auto" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, width: "100%", maxWidth: 480, padding: 24, boxShadow: "var(--shadow)", maxHeight: "100%", overflowY: "auto", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{listo ? "Caso derivado" : "Derivar un caso"}</h2>
+          <button type="button" onClick={onClose} disabled={enviando} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", display: "flex", padding: 4 }}><Icono nombre="cerrar" size={18} /></button>
         </div>
 
-        {error && (
-          <div style={{ background: "color-mix(in srgb, var(--bad) 13%, transparent)", border: "1px solid var(--bad)", borderRadius: 8, padding: "10px 14px", color: "var(--bad)", fontSize: 12, marginBottom: 16 }}>
-            {error}
-          </div>
+        {listo ? <Confirmacion {...listo} pasNombre={pasNombre} onOtro={otro} onListo={onClose} /> : (
+          <form onSubmit={enviar} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {error && <div role="alert" style={{ background: "color-mix(in srgb, var(--bad) 10%, var(--card))", border: "1px solid var(--bad)", borderRadius: 8, padding: "10px 12px", color: "var(--bad)", fontSize: 13 }}>{error}</div>}
+
+            <label><span style={etiqueta}>Titular (apellido y nombre)</span>
+              <input value={form.asegurado} onChange={e => cambiar("asegurado", e.target.value)} placeholder="Ej: Pérez Juan" autoComplete="off" style={campo} />
+            </label>
+            <label><span style={etiqueta}>Teléfono del titular</span>
+              <input type="tel" inputMode="tel" value={form.telefono} onChange={e => cambiar("telefono", e.target.value)} placeholder="Ej: 11 2345 6789" style={campo} />
+              <span style={ayuda}>El estudio le escribe por WhatsApp para pedirle la documentación.</span>
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
+              <label><span style={etiqueta}>Patente <span style={opcional}>(recomendado)</span></span>
+                <input value={form.patente} onChange={e => cambiar("patente", e.target.value)} placeholder="Ej: AB123CD" autoCapitalize="characters" style={{ ...campo, textTransform: "uppercase", fontFamily: "var(--mono)" }} />
+              </label>
+              <label><span style={etiqueta}>DNI del titular <span style={opcional}>(recomendado)</span></span>
+                <input inputMode="numeric" value={form.dni} onChange={e => cambiar("dni", e.target.value)} placeholder="Ej: 25123456" style={campo} />
+              </label>
+            </div>
+            {repetido
+              ? <div role="status" style={{ fontSize: 13, color: "var(--warn)", marginTop: -6 }}>Ya derivaste un caso con esta patente: <b>{repetido.asegurado}</b> ({estadoInfo(repetido.estado).label}). Si es otro siniestro, seguí igual.</div>
+              : <span style={{ ...ayuda, marginTop: -8, color: faltaSeguimiento ? "var(--warn)" : "var(--muted)" }}>
+                  {faltaSeguimiento ? "Sin patente y DNI el titular no puede seguir su caso online ni mandar la documentación por el link." : "Con la patente y el DNI el titular sigue su caso online y manda la documentación por el link."}
+                </span>}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
+              <label><span style={etiqueta}>Fecha del siniestro</span>
+                <input type="date" value={form.fecha_siniestro} max={new Date().toISOString().slice(0, 10)} onChange={e => cambiar("fecha_siniestro", e.target.value)} style={campo} />
+              </label>
+              <label><span style={etiqueta}>Compañía del tercero</span>
+                <input value={form.compania} onChange={e => cambiar("compania", e.target.value)} list="companias-portal" placeholder="Escribí para buscar" autoComplete="off" style={campo} />
+                <datalist id="companias-portal">{opcionesCompania.map(c => <option key={c} value={c} />)}</datalist>
+              </label>
+            </div>
+            <div>
+              <span style={etiqueta}>Documentación <span style={opcional}>(opcional, se puede mandar después)</span></span>
+              <SelectorArchivos archivos={archivos} onChange={setArchivos} disabled={enviando} />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 4 }}>
+              <Boton variante="fantasma" onClick={onClose} disabled={enviando}>Cancelar</Boton>
+              <Boton type="submit" variante="primario" disabled={enviando}>
+                {enviando ? (archivos.length ? "Enviando archivos…" : "Derivando…") : "Derivar caso"}
+              </Boton>
+            </div>
+          </form>
         )}
+      </div>
+    </div>
+  );
+}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Apellido y Nombre del Titular *</label>
-            <input 
-              type="text" 
-              name="asegurado" 
-              value={formData.asegurado} 
-              onChange={handleChange} 
-              placeholder="Ej: Pérez Juan"
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-            />
+function Confirmacion({ caso, fallidos, pasNombre, onOtro, onListo }) {
+  const puede = clientePuedeEntrar(caso);
+  const texto = `Hola ${primerNombre(caso.asegurado || "")}, soy ${pasNombre ? primerNombre(pasNombre) : "tu productor de seguros"}. Le pasé tu caso al ${FIRMA}, que se va a encargar del reclamo${caso.compania_aseguradora ? ` ante ${caso.compania_aseguradora}` : ""}. Te va a escribir en estos días.${puede ? ` Podés seguir cómo va y mandar la documentación acá: ${linkVistaCliente(caso.patente)} (entrás con la patente y los últimos 3 números de tu DNI).` : ""}`;
+  const wa = linkWhatsApp(caso.telefono_asegurado, texto);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <span style={{ flex: "none", width: 36, height: 36, borderRadius: "50%", background: "color-mix(in srgb, var(--ok) 15%, var(--card))", color: "var(--ok)", display: "grid", placeItems: "center" }}><Icono nombre="check" size={20} /></span>
+        <div style={{ fontSize: 14, color: "var(--sub)", lineHeight: 1.5 }}>
+          <b style={{ color: "var(--text)" }}>{caso.asegurado}</b> ya está en el estudio. Lo ves en "En curso"; cuando lo tomemos, la tarjeta lo muestra.
+        </div>
+      </div>
+      {fallidos.length > 0 && (
+        <div role="alert" style={{ fontSize: 13, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 10%, var(--card))", borderRadius: 8, padding: "10px 12px" }}>
+          {fallidos.length === 1 ? "Un archivo no se pudo subir" : `${fallidos.length} archivos no se pudieron subir`} ({fallidos.join(", ")}). Mandalos desde la tarjeta del caso → "Adjuntar documentación".
+        </div>
+      )}
+      {wa && (
+        <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Avisale a tu cliente</div>
+          <div style={{ fontSize: 13, color: "var(--sub)", marginBottom: 10, lineHeight: 1.45 }}>
+            Un WhatsApp contándole que el estudio lo va a contactar{puede ? " y con el link para seguir el caso y mandar la documentación" : ""}.
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Teléfono del Asegurado *</label>
-              <input 
-                type="text" 
-                name="telefono" 
-                value={formData.telefono} 
-                onChange={handleChange} 
-                placeholder="Ej: 11 2345-6789"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Patente</label>
-              <input 
-                type="text" 
-                name="patente" 
-                value={formData.patente} 
-                onChange={handleChange} 
-                placeholder="Ej: AB123CD"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", textTransform: "uppercase", textAlign: "center" }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>DNI del Asegurado</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                name="dni"
-                value={formData.dni || ""}
-                onChange={handleChange}
-                placeholder="Ej: 25123456"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-              />
-            </div>
-          </div>
-          <div style={{ fontSize: 12, color: T.muted, marginTop: -6 }}>Con la patente y el DNI el asegurado sigue su caso online, y el escrito sale con sus datos.</div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Fecha del Siniestro *</label>
-            <input 
-              type="date" 
-              name="fecha_siniestro" 
-              value={formData.fecha_siniestro} 
-              onChange={handleChange} 
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Compañía Aseguradora del Tercero *</label>
-            <select 
-              name="compania" 
-              value={esOtraCompania ? "OTRA" : formData.compania} 
-              onChange={(e) => {
-                if (e.target.value === "OTRA") {
-                  setEsOtraCompania(true);
-                  setFormData(prev => ({ ...prev, compania: "" }));
-                } else {
-                  setEsOtraCompania(false);
-                  handleChange(e);
-                }
-              }} 
-              style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", appearance: "none" }}
-            >
-              <option value="" disabled>Seleccionar compañía...</option>
-              {companias.map((comp) => (
-                <option key={comp.id || comp} value={comp.nombre || comp}>{comp.nombre || comp}</option>
-              ))}
-              <option value="OTRA">Otra nueva...</option>
-            </select>
-
-            {esOtraCompania && (
-              <input 
-                type="text" 
-                name="compania" 
-                value={formData.compania} 
-                onChange={handleChange} 
-                placeholder="Escribí el nombre de la compañía"
-                style={{ width: "100%", background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, padding: "10px 12px", color: T.text, fontSize: 13, outline: "none", marginTop: 8 }}
-              />
-            )}
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 5, textTransform: "uppercase" }}>Documentación / Archivos</label>
-            <input 
-              type="file" 
-              multiple 
-              onChange={handleFileChange}
-              style={{ width: "100%", color: T.muted, fontSize: 12 }}
-            />
-            <div style={{ fontSize: 11, color: T.muted, marginTop: 4 }}>Podés seleccionar varios archivos (fotos, DNI, denuncia).</div>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-            <button type="button" onClick={onClose} style={{ background: T.card2, border: `1px solid ${T.border}`, borderRadius: 8, color: T.sub, padding: "10px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-            <button type="submit" disabled={loading} style={{ background: "var(--accent)", border: "none", borderRadius: 8, color: "var(--on-accent)", padding: "10px 20px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-              {loading ? "Enviando..." : "Derivar Caso"}
-            </button>
-          </div>
-        </form>
-
+          <a href={wa} target="_blank" rel="noreferrer" className="btn-wa-grande" style={{ padding: "9px 14px", fontSize: 14 }}><Icono nombre="mensaje" size={16} /> Avisarle por WhatsApp</a>
+        </div>
+      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+        <Boton variante="fantasma" icono="agregar" onClick={onOtro}>Derivar otro</Boton>
+        <Boton variante="primario" onClick={onListo}>Listo</Boton>
       </div>
     </div>
   );

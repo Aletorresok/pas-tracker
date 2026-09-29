@@ -1,3 +1,4 @@
+import { estadoHonorarios } from "./metricas.js";
 import { jsPDF } from "jspdf";
 import { dibujarPie } from "./pdfMembrete.js";
 
@@ -119,8 +120,8 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     // Honorarios
     addLine(13, "bold", "Honorarios");
     y += 2;
-    addRow("Monto honorarios", money(caso.monto_honorarios));
-    addRow("Estado", caso.estado_honorarios || "—");
+    addRow("Monto honorarios", money(caso.monto_cobro_yo || caso.monto_honorarios));
+    addRow("Estado", ({ COBRADO: "Cobrados", FACTURADO: "Facturados", NO_FACTURADO: "Sin facturar" })[estadoHonorarios(caso)]);
     addRow("Fecha factura", fmt(caso.fecha_factura));
     addRow("Fecha cobro", fmt(caso.fecha_cobro_honorarios));
 

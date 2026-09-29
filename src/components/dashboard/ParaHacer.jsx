@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import PlazoChip from "../ui/PlazoChip.jsx";
+import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
-const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS" };
+const TIPO = { accion: "Próxima acción", honorarios: "Honorarios", quieto: "Reclamo quieto", prescripcion: "Prescripción", comision: "Comisión PAS", pedir_respuesta: "Pedir respuesta", firma: "A la firma", cobro: "Fecha de pago", dato: "Dato faltante", plazo: "Plazo procesal", escrito: "Escrito" };
 
-// Lista única de tareas ordenada por vencimiento. Clic en una tarea abre el caso.
-export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
+// Lista única de tareas ordenada por vencimiento (casos PAS, plazos y escritos de expedientes). Clic abre el caso o el expediente.
+export default function ParaHacer({ tareas, cal, onAbrir, onReiterar }) {
   const [reiterando, setReiterando] = useState(null);
   const reiterar = async (t) => { setReiterando(t.id); await onReiterar?.(t.caso); setReiterando(null); };
   const lista = tareas;
@@ -24,7 +25,7 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
       {tareas.length === 0 && (
         <div style={{ padding: "20px 0", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
           <Ilustracion nombre="listo" size={88} style={{ margin: "0 auto 8px" }} />
-          Nada pendiente. Cargá una "Próxima acción" con plazo en un caso y aparece acá.
+          Nada pendiente. Las próximas acciones de los casos y los plazos y escritos de los expedientes aparecen acá.
         </div>
       )}
 
@@ -35,7 +36,7 @@ export default function ParaHacer({ tareas, onAbrir, onReiterar }) {
               display: "grid", gridTemplateColumns: "112px minmax(0, 1fr) auto", gap: 12, alignItems: "center",
               padding: "10px 4px", borderTop: i ? "1px solid var(--border)" : "none",
             }}>
-            <span className="tarea-plazo">{t.vence ? <PlazoChip vence={t.vence} /> : <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin plazo</span>}</span>
+            <span className="tarea-plazo">{t.plazo && t.vence ? <ChipPendiente pendiente={t.plazo} cal={cal} jurisdiccion={t.jurisdiccion} /> : t.vence ? <PlazoChip vence={t.vence} /> : <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin plazo</span>}</span>
             <button type="button" onClick={() => onAbrir(t)} style={{ minWidth: 0, background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
               <span style={{ display: "block", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.titulo}</span>
               <span style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", fontSize: 13, color: "var(--sub)", overflow: "hidden", lineHeight: 1.4 }}>

@@ -7,7 +7,7 @@ import { useTheme } from "./context/ThemeContext.jsx";
 
 // ── IMPORTS: UTILIDADES
 import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
-import { RESULTADO_MAIL, esMailEnviado } from "./utils/mensajes.js";
+import { RESULTADO_MAIL, RESULTADO_RECORDATORIO, esMailEnviado } from "./utils/mensajes.js";
 import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/copiaSeguridad.js";
 import { saveStorage, upsertPasManual, insertHistorialEntry, deleteCaso, restaurarCaso } from "./utils/storage.js";
 import AvisoDeshacer from "./components/ui/AvisoDeshacer.jsx";
@@ -26,6 +26,8 @@ import TabClientes from './components/TabClientes.jsx'
 import TabProspeccion from './components/TabProspeccion.jsx'
 import TabCasos from './components/TabCasos.jsx'
 import TabExpedientes from './components/TabExpedientes.jsx'
+import TabRutina from './components/TabRutina.jsx'
+import TabFinanzas from './components/TabFinanzas.jsx'
 import TabHerramientas from './components/TabHerramientas.jsx'
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
@@ -57,6 +59,8 @@ function AppPrincipal() {
 
   // ── STATE GLOBAL
   const [mainTab, setMainTab] = useState("dashboard");
+  const [expedienteAbrir, setExpedienteAbrir] = useState(null); // id a abrir al ir a Expedientes desde Hoy o Rutina
+  const abrirExpediente = useCallback(id => { setExpedienteAbrir(id); setMainTab("expedientes"); }, []);
   const [modalPas, setModalPas] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [buscando, setBuscando] = useState(false);
@@ -132,6 +136,12 @@ function AppPrincipal() {
   // Mail de presentación: al abrirlo queda registrado como contacto (sale de "Sin contactar")
   const handleMailEnviado = useCallback(async (p) => {
     const entry = { fecha: fechaLocalISO(), resultados: [RESULTADO_MAIL], nota: "Mail de presentación", ts: Date.now() };
+    setHistorial(prev => ({ ...prev, [p.id]: [...(prev[p.id] || []), entry] }));
+    await insertHistorialEntry(p.id, entry);
+  }, []);
+  // Recordatorio único a un PAS interesado (o "no mandar"): queda anotado y sale de "Para recordar"
+  const handleRecordatorio = useCallback(async (p, { sinMandar } = {}) => {
+    const entry = { fecha: fechaLocalISO(), resultados: [RESULTADO_RECORDATORIO], nota: sinMandar ? "Recordatorio descartado" : "Recordatorio a interesado", ts: Date.now() };
     setHistorial(prev => ({ ...prev, [p.id]: [...(prev[p.id] || []), entry] }));
     await insertHistorialEntry(p.id, entry);
   }, []);
@@ -327,12 +337,14 @@ function AppPrincipal() {
           )}
 
           {/* TABS CONTENT */}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} descartados={descartados} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "rutina" && <TabRutina pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} darkMode={darkMode} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "finanzas" && <TabFinanzas pas={pas} casos={casos} pasManuales={pasManuales} darkMode={darkMode} onCasoLocal={handleCasoLocal} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} mailsHoy={mailsHoy} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
         </div>
       </main>

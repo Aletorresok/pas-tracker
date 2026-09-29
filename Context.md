@@ -1,6 +1,6 @@
 # ATG Lex (antes PAS-Tracker) — Documento de Contexto General
 
-> Última revisión de estructura: 2026-09-24. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
+> Última revisión de estructura: 2026-09-29. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
 
 ## 🛠️ Stack
 *   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
@@ -69,7 +69,18 @@
 *   **Cliente:** entra con patente + DNI, ve su avance y sube documentación → un mail por sesión → Hoy "Documentación recibida" → se guarda en la carpeta del caso y se borra de la nube.
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
-## 🧹 Pendientes de mejora (actualizado 2026-09-24)
+## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+**Próximos pasos acordados (29/09):**
+- [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
+- [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
+- [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
+- [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
+- [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
+- [ ] Algo básico con PJN / MEV (no prioritario).
+- [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
+- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) y etapa 8 (migración y baja de Agenda Legal).
+- [ ] SQL 26 (papelera) y SQL 27 (herramientas): confirmar si ya se corrieron.
+
 **Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
 
 **Funcionalidades (ideas):**
@@ -96,13 +107,87 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-29 — Cierre de la sesión (PR #74, mergeado)
+*   **Qué entró** (detalle en las entradas de abajo): adjuntos del PAS en la ficha · Hoy unificado (etapa 5) · Rutina con objetivos (etapa 6) · ficha más simple (presentación al cliente, honorarios unificados, hilo de Gmail, fechas por etapa, mediación/juicio escondidos) · Finanzas (gastos, facturación, resultado del mes, flujo de caja) · portal PAS renovado (derivar, archivos, documentación enviada, Consultar al estudio, menú Cuenta, Olvidé mi contraseña) · avisos de fecha de pago y "avisarle también al PAS" · PAS interesados con recordatorio único · copia de seguridad con las tablas de ATG Lex.
+*   **SQL corridos por el usuario:** 28 y 29 (29/09). URL del portal configurada en Supabase para recuperar la contraseña.
+*   **Decisiones tomadas con el usuario:**
+    *   Gmail no se integra por API ni se muestra dentro de la app (Google no lo permite): se guarda el **link del hilo** por caso. La búsqueda automática por patente/siniestro se probó y **se sacó** (los hilos no siempre tienen esos datos).
+    *   No se agrega el estado "A la firma": alcanza con el aviso de acuerdo **aceptado** hace más de 4 días sin firmar.
+    *   Los avisos a cliente y PAS son **botones de WhatsApp con el texto armado**, no envíos automáticos.
+    *   El recordatorio a PAS interesados va **a prueba**: si en unos meses el contador muestra que nadie deriva, se saca.
+    *   Las comisiones a PAS se quieren dejar de ofrecer de a poco; por ahora se siguen mostrando en el portal.
+*   **Mail de derivación que no llegaba (inicio de la sesión):** el código de EmailJS no había cambiado. Quedó en manos del usuario revisar el cupo y el historial de EmailJS y las variables `VITE_EMAILJS_*` en Vercel (no se pudo verificar desde el entorno de desarrollo). Desde esta sesión, si el mail falla, el alta del caso no se corta (el estudio igual recibe la notificación push).
+*   **Herramientas "no se ven" en producción:** `main` tiene las 5 desde el PR #73 y compila bien; se le indicó al usuario recargar sin caché o revisar el deploy de producción en Vercel. El merge del #74 genera un deploy nuevo.
+
+### 2026-09-29 — "Olvidé mi contraseña" en el portal; copia de seguridad con las tablas de ATG Lex
+*   El usuario corrió los **SQL 28 y 29** y configuró la URL del portal en Supabase (Authentication → URL Configuration).
+*   **Portal → Ingreso → "Olvidé mi contraseña":** pide el mail y manda el link de Supabase (`resetPasswordForEmail`, vuelve a `/portal?recuperar=1`). Al volver, el portal abre **"Elegí una contraseña nueva"** (`CambiarPasswordModal` con `recuperacion`, sin Cancelar; se detecta por el evento `PASSWORD_RECOVERY`, `#type=recovery` o `?recuperar=1`). Link vencido o ya usado: el ingreso lo avisa. La ayuda por WhatsApp queda para "no tenés acceso o no te llega el mail".
+*   **Copia de seguridad completa:** suma `expedientes`, `plazos`, `dias_inhabiles`, `rutina_items`, `rutina_registro`, `dias_escuela`, `objetivos`, `pas_papelera`, `indices`, `modelos_carta`, `pas_ajustes` y `gastos`. Una tabla que todavía no existe se saltea (queda en `tablas_sin_crear` dentro del archivo) en vez de hacer fallar toda la copia.
+*   Probado en Chromium: pedir el link, mensaje de enviado, link vencido.
+
+### 2026-09-28 — Avisos de ofrecimiento y cobro al cliente y al PAS; recordatorio único a PAS interesados
+*   **Avisos:** al pasar a "Con ofrecimiento" o "Esperando pago" ya se proponía el WhatsApp al cliente; ahora, después de mandarlo, aparece **"Avisarle también al PAS →"** (misma caja, plantilla "Novedad del caso"). En Hoy → Para hacer, **"Fecha de pago"**: casos en Esperando pago cuya fecha estimada (firma + plazo) es mañana, hoy o ya pasó, sin la indemnización tildada: "confirmalo y avisale al cliente y al PAS".
+*   **PAS interesados** (pregunta 16, aceptada a prueba): "Registrar contacto" suma **"Interesado"** (queda en Contactados, se guarda como resultado `interesado` en `pas_historial`, sin SQL). A los 30 días sin derivar aparece en **Contactos → "Para recordar"** con **"Mandar recordatorio"** (WhatsApp con un texto útil, `mensajes.textoRecordatorio`) o "No mandar"; cualquiera de los dos lo saca de la lista (resultado `recordatorio_interesado`) y no vuelve a aparecer. Arriba de la lista: "De N recordatorios enviados, M derivaron", para decidir si sirve. Filtro **"Interesados"** en Contactos. En Hoy → Prospección del día, cuántos hay para recordar.
+*   Probado en Chromium con la página de prueba: contacto "Interesado", lista Para recordar, mandar y salir de la lista, contador de conversión.
+
+### 2026-09-28 — Portal PAS: revisión completa (SQL 29 ✅ ejecutado el 29/09)
+*   **Derivar un caso** (`portal/NuevoCasoModal.jsx`, reescrito): etiquetas como el resto de la app; patente y DNI marcados "recomendado" (avisa si faltan: sin ellos el cliente no sigue su caso ni manda documentación por el link); **aviso de patente ya derivada** por ese PAS; compañía con **buscador** (conocidas de Argentina + las que ya tienen casos, `utils/companias.js`); fecha del siniestro no puede ser futura; Esc cierra.
+    *   **Errores separados:** si no se guarda el caso, dice que no se guardó nada (antes decía "el caso se guardó, pero…" aunque no se hubiera guardado) y el borrador queda. Si el caso se guardó y falla algún archivo, lo avisa con los nombres.
+    *   **Confirmación:** "Caso derivado" + **"Avisale a tu cliente"** (WhatsApp del PAS al cliente contando que el estudio lo va a contactar y, con patente y DNI, el link para seguir el caso y mandar la documentación) + "Derivar otro" / "Listo".
+*   **Archivos** (`portal/SelectorArchivos.jsx`, en el alta y en cada caso): "Sacar foto" (solo en pantallas táctiles) y "Elegir archivos", lista con quitar, aviso de PDF de más de 15 MB. `subirArchivosYNotificar` **achica las fotos** (mismo `comprimir` que lo del cliente), devuelve `{ subidos, fallidos, avisoEnviado }` y **si el mail falla no corta** (antes cortaba el alta).
+*   **Tarjeta del caso:** "Detalle y documentación" muestra **"Documentación que mandaste"** (requiere el SQL 29) y "Enviar N archivos al estudio". **"Consultar al estudio"**: WhatsApp al estudio (`mensajes.TELEFONO_ESTUDIO`) con el caso identificado. **"Generar escrito"** solo hasta Reclamado. Arreglado: "Pasale el seguimiento al cliente" miraba mal el DNI (sacaba la letra D en vez de lo que no es número).
+*   **Inicio del portal:** "Próximo cobro" y "Próximos cobros" usan la misma fecha que la tarjeta (firma + plazo, `fechaPagoEstimada`); antes decía "fecha a confirmar" aunque la tarjeta tuviera fecha. El botón flotante "Derivar caso" (celular) **se esconde al bajar** y vuelve al subir, así no tapa las tarjetas. Encabezado con menú **"Cuenta"** (instalar app, modo oscuro, cambiar contraseña, salir) en vez de íconos sueltos. "Plazos por compañía" solo con datos de 3 compañías o más.
+*   **Ingreso:** formulario real (Enter y autocompletar del navegador), etiquetas normales y **"¿Olvidaste la contraseña o todavía no tenés acceso? Escribinos por WhatsApp"**. Pendiente del usuario: el "Olvidé mi contraseña" automático necesita configurar en Supabase (Authentication → URL Configuration) la dirección del portal.
+*   `sql/2026-09-28_29_portal_ver_adjuntos.sql`: política `pas_ve_adjuntos` (el PAS lista solo su carpeta del bucket `adjuntos`). Si alguna vez se vuelve a correr el SQL 07 (borra las políticas de Storage), correr el 29 después. Probado en Postgres 16.
+*   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular: validación, patente repetida, alta con archivo y confirmación, enviar documentación desde el caso, lista de lo enviado, menú Cuenta, botón flotante al bajar/subir e ingreso.
+
+### 2026-09-28 — Finanzas: gastos, facturación y resultado del mes; hilo de Gmail del caso (SQL 28 ✅ ejecutado el 29/09)
+*   **Pestaña Finanzas** (menú, entre Clientes y Análisis; en celular, en "Más"; `TabFinanzas.jsx`, `finanzas/*`, `utils/finanzas.js`):
+    *   **Mes** (con flechas para ir a meses anteriores): honorarios cobrados, comisiones pagadas a PAS, gastos y **resultado** (honorarios − comisiones − gastos); tabla de los últimos 6 meses; gastos por categoría; lista de gastos del mes con alta/edición/baja.
+    *   **Gastos** (`gastos`, SQL 28): categoría (matrícula, aportes, mediaciones, cartas documento, tasas y sellados, movilidad, software y suscripciones, otros), monto, detalle, fecha, **"se repite todos los meses"** (desde la fecha, con "hasta" opcional) y **caso opcional** para la ganancia neta por caso.
+    *   **Facturación:** sin facturar (se factura ahí mismo con **número** y fecha), facturado sin cobrar (en rojo después de 30 días; "Marcar cobro" abre el caso en Montos) y cobrados con su **neto** (honorarios − comisión − gastos del caso).
+    *   **Flujo de caja** se mudó de Análisis a Finanzas (mismo componente `analisis/AnalisisCaja.jsx`). Análisis queda con Resumen, Compañías, PAS y Etapas. En Hoy, "Ver todos" de cobros y el link de abajo llevan a Finanzas.
+*   **Ficha:** "Factura de honorarios" suma el **número de factura**; en Resumen, **"Hilo con la compañía"** (`caso/HiloGmail.jsx`): se pega una vez el link de la conversación de Gmail y después se abre con "Abrir el hilo en Gmail".
+*   `sql/2026-09-28_28_finanzas.sql`: tabla `gastos` (solo administrador) y columnas `pas_casos.nro_factura` y `pas_casos.hilo_gmail`. Sin el SQL: Finanzas avisa y no permite cargar gastos; la ficha avisa en el número de factura y en el hilo (se guarda igual el resto). Probado en Postgres 16 (dos veces, y el control de "hasta" ≥ fecha).
+*   La copia de seguridad completa (`copiaSeguridad.TABLAS_COPIA`) todavía no incluye `gastos` (ni las tablas de ATG Lex): sumarlas cuando estén todos los SQL corridos, porque una tabla que falta hace fallar la copia.
+*   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular: resultado del mes, gasto fijo con caso, facturar con número, flujo de caja, hilo de Gmail y número de factura en la ficha.
+
+### 2026-09-28 — Presentación al cliente y ficha más simple
+*   **Presentate al cliente** (ficha → Resumen, mientras el caso está en Doc. pendiente o Iniciado y no hay `fecha_contacto_asegurado`): botón que abre el WhatsApp de "Primer contacto" con quién sos, qué PAS lo derivó ("Juan, tu productor de seguros"), la documentación que hace falta y, si hay patente y DNI, **el link a la vista del cliente para que la suba él mismo** (llega a Hoy → Documentación recibida). Al abrir WhatsApp queda registrada la fecha de contacto; "Ya me presenté" la marca sin mandar nada. La plantilla "Pedir documentación" también trae el link (`mensajes.clientePuedeEntrar`, `comoMandarDocs`). `AvisarWhatsApp` suma `plantillaInicial`, `onEnviado` y `onCerrar`.
+*   ~~Mails del caso en Gmail~~ (buscar por patente/siniestro/asegurado): **se sacó** a pedido del usuario, porque los hilos con la compañía no siempre mencionan esos datos. Gmail no se puede mostrar dentro de la app (Google lo bloquea).
+*   **Honorarios unificados:** queda un solo monto, "Mis honorarios" (`monto_cobro_yo`, en Montos). `monto_honorarios` ya no se edita: al abrir un caso viejo que solo tenía ese, pasa a "Mis honorarios", y al guardar se copia igual (compatibilidad). El estado (sin facturar / facturado / cobrado) **ya no se elige**: sale de las fechas (`metricas.estadoHonorarios`); la sección pasa a "Factura de honorarios" con solo la fecha de factura. El cobro se sigue tildando en Pagos.
+*   **Fechas según la etapa** (`SeccionFechas`): se ven las de las etapas a las que llegó el caso y la siguiente, más las que ya tienen fecha; el resto con "Ver todas las fechas". Mediación y juicio solo si el caso está ahí. "Fecha de pago" pasa a **"Pago estimado (según el acuerdo)"** (con "Según firma + plazo: … Usar esta") e "Indemnización pagada" a **"Cobro efectivo de la indemnización"**.
+*   **Mediación y Juicio escondidos en la línea de etapas** hasta que el caso esté ahí; "+ Mediación o juicio" los muestra. En celular los botones bajan a otra línea.
+*   **Hoy → Para hacer:** "A la firma" (aceptado hace más de 4 días sin firma, `DIAS_A_LA_FIRMA`) y "Dato faltante: monto reclamado" (casos activos después de Doc. pendiente). En Montos, el campo avisa si falta.
+*   Probado en Chromium con la página de prueba (Supabase simulado), compu y celular.
+
+### 2026-09-28 — Hoy unificado y pestaña Rutina con objetivos (etapas 5 y 6 del plan ATG Lex)
+*   **Hoy:**
+    *   **"Ahora toca"** (`dashboard/AhoraToca.jsx`): el bloque de la rutina en curso (o el próximo) con sus tareas para tildar; al terminar los bloques, cuántas quedan sin tildar. Al lado, **Objetivo anual** (el primero medible del año) con su anillo. Sin rutina ni objetivos, una línea "Ir a Rutina".
+    *   **Para hacer** suma los **plazos procesales y escritos pendientes** de la tabla `plazos` (expedientes abiertos y casos PAS), con el chip de días hábiles / "Colgado N d"; tocar uno de un expediente abre su ficha en Expedientes (`TabExpedientes` recibe `abrirId`).
+    *   **Pedir respuesta** (`metricas.VENTANA_RECLAMO`): casos en Iniciado sin "Primer pedido de respuesta" aparecen desde el día 7 ("ya podés pedirle respuesta a…") y vencen el 14; pasado eso, "se pasó la ventana".
+    *   **Prospección del día** (`dashboard/ProspeccionHoy.jsx`, `ui/BarraMeta.jsx`): WhatsApp a PAS N de 15 y mails de presentación N de 30 (del historial de hoy), con "Seguir en Contactos".
+*   **Rutina** (pestaña nueva en el menú; en celular, en "Más"; `TabRutina.jsx`, `rutina/*`, `utils/rutina.js`, `utils/objetivos.js`, `hooks/useRutina.js`). Usa las tablas del SQL 25, sin SQL nuevo.
+    *   **Día / Semana / Mes:** checklist por bloques con horario (el bloque en curso se marca "Ahora"), prioridad (imprescindible se ve en rojo) y accesos directos (pestañas de la app, Gmail, PJN, MEV). Lo tildado va a `rutina_registro` con la fecha del día, el lunes o el 1 del mes. Las tareas semanales y mensuales con día aparecen desde ese día hasta que termina el período.
+    *   **Listas de hoy** (automáticas): preparar para mañana (mediaciones/audiencias de la agenda), clientes sin novedades hace 15 días (según el último mensaje al cliente), documentación pendiente, ofrecimientos sin respuesta y escritos colgados. Tocar una fila abre el caso o el expediente.
+    *   **Días de escuela** (Editar rutina): rango de fechas + horario (+ fines de semana opcional). Lo que choca: imprescindible queda con aviso, importante pasa a la hora de salida, postergable va a "Hoy no, por la escuela".
+    *   **Editar rutina:** alta/edición/baja de tareas, pausar sin borrar, y **"Cargar rutina sugerida"** (arranque con PJN/MEV/mails, siniestros, prospección, escritos, cierre, revisión semanal y cierre del mes).
+    *   **Objetivos** del mes, trimestre, semestre y año en curso. Medibles: casos nuevos, casos cobrados, honorarios cobrados (neto), PAS contactados, PAS derivando (90 días; si falta, avisa cuántos PAS dormidos hay), días de la derivación al cobro (mediana, meta a la baja) y rutina cumplida (% de lo diario tildado de lunes a viernes). Los demás se tildan a mano. **Anillo** con lo hecho (verde a tiempo, naranja un poco atrás —80 % del ritmo—, rojo muy atrás), **rayita** de dónde deberías estar hoy y frase ("a este ritmo cerrás el año en…").
+*   **Queda pendiente del plan:** mostrar los objetivos medibles también en Análisis.
+*   Probado en Chromium con una página de prueba (Supabase simulado en memoria, datos de ejemplo), en compu y celular: Hoy con plazos, ventana 7–14 y prospección; abrir un expediente desde Hoy; cargar la rutina sugerida, tildar, días de escuela reacomodando bloques, objetivos medibles y manuales, editar tarea. **Falta probarlo contra la base real.**
+
+### 2026-09-28 — Adjuntos del PAS en la ficha del caso
+*   **Ficha → Documentos → "Adjuntos del PAS"** (`caso/AdjuntosPAS.jsx`, `utils/adjuntosPas.js`): lista lo que el PAS adjuntó desde el portal (bucket `adjuntos`, lo mismo que llega linkeado en el mail) con **Ver**, **Descargar** (a la PC, con su nombre original), **A la carpeta** (si hay carpeta vinculada; no pisa: "nombre (2)") y **Descargar todo**. No se borran de la nube (los links del mail siguen andando).
+*   Desde ahora `subirArchivosYNotificar` recibe `casoId` y guarda en `adjuntos/<pas_id>/<pas_casos.id>/`; lo usan `NuevoCasoModal` (alta) y `PortalCasoCard` (documentación nueva). La política de Storage ya lo permite (primera carpeta = `mi_pas_id()`), sin SQL.
+*   Los adjuntos anteriores quedaron sueltos en `adjuntos/<pas_id>/` sin caso: se ven en la ficha de cualquier caso de ese PAS, plegados, en "Anteriores de este PAS, sin caso asignado".
+
 ### 2026-09-28 — Herramientas: escáner, plazos, intereses y carta documento (SQL 27 ⚠️ pendiente de correr)
 *   **Escáner** (tipo CamScanner): sacar fotos con el celular o elegirlas, detección automática de la hoja, esquinas ajustables a mano, corrección de perspectiva, filtros Mejorada (sin sombras, fondo blanco) / Original / Grises / Blanco y negro, rotar, ordenar, "filtro para todas", calidad Normal o Liviana y "Guardar PDF…". Fotos del celular derechas (EXIF).
 *   **Calculadora de plazos:** días hábiles judiciales o corridos, jurisdicción CABA / PBA / Federal, vencimiento, plazo de gracia, días que no se contaron, conteo día por día y "Copiar texto". Modo "días entre dos fechas".
 *   **Intereses y actualización:** capital + dos fechas → tasa activa BNA (interés simple con la tasa vigente cada día), IPC (relación de índices mensuales; si el mes final no se publicó, llega al último y lo avisa), IPC + 3% anual (puro, sobre el capital actualizado) e ICL. Detalle y "Copiar texto" por método. Datos en `indices`: IPC e ICL con "Actualizar desde internet" (no se pudieron verificar las APIs desde el entorno de desarrollo: si fallan, "Pegar desde Excel"); la tasa activa BNA se carga a mano (tasa y desde cuándo rige). **No se cargó ningún dato histórico inventado.**
 *   **Carta documento:** texto posicionado para el formulario preimpreso de Correo Argentino (oficio). Caso opcional que completa remitente (el cliente) o "Yo (el estudio)" (se guarda en `pas_ajustes`), destinatario (la compañía; recuerda su domicilio en `pas_companias`), modelos base (intimación de pago, reclamo de tercero, art. 56) y propios (`modelos_carta`), contador de renglones (máximo 15), vista previa real, "Imprimir" (oficio, escala 100 %) y "Guardar PDF…". Ajuste de impresora en mm guardado por compu.
 *   Probado: posiciones de la carta comparadas palabra por palabra con el PDF de ejemplo (mismos cortes de renglón y posiciones; la fecha queda ~0,4 mm corrida); cálculos de intereses contra cuentas a mano; SQL 27 en Postgres 16 (dos veces); las 4 herramientas en la app real en Chromium con Supabase y APIs simuladas, en compu y celular (plazos con el feriado del 12/10, detección de la hoja a menos de 10 px). **Falta:** probar las APIs reales de IPC/ICL desde el navegador y una impresión real sobre el formulario.
-*   **Pendiente del plan ATG Lex:** etapa 5 (Hoy unificado) y etapa 6 (**Rutina** con objetivos): las tablas existen desde el SQL 25, falta la pantalla.
+*   **Pendiente del plan ATG Lex:** etapa 5 (Hoy unificado) y etapa 6 (**Rutina** con objetivos): las tablas existen desde el SQL 25, falta la pantalla. (Hechas el 28/09, ver arriba.)
 
 ### 2026-09-28 — Pestaña Herramientas con Editor de PDF; guardar del Gestor; nuevo mensaje a PAS
 *   **Herramientas** (menú lateral; en celular, en "Más"): pestaña pensada para ir sumando herramientas. La primera es el **Editor de PDF**, independiente de los casos: juntar PDFs e imágenes, ordenar, rotar y sacar páginas, quedarse con algunas, firma/sello/imagen sobre una página (con "Quitar fondo blanco" para firmas fotografiadas en papel), comprimir y guardar eligiendo la carpeta. Todo en el navegador, nada se sube. Dependencia nueva: `pdfjs-dist` 4.10 (chunk aparte, se baja al abrir el editor).
@@ -164,7 +249,7 @@
     *   **PAS:** casos derivados, % que termina cobrado, honorario promedio, desistidos, tiempo de documentación de sus clientes.
     *   Cada tiempo muestra la mediana, la tendencia contra el período anterior y con cuántos casos se calcula. Viven en Análisis (pestaña nueva **Prospección**, más Compañías y PAS); cualquiera se puede elegir como objetivo en Rutina → Anual.
 *   Queda afuera la "organización personal" de Agenda Legal (objetivos personales, hábitos, ideas).
-*   **Etapas:** 1) nombre ATG Lex ✅ · 2) SQL (expedientes, plazos, feriados, rutina) · 3) motor de plazos · 4) Expedientes + ficha · 5) Hoy unificado · 6) Rutina · 7) vista del cliente para expedientes · 8) migración de datos, plantillas y baja de Agenda Legal.
+*   **Etapas:** 1) nombre ATG Lex ✅ · 2) SQL (expedientes, plazos, feriados, rutina) ✅ · 3) motor de plazos ✅ · 4) Expedientes + ficha ✅ · 5) Hoy unificado ✅ · 6) Rutina ✅ (falta: objetivos en Análisis) · 7) vista del cliente para expedientes · 8) migración de datos, plantillas y baja de Agenda Legal.
 *   Propuesta visual (HTML con los tokens de la app) aprobada el 26/09.
 
 ### 2026-09-26 — Condiciones de cada compañía, en una sola tabla
