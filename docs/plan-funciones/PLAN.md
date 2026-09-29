@@ -7,7 +7,7 @@
 
 1. Pedile a Claude: *"Leé `docs/plan-funciones/PLAN.md` y arrancá la fase N"*.
 2. Cada fase: copiar el SQL de `docs/plan-funciones/sql/` a `sql/AAAA-MM-DD_NN_nombre.sql`, implementar las pantallas, probar, actualizar `Context.md` y `schema.sql`, commit y push.
-3. **Vos** corrés el SQL en el SQL Editor de Supabase (cada uno termina con una consulta de **Control** que dice qué números tienen que salir).
+3. **Vos** corrés el SQL en el SQL Editor de Supabase (cada uno termina con una consulta de **Control** que dice qué números tienen que salir). Cada archivo tiene **menos de 100 líneas** (al copiar desde el celular se cortó en la línea 100): si un borrador es más largo, se parte en 33, 33b…
 4. Marcá abajo cada fase como hecha (`[x]`) para que la próxima sesión sepa dónde quedó.
 
 ## Qué hay en esta carpeta
@@ -19,7 +19,7 @@ docs/plan-funciones/
   presentacion.html                — cómo se vería cada cosa (abrir en el navegador)
   sql/                             — BORRADORES probados en Postgres 16 (dos corridas cada uno)
     31_auditoria.sql               — fase 1
-    32_modelos_escrito.sql         — fase 2 (9 modelos base + datos del estudio)
+    (32 ya está en sql/: 2026-09-29_32, _32b y _32c)
     33_plazos_condicionados.sql    — fase 3 (catálogo de 23 actuaciones + vista de avisos)
     34_calendario.sql              — fase 4 (token del feed)
     35_portal_movimientos.sql      — fase 5 (movimientos visibles + consulta de expedientes)
@@ -38,7 +38,7 @@ docs/plan-funciones/
 |---|---|---|:-:|---|
 | 0 | Preparación: datos del estudio, links directos, confirmar SQL 26/27 | — | ½ | [x] 29/09 (SQL 26 y 27 confirmados) |
 | 1 | Auditoría de cambios | 31 | ½–1 | [x] 29/09 (SQL 31 corrido) |
-| 2 | Motor de escritos con modelos | 32 | 2 | [x] 29/09 (falta correr el SQL 32) |
+| 2 | Motor de escritos con modelos | 32, 32b, 32c | 2 | [x] 29/09 (falta correr los SQL 32, 32b y 32c) |
 | 3 | Plazos condicionados + aviso de plazos | 33 | 1–2 | [ ] |
 | 4 | Calendario suscribible (.ics) | 34 | 1 | [ ] |
 | 5 | Movimientos visibles + vista del cliente de expedientes (etapa 7) | 35 | 2 | [ ] |
