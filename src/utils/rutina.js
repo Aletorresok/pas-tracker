@@ -1,7 +1,9 @@
 // Rutina (etapa 6 de ATG Lex): bloques del día, la semana y el mes, lo tildado y los días de escuela.
 // Tablas del SQL 25: rutina_items, rutina_registro, dias_escuela (solo administrador).
 import { supabase } from "../supabase.js";
-import { fechaLocalISO, sumarDias } from "./formatters.js";
+import { fechaLocalISO } from "./formatters.js";
+// sumarDias de formatters devuelve null con 0 días (un lunes, "el lunes de esta semana" quedaba null): se usa el de plazos
+import { sumarDiasISO as sumarDias } from "./plazos.js";
 
 export const FRECUENCIAS = [
   { k: "diaria", l: "Día" },
@@ -66,40 +68,60 @@ export function escuelaDelDia(dias, hoy = fechaLocalISO()) {
   return (dias || []).find(d => d.desde <= hoy && hoy <= d.hasta && (!finde || d.incluye_fds)) || null;
 }
 
-// Bloques del día en orden de horario. Con escuela, lo que choca se reacomoda según la prioridad:
-// imprescindible se queda (con aviso), importante pasa a la salida, postergable queda para otro día.
+const aHora = m => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const ORDEN_PRIORIDAD = { imprescindible: 0, importante: 1, postergable: 2 };
+const FIN_DIA = 22 * 60;
+const MINIMO = 15;
+
+// Bloques del día en orden de horario (los ítems del mismo bloque y horario van juntos).
+// Con escuela, el bloque se reacomoda entero:
+//  · si la escuela lo tapa solo en parte, se acorta (si quedan al menos 15 minutos);
+//  · si lo tapa todo, se corre al primer hueco libre desde la salida, sin pisar otros bloques;
+//  · si su ítem más importante es postergable (o es importante y ya no entra antes de las 22), queda para otro día.
 export function bloquesDelDia(items, escuela) {
-  const entrada = escuela ? minutos(escuela.hora_entrada) : null;
-  const salida = escuela ? minutos(escuela.hora_salida) : null;
-  const choca = it => {
-    if (!escuela) return false;
-    const ini = minutos(it.hora_inicio), fin = minutos(it.hora_fin) ?? (ini !== null ? ini + 30 : null);
-    return ini !== null && ini < salida && fin > entrada;
-  };
   const grupos = new Map();
-  const postergados = [];
   items.forEach(it => {
-    let ini = it.hora_inicio, fin = it.hora_fin, aviso = null;
-    if (choca(it)) {
-      if (it.prioridad === "postergable") { postergados.push(it); return; }
-      if (it.prioridad === "importante") {
-        const dur = (minutos(it.hora_fin) ?? minutos(it.hora_inicio) + 30) - minutos(it.hora_inicio);
-        const nuevoIni = salida;
-        const aHora = m => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-        ini = aHora(nuevoIni); fin = aHora(nuevoIni + Math.max(dur, 15));
-        aviso = `Pasa a la salida de la escuela (${hhmm(escuela.hora_salida)})`;
-      } else {
-        aviso = "Choca con la escuela: hacelo antes o después";
-      }
-    }
-    const clave = `${it.bloque}|${ini || ""}`;
-    if (!grupos.has(clave)) grupos.set(clave, { bloque: it.bloque, hora_inicio: ini, hora_fin: fin, items: [], aviso: null });
+    const clave = `${it.bloque}|${it.hora_inicio || ""}`;
+    if (!grupos.has(clave)) grupos.set(clave, { bloque: it.bloque, hora_inicio: it.hora_inicio, hora_fin: it.hora_fin, items: [], aviso: null });
     const g = grupos.get(clave);
-    if (fin && (!g.hora_fin || minutos(fin) > minutos(g.hora_fin))) g.hora_fin = fin;
-    if (aviso) g.aviso = aviso;
+    if (it.hora_fin && (!g.hora_fin || minutos(it.hora_fin) > minutos(g.hora_fin))) g.hora_fin = it.hora_fin;
     g.items.push(it);
   });
-  const bloques = [...grupos.values()].sort((a, b) => (minutos(a.hora_inicio) ?? 9999) - (minutos(b.hora_inicio) ?? 9999));
+  let bloques = [...grupos.values()];
+  const postergados = [];
+
+  if (escuela) {
+    const E = minutos(escuela.hora_entrada), S = minutos(escuela.hora_salida);
+    const rango = b => { const ini = minutos(b.hora_inicio); return [ini, minutos(b.hora_fin) ?? ini + 30]; };
+    const quedan = [], aMover = [];
+    for (const b of bloques) {
+      if (!b.hora_inicio) { quedan.push(b); continue; }
+      const [ini, fin] = rango(b);
+      if (!(ini < S && fin > E)) quedan.push(b);
+      else if (ini < E && E - ini >= MINIMO) quedan.push({ ...b, hora_fin: aHora(E), aviso: "Acortado por la escuela" });
+      else if (fin > S && fin - S >= MINIMO) quedan.push({ ...b, hora_inicio: aHora(S), aviso: "Acortado por la escuela" });
+      else aMover.push(b);
+    }
+    const ocupado = quedan.filter(b => b.hora_inicio).map(rango);
+    const hueco = (desde, dur) => {
+      let ini = desde, pisa;
+      while ((pisa = ocupado.find(([a, z]) => ini < z && ini + dur > a))) ini = pisa[1];
+      return ini;
+    };
+    const prioridadDe = b => Math.min(...b.items.map(i => ORDEN_PRIORIDAD[i.prioridad] ?? 1));
+    aMover.sort((a, b) => prioridadDe(a) - prioridadDe(b) || minutos(a.hora_inicio) - minutos(b.hora_inicio)).forEach(b => {
+      const [ini0, fin0] = rango(b);
+      const dur = Math.max(fin0 - ini0, MINIMO);
+      const ini = hueco(S, dur);
+      const p = prioridadDe(b);
+      if (p === ORDEN_PRIORIDAD.postergable || (p === ORDEN_PRIORIDAD.importante && ini + dur > FIN_DIA)) { postergados.push(...b.items); return; }
+      quedan.push({ ...b, hora_inicio: aHora(ini), hora_fin: aHora(ini + dur), aviso: `Pasó de las ${hhmm(b.hora_inicio)} por la escuela` });
+      ocupado.push([ini, ini + dur]);
+    });
+    bloques = quedan;
+  }
+
+  bloques.sort((a, b) => (minutos(a.hora_inicio) ?? 9999) - (minutos(b.hora_inicio) ?? 9999));
   bloques.forEach(b => b.items.sort((a, c) => (a.orden || 0) - (c.orden || 0)));
   return { bloques, postergados };
 }

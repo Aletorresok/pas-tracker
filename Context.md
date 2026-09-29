@@ -96,6 +96,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-29 — Rutina: reacomodo por escuela por bloques y arreglo de los lunes
+*   `rutina.bloquesDelDia`: con escuela, el **bloque entero** se reacomoda (antes, ítem por ítem): si la escuela lo tapa solo en parte, se **acorta** ("Acortado por la escuela", si quedan al menos 15 minutos); si lo tapa todo, se **corre al primer hueco libre** desde la salida sin pisar otros bloques ("Pasó de las 08:30 por la escuela"); si su ítem más importante es postergable, o es importante y no entra antes de las 22, va a "Hoy no, por la escuela". Misma forma de salida: `ChecklistRutina` y `AhoraToca` no cambian.
+*   **Arreglo:** `lunesDe` usaba `formatters.sumarDias`, que devuelve `null` con 0 días: los lunes, lo semanal se registraba con fecha `null` y no se podía tildar. Ahora usa `plazos.sumarDiasISO`.
+*   Probado: la función en Node (escuela 8–10 contra bloques de 8:30, 9–11 y 11–12:30; sin escuela; escuela que no choca; claves de los lunes) y la pestaña Rutina y "Ahora toca" en la app real con Supabase simulado.
+
 ### 2026-09-28 — Avisos de ofrecimiento y cobro al cliente y al PAS; recordatorio único a PAS interesados
 *   **Avisos:** al pasar a "Con ofrecimiento" o "Esperando pago" ya se proponía el WhatsApp al cliente; ahora, después de mandarlo, aparece **"Avisarle también al PAS →"** (misma caja, plantilla "Novedad del caso"). En Hoy → Para hacer, **"Fecha de pago"**: casos en Esperando pago cuya fecha estimada (firma + plazo) es mañana, hoy o ya pasó, sin la indemnización tildada: "confirmalo y avisale al cliente y al PAS".
 *   **PAS interesados** (pregunta 16, aceptada a prueba): "Registrar contacto" suma **"Interesado"** (queda en Contactados, se guarda como resultado `interesado` en `pas_historial`, sin SQL). A los 30 días sin derivar aparece en **Contactos → "Para recordar"** con **"Mandar recordatorio"** (WhatsApp con un texto útil, `mensajes.textoRecordatorio`) o "No mandar"; cualquiera de los dos lo saca de la lista (resultado `recordatorio_interesado`) y no vuelve a aparecer. Arriba de la lista: "De N recordatorios enviados, M derivaron", para decidir si sirve. Filtro **"Interesados"** en Contactos. En Hoy → Prospección del día, cuántos hay para recordar.
