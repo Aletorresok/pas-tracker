@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import * as XLSX from "xlsx";
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { supabase } from './supabase.js'
 
 // ── IMPORTS: CONTEXTO
@@ -21,24 +20,24 @@ import SidebarNav from "./components/SidebarNav.jsx";
 import CasoDetalle from './CasoUnificado.jsx'
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
-import TabAnalisis from './components/TabAnalisis.jsx'
-import TabClientes from './components/TabClientes.jsx'
-import TabProspeccion from './components/TabProspeccion.jsx'
-import TabCasos from './components/TabCasos.jsx'
-import TabExpedientes from './components/TabExpedientes.jsx'
-import TabRutina from './components/TabRutina.jsx'
-import TabFinanzas from './components/TabFinanzas.jsx'
-import TabHerramientas from './components/TabHerramientas.jsx'
+const TabAnalisis = lazy(() => import('./components/TabAnalisis.jsx'))
+const TabClientes = lazy(() => import('./components/TabClientes.jsx'))
+const TabProspeccion = lazy(() => import('./components/TabProspeccion.jsx'))
+const TabCasos = lazy(() => import('./components/TabCasos.jsx'))
+const TabExpedientes = lazy(() => import('./components/TabExpedientes.jsx'))
+const TabRutina = lazy(() => import('./components/TabRutina.jsx'))
+const TabFinanzas = lazy(() => import('./components/TabFinanzas.jsx'))
+const TabHerramientas = lazy(() => import('./components/TabHerramientas.jsx'))
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
 import CasoOverlay from './components/caso/CasoOverlay.jsx'
 import { aplanarCasos } from './utils/metricas.js'
-import PortalCliente from './components/portal/PortalCliente.jsx';
+const PortalCliente = lazy(() => import('./components/portal/PortalCliente.jsx'));
 
 // Vista pública del cliente (sin login) o la app, que primero pide cuenta + PIN.
 // Los datos se cargan recién después de entrar (AppPrincipal).
 export default function App() {
   const params = new URLSearchParams(window.location.search);
-  if (params.has("caso") || params.get("vista") === "cliente") return <PortalCliente />;
+  if (params.has("caso") || params.get("vista") === "cliente") return <Suspense fallback={null}><PortalCliente /></Suspense>;
   return <LoginGate><AppPrincipal /></LoginGate>;
 }
 
@@ -88,6 +87,7 @@ function AppPrincipal() {
     const reader = new FileReader();
     reader.onload = async ev => {
       try {
+        const XLSX = await import("xlsx");
         const wb = XLSX.read(ev.target.result, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }).slice(1);
@@ -171,16 +171,20 @@ function AppPrincipal() {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
 
-  // Casos nuevos que llegan desde el portal mientras la app está abierta
+  // Casos nuevos que llegan desde el portal mientras la app está abierta.
+  // Un solo canal por montaje (nombre único): si se recrea con el mismo nombre antes de que el anterior
+  // termine de cerrarse, Supabase tira error y se cae la pantalla.
+  const casoLocalRef = useRef(handleCasoLocal);
+  casoLocalRef.current = handleCasoLocal;
   useEffect(() => {
     const canal = supabase
-      .channel("admin-pas-casos-nuevos")
+      .channel(`admin-pas-casos-nuevos-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "pas_casos" }, ({ new: caso }) => {
-        if (caso?.id) handleCasoLocal(String(caso.pas_id), caso);
+        if (caso?.id) casoLocalRef.current(String(caso.pas_id), caso);
       })
       .subscribe();
     return () => { supabase.removeChannel(canal); };
-  }, [handleCasoLocal]);
+  }, []);
 
   // Saca un caso de memoria (quien llama ya lo borró de Supabase)
   const handleQuitarCaso = useCallback((pasId, id) => {
@@ -312,7 +316,7 @@ function AppPrincipal() {
       <main className="app-main">
         <div className="app-content">
           {!loading && totalContactos === 0 && !appLoading && (
-            <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: "var(--r-lg)", padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
+            <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
                             <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
               <div style={{ fontSize: 13, color: T.muted }}>Hacé clic o arrastrá el archivo</div>
               <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
@@ -336,7 +340,8 @@ function AppPrincipal() {
             </div>
           )}
 
-          {/* TABS CONTENT */}
+          {/* TABS CONTENT · cada pestaña se descarga recién cuando se abre */}
+          <Suspense fallback={<div className="cargando-tab" aria-busy="true">Cargando…</div>}>
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} descartados={descartados} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "rutina" && <TabRutina pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} darkMode={darkMode} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "finanzas" && <TabFinanzas pas={pas} casos={casos} pasManuales={pasManuales} darkMode={darkMode} onCasoLocal={handleCasoLocal} />}
@@ -346,6 +351,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
+          </Suspense>
         </div>
       </main>
 

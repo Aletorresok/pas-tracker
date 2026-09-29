@@ -268,3 +268,63 @@ details[open] > .lista-auto svg { transform: none; }
 /* Portal: el botón "Derivar caso" se esconde al bajar (no tapa las tarjetas) y vuelve al subir */
 .fab-derivar { transition: transform .2s ease, opacity .2s ease; }
 .fab-derivar.fab-oculto { transform: translateY(140%); opacity: 0; pointer-events: none; }
+
+/* Ventanas (fichas y modales): entran con un rebote suave y el fondo se difumina */
+@keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(.975); } to { opacity: 1; transform: none; } }
+.modal-panel > div { animation: modalIn .32s var(--spring); }
+/* Campos de formulario: responden al hover y al foco con suavidad */
+input, select, textarea { transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease); }
+input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled), textarea:hover:not(:focus):not(:disabled) { border-color: var(--border2); }
+@media (prefers-reduced-motion: reduce) { .modal-panel > div { animation: none; } }
+
+/* ── MENÚ DE ACCIONES (click derecho) · uno solo para toda la app ───────── */
+@keyframes menuIn { from { opacity: 0; transform: scale(.96) translateY(-4px); } to { opacity: 1; transform: none; } }
+.menu-ctx {
+  position: fixed; z-index: 10001; min-width: 220px; max-width: 320px; max-height: 80vh; overflow-y: auto; padding: 6px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--sh-3);
+  transform-origin: top left; animation: menuIn .18s var(--ease);
+}
+.menu-ctx [role="menuitem"] {
+  display: block; width: 100%; text-align: left; font: inherit; font-size: 13px; padding: 8px 12px; background: none; border: none;
+  border-radius: var(--r-sm); cursor: pointer; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.menu-ctx [role="menuitem"]:hover:not(:disabled), .menu-ctx [role="menuitem"]:focus-visible { background: color-mix(in srgb, var(--accent) 12%, transparent); outline: none; }
+.menu-ctx [role="menuitem"]:disabled { opacity: .4; cursor: default; }
+.menu-ctx [role="menuitem"][data-peligro] { color: var(--bad); font-weight: 600; }
+.menu-ctx [role="menuitem"][data-peligro]:hover { background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.menu-ctx-sep { border-top: 1px solid var(--border); margin: 4px 6px; }
+.menu-ctx-titulo { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 6px 12px 4px; }
+@media (prefers-reduced-motion: reduce) { .menu-ctx { animation: none; } }
+
+/* ── CONTROLES COMUNES ────────────────────────────────────────────────────
+   .chip        → filtro de una lista (con conteo). Activo = tinte del acento.
+   .segmentado  → cambiar de vista (Tabla/Tablero, Mes/Año...). Activo = cápsula elevada. */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; white-space: nowrap;
+  padding: 6px 14px; border-radius: var(--r-pill); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--card); color: var(--sub);
+  transition: background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), transform .25s var(--spring);
+}
+.chip:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
+.chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--card)); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--text); font-weight: 600; }
+.chip .num, .chip b { font-weight: 700; color: var(--text); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+
+.segmentado { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); flex: none; }
+.segmentado > button { font: inherit; font-size: 13px; font-weight: 500; padding: 5px 14px; border: none; border-radius: var(--r-pill); background: transparent; color: var(--sub); cursor: pointer; white-space: nowrap; }
+.segmentado > button:hover { color: var(--text); }
+.segmentado > button[aria-pressed="true"] { background: var(--card); color: var(--text); font-weight: 600; box-shadow: var(--sh-1); }
+.segmentado > button:active { transform: scale(.97); }
+
+/* Tableros por etapas */
+.tablero-col { background: color-mix(in srgb, var(--card2) 70%, transparent); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); border-radius: var(--r-lg); padding: 12px; min-height: 140px; display: flex; flex-direction: column; gap: 10px; transition: background-color .25s var(--ease), border-color .25s var(--ease); }
+.tablero-col[data-sobre] { background: color-mix(in srgb, var(--accent) 12%, var(--card2)); border: 1px dashed var(--accent); }
+.tablero-vacio { font-size: 12px; color: var(--muted); text-align: center; padding: 18px 8px; border: 1px dashed var(--border); border-radius: var(--r-md); }
+.entra { animation: fadeIn .25s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { .entra { animation: none; } }
+.cargando-tab { padding: 48px 0; text-align: center; color: var(--muted); font-size: 14px; animation: fadeIn .4s var(--ease) .15s both; }
+/* Hoy: con poco ancho (ventana chica o panel lateral) las dos columnas pasan a una, así no se cortan los nombres */
+@media (max-width: 1180px) { .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; } }

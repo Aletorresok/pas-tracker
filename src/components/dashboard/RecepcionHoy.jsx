@@ -3,6 +3,9 @@ import { pendientesRecepcion, escucharRecepcion, etiquetaDoc } from "../../utils
 import Boton from "../ui/Boton.jsx";
 
 // Documentación que mandaron los clientes desde su vista y todavía no guardaste en la PC
+import { propsMenu } from "../ui/MenuContextual.jsx";
+import { itemsCaso } from "../../utils/menus.js";
+
 export default function RecepcionHoy({ allCasos, onAbrir }) {
   const [pendientes, setPendientes] = useState([]);
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function RecepcionHoy({ allCasos, onAbrir }) {
   if (!porCaso.length) return null;
 
   return (
-    <section aria-labelledby="recepcion-hoy" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+    <section aria-labelledby="recepcion-hoy" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
         <h2 id="recepcion-hoy" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Documentación recibida</h2>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{pendientes.length} {pendientes.length === 1 ? "archivo" : "archivos"} para guardar</span>
@@ -29,7 +32,7 @@ export default function RecepcionHoy({ allCasos, onAbrir }) {
       {porCaso.map(({ caso, lista }, i) => {
         const tipos = [...new Set(lista.map(s => etiquetaDoc(s.tipo)))];
         return (
-          <div key={caso.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
+          <div key={caso.id} {...propsMenu(() => itemsCaso(caso, { abrir: onAbrir }))} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
             <span style={{ flex: 1, minWidth: 180 }}>
               <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>{caso.asegurado || "Sin nombre"}</span>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>{tipos.join(", ")} · {new Date(lista[0].creado).toLocaleDateString("es-AR")}</span>

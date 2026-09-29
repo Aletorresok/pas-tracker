@@ -1,6 +1,7 @@
 import { fmtMoney } from "../../utils/formatters.js";
 import { netoYo, textoFalta } from "../../utils/metricas.js";
 import TarjetaTarea from "../ui/TarjetaTarea.jsx";
+import { itemsCaso } from "../../utils/menus.js";
 import ListaOrdenable from "../ui/ListaOrdenable.jsx";
 
 
@@ -20,6 +21,7 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
         <ListaOrdenable items={cobros} storageKey="cobros" render={(c, { dragging, dragProps }) => (
           <TarjetaTarea dragging={dragging} dragProps={dragProps} vence={c.fechaEstimada} titulo={c.asegurado}
             detalle={`${c.compania_aseguradora || "Sin compañía"} · ${textoFalta(c)}`} onClick={() => onAbrir(c)}
+            menu={() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ver cobros en Análisis", onClick: onVerTodos }] })}
             derecha={netoPendiente(c) ? fmtMoney(netoPendiente(c)) : "—"} />
         )} />
       </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import TarjetaTarea from "../ui/TarjetaTarea.jsx";
 import ListaOrdenable from "../ui/ListaOrdenable.jsx";
+import { itemsCaso } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 
@@ -36,6 +37,9 @@ export default function ParaHacer({ tareas, cal, onAbrir, onReiterar }) {
             <TarjetaTarea dragging={dragging} dragProps={dragProps} vence={t.vence} tipo={TIPO[t.tipo]}
               chip={t.plazo && t.vence ? <ChipPendiente pendiente={t.plazo} cal={cal} jurisdiccion={t.jurisdiccion} /> : undefined}
               titulo={t.titulo} detalle={t.detalle} onClick={() => onAbrir(t)}
+              menu={() => t.caso
+                ? itemsCaso(t.caso, { abrir: () => onAbrir(t), extra: [reiterable && { label: "Reiteré hoy", onClick: () => reiterar(t) }] })
+                : [{ label: "Abrir", onClick: () => onAbrir(t) }]}
               derecha={!reiterable && t.monto ? fmtMoney(t.monto) : undefined}
               accion={reiterable ? {
                 texto: reiterando === t.id ? "Guardando…" : "Reiteré hoy", deshabilitada: reiterando === t.id,

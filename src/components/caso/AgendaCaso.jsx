@@ -68,7 +68,7 @@ export default function AgendaCaso({ casoId, caso, onChange, Th }) {
   );
 
   return (
-    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", padding: 16 }}>
+    <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: Th.text }}>Agenda</span>
         {!form && <button type="button" onClick={() => { setForm({ ...VACIO }); setError(""); }} style={link}>+ Agregar</button>}

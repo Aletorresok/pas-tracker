@@ -95,7 +95,7 @@ export default function ObjetivosPanel({ objetivos, datos, onCambio, setToast })
 
       {form && (
         <div role="dialog" aria-modal="true" aria-label={form.id ? "Editar objetivo" : "Nuevo objetivo"} onClick={e => e.target === e.currentTarget && setForm(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}>
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}>
           <div style={{ ...tarjeta, width: "100%", maxWidth: 440, padding: 20, display: "flex", flexDirection: "column", gap: 12, boxShadow: "var(--shadow)" }}>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{form.id ? "Editar objetivo" : `Nuevo objetivo · ${nombrePeriodo(form.periodo, form.inicio)}`}</div>
             <label><span style={etiqueta}>Cómo se mide</span>

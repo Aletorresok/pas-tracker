@@ -129,7 +129,7 @@ export default function Escaner() {
       </div>
 
       {!paginas.length && !procesando && (
-        <div style={{ background: "var(--card)", border: "1px dashed var(--border2)", borderRadius: "var(--r-md)", padding: "28px 18px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
+        <div style={{ background: "var(--card)", border: "1px dashed var(--border2)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "28px 18px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>Escaneá DNI, denuncias, cédulas o cualquier papel</div>
           Apoyá la hoja sobre una superficie <b>oscura</b>, con buena luz, y sacá la foto desde arriba. La app encuentra la hoja, la endereza y la deja blanca como un escaneo. Podés sacar varias fotos y se juntan en un solo PDF. En la compu podés elegir fotos que ya tengas.
         </div>
@@ -165,7 +165,7 @@ export default function Escaner() {
             ))}
           </div>
 
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 16, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
             <label style={{ flex: "1 1 240px" }}>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 }}>Nombre del archivo</span>
               <input value={nombre} onChange={e => setNombre(e.target.value)} style={{ width: "100%", boxSizing: "border-box", padding: "9px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />

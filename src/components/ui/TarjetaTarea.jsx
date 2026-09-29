@@ -1,16 +1,18 @@
 import { describirPlazo } from "../../utils/formatters.js";
+import { propsMenu } from "./MenuContextual.jsx";
 
 const NIVEL = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)", tranquilo: "var(--info)" };
 
 // Tarjeta redonda de tarea/cobro (estilos .tc-* en index.css).
 // derecha: texto fijo (monto); accion: { texto, onClick, deshabilitada } aparece al pasar el mouse.
+// menu: () => ítems del menú de acciones (click derecho).
 // dragProps: atributos y listeners de dnd-kit (los pone ListaOrdenable).
-export default function TarjetaTarea({ chip, vence, tipo, titulo, detalle, derecha, accion, onClick, dragging = false, dragProps }) {
+export default function TarjetaTarea({ menu, chip, vence, tipo, titulo, detalle, derecha, accion, onClick, dragging = false, dragProps }) {
   const p = vence ? describirPlazo(vence) : null;
   const color = p ? NIVEL[p.nivel] : "var(--muted)";
   const parar = e => e.stopPropagation();
   return (
-    <div className="tc" data-dragging={dragging} style={{ "--nivel": color }} onClick={onClick} {...dragProps}
+    <div className="tc" data-dragging={dragging} style={{ "--nivel": color }} onClick={onClick} {...dragProps} {...(menu ? propsMenu(menu) : {})}
       onKeyDown={e => { if (e.key === "Enter" && e.target === e.currentTarget) onClick?.(); dragProps?.onKeyDown?.(e); }}>
       <span className="tc-asa" aria-hidden="true">
         <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">

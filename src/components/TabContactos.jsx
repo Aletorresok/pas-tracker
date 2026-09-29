@@ -151,8 +151,7 @@ export default function TabContactos({
           const activa = vista === v.key;
           return (
             <button key={v.key} type="button" onClick={() => { setVista(v.key); setBusqueda(""); }} aria-pressed={activa}
-              style={{ flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 12, cursor: "pointer", fontWeight: activa ? 700 : 500,
-                border: `1px solid ${activa ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activa ? "var(--text)" : "var(--sub)" }}>
+              className="chip">
               {v.label}{" "}
               <span className="num" style={{ fontWeight: 700, color: "var(--text)" }}>{conteos[v.key] != null ? conteos[v.key].toLocaleString("es-AR") : "…"}</span>
             </button>
@@ -215,7 +214,7 @@ export default function TabContactos({
         </div>
       )}
 
-      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+      {visibles.length > 0 && <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
       {visibles.map(p => (
         <PASCard
           key={p.id}

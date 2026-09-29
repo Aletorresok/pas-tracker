@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { DndContext, DragOverlay, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, useDraggable, useDroppable, pointerWithin, rectIntersection } from "@dnd-kit/core";
 import { supabase } from "../../supabase.js";
 import { ESTADOS_CASO } from "../../constants.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
@@ -11,12 +10,11 @@ import EstadoPill from "../ui/EstadoPill.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
 import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
+import TableroEtapas from "../ui/TableroEtapas.jsx";
+import { itemsCaso } from "../../utils/menus.js";
 
 // Columnas: los estados en curso. Cobrado y Desistido se cierran desde la ficha (Pagos o estado).
 const COLUMNAS = ESTADOS_CASO.filter(e => !["cobrado", "desistido"].includes(e.key));
-
-// Primero donde está el cursor; si no hay, la columna que más se superpone (sirve con teclado)
-const colision = args => { const p = pointerWithin(args); return p.length ? p : rectIntersection(args); };
 
 function ContenidoCaso({ c }) {
   return (
@@ -35,51 +33,14 @@ function ContenidoCaso({ c }) {
   );
 }
 
-const estiloCaso = { textAlign: "left", font: "inherit", color: "var(--text)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4, width: "100%" };
-
-function TarjetaCaso({ c, onAbrir, onMenu }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: c.id });
-  return (
-    <button ref={setNodeRef} type="button" {...attributes} {...listeners} onClick={() => onAbrir(c)} onContextMenu={onMenu ? e => onMenu(e, c) : undefined}
-      className="tarjeta tarjeta-lift" style={{ ...estiloCaso, cursor: "grab", opacity: isDragging ? 0.35 : 1, touchAction: "manipulation" }}>
-      <ContenidoCaso c={c} />
-    </button>
-  );
-}
-
-function Columna({ col, lista, onAbrir, onMenu }) {
-  const { setNodeRef, isOver } = useDroppable({ id: col.key });
-  return (
-    <section ref={setNodeRef} aria-label={col.label}
-      style={{
-        background: isOver ? "color-mix(in srgb, var(--accent) 12%, var(--card2))" : "color-mix(in srgb, var(--card2) 70%, transparent)",
-        border: `1px ${isOver ? "dashed" : "solid"} ${isOver ? "var(--accent)" : "color-mix(in srgb, var(--border) 70%, transparent)"}`,
-        borderRadius: "var(--r-lg)", padding: 12, minHeight: 140, display: "flex", flexDirection: "column", gap: 10,
-        transition: "background-color .25s var(--ease), border-color .25s var(--ease)",
-      }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px 4px" }}>
-        <EstadoPill estado={col.key} size="sm" />
-        <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{lista.length}</span>
-      </div>
-      {lista.map(c => <TarjetaCaso key={c.id} c={c} onAbrir={onAbrir} onMenu={onMenu} />)}
-    </section>
-  );
-}
-
 // Tablero por etapas: arrastrás un caso a otra columna para cambiarle el estado (mismo flujo que la ficha:
 // fecha de la etapa, nota en la bitácora, próxima acción sugerida y aviso al cliente). Tocar un caso abre la ficha.
 // Funciona con mouse, con el dedo (mantené apretado un instante) y con teclado (Espacio, flechas, Espacio).
-export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCasoLocal }) {
+export default function TableroCasos({ casos, todosLosPas, onAbrir, acciones = {}, onCasoLocal }) {
   const margenes = useMargenes();
-  const [arrastrando, setArrastrando] = useState(null); // id del caso
   const [sugerencia, setSugerencia] = useState(null); // { caso, estado, accion, avisar }
   const [error, setError] = useState("");
 
-  const sensores = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } }),
-    useSensor(KeyboardSensor, { keyboardCodes: { start: ["Space"], cancel: ["Escape"], end: ["Space"] } }),
-  );
 
   const guardar = async (caso, cambios) => {
     const { error: err } = await supabase.from("pas_casos").update(cambios).eq("id", caso.id);
@@ -89,8 +50,7 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCa
     return actualizado;
   };
 
-  const soltar = async (casoId, estado) => {
-    const caso = casos.find(c => c.id === casoId);
+  const mover = async (caso, estado) => {
     if (!caso || caso.estado === estado) return;
     setError("");
     const cambios = { estado, ...fechasAlCambiarEstado(caso, estado), fecha_ultimo_movimiento: fechaLocalISO() };
@@ -105,13 +65,8 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCa
     setSugerencia({ caso: actualizado, estado, accion: accionSugerida(actualizado, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(estado) });
   };
 
-  const alSoltar = ({ active, over }) => {
-    setArrastrando(null);
-    if (over && COLUMNAS.some(c => c.key === over.id)) soltar(active.id, over.id);
-  };
 
   const pasDe = c => todosLosPas.find(p => String(p.id) === String(c._pasId));
-  const casoArrastrado = arrastrando && casos.find(c => c.id === arrastrando);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -131,19 +86,9 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, onMenu, onCa
         </div>
       )}
 
-      <DndContext sensors={sensores} collisionDetection={colision}
-        onDragStart={({ active }) => setArrastrando(active.id)} onDragEnd={alSoltar} onDragCancel={() => setArrastrando(null)}>
-        <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(230px, 1fr)", gap: 14, overflowX: "auto", padding: "4px 4px 12px", alignItems: "start" }}>
-          {COLUMNAS.map(col => <Columna key={col.key} col={col} lista={casos.filter(c => c.estado === col.key)} onAbrir={onAbrir} onMenu={onMenu} />)}
-        </div>
-        <DragOverlay dropAnimation={{ duration: 220, easing: "cubic-bezier(.34, 1.4, .64, 1)" }}>
-          {casoArrastrado && (
-            <div className="tarjeta" style={{ ...estiloCaso, cursor: "grabbing", borderColor: "var(--accent)", boxShadow: "var(--sh-3)", transform: "rotate(-1.5deg) scale(1.03)" }}>
-              <ContenidoCaso c={casoArrastrado} />
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+      <TableroEtapas columnas={COLUMNAS.map(e => ({ key: e.key, label: e.label, cabecera: <EstadoPill estado={e.key} size="sm" /> }))}
+        items={casos} etapaDe={c => c.estado} render={c => <ContenidoCaso c={c} />} onMover={mover} onAbrir={onAbrir}
+        menu={c => itemsCaso(c, { ...acciones, mover: { estados: COLUMNAS, onMover: mover } })} />
       <div style={{ fontSize: 12, color: "var(--muted)" }}>Arrastrá un caso a otra columna para cambiarle el estado (en el celular, mantenelo apretado un instante). Tocalo para abrir la ficha. Cobrado y Desistido se cierran desde la ficha.</div>
     </div>
   );

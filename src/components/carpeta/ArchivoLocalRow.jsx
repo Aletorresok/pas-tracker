@@ -71,7 +71,7 @@ export default function ArchivoLocalRow({ archivo, dirHandle, Th, onRenombrado, 
       style={{ background: Th.card2, borderRadius: "var(--r-sm)", marginBottom: 6, border: `1px solid ${Th.border}`, overflow: "visible", position: "relative", zIndex: menuOpen ? 100 : 1 }}
     >
       <ArchivoPreviewFlotante archivo={archivo} anchorRef={filaRef} activo={hover && !menuOpen && !renombrando && !menu} />
-      {menu}
+
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "var(--mono)", color: "var(--muted)", width: 32, textAlign: "center" }}>{esImagen ? "IMG" : "PDF"}</span>

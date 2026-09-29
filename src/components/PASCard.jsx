@@ -3,6 +3,8 @@ import { linkMailPresentacion, esMailEnviado } from "../utils/mensajes.js";
 import { alpha } from "../utils/theme.js";
 import Icono from "./ui/Icono.jsx";
 import Boton from "./ui/Boton.jsx";
+import { propsMenu } from "./ui/MenuContextual.jsx";
+import { itemsPAS } from "../utils/menus.js";
 
 
 function Etiqueta({ color, children }) {
@@ -36,9 +38,16 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
   const esDescartado = !!descartados?.[pas.id];
   const telefonos = pas.telefonos || [];
   const hace = ultimo?.fecha ? diasDesde(ultimo.fecha) : null;
+  const menu = propsMenu(() => itemsPAS(pas, {
+    abrir: { label: expanded ? "Cerrar detalle" : "Ver detalle", onClick: onToggle },
+    contactar: onContactar,
+    mail: onMail && !mailBloqueado ? x => { window.open(linkMailPresentacion(x.mail, x.nombre, window.matchMedia("(max-width: 900px)").matches), "_blank", "noopener"); onMail(x); } : undefined,
+    derivador: onToggleDerivador && { activo: esDerivador, onToggle: onToggleDerivador },
+    descartado: onToggleDescartado && { activo: esDescartado, onToggle: onToggleDescartado },
+  }));
 
   return (
-    <div style={{ borderBottom: "1px solid var(--border)", background: expanded ? "var(--card2)" : "transparent", opacity: esDescartado ? 0.6 : 1 }}>
+    <div {...menu} className="fila-pas" style={{ borderBottom: "1px solid var(--border)", background: expanded ? "var(--card2)" : "transparent", opacity: esDescartado ? 0.6 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
         <button type="button" onClick={onToggle} aria-expanded={expanded}
           style={{ flex: 1, minWidth: 0, background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", font: "inherit", color: "var(--text)" }}>

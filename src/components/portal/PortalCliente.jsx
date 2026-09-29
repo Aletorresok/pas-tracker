@@ -180,7 +180,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   };
 
   return (
-    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18 }}>
+    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18 }}>
       <button type="button" onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
         style={{ width: "100%", display: "flex", gap: 12, alignItems: "center", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
         <Ilustracion nombre="foto" size={48} />
@@ -392,7 +392,7 @@ export default function PortalCliente() {
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
 
-            <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+            <form onSubmit={buscar} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
               <label>
                 <span style={etiqueta}>Patente</span>
                 <input value={patente} onChange={e => setPatente(limpiarPatente(e.target.value).slice(0, 8))} placeholder="AB123CD" autoComplete="off" autoCapitalize="characters" style={campo} />
@@ -436,7 +436,7 @@ export default function PortalCliente() {
             )}
             {casos[casoSel] && <TarjetaCaso key={casos[casoSel].id} caso={casos[casoSel]} patente={patente} dni={dni} aviso={aviso} />}
             {(aviso.cantidad > 0 || aviso.avisados > 0) && (
-              <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: "var(--r-md)", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div role="status" style={{ marginTop: 16, background: "var(--card)", border: "1px solid color-mix(in srgb, var(--ok) 40%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 {aviso.cantidad > 0 ? (
                   <>
                     <span style={{ fontSize: 14, lineHeight: 1.45 }}>Recibimos {aviso.cantidad === 1 ? "1 archivo" : `${aviso.cantidad} archivos`}. Cuando termines de mandar todo, avisale al estudio.</span>

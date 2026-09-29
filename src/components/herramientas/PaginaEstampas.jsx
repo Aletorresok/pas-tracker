@@ -97,9 +97,9 @@ export default function PaginaEstampas({ fuente, pagina, onGuardar, onCerrar }) 
   const actual = estampas.find(e => e.id === elegida);
 
   return createPortal(
-    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
+    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
       <div role="dialog" aria-modal="true" aria-label="Imágenes sobre la página" onClick={e => e.stopPropagation()}
-        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", width: "100%", maxWidth: 980, maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", width: "100%", maxWidth: 980, maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Firma, sello o imagen sobre la página</div>

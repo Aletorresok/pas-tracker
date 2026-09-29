@@ -3,7 +3,6 @@ import { supabase } from "./supabase.js";
 import { formatoFecha } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
-import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
 
 import SeccionInfo from "./components/caso/SeccionInfo.jsx";
@@ -251,6 +250,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
+    const { exportarCasoPDF } = await import("./utils/exportarCasoPDF.js"); // jsPDF se descarga solo al exportar
     await exportarCasoPDF({ 
       caso: { ...caso, ...formData }, pasNombre: pasNombre || "", acciones, 
       onSuccess: ({ nombreArchivo }) => setToast({ msg: `✓ PDF descargado: ${nombreArchivo}`, type: "success" }), 
@@ -272,13 +272,13 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={cerrar} />
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
       <div className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "0 20px 60px rgba(0,0,0,.4)", minHeight: "60vh" }}>
+        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
 
           {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
-          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "16px 16px 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
+          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "var(--r-lg) var(--r-lg) 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
             <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
               <Icono nombre="cerrar" size={16} />
             </button>

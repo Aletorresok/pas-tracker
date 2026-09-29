@@ -23,6 +23,9 @@ function hace(fecha) {
 const PRIMER_CONTACTO = PLANTILLAS_CLIENTE.find(p => p.k === "primer_contacto");
 
 // Casos que derivaron los PAS desde el portal y todavía no abriste. Se ocultan si no hay ninguno.
+import { propsMenu } from "../ui/MenuContextual.jsx";
+import { itemsCaso } from "../../utils/menus.js";
+
 export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
   const [marcando, setMarcando] = useState(null);
   if (!casos.length) return null;
@@ -38,7 +41,7 @@ export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
   };
 
   return (
-    <section aria-labelledby="nuevos-portal" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+    <section aria-labelledby="nuevos-portal" style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
         <h2 id="nuevos-portal" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Nuevos del portal</h2>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{casos.length} sin revisar</span>
@@ -47,7 +50,7 @@ export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
         {casos.map((c, i) => {
           const wa = linkWhatsApp(c.telefono_asegurado, textoCliente(PRIMER_CONTACTO, c, { pasNombre: c._pasNombre }));
           return (
-            <div key={c.id} className="tarea" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
+            <div key={c.id} className="tarea" {...propsMenu(() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ya lo contacté", onClick: () => contactado(c) }] }))} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
               <button type="button" onClick={() => onAbrir(c)} style={{ flex: 1, minWidth: 180, background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>
                   {c.asegurado || "Sin nombre"}

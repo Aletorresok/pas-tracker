@@ -45,8 +45,7 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
     const activo = vista === v.k;
     return (
       <button key={v.k} type="button" onClick={() => setVista(v.k)} aria-pressed={activo}
-        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", font: "inherit", fontWeight: activo ? 600 : 500,
-          border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" }}>
+>
         {v.l}
       </button>
     );
@@ -64,7 +63,7 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
           Para cargar gastos falta correr el SQL 28 (<code>sql/2026-09-28_28_finanzas.sql</code>) en Supabase. Facturación y flujo de caja ya funcionan.
         </div>
       )}
-      <div role="group" aria-label="Elegir vista" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, marginTop: -4 }}>{VISTAS.map(chip)}</div>
+      <div role="group" aria-label="Elegir vista" className="segmentado" style={{ alignSelf: "flex-start", maxWidth: "100%", overflowX: "auto" }}>{VISTAS.map(chip)}</div>
 
       {vista === "mes" && (
         <>
