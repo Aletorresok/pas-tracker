@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import Portal from './Portal.jsx'
+import { lazy, Suspense } from 'react'
+const Portal = lazy(() => import('./Portal.jsx'))
+import { MenuHost } from './components/ui/MenuContextual.jsx'
 
 // Importamos el proveedor del tema global
 import { ThemeProvider } from './context/ThemeContext.jsx'
@@ -19,10 +21,11 @@ createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/portal/*" element={<Portal />} />
+          <Route path="/portal/*" element={<Suspense fallback={null}><Portal /></Suspense>} />
           <Route path="/*" element={<App />} />
         </Routes>
       </BrowserRouter>
+      <MenuHost />
     </ThemeProvider>
   </StrictMode>,
 )

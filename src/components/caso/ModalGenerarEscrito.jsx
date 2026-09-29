@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { generarEscrito } from "../../utils/generarEscrito.js";
 
 export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpen, onClose, caso, pasId, dirHandle, onSuccess, onError, Th }) {
   const [dniEscrito, setDniEscrito] = useState("");
@@ -18,6 +17,7 @@ export default function ModalGenerarEscrito({ dniInicial = "", onDniNuevo, isOpe
 
   const handleGenerar = async () => {
     setGenerandoEscrito(true);
+    const { generarEscrito } = await import("../../utils/generarEscrito.js");
     await generarEscrito({
       caso,
       pasId,

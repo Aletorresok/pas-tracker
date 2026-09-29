@@ -273,8 +273,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                 const activo = estadoActivo === e.key;
                 return (
                   <button key={e.key || "todos"} type="button" aria-pressed={activo} onClick={() => setEstadoSel(e.key)}
-                    style={{ font: "inherit", flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 12, cursor: "pointer", fontWeight: activo ? 700 : 500,
-                      border: `1px solid ${activo ? T.text : T.border}`, background: T.card, color: activo ? T.text : T.sub }}>
+                    className="chip">
                     {e.key && <span aria-hidden="true" style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: e.color, marginRight: 6 }} />}
                     {e.label} <span className="num" style={{ fontWeight: 700, color: T.text }}>{e.n}</span>
                   </button>

@@ -3,7 +3,6 @@ import { supabase } from "./supabase.js";
 import { formatoFecha } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
-import { exportarCasoPDF } from "./utils/exportarCasoPDF.js";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
 
 import SeccionInfo from "./components/caso/SeccionInfo.jsx";
@@ -251,6 +250,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
+    const { exportarCasoPDF } = await import("./utils/exportarCasoPDF.js"); // jsPDF se descarga solo al exportar
     await exportarCasoPDF({ 
       caso: { ...caso, ...formData }, pasNombre: pasNombre || "", acciones, 
       onSuccess: ({ nombreArchivo }) => setToast({ msg: `✓ PDF descargado: ${nombreArchivo}`, type: "success" }), 

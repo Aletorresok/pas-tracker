@@ -5,6 +5,9 @@ import { fechaLocalISO } from "../../utils/formatters.js";
 const DIAS = 14;
 
 // Mediaciones, audiencias y vencimientos de las próximas 2 semanas (de todos los casos)
+import { propsMenu } from "../ui/MenuContextual.jsx";
+import { itemsCaso } from "../../utils/menus.js";
+
 export default function AgendaHoy({ allCasos, onAbrir }) {
   const [eventos, setEventos] = useState(null);
   const [falla, setFalla] = useState(false);
@@ -37,7 +40,7 @@ export default function AgendaHoy({ allCasos, onAbrir }) {
           const esHoy = fechaDe(new Date(e.inicio)) === hoy;
           return (
             <div key={e.id} style={{ padding: "8px 0", borderTop: i ? "1px solid var(--border)" : "none", display: "flex", flexDirection: "column", gap: 3 }}>
-              <button type="button" onClick={() => c.id && onAbrir(c)} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
+              <button type="button" onClick={() => c.id && onAbrir(c)} {...(c.id ? propsMenu(() => itemsCaso(c, { abrir: onAbrir })) : {})} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ minWidth: 0, fontSize: 14 }}>
                   <b style={{ fontWeight: 600 }}>{tipoEvento(e.tipo)}</b>
                   <span style={{ color: "var(--sub)" }}> · {c.asegurado || "caso"}</span>

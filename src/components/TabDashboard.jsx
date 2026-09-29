@@ -31,7 +31,7 @@ function Kpi({ label, valor, pie, destacado }) {
   return (
     <div style={{ padding: "12px 16px", minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "var(--sub)" }}>{label}</div>
-      <div className="num" style={{ fontSize: destacado ? "clamp(20px, 5vw, 26px)" : "clamp(18px, 4.6vw, 22px)", fontWeight: 700, letterSpacing: -0.5, color: destacado ? "var(--accent-ink)" : "var(--text)", marginTop: 2, overflowWrap: "anywhere" }}>{valor}</div>
+      <div className="num" style={{ fontSize: destacado ? "clamp(19px, 2vw, 26px)" : "clamp(17px, 1.7vw, 22px)", fontWeight: 700, whiteSpace: "nowrap", letterSpacing: -0.5, color: destacado ? "var(--accent-ink)" : "var(--text)", marginTop: 2, overflowWrap: "anywhere" }}>{valor}</div>
       <div style={{ marginTop: 2 }}>{pie}</div>
     </div>
   );

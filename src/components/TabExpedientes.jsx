@@ -6,7 +6,12 @@ import { habilesHasta } from "../utils/plazos.js";
 import { alpha } from "../utils/theme.js";
 import {
   cargarExpedientes, cargarPlazosExpedientes, estadoExpediente, expedienteAbierto, fechaClave, proximoPorExpediente,
+  ESTADOS_EXPEDIENTE, actualizarExpediente,
 } from "../utils/expedientes.js";
+import { registrarAccion } from "../utils/storage.js";
+import { itemsExpediente } from "../utils/menus.js";
+import { propsMenu } from "./ui/MenuContextual.jsx";
+import TableroEtapas from "./ui/TableroEtapas.jsx";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
 import ChipPendiente from "./expediente/ChipPendiente.jsx";
@@ -21,6 +26,10 @@ function PillEstado({ estado }) {
   );
 }
 
+const COLUMNAS = ESTADOS_EXPEDIENTE.map(e => ({ key: e.k, label: e.l, cabecera: <PillEstado estado={e.k} /> }));
+const VISTA_GUARDADA = "expedientes_vista";
+const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
+
 const juzgadoDe = e => [e.fuero, e.juzgado && `Juzg. ${e.juzgado}`, e.numero && `Expte. ${e.numero}`].filter(Boolean).join(" · ");
 
 export default function TabExpedientes({ abrirId, onAbierto }) {
@@ -32,6 +41,9 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("abiertos");
   const [ficha, setFicha] = useState(null); // { id } o { nuevo: true }
+  const [vista, setVista] = useState(leerVista); // tabla | tablero
+  const [errorMover, setErrorMover] = useState("");
+  const elegirVista = v => { setVista(v); try { localStorage.setItem(VISTA_GUARDADA, v); } catch { /* sin storage */ } };
 
   useEffect(() => {
     Promise.all([cargarExpedientes(), cargarPlazosExpedientes()]).then(([exps, pls]) => {
@@ -84,6 +96,18 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
     setPlazos(ps => (p._borrado ? ps.filter(x => x.id !== p.id) : ps.some(x => x.id === p.id) ? ps.map(x => (x.id === p.id ? p : x)) : [...ps, p]));
   }, []);
 
+  // Cambio de estado desde el tablero o el menú: mismo registro en la bitácora que la ficha
+  const mover = async (e, estado) => {
+    setErrorMover("");
+    const anterior = e;
+    setExpedientes(xs => xs.map(x => (x.id === e.id ? { ...x, estado } : x)));
+    const { data, error: err } = await actualizarExpediente(e.id, { estado });
+    if (err) { setExpedientes(xs => xs.map(x => (x.id === e.id ? anterior : x))); setErrorMover("No se pudo cambiar el estado: " + err.message); return; }
+    setExpedientes(xs => xs.map(x => (x.id === e.id ? data : x)));
+    registrarAccion(e.id, `Pasó a ${estadoExpediente(estado).l}`);
+  };
+  const menuExp = e => itemsExpediente(e, { abrir: x => setFicha({ id: x.id }), mover: { estados: COLUMNAS, onMover: mover } });
+
   const expFicha = ficha?.id ? expedientes?.find(e => e.id === ficha.id) : null;
 
   const chip = ({ k, l, f }) => {
@@ -92,8 +116,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
     if (!n && !activo && k !== "abiertos" && k !== "todos") return null;
     return (
       <button key={k} type="button" onClick={() => setFiltro(k)} aria-pressed={activo}
-        style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", whiteSpace: "nowrap", padding: "5px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer",
-          border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: "var(--card)", color: activo ? "var(--text)" : "var(--sub)", fontWeight: activo ? 600 : 500 }}>
+        className="chip">
         {l} <b className="num" style={{ color: "var(--text)" }}>{n}</b>
       </button>
     );
@@ -117,8 +140,17 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Expedientes</h1>
           <div style={{ fontSize: 13, color: "var(--muted)" }}>Casos judiciales y generales, fuera de seguros</div>
         </div>
-        <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
+        <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <span role="group" aria-label="Vista" className="segmentado">
+            {[["tabla", "Tabla"], ["tablero", "Tablero"]].map(([k, l]) => (
+              <button key={k} type="button" aria-pressed={vista === k} onClick={() => elegirVista(k)}>{l}</button>
+            ))}
+          </span>
+          <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
+        </span>
       </header>
+
+      {errorMover && <div role="alert" style={{ color: "var(--bad)", fontSize: 13 }}>{errorMover}</div>}
 
       {error && <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", background: alpha("var(--bad)", 10), color: "var(--bad)", fontSize: 14 }}>No se pudieron cargar los expedientes. ¿Está corrido el SQL 25?</div>}
 
@@ -128,7 +160,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
       </div>
 
-      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>{FILTROS.map(chip)}</div>
+      <div className="chips">{FILTROS.map(chip)}</div>
 
       {expedientes === null && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando expedientes…</div>}
 
@@ -147,7 +179,18 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
         </div>
       )}
 
-      {lista.length > 0 && (
+      {lista.length > 0 && vista === "tablero" && (
+        <TableroEtapas columnas={COLUMNAS} items={lista} etapaDe={e => e.estado} onMover={mover} onAbrir={e => setFicha({ id: e.id })} menu={menuExp} anchoColumna={220}
+          render={e => (
+            <>
+              <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.caratula}</span>
+              <span style={{ fontSize: 12, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.cliente_nombre || juzgadoDe(e) || "—"}</span>
+              {proximo.get(e.id) ? <ChipPendiente pendiente={proximo.get(e.id)} cal={cal} jurisdiccion={e.jurisdiccion} /> : <span style={{ fontSize: 12, color: "var(--muted)" }}>Sin plazos</span>}
+            </>
+          )} />
+      )}
+
+      {lista.length > 0 && vista === "tabla" && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {!esCelular && (
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px 170px 120px", gap: 12, padding: "9px 14px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" }}>
@@ -156,7 +199,7 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
           )}
           {lista.map((e, i) => (
             <Fragment key={e.id}>
-              <button type="button" className="fila-caso" onClick={() => setFicha({ id: e.id })}
+              <button type="button" className="fila-caso" onClick={() => setFicha({ id: e.id })} {...propsMenu(() => menuExp(e))}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : "minmax(0, 1fr) 200px 170px 120px", gap: esCelular ? "4px 10px" : 12, alignItems: "center",
                   padding: "11px 14px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ minWidth: 0 }}>

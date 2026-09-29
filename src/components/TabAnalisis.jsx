@@ -68,8 +68,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
     const activo = vista === key;
     return (
       <button key={key} type="button" onClick={() => elegir(key)} aria-pressed={activo}
-        style={{ flex: "none", whiteSpace: "nowrap", padding: "6px 12px", borderRadius: "var(--r-xl)", fontSize: 13, cursor: "pointer", fontWeight: activo ? 600 : 500,
-          border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" }}>
+>
         {l}
       </button>
     );
@@ -78,7 +77,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Análisis</h1>
-      <div role="group" aria-label="Elegir estadística" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, marginTop: -4 }}>
+      <div role="group" aria-label="Elegir estadística" className="segmentado" style={{ alignSelf: "flex-start", maxWidth: "100%", overflowX: "auto" }}>
         {VISTAS.map(chip)}
       </div>
 

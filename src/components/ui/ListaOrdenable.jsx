@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
+import { marcarArrastre } from "./MenuContextual.jsx";
 
 const leerOrden = clave => { try { return JSON.parse(localStorage.getItem(`orden:${clave}`)) || []; } catch { return []; } };
 const guardarOrden = (clave, ids) => { try { localStorage.setItem(`orden:${clave}`, JSON.stringify(ids)); } catch { /* sin storage */ } };
@@ -11,9 +11,9 @@ function Item({ id, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, position: "relative", zIndex: isDragging ? 5 : 0 }}>
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: "easeInOut" }}>
+      <div className="entra">
         {children({ dragging: isDragging, dragProps: { ...attributes, ...listeners } })}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -47,7 +47,7 @@ export default function ListaOrdenable({ items, storageKey, render, gap = 10 }) 
 
   return (
     <>
-      <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={alSoltar}>
+      <DndContext sensors={sensores} collisionDetection={closestCenter} onDragStart={() => marcarArrastre(true)} onDragEnd={e => { marcarArrastre(false); alSoltar(e); }} onDragCancel={() => marcarArrastre(false)}>
         <SortableContext items={lista.map(x => x.id)} strategy={verticalListSortingStrategy}>
           <div style={{ display: "flex", flexDirection: "column", gap }}>
             {lista.map(x => <Item key={x.id} id={x.id}>{estado => render(x, estado)}</Item>)}

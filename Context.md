@@ -107,6 +107,15 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-09-28 — Una sola filosofía de interacción + optimización de carga
+*   Regla única en toda la app: tocar abre, click derecho da las acciones, arrastrar solo para reordenar (Hoy) o cambiar de etapa (tableros). Detalle en CLAUDE.md → "Filosofía de interfaz".
+*   Menú de acciones único (`MenuHost` + `propsMenu`) con teclado (flechas, Escape, tecla Menú) y menús por entidad en `utils/menus.js`. Ahora tienen click derecho: tareas y cobros de Hoy, Agenda, Nuevos del portal, Recepción, Contactos (PAS), Clientes (PAS y sus casos), Casos (tabla y tablero), Expedientes.
+*   Expedientes suma vista Tablero por estado (arrastrar = cambiar estado, deja "Pasó a …" en la bitácora, igual que la ficha). Tablero genérico `ui/TableroEtapas.jsx`; los tableros tienen "Mover a" en el menú.
+*   Controles unificados: filtros con conteo = `.chip`; cambiar de vista = `.segmentado` (Casos, Expedientes, Análisis, Finanzas).
+*   Carga: pestañas con `lazy()`, xlsx y jsPDF bajo demanda, vendors separados. Carga inicial de ~323 KB a ~205 KB gzip (código de la app 86 KB). Se quitó framer-motion (animación por CSS).
+*   Hoy: debajo de 1180 px de ancho las dos columnas pasan a una; montos de los KPI sin cortes de línea.
+*   Arreglo: el canal realtime de "casos nuevos del portal" se recreaba con el mismo nombre y tiraba la pantalla (nombre único por montaje).
+
 ### 2026-09-28 — Filosofía visual en el resto de la app (etapa 2)
 *   Todas las tarjetas con fondo `card` y radio md/lg llevan sombra `--sh-1` (43 sitios); las sombras sueltas pasan a `--sh-2/--sh-3`; el input de `theme.js` usa `--r-sm`.
 *   Ventanas (fichas y modales): entran con rebote (`modalIn`), el fondo se difumina y el encabezado usa el mismo radio que el panel. Menú de click derecho de vidrio y redondeado. Campos de formulario con transición en hover y foco. Tarjetas de Herramientas se elevan al hover.

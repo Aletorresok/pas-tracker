@@ -1,5 +1,4 @@
 import { Fragment, useState, useMemo, useEffect } from "react";
-import * as XLSX from "xlsx";
 import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
 import { fmtMoney, fmtDate, diasDesde, primerNombre } from "../utils/formatters.js";
@@ -9,6 +8,8 @@ import ResumenMensual from "./clientes/ResumenMensual.jsx";
 import { esActivo } from "../utils/metricas.js";
 import { useEsCelular } from "../hooks/useEsCelular.js";
 import { NuevoCasoModal, NuevoPASModal } from "./clientes/ModalesCliente.jsx";
+import { propsMenu } from "./ui/MenuContextual.jsx";
+import { itemsCaso, itemsPAS } from "../utils/menus.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import EstadoPill from "./ui/EstadoPill.jsx";
 import Boton from "./ui/Boton.jsx";
@@ -117,7 +118,7 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
         : (
           <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", overflow: "hidden" }}>
             {casos.map((c, i) => (
-              <button key={c.id} type="button" onClick={() => onAbrir(c)} className="fila-caso"
+              <button key={c.id} type="button" onClick={() => onAbrir(c)} {...propsMenu(() => itemsCaso(c, { abrir: onAbrir }))} className="fila-caso"
                 style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : "minmax(0, 2fr) 150px minmax(0, 1.2fr) 90px 110px", gap: esCelular ? "4px 10px" : 12, alignItems: "center", padding: "9px 12px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit", fontSize: 14 }}>
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600 }}>
                   {c.asegurado || "Sin nombre"}
@@ -212,7 +213,8 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
     setFicha({ caso: fila, pasId: String(p.id) });
   };
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
+    const XLSX = await import("xlsx"); // se descarga solo al exportar
     const rows = [];
     clientes.forEach(p => {
       if (p._casos.length === 0) rows.push({ PAS: p.nombre, Mail: p.mail, Asegurado: "", Estado: "", Compañía: "", "Fecha derivación": "", "Monto acordado": "", "Cobré yo": "", "Comisión PAS": "", Nota: "" });
@@ -222,6 +224,12 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Casos");
     XLSX.writeFile(wb, `pastracker_casos_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
+
+  const menuPas = p => propsMenu(() => itemsPAS(p, {
+    abrir: { label: abiertoId === p.id ? "Cerrar detalle" : "Ver detalle", onClick: () => alternar(p.id) },
+    nuevoCaso: x => setNuevoCasoPara(x),
+    editar: p.manual ? x => setPasEditando(x) : undefined,
+  }));
 
   const desplegado = p => (
     <CasosDelPas pas={p} esCelular={esCelular}
@@ -268,7 +276,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {filtrados.map((p, i) => (
             <Fragment key={p.id}>
-              <button type="button" onClick={() => alternar(p.id)} aria-expanded={abiertoId === p.id}
+              <button type="button" onClick={() => alternar(p.id)} {...menuPas(p)} aria-expanded={abiertoId === p.id}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === p.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
                 <span className="num" style={{ fontSize: 13, color: "var(--sub)" }}>{p._casos.length} {p._casos.length === 1 ? "caso" : "casos"}</span>
@@ -308,7 +316,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
                 const celda = { padding: "10px 14px", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", background: abierto ? "var(--card2)" : undefined };
                 return (
                   <Fragment key={p.id}>
-                    <tr onClick={() => alternar(p.id)} style={{ cursor: "pointer" }} className="fila-caso">
+                    <tr onClick={() => alternar(p.id)} {...menuPas(p)} style={{ cursor: "pointer" }} className="fila-caso">
                       <td style={celda}>
                         <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(p.id); }}
                           style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
