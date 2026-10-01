@@ -23,7 +23,7 @@ const ayuda = { display: "block", fontSize: 12, color: "var(--muted)", marginTop
 
 // Derivar un caso desde el portal: datos del asegurado, compañía del tercero y documentación.
 // Al terminar muestra la confirmación y ofrece pasarle al cliente el link de seguimiento.
-export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, casos = [], companias = [] }) {
+export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado, casos = [], companias = [], demo = false }) {
   const [form, setForm] = useState(leerBorrador);
   const [archivos, setArchivos] = useState([]);
   const [enviando, setEnviando] = useState(false);
@@ -52,6 +52,8 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
     e.preventDefault();
     const faltan = [!form.asegurado.trim() && "el titular", !form.telefono.trim() && "el teléfono", !form.fecha_siniestro && "la fecha del siniestro", !form.compania.trim() && "la compañía"].filter(Boolean);
     if (faltan.length) { setError(`Falta completar ${faltan.join(", ").replace(/, ([^,]*)$/, " y $1")}.`); return; }
+    // Demostración: no se guarda nada
+    if (demo) { setError("Esto es una demostración: el caso no se guarda. Con tu acceso, al tocar \"Derivar caso\" le llega al estudio en el momento."); return; }
     setEnviando(true);
     setError("");
 

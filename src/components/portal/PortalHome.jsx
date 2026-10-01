@@ -15,6 +15,8 @@ import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 import { diaDeAccion, fechaLocalISO, fechaEnDias } from "../../utils/formatters.js";
+import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
+import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo } from "./demoPortal.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -42,21 +44,22 @@ const DEMO_CASO = {
   _demo: true,
 };
 
-export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
+// demo: /portal/demo, con casos inventados y sin base de datos (ver demoPortal.js)
+export default function PortalHome({ session, onLogout, dark, onToggleDark, demo = false }) {
   const T = theme(dark);
-  const [pasInfo, setPasInfo] = useState(null);
-  const [casos,   setCasos]   = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pasInfo, setPasInfo] = useState(demo ? PAS_DEMO : null);
+  const [casos,   setCasos]   = useState(() => (demo ? casosDemo() : []));
+  const [loading, setLoading] = useState(!demo);
   const [error,   setError]   = useState("");
   const [cambPwd, setCambPwd] = useState(false);
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
   
   const [pasId,   setPasId]   = useState(null);
-  const [todosLosCasos, setTodosLosCasos] = useState([]);
+  const [todosLosCasos, setTodosLosCasos] = useState(() => (demo ? plazosDemo() : []));
   const [pestana, setPestana] = useState("curso"); // curso | cobrados | desistidos | todos
   const [estadoSel, setEstadoSel] = useState(null); // estado puntual dentro de la pestaña
   const [busqueda, setBusqueda] = useState("");
-  const [eventos, setEventos] = useState({}); // caso_id → próxima mediación/audiencia
+  const [eventos, setEventos] = useState(() => (demo ? eventosDemo() : {})); // caso_id → próxima mediación/audiencia
   const app = useInstalarApp();
   const [menu, setMenu] = useState(false);
   const [fabVisible, setFabVisible] = useState(true);
@@ -73,6 +76,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
   }, []);
 
   useEffect(() => {
+    if (demo) return; // la demostración arranca con sus datos (estado inicial)
     const loadData = async () => {
       setLoading(true);
       const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).single();
@@ -121,7 +125,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     supabase.rpc("plazos_companias").then(({ data }) => {
       if (Array.isArray(data)) setTodosLosCasos(data);
     });
-  }, [session]);
+  }, [session, demo]);
 
   const handleRealtimeUpdate = useCallback((casoActualizado, evento) => {
     if (!casoActualizado?.id) return;
@@ -203,8 +207,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
                   {[
                     app.puede && { l: "Instalar la app", icono: "instalar", f: app.instalar },
                     { l: dark ? "Modo claro" : "Modo oscuro", icono: dark ? "sol" : "luna", f: onToggleDark },
-                    { l: "Cambiar contraseña", icono: "candado", f: () => setCambPwd(true) },
-                    { l: "Salir", icono: "salir", f: onLogout },
+                    !demo && { l: "Cambiar contraseña", icono: "candado", f: () => setCambPwd(true) },
+                    { l: demo ? "Salir de la demostración" : "Salir", icono: "salir", f: onLogout },
                   ].filter(Boolean).map(o => (
                     <button key={o.l} type="button" role="menuitem" onClick={() => { setMenu(false); o.f(); }}
                       style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", background: "none", border: "none", borderRadius: "var(--r-sm)", font: "inherit", fontSize: 14, color: T.text, cursor: "pointer", textAlign: "left" }}>
@@ -218,6 +222,14 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         </div>
       </header>
 
+      {demo && (
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "16px 16px 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: "color-mix(in srgb, var(--accent) 9%, var(--card))", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14 }}>
+              <span style={{ flex: "1 1 240px" }}><b>Demostración.</b> Así ves tus casos en el portal: en qué etapa está cada uno, los mensajes del estudio y cuándo cobra tu cliente. Los casos son inventados.</span>
+              <a href={linkWhatsApp(TELEFONO_ESTUDIO, TEXTO_ACCESO)} target="_blank" rel="noreferrer" className="btn-wa-grande" style={{ padding: "8px 14px", fontSize: 14 }}><Icono nombre="mensaje" size={15} /> Quiero mi acceso</a>
+            </div>
+        </div>
+      )}
       <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
         {/* Resumen del PAS */}
         <aside className="portal-resumen" style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 84 }}>
@@ -293,7 +305,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
               {q ? "Ningún caso coincide con la búsqueda." : { cobrados: "Todavía no hay casos cobrados.", desistidos: "No hay casos desistidos.", todos: "Todavía no hay casos." }[pestana] || "No hay casos en curso."}
             </div>
           ) : (
-            lista.map(c => <PortalCasoCard key={c.id} caso={c} pasNombre={pasInfo?.nombre} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
+            lista.map(c => <PortalCasoCard key={c.id} demo={demo} caso={c} pasNombre={pasInfo?.nombre} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
           )}
 
           {Object.keys(plazos).length >= 3 && (
@@ -310,7 +322,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
       </button>
 
       {cambPwd && <CambiarPasswordModal onClose={() => setCambPwd(false)} dark={dark} />}
-      {modalNuevoCaso && <NuevoCasoModal pasId={pasId} pasNombre={pasInfo?.nombre} casos={casos} onClose={() => setModalNuevoCaso(false)} onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev.filter(c => !c._demo)])} dark={dark} companias={companiasUnicas} />}
+      {modalNuevoCaso && <NuevoCasoModal demo={demo} pasId={pasId} pasNombre={pasInfo?.nombre} casos={casos} onClose={() => setModalNuevoCaso(false)} onCasoCreado={(nuevo) => setCasos(prev => [nuevo, ...prev.filter(c => !c._demo)])} dark={dark} companias={companiasUnicas} />}
     </div>
   );
 }

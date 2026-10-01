@@ -86,7 +86,7 @@
 - Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
 
 **Para mostrar la app (anotado 01/10):**
-- [ ] **Usuario de demostración**: login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
+- [x] ✅ **Usuario de demostración** → `/portal/demo` (01/10): login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
 - [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
 
 **Próximos pasos acordados (29/09):**
@@ -132,10 +132,18 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Demostración del portal de productores (/portal/demo)
+*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
+*   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.
+*   Reemplaza a las cuentas de prueba del portal (se borran a mano en Supabase → Authentication).
+*   Probado en Chromium (celular): sin pedidos a Supabase, ninguna mención a comisión, derivar avisa sin guardar.
+
 ### 2026-10-01 — Portal PAS: la comisión solo aparece si hay, y un solo "Próximos cobros"
 *   **Resumen del portal** (`PortalHome.jsx`): "Tu comisión cobrada" solo cuando hay comisión cobrada; "Por pagarte" solo si hay comisión pendiente. Un PAS sin comisiones cargadas no ve ninguna referencia a la comisión (en la tarjeta del caso ya se mostraba solo con monto). Se sacó la línea "Próximo cobro" del resumen: queda la tarjeta "Próximos cobros".
 *   Revisión del portal y la vista del cliente (01/10, decisiones del usuario): "Generar escrito" del portal queda (ya genera solo el reclamo extrajudicial). "Reclamado hace N días" pasa a "Reclamado · último movimiento hace N días": toma lo más nuevo entre la bitácora visible para el PAS y `fecha_ultimo_movimiento` / `fecha_ultimo_reclamo` (reiteraciones y próxima acción, que son internas). Patente y DNI siguen opcionales al derivar. Derivar con fotos y el mail al estudio ya están probados en uso real; "Olvidé mi contraseña" queda para más adelante.
 *   Probado en Chromium con Supabase simulado (PAS sin comisión: cero menciones; con comisión cobrada: aparece).
+
+
 
 ### 2026-10-01 — Contactos: el mail se registra antes de abrirse y chip "Para descartar"
 *   **Mail de presentación** (`PASCard.mandarMail`, `TabContactos`, `App.handleMailEnviado`): primero se guarda el contacto y recién después se abre Gmail (la pestaña se abre en el click y se cierra si falla) o el correo del celular. Si no se pudo guardar, aviso en la lista, el PAS queda y no se abre el mail. Si se guardó, el PAS aparece al instante en Contactados ("mail enviado"). `insertHistorialEntry` devuelve si se guardó.
