@@ -79,6 +79,12 @@
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
 ## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+**Expedientes para cargar (borrador del Drive, carpeta "Causas", 01/10)** — confirmar cuáles siguen en trámite y pasar número, juzgado y jurisdicción:
+- Civil: Dorta Vargas Sucesión · Sucesión Lescano / Perez · Bustos Joaquín c/ Sancor Salud · Gaveglio Quiebra · Salomone (ejecución de honorarios) · Vogel Valeria Sucesión · Venier Sucesión.
+- Familia: Cafardo Mariana · Godoy Lourdes · Alegre Irene Soledad c/ Rodas Jorge Gabriel s/ Alimentos · Cisternas Eyeralde Ramiro · Atala Micaela s/ Divorcio · Bogado Daiana Soledad.
+- Consumidor: Torres Gaveglio c/ BNA · Sanchez Guillermo c/ Telecom.
+- Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
+
 **Para mostrar la app (anotado 01/10):**
 - [ ] **Usuario de demostración**: login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
 - [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
@@ -130,6 +136,15 @@
 *   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sigue "Comisiones pagadas a PAS" (los PAS que ya tienen comisión la mantienen; solo no se ofrece a PAS nuevos). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
 *   **Compañías**: abre en "Con casos en curso"; "Ficha incompleta" cuenta solo las que tienen casos en curso (antes marcaba las 112); buscando aparecen todas.
 *   Probado en Chromium con Supabase simulado.
+
+### 2026-10-01 — Diagnóstico: Casos PAS, Clientes y gastos fijos
+*   **Casos PAS** (`TabCasos.jsx`): los 13 chips pasan a filtros que se combinan: Activos / Todos, **Etapa** en un selector, **Datos faltantes** (en curso sin DNI, sin teléfono o sin monto reclamado; $1 cuenta como faltante) y una segunda fila "A quién le toca" (Vos · Cliente · Compañía · Mediación / juicio; tocar de nuevo lo apaga). Con "Datos faltantes" cada fila dice qué falta y tocarla abre la ficha en Datos (o en Montos si solo falta el monto). Sale el chip "Sin DNI" (queda dentro de Datos faltantes).
+*   Decisiones del usuario (01/10): Mosca Doulay (AF948EU) es un reclamo a **dos compañías**, no un duplicado. Usa **Tabla**; el tablero le resulta incómodo (queda, sin cambios). El caso de prueba EKF078 va a la papelera (lo hace el usuario desde la app).
+*   **Clientes** (`TabClientes.jsx`): "Sin Pas" deja de figurar como PAS y se muestra arriba como **Casos directos** (sin comisión, portal ni resumen del mes). Chips Con casos (por defecto) / Sin casos / Todos; buscando aparecen todos.
+*   **Ritmo de derivación** (`estadisticasPas.js`): cuenta días distintos (varios casos el mismo día = una derivación; se acabó "cada 0 d") y la fecha de llegada es la derivación, o el inicio del reclamo, o el alta (`fechaLlegada`). Un PAS con casos sin ninguna fecha dice "sin fecha de derivación" en vez de "sin casos".
+*   **Finanzas → Gastos**: atajos "+ Matrícula" y "+ Suscripción a Claude" que abren el gasto ya armado como "se repite todos los meses"; solo falta el monto. Desaparecen cuando ya están cargados.
+*   **Expedientes**: no hay listado. En el Drive (carpeta "Causas") hay 18 carpetas que sirven de borrador; ver "Expedientes para cargar" en Pendientes.
+*   Probado en Chromium con Supabase simulado (filtros combinados, abrir en Datos/Montos, casos directos, ritmo, atajo de gasto fijo, 375 px).
 
 ### 2026-10-01 — Ficha del caso: ofertas en un solo lugar, Montos según la etapa, sin checklist
 *   **Ofertas**: se cargan solo en Montos → "Ofertas de la compañía" (se sacó "Último ofrecimiento"). Cargar una pasa el caso a Con ofrecimiento si estaba antes; pasar a Esperando pago (ficha, fila o tablero) deja **aceptada** la última sin responder y, si no hay monto acordado, lo completa con esa oferta (`aceptarUltimaPendiente` devuelve la oferta).

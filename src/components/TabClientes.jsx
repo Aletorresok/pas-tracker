@@ -2,7 +2,7 @@ import { Fragment, useState, useMemo, useEffect } from "react";
 import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
 import { fmtMoney, fmtDate, diasDesde, primerNombre, fechaLocalISO } from "../utils/formatters.js";
-import { estadisticasPas } from "../utils/estadisticasPas.js";
+import { estadisticasPas, fechaLlegada } from "../utils/estadisticasPas.js";
 import { linkWhatsApp } from "../utils/mensajes.js";
 import ResumenMensual from "./clientes/ResumenMensual.jsx";
 import { esActivo } from "../utils/metricas.js";
@@ -43,17 +43,21 @@ function ComisionPas({ pas, pct, onGuardado }) {
 }
 
 const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) || Number(c.monto_reclamado) || 0;
-const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
+const ultimoMov = c => c.fecha_ultimo_movimiento || fechaLlegada(c);
 const hace = iso => { if (!iso) return "—"; const d = diasDesde(iso); return d <= 0 ? "hoy" : `hace ${d} d`; };
 const linkWa = (tel, nombre) => linkWhatsApp(tel, `Hola ${primerNombre(nombre)}, ¿cómo estás?`) || "#";
+
+// "Sin Pas" es un PAS manual para los clientes que llegan directo al estudio: se muestra aparte, no como un PAS más
+const esDirecto = p => /^sin\s*pas$/i.test(String(p.nombre || "").trim());
 
 // Resumen de un PAS a partir de sus casos
 function resumir(p, lista) {
   return {
     ...p,
+    _directo: esDirecto(p),
     _casos: lista,
     _enCurso: lista.filter(esActivo).length,
-    _ultimo: lista.reduce((m, c) => (c.fecha_derivacion && c.fecha_derivacion > m ? c.fecha_derivacion : m), ""),
+    _ultimo: lista.reduce((m, c) => (fechaLlegada(c) > m ? fechaLlegada(c) : m), ""),
     _est: estadisticasPas(lista),
   };
 }
@@ -67,7 +71,7 @@ const COLUMNAS = [
 
 // "cada 30 d · último hace 5 d", o "Dormido" si pasó el doble de su ritmo sin derivar
 function Ritmo({ est }) {
-  if (!est.ultimo) return <span style={{ color: "var(--muted)" }}>sin casos</span>;
+  if (!est.ultimo) return <span style={{ color: "var(--muted)" }}>{est.total ? "sin fecha de derivación" : "sin casos"}</span>;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
       {est.dormido && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>Dormido</span>}
@@ -90,7 +94,7 @@ function InfoDelPas({ est }) {
 }
 
 // Contacto y casos de un PAS, dentro de la fila desplegada
-function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso, comision, onCambioComision }) {
+function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso, comision, onCambioComision }) {
   const casos = [...pas._casos].sort((a, b) => (esActivo(b) - esActivo(a)) || ultimoMov(b).localeCompare(ultimoMov(a)));
   const [resumen, setResumen] = useState(false);
   return (
@@ -106,12 +110,12 @@ function CasosDelPas({ pas, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, 
         {comision !== undefined && <ComisionPas pas={pas} pct={comision} onGuardado={onCambioComision} />}
         {tieneAcceso !== null && <AccesoPortal pas={pas} tieneAcceso={tieneAcceso} onCambio={onCambioAcceso} />}
         {pas.manual && <Boton tamaño="sm" variante="fantasma" onClick={onEditar}>Editar PAS</Boton>}
-        {casos.length > 0 && <Boton tamaño="sm" icono="mensaje" onClick={() => setResumen(r => !r)}>Resumen del mes</Boton>}
+        {casos.length > 0 && !directo && <Boton tamaño="sm" icono="mensaje" onClick={() => setResumen(r => !r)}>Resumen del mes</Boton>}
         <Boton tamaño="sm" variante="primario" icono="agregar" onClick={onNuevo}>Nuevo caso</Boton>
       </div>
 
       {resumen && <ResumenMensual pas={pas} casos={pas._casos} onCerrar={() => setResumen(false)} />}
-      <InfoDelPas est={pas._est} />
+      {!directo && <InfoDelPas est={pas._est} />}
 
       {casos.length === 0
         ? <div style={{ fontSize: 13, color: "var(--muted)", padding: "8px 0" }}>Todavía no derivó casos.</div>
@@ -150,6 +154,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   const esCelular = useEsCelular();
   const { companias, agregarCompania } = useCompanias(casos);
   const [busqueda, setBusqueda] = useState("");
+  const [mostrar, setMostrar] = useState("con"); // con | sin | todos (PAS con o sin casos)
   const [orden, setOrden] = useState({ k: "enCurso", desc: true });
   const [abiertoId, setAbiertoId] = useState(null);
   const [nuevoCasoPara, setNuevoCasoPara] = useState(null);
@@ -183,17 +188,22 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
     const derivs = pas.filter(p => derivadores[String(p.id)] && !manualesIds.has(String(p.id)));
     return [...derivs, ...pasManuales].map(p => resumir(p, casos[String(p.id)] || []));
   }, [pas, derivadores, pasManuales, casos]);
+  const directos = clientes.filter(p => p._directo);
+  const pasClientes = useMemo(() => clientes.filter(p => !p._directo), [clientes]);
+  const sinCasos = pasClientes.filter(p => !p._casos.length).length;
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    const lista = q ? clientes.filter(p => (p.nombre || "").toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q)) : clientes;
+    // Buscando, aparecen todos; si no, según el chip (por defecto, los que tienen casos)
+    const lista = q ? pasClientes.filter(p => (p.nombre || "").toLowerCase().includes(q) || (p.mail || "").toLowerCase().includes(q))
+      : pasClientes.filter(p => mostrar === "todos" || (mostrar === "con") === p._casos.length > 0);
     const col = COLUMNAS.find(c => c.k === orden.k);
     return [...lista].sort((a, b) => {
       const va = col.valor(a), vb = col.valor(b);
       const r = va < vb ? -1 : va > vb ? 1 : 0;
       return orden.desc ? -r : r;
     });
-  }, [clientes, busqueda, orden]);
+  }, [pasClientes, busqueda, mostrar, orden]);
 
   const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k !== "nombre" }));
   const alternar = id => setAbiertoId(a => (a === id ? null : id));
@@ -232,22 +242,22 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   }));
 
   const desplegado = p => (
-    <CasosDelPas pas={p} esCelular={esCelular}
-      tieneAcceso={conPortal ? conPortal.has(String(p.id)) : null} onCambioAcceso={recargarPortal}
-      comision={comisiones === null ? undefined : (comisiones[String(p.id)] ?? null)} onCambioComision={recargarComisiones}
+    <CasosDelPas pas={p} directo={p._directo} esCelular={esCelular}
+      tieneAcceso={conPortal && !p._directo ? conPortal.has(String(p.id)) : null} onCambioAcceso={recargarPortal}
+      comision={comisiones === null || p._directo ? undefined : (comisiones[String(p.id)] ?? null)} onCambioComision={recargarComisiones}
       onAbrir={c => setFicha({ caso: c, pasId: String(p.id) })}
       onNuevo={() => setNuevoCasoPara(p)}
       onEditar={() => setPasEditando(p)} />
   );
 
   const totalEnCurso = clientes.reduce((s, p) => s + p._enCurso, 0);
-  const conCasos = clientes.filter(p => p._casos.length > 0).length;
+  const conCasos = pasClientes.filter(p => p._casos.length > 0).length;
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Clientes</h1>
-        <span style={{ fontSize: 13, color: "var(--muted)" }}>{clientes.length} PAS · {conCasos} con casos · {totalEnCurso} casos en curso</span>
+        <span style={{ fontSize: 13, color: "var(--muted)" }}>{pasClientes.length} PAS · {conCasos} con casos · {totalEnCurso} casos en curso</span>
       </header>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -263,13 +273,35 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
 
       {error && <div role="alert" style={{ color: "var(--bad)", fontSize: 13 }}>{error}</div>}
 
+      {/* Clientes que llegaron directo (sin PAS): aparte de la lista de PAS */}
+      {directos.map(p => (
+        <div key={p.id} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
+          <button type="button" onClick={() => alternar(p.id)} {...menuPas(p)} aria-expanded={abiertoId === p.id} className="fila-caso"
+            style={{ width: "100%", display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", padding: "12px 14px", background: abiertoId === p.id ? "var(--card2)" : "none", border: "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
+            <span style={{ fontSize: 15, fontWeight: 600 }}>Casos directos</span>
+            <span style={{ fontSize: 13, color: "var(--muted)" }}>clientes que llegaron sin PAS</span>
+            <span style={{ flex: 1 }} />
+            <span className="num" style={{ fontSize: 13, color: "var(--sub)" }}><b style={{ color: "var(--text)" }}>{p._enCurso}</b> en curso · {p._casos.length} {p._casos.length === 1 ? "caso" : "casos"}</span>
+          </button>
+          {abiertoId === p.id && <div style={{ background: "var(--card2)", borderTop: "1px solid var(--border)" }}>{desplegado(p)}</div>}
+        </div>
+      ))}
+
+      {pasClientes.length > 0 && !busqueda.trim() && (
+        <div className="chips">
+          {[["con", "Con casos", conCasos], ["sin", "Sin casos", sinCasos], ["todos", "Todos", pasClientes.length]].filter(([k, , n]) => k !== "sin" || n > 0).map(([k, l, n]) => (
+            <button key={k} type="button" className="chip" aria-pressed={mostrar === k} onClick={() => setMostrar(k)}>{l} <b className="num">{n}</b></button>
+          ))}
+        </div>
+      )}
+
       {clientes.length === 0 && (
         <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--sub)", fontSize: 14, lineHeight: 1.6 }}>
           <Ilustracion nombre="carpeta" size={88} style={{ margin: "0 auto 8px" }} />
           Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Contactos o agregalo con "PAS manual".
         </div>
       )}
-      {clientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>Ningún PAS coincide con la búsqueda.</div>}
+      {pasClientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>{busqueda.trim() ? "Ningún PAS coincide con la búsqueda." : "No hay PAS en este grupo."}</div>}
 
       {/* Celular: filas de dos líneas */}
       {esCelular && filtrados.length > 0 && (

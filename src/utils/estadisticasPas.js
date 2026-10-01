@@ -21,11 +21,16 @@ const pct = (n, total) => (total ? Math.round((n / total) * 100) : null);
 export const MIN_CASOS_RITMO = 3;
 const MIN_DIAS_DORMIDO = 45;
 
+// Día en que llegó el caso: la derivación; si no se cargó, el inicio del reclamo o el alta en la base
+export const fechaLlegada = c => aISO(c.fecha_derivacion || c.fecha_inicio_reclamo || c.created_at);
+
 export function estadisticasPas(casos, hoy = new Date()) {
   const hoyISO = fechaLocalISO(hoy);
-  const fechas = casos.map(c => aISO(c.fecha_derivacion)).filter(Boolean).sort();
-  const intervalos = fechas.slice(1).map((f, i) => dias(fechas[i], f)).filter(d => d !== null && d >= 0);
-  const ritmo = fechas.length >= MIN_CASOS_RITMO ? mediana(intervalos) : null;
+  const fechas = casos.map(fechaLlegada).filter(Boolean).sort();
+  // El ritmo se calcula con días distintos: varios casos el mismo día cuentan como una derivación ("cada 0 d" no dice nada)
+  const dias1 = [...new Set(fechas)];
+  const intervalos = dias1.slice(1).map((f, i) => dias(dias1[i], f)).filter(d => d !== null && d >= 0);
+  const ritmo = dias1.length >= MIN_CASOS_RITMO ? mediana(intervalos) : null;
   const ultimo = fechas[fechas.length - 1] || "";
   const diasDesdeUltimo = ultimo ? dias(ultimo, hoyISO) : null;
   const umbralDormido = ritmo !== null ? Math.max(ritmo * 2, MIN_DIAS_DORMIDO) : null;
