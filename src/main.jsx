@@ -6,6 +6,7 @@ import App from './App.jsx'
 import { lazy, Suspense } from 'react'
 const Portal = lazy(() => import('./Portal.jsx'))
 import { MenuHost } from './components/ui/MenuContextual.jsx'
+import AtrapaErrores from './components/ui/AtrapaErrores.jsx'
 
 // Importamos el proveedor del tema global
 import { ThemeProvider } from './context/ThemeContext.jsx'
@@ -19,12 +20,14 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/portal/*" element={<Suspense fallback={null}><Portal /></Suspense>} />
-          <Route path="/*" element={<App />} />
-        </Routes>
-      </BrowserRouter>
+      <AtrapaErrores>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/portal/*" element={<Suspense fallback={null}><Portal /></Suspense>} />
+            <Route path="/*" element={<App />} />
+          </Routes>
+        </BrowserRouter>
+      </AtrapaErrores>
       <MenuHost />
     </ThemeProvider>
   </StrictMode>,

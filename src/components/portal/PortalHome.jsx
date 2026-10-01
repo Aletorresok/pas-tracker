@@ -122,7 +122,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     });
   }, [session]);
 
-  const handleRealtimeUpdate = useCallback((casoActualizado) => {
+  const handleRealtimeUpdate = useCallback((casoActualizado, evento) => {
+    if (!casoActualizado?.id) return;
+    if (evento === "DELETE") { setCasos(prev => prev.filter(c => c.id !== casoActualizado.id)); return; }
     setCasos(prev => {
       const index = prev.findIndex(c => c.id === casoActualizado.id);
       if (index !== -1) {

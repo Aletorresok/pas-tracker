@@ -121,6 +121,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Arreglo de errores (compañías, pantalla en blanco, ficha del caso)
+*   **SQL 39** (`sql/2026-10-01_39_auditoria_sin_id.sql`, **correr a mano**): el trigger de auditoría del SQL 31 sacaba `fila_id` de la columna `id`, que `pas_companias` no tiene → **todo guardado de una compañía fallaba** ("null value in column fila_id"). Ahora usa `id`, o `compania`, o `pas_id`. Verificado en vivo antes del arreglo.
+*   **Pantalla en blanco**: `vite.config.js` pasa de `base: './'` a `base: '/'` (con `./assets/…`, entrar a `/portal/` con barra final pedía `/portal/assets/…` y Vercel devolvía el HTML). `vercel.json` ya no reescribe `/assets/*` a `index.html` (un archivo de una versión vieja da 404 real). Nuevo `ui/AtrapaErrores.jsx`: envuelve toda la app y cada pestaña (se limpia al cambiar de pestaña); si falta un archivo de una versión anterior (deploy con la app abierta) recarga sola una vez por minuto; si no, muestra "Algo falló" con Reintentar / Recargar.
+*   **Ficha del caso**: el realtime se re-suscribía en cada render (`hooks/useRealtimeSync.js` ahora guarda el callback en una ref y pasa el evento). El eco del propio guardado pisaba lo que se estaba escribiendo y, como el autoguardado comparaba contra cómo se abrió la ficha, se re-guardaba cada 2,5 s mientras estaba abierta. Ahora compara contra lo último guardado (`guardadoRef`) y el realtime solo actualiza el formulario si no hay cambios sin guardar.
+*   **Portal PAS**: borrar un caso agregaba una tarjeta vacía en la lista del productor (el realtime del DELETE). Ahora la saca.
+
 ### 2026-09-29 — Cierre de la semana del plan de funciones
 *   Publicado en `main` todo el plan: fases 0 (links `?abrir=` y Mis datos), 1 (auditoría), 2 (escritos con modelos, PDF y Word), 3 (plazos del catálogo y aviso de fatales), 4 (calendario en el celular), 5 (novedades y vista del cliente de expedientes), 6 (neto por caso, gastos a recuperar, liquidaciones) y 7a (bandeja PJN/MEV manual). **7b descartada.**
 *   Control de SQL 34, 35 y 36 (en el SQL Editor; tiene que dar todo `true`):

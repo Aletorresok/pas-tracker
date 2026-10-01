@@ -11,7 +11,7 @@ const VENDOR = [
 
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/',
   build: {
     rollupOptions: {
       output: {

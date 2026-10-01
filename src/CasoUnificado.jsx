@@ -97,13 +97,16 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {})
   });
 
-  const initialFormRef = useRef(JSON.stringify(formData));
+  // Lo último que quedó guardado en la base: el autoguardado compara contra esto (no contra cómo se abrió la ficha)
+  const guardadoRef = useRef(JSON.stringify(formData));
+  const formDataRef = useRef(formData);
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
   const autoSaveTimerRef = useRef(null);
   const guardarCasoRef = useRef(null);
 
   useEffect(() => {
     const current = JSON.stringify(formData);
-    if (current === initialFormRef.current) return;
+    if (current === guardadoRef.current) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => { guardarCasoRef.current?.(); }, 2500);
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
@@ -121,7 +124,19 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     return escucharRecepcion(cargar);
   }, [caso.id]);
 
-  useRealtimeSync("pas_casos", "id", caso.id, (dato) => { setCaso(dato); setFormData(p => ({ ...p, ...dato })); });
+  // Cambios de la base (otro dispositivo o el eco del propio guardado). Si hay algo escrito sin guardar,
+  // gana lo que estás escribiendo; si no, se toman los valores nuevos sin disparar otro guardado.
+  useRealtimeSync("pas_casos", "id", caso.id, (dato, evento) => {
+    if (evento === "DELETE" || !dato?.id) return;
+    setCaso(c => ({ ...c, ...dato }));
+    const actual = formDataRef.current;
+    if (JSON.stringify(actual) !== guardadoRef.current) return;
+    const nuevo = { ...actual };
+    for (const k of Object.keys(actual)) if (k in dato) nuevo[k] = dato[k] === null && typeof actual[k] === "string" ? "" : dato[k];
+    guardadoRef.current = JSON.stringify(nuevo);
+    formDataRef.current = nuevo;
+    setFormData(nuevo);
+  });
   useRealtimeAcciones(caso.id, () => { cargarAcciones(); });
 
   const cargarAcciones = async () => {
@@ -174,6 +189,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const guardarCaso = useCallback(async () => {
     setGuardando(true);
     setEstadoGuardado("guardando");
+    const enviado = JSON.stringify(formData);
     try {
       const updated = { ...caso, ...formData, id: caso.id || generateUUID(), caso_id: caso.caso_id || Date.now(), pas_id: parseInt(pasId, 10), estado_honorarios: estadoHonorarios(formData), monto_honorarios: formData.monto_cobro_yo || null };
       const fila = pickCols(updated);
@@ -185,6 +201,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("nro_factura" in casoProp)) { delete fila.nro_factura; delete fila.hilo_gmail; }
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) {
+        guardadoRef.current = enviado;
         // Ofrecimiento nuevo cargado a mano: el anterior queda en el historial de ofertas
         if (Number(updated.monto_ofrecimiento) && Number(updated.monto_ofrecimiento) !== Number(caso.monto_ofrecimiento)) registrarCambioOfrecimiento(caso, updated.monto_ofrecimiento, fechaLocalISO()).then(ok => ok && setVersionOfertas(v => v + 1));
         setCaso(updated); setEstadoGuardado("guardado"); setVersionAuditoria(v => v + 1); onUpdate?.(updated);
