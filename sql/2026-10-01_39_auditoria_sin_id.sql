@@ -40,8 +40,6 @@ begin
   return coalesce(new, old);
 end $fn$;
 
--- Control: guardar una compañía de prueba y borrarla (tiene que devolver 1 y no dar error)
-begin;
-insert into public.pas_companias (compania) values ('__prueba_sql_39__') on conflict (compania) do nothing;
-select count(*) as auditada_1 from public.auditoria where tabla = 'pas_companias' and fila_id = '__prueba_sql_39__';
-rollback;
+-- Control (sin tocar datos): tiene que dar true. Ojo: no usar begin/rollback acá, el SQL Editor corre
+-- todo como una sola transacción y un rollback deshace también el arreglo (pasó el 01/10).
+select position('compania' in prosrc) > 0 as arreglo_activo from pg_proc where proname = 'auditar';
