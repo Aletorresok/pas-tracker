@@ -91,7 +91,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     // Con acuerdo y sin plazo cargado, el plazo de pago de la compañía
     if (nuevo === "esperando_pago" && !Number(actual.plazo_pago) && plazoCompania) fechas.plazo_pago = plazoCompania;
     Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
-    registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo));
+    registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo), { visiblePas: true });
     setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
     cambiar("estado", nuevo);
   };

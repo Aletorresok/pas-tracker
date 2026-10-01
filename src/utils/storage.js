@@ -255,10 +255,11 @@ export async function posponerAccion(caso, vence) {
   return cambios;
 }
 
-// Deja una nota en la bitácora del caso (la ve también el PAS en "Movimientos"). Devuelve true si se guardó.
-export async function registrarAccion(casoId, descripcion) {
+// Deja una nota en la bitácora del caso. Interna por defecto (SQL 43); con visiblePas la ve también el PAS en su portal
+// (cambios de etapa y lo que se carga a mano). Devuelve true si se guardó.
+export async function registrarAccion(casoId, descripcion, { visiblePas = false } = {}) {
   if (!casoId) return false;
-  const { error } = await supabase.from("acciones").insert({ caso_id: casoId, tipo: "nota", fecha: new Date().toISOString(), descripcion });
+  const { error } = await supabase.from("acciones").insert({ caso_id: casoId, tipo: "nota", fecha: new Date().toISOString(), descripcion, ...(visiblePas ? { visible_pas: true } : {}) });
   if (error) { console.error("[registrarAccion]", error); return false; }
   return true;
 }

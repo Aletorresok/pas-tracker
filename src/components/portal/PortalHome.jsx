@@ -94,7 +94,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
 
       if (casosData?.length) {
         const casoIds = casosData.map(c => c.id);
-        const { data: accionesData } = await supabase.from("acciones").select("*").in("caso_id", casoIds).order("fecha", { ascending: false });
+        const { data: accionesData } = await supabase.from("acciones").select("*").eq("visible_pas", true).in("caso_id", casoIds).order("fecha", { ascending: false });
         const accionesPorCaso = {};
         (accionesData || []).forEach(a => {
           if (!accionesPorCaso[a.caso_id]) accionesPorCaso[a.caso_id] = [];

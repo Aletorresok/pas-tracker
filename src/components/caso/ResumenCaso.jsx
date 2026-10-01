@@ -116,7 +116,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
             <div key={a.id} role="button" tabIndex={0} title="Tocá para editar el texto o la fecha" onClick={() => onEditarAccion?.(a)} onKeyDown={e => { if (e.key === "Enter") onEditarAccion?.(a); }}
               style={{ display: "grid", gridTemplateColumns: "72px minmax(0, 1fr)", gap: 8, padding: "6px 0", borderTop: `1px solid ${Th.border}`, fontSize: 13, cursor: "pointer" }}>
               <span className="num" style={{ color: Th.muted }}>{formatoFecha(diaDeAccion(a.fecha))}</span>
-              <span style={{ color: Th.sub }}>{a.descripcion}</span>
+              <span style={{ color: Th.sub }}>{a.descripcion}{a.visible_pas === false && <span style={{ color: Th.muted, fontSize: 11, fontWeight: 600 }}> · interno</span>}</span>
             </div>
           ))}
         </div>

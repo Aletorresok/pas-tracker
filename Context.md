@@ -121,6 +121,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Qué ve el PAS de la bitácora (SQL 43)
+*   **SQL 43** (`sql/2026-10-01_43_bitacora_visible_pas.sql`, correr a mano **antes** del deploy): `acciones.visible_pas` (por defecto interno) + clasificación de lo cargado (visibles: cambios de etapa y lo manual; internos: "Hecho: …", reiteraciones, ofertas, agenda, escritos/PDF, carpetas, archivos renombrados, expedientes) + política `pas_ve_movimientos` que solo deja leer los visibles.
+*   Código: `registrarAccion(casoId, texto, { visiblePas })` (interno por defecto); los cambios de etapa (ficha, fila de Casos, tablero) y lo cargado a mano van visibles. En la Bitácora, "Lo ve el PAS" en el editor y la marca "Interno · no lo ve el PAS"; en Resumen, "· interno". El portal filtra `visible_pas` (así el administrador ve lo mismo que el PAS).
+
 ### 2026-10-01 — Hora de Argentina en toda la app y bitácora editable desde Resumen
 *   **Hora de Argentina siempre** (`America/Argentina/Buenos_Aires`, aunque el dispositivo esté en otra zona): `formatters.js` → `ZONA_AR`, `partesAR`, `instanteAR`, `diasEntreFechas`; `fechaLocalISO()` = hoy en Argentina; `sumarDias`, `diasHasta`, `diasDesde`, `fechaEnDias` cuentan días de calendario sin horas. `main.jsx` hace que todo `toLocaleDateString/TimeString/String` use esa zona y 24 h. Agenda (`armarInicio`, `fechaDe`, `horaDe`, Google Calendar), rutina (`minutosAhora`), Cambios de datos y los `toISOString().slice(0, 10)` (fecha de derivación del portal, alta de caso, backups, índices) pasaron a hora de Argentina.
 *   **Bitácora**: los movimientos automáticos se guardan con hora UTC y se mostraban cortando la fecha: lo hecho después de las 21 h figuraba al día siguiente (también en el portal del PAS y en la vista del cliente). `diaDeAccion(fecha)` da el día de Argentina (las fechas elegidas a mano, 00:00 UTC, se toman tal cual).
