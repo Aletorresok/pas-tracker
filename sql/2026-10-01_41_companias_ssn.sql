@@ -1,0 +1,87 @@
+-- SQL 41 · Directorio de compañías desde el listado de la SSN (2026-10-01). Correr después del 39 y el 40; después, el 41b.
+-- Se puede volver a correr. Solo completa razón social y CUIT si están vacíos: no pisa lo cargado a mano.
+-- Fuente: Aseguradoras_SSN.xlsx (SSN, consulta de entidades y Datos Abiertos a 12/2025). Solo Seguros Generales,
+-- Transporte Público y "Todas" (sin ART, vida, retiro, sepelio, caución ni crédito), más las compañías que ya tienen casos.
+-- La razón social queda como en la SSN (es la que va en escritos y cartas documento).
+
+-- Compañías que ya tienen casos (26)
+insert into public.pas_companias (compania, razon_social, cuit) values
+  ('Agrosalta', 'AGROSALTA COOPERATIVA DE SEGUROS LIMITADA', '30-50006485-0'),
+  ('Allianz Seguros', 'ALLIANZ ARGENTINA COMPAÑIA DE SEGUROS S.A.', '30-50003721-7'),
+  ('Antartida', 'ANTARTIDA COMPAÑÍA ARGENTINA DE SEGUROS SOCIEDAD ANÓNIMA', '30-50005130-9'),
+  ('ATM Seguros', 'ATM COMPAÑÍA DE SEGUROS S.A.', '30-69940815-4'),
+  ('La Caja', 'CAJA DE SEGUROS S.A.', '30-66320562-1'),
+  ('El Norte Seguros', 'COMPAÑÍA DE SEGUROS EL NORTE SOCIEDAD ANONIMA', '30-50004045-5'),
+  ('Mercantil Andina', 'COMPAÑIA DE SEGUROS LA MERCANTIL ANDINA SOCIEDAD ANONIMA', '30-50003691-1'),
+  ('Digna Seguros', 'DIGNA SEGUROS S.A.', '30-71214858-2'),
+  ('Federación Patronal', 'FEDERACIÓN PATRONAL SEGUROS S.A.U.', '33-70736658-9'),
+  ('La Holando', 'LA HOLANDO SUDAMERICANA COMPAÑIA DE SEGUROS SOCIEDAD ANONIMA', '33-50003806-9'),
+  ('La Segunda', 'LA SEGUNDA COOPERATIVA LIMITADA DE SEGUROS GENERALES', '30-50001770-4'),
+  ('Libra Seguros', 'LIBRA COMPAÑIA ARGENTINA DE SEGUROS S.A.', '30-71233282-0'),
+  ('Mapfre', 'MAPFRE ARGENTINA SEGUROS S.A.', '30-50000753-9'),
+  ('Nacion Seguros', 'NACIÓN SEGUROS S.A.', '30-67856116-5'),
+  ('Parana Seguros', 'PARANÁ SOCIEDAD ANONIMA DE SEGUROS', '30-50005710-2'),
+  ('PROF Seguros', 'PRODUCTORES DE FRUTAS ARGENTINAS COOPERATIVA DE SEGUROS LIMITADA', '30-50005918-0'),
+  ('Proteccion Mutual', 'PROTECCIÓN MUTUAL DE SEGUROS DEL TRANSPORTE PÚBLICO DE PASAJEROS', '30-69450569-0'),
+  ('Prudencia Seguros', 'PRUDENCIA COMPAÑIA ARGENTINA DE SEGUROS GENERALES SOCIEDAD ANÓNIMA', '30-50004359-4'),
+  ('Rio Uruguay Seguros', 'RÍO URUGUAY COOPERATIVA DE SEGUROS LIMITADA', '30-50006171-1'),
+  ('San Cristobal', 'SAN CRISTÓBAL SOCIEDAD MUTUAL DE SEGUROS GENERALES', '34-50004533-9'),
+  ('Sancor Seguros', 'SANCOR COOPERATIVA DE SEGUROS LIMITADA', '30-50004946-0'),
+  ('Rivadavia Seguros', 'SEGUROS BERNARDINO RIVADAVIA COOPERATIVA LIMITADA', '30-50005031-0'),
+  ('Galicia Seguros', 'SEGUROS GALICIA S.A.', '30-50000012-7'),
+  ('SMG Seguros', 'SMG COMPAÑÍA ARGENTINA DE SEGUROS SAU', '30-50003196-0'),
+  ('Triunfo Seguros', 'TRIUNFO COOPERATIVA DE SEGUROS LIMITADA', '30-50006577-6'),
+  ('Zurich', 'ZURICH ARGENTINA COMPAÑIA DE SEGUROS SOCIEDAD ANONIMA', '30-50004977-0')
+on conflict (compania) do update set
+  razon_social = coalesce(nullif(pas_companias.razon_social, ''), excluded.razon_social),
+  cuit         = coalesce(nullif(pas_companias.cuit, ''), excluded.cuit);
+
+-- Nuevas, de la A a la L (44)
+insert into public.pas_companias (compania, razon_social, cuit) values
+  ('Alba Seguros', 'ALBA COMPAÑÍA ARGENTINA DE SEGUROS SOCIEDAD ANONIMA', '33-50005703-9'),
+  ('Argos (Transporte)', 'ARGOS MUTUAL DE SEGUROS DEL TRANSPORTE PÚBLICO DE PASAJEROS', '30-69616420-3'),
+  ('Argos Seguros', 'ARGOS COMPAÑÍA ARGENTINA DE SEGUROS GENERALES SOCIEDAD ANÓNIMA', '30-50005079-5'),
+  ('Aseguradora de Créditos y Garantías', 'ASEGURADORA DE CREDITOS Y GARANTIAS SOCIEDAD ANONIMA', '30-50006447-8'),
+  ('Aseguradora del Sur', 'COMPAÑÍA ASEGURADORA DEL SUR S.A.', '30-71217814-7'),
+  ('Aseguradores de Cauciones', 'ASEGURADORES DE CAUCIONES SOCIEDAD ANONIMA COMPAÑIA DE SEGUROS', '30-51891934-9'),
+  ('Assekuransa Seguros', 'ASSEKURANSA COMPAÑÍA DE SEGUROS SOCIEDAD ANÓNIMA', '30-70954103-6'),
+  ('Assurant Seguros', 'ASSURANT ARGENTINA COMPAÑÍA DE SEGUROS SOCIEDAD ANÓNIMA', '30-50004540-6'),
+  ('Barbuss Risk', 'BARBUSS RISK SEGUROS (ARGENTINA) S.A.', '30-50001701-1'),
+  ('BBVA Seguros', 'BBVA SEGUROS ARGENTINA S.A.', '30-50006423-0'),
+  ('Beneficio Seguros', 'BENEFICIO S.A. COMPAÑIA DE SEGUROS', '30-68082752-0'),
+  ('Berkley', 'BERKLEY INTERNATIONAL SEGUROS SOCIEDAD ANONIMA', '30-50003578-8'),
+  ('BHN Seguros', 'BHN SEGUROS GENERALES S.A.', '30-69350418-6'),
+  ('Caja Popular Tucumán', 'CAJA POPULAR DE AHORROS DE LA PROVINCIA DE TUCUMAN', '30-51799955-1'),
+  ('Caminos Protegidos Seguros', 'CAMINOS PROTEGIDOS COMPAÑÍA DE SEGUROS S.A.', '30-50004335-7'),
+  ('Caruso Seguros', 'CARUSO COMPAÑÍA ARGENTINA DE SEGUROS SOCIEDAD ANÓNIMA', '30-51830942-7'),
+  ('Chubb Seguros', 'CHUBB SEGUROS ARGENTINA S.A.', '30-50001626-0'),
+  ('CNP Seguros', 'CNP ASSURANCES COMPAÑIA DE SEGUROS S.A.', '30-68240862-2'),
+  ('Colón Seguros', 'COLON COMPAÑÍA DE SEGUROS SOCIEDAD ANONIMA', '30-71249764-1'),
+  ('Comarseg Seguros', 'COMARSEG COMPAÑIA ARGENTINA DE SEGUROS S.A.', '33-71124698-9'),
+  ('Compañía Mercantil Aseguradora', 'COMPAÑÍA MERCANTIL ASEGURADORA SOCIEDAD ANONIMA ARGENTINA DE SEGUROS', '30-50003219-3'),
+  ('Confluencia Seguros', 'CONFLUENCIA COMPAÑIA DE SEGUROS S.A.', '30-71141606-0'),
+  ('Cooperación Seguros', 'COOPERACION MUTUAL PATRONAL SOCIEDAD MUTUAL DE SEGUROS GENERALES', '30-50004717-4'),
+  ('Copan Seguros', 'COPAN COOPERATIVA DE SEGUROS LIMITADA', '30-50005192-9'),
+  ('Cosena Seguros', 'COSENA SEGUROS S.A.', '30-70720188-2'),
+  ('Edificar Seguros', 'EDIFICAR SEGUROS SOCIEDAD ANÓNIMA', '30-62083317-3'),
+  ('El Progreso Seguros', 'EL PROGRESO SEGUROS SOCIEDAD ANONIMA', '30-70182972-3'),
+  ('El Surco Seguros', 'EL SURCO COMPAÑÍA DE SEGUROS SOCIEDAD ANONIMA', '30-50003943-0'),
+  ('Euroamerica Seguros', 'COMPAÑIA DE SEGUROS EUROAMERICA S.A.', '30-50004991-6'),
+  ('Evolución Seguros', 'EVOLUCIÓN SEGUROS S.A.', '30-50005062-0'),
+  ('Experta', 'EXPERTA SEGUROS S.A.', '30-71459054-1'),
+  ('Fianzas y Crédito', 'FIANZAS Y CREDITO S. A. COMPAÑIA DE SEGUROS', '30-50005505-3'),
+  ('Finisterre Seguros', 'ASEGURADORA DEL FINISTERRE COMPAÑÍA ARGENTINA DE SEGUROS S.A.', '30-71234029-7'),
+  ('Galeno Seguros', 'GALENO SEGUROS S.A.', '30-71439519-6'),
+  ('Galicia Seguros SAU', 'GALICIA SEGUROS SAU', '30-68714552-2'),
+  ('Garantía Seguros', 'GARANTÍA MUTUAL DE SEGUROS DEL TRANSPORTE PÚBLICO DE PASAJEROS', '30-69685783-7'),
+  ('Gestión Seguros', 'GESTION COMPAÑÍA ARGENTINA DE SEGUROS S.A.', '30-71483881-0'),
+  ('Hamburgo Seguros', 'HAMBURGO COMPAÑIA DE SEGUROS SOCIEDAD ANONIMA', '30-50005758-7'),
+  ('Hanseatica Seguros', 'HANSEATICA COMPAÑIA DE SEGUROS SOCIEDAD ANÓNIMA', '30-71023374-4'),
+  ('Horizonte Seguros', 'HORIZONTE COMPAÑIA ARGENTINA DE SEGUROS GENERALES SOCIEDAD ANÓNIMA', '30-50005208-9'),
+  ('IAPSER', 'INSTITUTO AUTÁRQUICO PROVINCIAL DEL SEGURO', '30-50005550-9'),
+  ('Instituto Asegurador Mercantil', 'INSTITUTO ASEGURADOR MERCANTIL COMPAÑIA ARGENTINA DE SEGUROS SOCIEDAD ANÓNIMA IAM', '30-50006324-2'),
+  ('Instituto de Seguros', 'INSTITUTO DE SEGUROS SOCIEDAD ANÓNIMA', '30-70725048-4'),
+  ('Integrity', 'INTÉGRITY SEGUROS ARGENTINA S.A.', '30-70496198-3')
+on conflict (compania) do update set
+  razon_social = coalesce(nullif(pas_companias.razon_social, ''), excluded.razon_social),
+  cuit         = coalesce(nullif(pas_companias.cuit, ''), excluded.cuit);
