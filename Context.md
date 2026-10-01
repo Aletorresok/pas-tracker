@@ -121,6 +121,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Directorio de compañías desde la SSN (SQL 41 y 41b)
+*   `sql/2026-10-01_41_companias_ssn.sql` + `41b` (correr a mano, en orden 39 → 40 → 41 → 41b): razón social y CUIT de las 26 compañías con casos y 86 nuevas, del listado `Aseguradoras_SSN.xlsx` (SSN, Datos Abiertos a 12/2025). Solo Seguros Generales, Transporte Público y "Todas". No pisa razón social ni CUIT cargados. La razón social queda como en la SSN. Domicilios, mails y teléfonos: pendientes (la SSN pide reCAPTCHA por compañía).
+*   Nombres cortos de las nuevas: los de `COMPANIAS_CONOCIDAS` cuando coinciden; "(Transporte)" para mutuales de transporte público homónimas; "Galicia Seguros" = SEGUROS GALICIA S.A. (30-50000012-7, la de las facturas) y "Galicia Seguros SAU" la otra.
+
 ### 2026-10-01 — Compañías: CUIT, fichas que faltaban y notas (SQL 40)
 *   **SQL 40** (`sql/2026-10-01_40_companias_cuit.sql`, correr a mano; requiere el 39): crea la ficha de cada compañía que aparece en los casos (26), carga el CUIT de 17 (sacados de las facturas de ARCA, dígito verificador controlado; no pisa uno cargado) y borra `legal_domicilio`, `legal_cp`, `legal_localidad`, `legal_provincia` (sin uso).
 *   **Ficha de la compañía**: nueva sección **Notas** (`pas_companias.notas`, texto largo que se guarda al salir del campo): cómo se reclama, qué documentación piden, a quién llamar.
