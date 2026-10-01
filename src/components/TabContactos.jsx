@@ -129,6 +129,14 @@ export default function TabContactos({
   // Contactar o marcar derivador suma el contacto a los que la app mantiene cargados
   const porId = useMemo(() => Object.fromEntries(visibles.map(p => [String(p.id), p])), [visibles]);
   const contactar = (p) => { onAgregarPas?.(p); onContactar(p); };
+  // Mail: si quedó registrado, el PAS pasa a los cargados (aparece ya en Contactados); si no, se avisa y queda en la lista
+  const mandarMail = async (p) => {
+    setError("");
+    const ok = await onMailEnviado(p);
+    if (ok) onAgregarPas?.(p);
+    else setError(`No se pudo registrar el mail a ${p.nombre || "este PAS"}, así que no se abrió. Probá de nuevo.`);
+    return ok;
+  };
   const toggleDerivador = (id) => { if (porId[String(id)]) onAgregarPas?.(porId[String(id)]); onToggleDerivador(id); };
 
   const iStyle = {
@@ -222,7 +230,7 @@ export default function TabContactos({
           historial={historial}
           derivadores={derivadores}
           onContactar={contactar}
-          onMail={onMailEnviado}
+          onMail={mandarMail}
           mailBloqueado={mailsHoy >= MAILS_POR_DIA}
           onToggleDerivador={toggleDerivador}
           onToggleDescartado={onToggleDescartado}

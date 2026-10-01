@@ -126,6 +126,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Contactos: el mail se registra antes de abrirse y chip "Para descartar"
+*   **Mail de presentación** (`PASCard.mandarMail`, `TabContactos`, `App.handleMailEnviado`): primero se guarda el contacto y recién después se abre Gmail (la pestaña se abre en el click y se cierra si falla) o el correo del celular. Si no se pudo guardar, aviso en la lista, el PAS queda y no se abre el mail. Si se guardó, el PAS aparece al instante en Contactados ("mail enviado"). `insertHistorialEntry` devuelve si se guardó.
+*   Dato del 01/10: los mails sí quedaban registrados (consulta en `pas_historial`: 31 el 29/09, 9 el 30/09). Que un PAS "vuelva" al día siguiente tiene otra causa, en revisión (posible: el mismo mail en varios contactos del Excel).
+*   **Contactados → "Para descartar"**: contactados hace más de 60 días que no derivaron, no están descartados ni quedaron como interesados. Botón "Descartar los N" (confirma y deja "Deshacer") y de a uno como siempre. `App.handleDescartarVarios(ids, valor)`.
+*   Probado en Chromium con Supabase simulado (falla y éxito del registro, descarte en bloque y deshacer).
+
 ### 2026-10-01 — Ficha del caso: ofertas en un solo lugar, Montos según la etapa, sin checklist
 *   **Ofertas**: se cargan solo en Montos → "Ofertas de la compañía" (se sacó "Último ofrecimiento"). Cargar una pasa el caso a Con ofrecimiento si estaba antes; pasar a Esperando pago (ficha, fila o tablero) deja **aceptada** la última sin responder y, si no hay monto acordado, lo completa con esa oferta (`aceptarUltimaPendiente` devuelve la oferta).
 *   **Fila rápida de Casos PAS**: "Ofrecido" ya no se autoguarda con cada tecla; al salir del campo (o Enter) con otro monto **carga una oferta nueva** (la anterior queda en el historial, nota en la bitácora y pase a Con ofrecimiento). No corrige la última: eso se hace en la ficha.

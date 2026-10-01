@@ -27,6 +27,7 @@ export async function insertHistorialEntry(pasId, entry) {
   };
   const { error } = await supabase.from("pas_historial").insert(row);
   if (error) console.error("[insertHistorialEntry] error:", error);
+  return !error;
 }
 
 // ── SAVE STORAGE ──────────────────────────────────────────────────────────────
