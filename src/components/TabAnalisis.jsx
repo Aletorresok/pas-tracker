@@ -94,12 +94,13 @@ export default function TabAnalisis({ pas, casos, historial, darkMode, pasManual
       {vista === "resumen" && (
         <>
           {/* Los números del estudio (honorarios netos, ya descontada la comisión) */}
-          <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+          <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
             {[
               { l: `Cobrado en ${k.anio}`, v: fmtMoney(k.cobradoAnio), s: comparar(k.varAnual, k.anio - 1), var: k.varAnual },
               { l: `Este mes · ${MESES[new Date().getMonth()]}`, v: fmtMoney(k.esteMes), s: comparar(k.varMensual, MESES[(new Date().getMonth() + 11) % 12]), var: k.varMensual },
               { l: "Por cobrar", v: fmtMoney(k.porCobrar), s: `${k.porCobrarCasos} ${k.porCobrarCasos === 1 ? "caso" : "casos"} con honorarios cargados` },
               { l: "Histórico cobrado", v: fmtMoney(k.totalHistorico), s: `${k.total} casos · ${k.enGestion} en gestión` },
+              { l: "Comisiones pagadas a PAS", v: fmtMoney(k.comisionesPAS), s: "de los casos con honorarios cobrados" },
             ].map(x => (
               <div key={x.l} style={{ padding: "12px 16px", minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>

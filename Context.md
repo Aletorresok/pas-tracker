@@ -127,7 +127,7 @@
 ## 📝 Registro de Cambios
 
 ### 2026-10-01 — Números → Análisis con los números del estudio y objetivos; Compañías prioriza las que tienen casos
-*   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sale la tarjeta "Comisiones pagadas a PAS" (ya no se ofrecen comisiones; los montos siguen netos de comisión). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
+*   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sigue "Comisiones pagadas a PAS" (los PAS que ya tienen comisión la mantienen; solo no se ofrece a PAS nuevos). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
 *   **Compañías**: abre en "Con casos en curso"; "Ficha incompleta" cuenta solo las que tienen casos en curso (antes marcaba las 112); buscando aparecen todas.
 *   Probado en Chromium con Supabase simulado.
 
