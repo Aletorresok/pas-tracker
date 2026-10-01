@@ -93,7 +93,7 @@
 - [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
 - [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
 - [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
-- [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
+- [x] ✅ Objetivos medibles en Análisis → Resumen (01/10).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [x] ✅ Algo básico con PJN / MEV: bandeja de novedades judiciales pegadas a mano (fase 7a, 29/09). Sin scraping ni claves guardadas.
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
@@ -131,6 +131,11 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-01 — Números → Análisis con los números del estudio y objetivos; Compañías prioriza las que tienen casos
+*   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sigue "Comisiones pagadas a PAS" (los PAS que ya tienen comisión la mantienen; solo no se ofrece a PAS nuevos). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
+*   **Compañías**: abre en "Con casos en curso"; "Ficha incompleta" cuenta solo las que tienen casos en curso (antes marcaba las 112); buscando aparecen todas.
+*   Probado en Chromium con Supabase simulado.
 
 ### 2026-10-01 — Diagnóstico: Casos PAS, Clientes y gastos fijos
 *   **Casos PAS** (`TabCasos.jsx`): los 13 chips pasan a filtros que se combinan: Activos / Todos, **Etapa** en un selector, **Datos faltantes** (en curso sin DNI, sin teléfono o sin monto reclamado; $1 cuenta como faltante) y una segunda fila "A quién le toca" (Vos · Cliente · Compañía · Mediación / juicio; tocar de nuevo lo apaga). Con "Datos faltantes" cada fila dice qué falta y tocarla abre la ficha en Datos (o en Montos si solo falta el monto). Sale el chip "Sin DNI" (queda dentro de Datos faltantes).

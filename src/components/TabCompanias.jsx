@@ -14,7 +14,7 @@ export default function TabCompanias({ allCasos = [] }) {
   const dir = useDirectorio();
   const esCelular = useEsCelular();
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState("todas");
+  const [filtro, setFiltro] = useState("activas"); // abre en las que tienen casos en curso
 
   const lista = useMemo(() => {
     if (!dir) return [];
@@ -35,16 +35,19 @@ export default function TabCompanias({ allCasos = [] }) {
     }));
   }, [dir, allCasos]);
 
+  // "Ficha incompleta" cuenta solo las que tienen casos en curso: son las que se usan en escritos y cartas
+  // (del directorio de la SSN casi ninguna tiene domicilio y marcarlas todas no ayuda a priorizar)
   const FILTROS = [
-    { k: "todas", l: "Todas", f: () => true },
     { k: "activas", l: "Con casos en curso", f: x => x.activos > 0 },
-    { k: "incompletas", l: "Ficha incompleta", f: x => x.falta.length > 0 },
+    { k: "incompletas", l: "Ficha incompleta", f: x => x.activos > 0 && x.falta.length > 0 },
+    { k: "todas", l: "Todas", f: () => true },
   ];
 
   const visibles = useMemo(() => {
     const f = FILTROS.find(x => x.k === filtro).f;
     const q = busqueda.trim().toLowerCase();
-    return lista.filter(f)
+    // Buscando, aparecen todas
+    return lista.filter(q ? () => true : f)
       .filter(x => !q || [x.nombre, x.ficha?.razon_social, x.ficha?.cuit].some(v => (v || "").toLowerCase().includes(q)))
       .sort((a, b) => b.activos - a.activos || b.casos - a.casos || a.nombre.localeCompare(b.nombre, "es"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
