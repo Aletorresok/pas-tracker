@@ -9,6 +9,12 @@ const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
 const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
 
+// Atajos para cargar los gastos fijos de siempre: quedan como "se repite todos los meses" y solo falta el monto
+const FIJOS = [
+  { categoria: "matricula", descripcion: "Matrícula" },
+  { categoria: "software", descripcion: "Suscripción a Claude" },
+];
+
 const etiquetaCaso = c => `${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}`;
 
 // Gastos del mes (los recurrentes aparecen todos los meses) con alta, edición y baja
@@ -23,7 +29,9 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
   const opcionesCaso = useMemo(() => [...allCasos].sort((a, b) => String(a.asegurado || "").localeCompare(String(b.asegurado || ""))), [allCasos]);
 
   const hoy = fechaLocalISO();
-  const nuevo = () => setForm({ fecha: mes === hoy.slice(0, 7) ? hoy : `${mes}-01`, categoria: "otros", descripcion: "", monto: "", recurrente: false, hasta: "", caso_id: "", casoTexto: "" });
+  const nuevo = (extra = {}) => setForm({ fecha: mes === hoy.slice(0, 7) ? hoy : `${mes}-01`, categoria: "otros", descripcion: "", monto: "", recurrente: false, hasta: "", caso_id: "", casoTexto: "", ...extra });
+  // Atajos que todavía no están cargados como gasto fijo
+  const fijosFaltantes = FIJOS.filter(f => !gastos.some(g => g.recurrente && g.categoria === f.categoria && String(g.descripcion || "").toLowerCase() === f.descripcion.toLowerCase()));
   const editar = g => setForm({ ...g, hasta: g.hasta || "", caso_id: g.caso_id || "", casoTexto: g.caso_id && porId[g.caso_id] ? etiquetaCaso(porId[g.caso_id]) : "" });
 
   const elegirCaso = texto => {
@@ -56,10 +64,18 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Gastos · {nombreMes(mes)}</h2>
         <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <b className="num" style={{ fontSize: 14 }}>{fmtMoney(total)}</b>
-          <Boton tamaño="sm" variante="primario" icono="agregar" onClick={nuevo}>Gasto</Boton>
+          <Boton tamaño="sm" variante="primario" icono="agregar" onClick={() => nuevo()}>Gasto</Boton>
         </span>
       </div>
       {!delMes.length && <div style={{ fontSize: 13, color: "var(--muted)", padding: "10px 0 2px" }}>Sin gastos cargados en este mes. Los fijos (matrícula, aportes, software) cargalos una vez como "se repite todos los meses".</div>}
+      {!form && fijosFaltantes.length > 0 && (
+        <div className="chips" style={{ alignItems: "center", padding: "8px 0 4px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Gasto fijo:</span>
+          {fijosFaltantes.map(f => (
+            <button key={f.descripcion} type="button" className="chip" onClick={() => nuevo({ ...f, recurrente: true, fecha: `${mes}-01` })}>+ {f.descripcion}</button>
+          ))}
+        </div>
+      )}
       {delMes.map(g => {
         const c = g.caso_id ? porId[g.caso_id] : null;
         return (
