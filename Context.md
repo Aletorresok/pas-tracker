@@ -79,6 +79,12 @@
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
 ## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+**Expedientes para cargar (borrador del Drive, carpeta "Causas", 01/10)** — confirmar cuáles siguen en trámite y pasar número, juzgado y jurisdicción:
+- Civil: Dorta Vargas Sucesión · Sucesión Lescano / Perez · Bustos Joaquín c/ Sancor Salud · Gaveglio Quiebra · Salomone (ejecución de honorarios) · Vogel Valeria Sucesión · Venier Sucesión.
+- Familia: Cafardo Mariana · Godoy Lourdes · Alegre Irene Soledad c/ Rodas Jorge Gabriel s/ Alimentos · Cisternas Eyeralde Ramiro · Atala Micaela s/ Divorcio · Bogado Daiana Soledad.
+- Consumidor: Torres Gaveglio c/ BNA · Sanchez Guillermo c/ Telecom.
+- Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
+
 **Para mostrar la app (anotado 01/10):**
 - [x] ✅ **Usuario de demostración** → `/portal/demo` (01/10): login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
 - [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
@@ -87,7 +93,7 @@
 - [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
 - [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
 - [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
-- [ ] Mostrar los objetivos medibles también en Análisis (lo único que quedó de la etapa 6).
+- [x] ✅ Objetivos medibles en Análisis → Resumen (01/10).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
 - [x] ✅ Algo básico con PJN / MEV: bandeja de novedades judiciales pegadas a mano (fase 7a, 29/09). Sin scraping ni claves guardadas.
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
@@ -136,6 +142,28 @@
 *   **Resumen del portal** (`PortalHome.jsx`): "Tu comisión cobrada" solo cuando hay comisión cobrada; "Por pagarte" solo si hay comisión pendiente. Un PAS sin comisiones cargadas no ve ninguna referencia a la comisión (en la tarjeta del caso ya se mostraba solo con monto). Se sacó la línea "Próximo cobro" del resumen: queda la tarjeta "Próximos cobros".
 *   Revisión del portal y la vista del cliente (01/10, decisiones del usuario): "Generar escrito" del portal queda (ya genera solo el reclamo extrajudicial). "Reclamado hace N días" pasa a "Reclamado · último movimiento hace N días": toma lo más nuevo entre la bitácora visible para el PAS y `fecha_ultimo_movimiento` / `fecha_ultimo_reclamo` (reiteraciones y próxima acción, que son internas). Patente y DNI siguen opcionales al derivar. Derivar con fotos y el mail al estudio ya están probados en uso real; "Olvidé mi contraseña" queda para más adelante.
 *   Probado en Chromium con Supabase simulado (PAS sin comisión: cero menciones; con comisión cobrada: aparece).
+
+
+
+### 2026-10-01 — Contactos: el mail se registra antes de abrirse y chip "Para descartar"
+*   **Mail de presentación** (`PASCard.mandarMail`, `TabContactos`, `App.handleMailEnviado`): primero se guarda el contacto y recién después se abre Gmail (la pestaña se abre en el click y se cierra si falla) o el correo del celular. Si no se pudo guardar, aviso en la lista, el PAS queda y no se abre el mail. Si se guardó, el PAS aparece al instante en Contactados ("mail enviado"). `insertHistorialEntry` devuelve si se guardó.
+*   Dato del 01/10: los mails sí quedaban registrados (consulta en `pas_historial`: 31 el 29/09, 9 el 30/09). Que un PAS "vuelva" al día siguiente tiene otra causa, en revisión (posible: el mismo mail en varios contactos del Excel).
+*   **Contactados → "Para descartar"**: contactados hace más de 60 días que no derivaron, no están descartados ni quedaron como interesados. Botón "Descartar los N" (confirma y deja "Deshacer") y de a uno como siempre. `App.handleDescartarVarios(ids, valor)`.
+*   Probado en Chromium con Supabase simulado (falla y éxito del registro, descarte en bloque y deshacer).
+
+### 2026-10-01 — Números → Análisis con los números del estudio y objetivos; Compañías prioriza las que tienen casos
+*   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sigue "Comisiones pagadas a PAS" (los PAS que ya tienen comisión la mantienen; solo no se ofrece a PAS nuevos). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
+*   **Compañías**: abre en "Con casos en curso"; "Ficha incompleta" cuenta solo las que tienen casos en curso (antes marcaba las 112); buscando aparecen todas.
+*   Probado en Chromium con Supabase simulado.
+
+### 2026-10-01 — Diagnóstico: Casos PAS, Clientes y gastos fijos
+*   **Casos PAS** (`TabCasos.jsx`): los 13 chips pasan a filtros que se combinan: Activos / Todos, **Etapa** en un selector, **Datos faltantes** (en curso sin DNI, sin teléfono o sin monto reclamado; $1 cuenta como faltante) y una segunda fila "A quién le toca" (Vos · Cliente · Compañía · Mediación / juicio; tocar de nuevo lo apaga). Con "Datos faltantes" cada fila dice qué falta y tocarla abre la ficha en Datos (o en Montos si solo falta el monto). Sale el chip "Sin DNI" (queda dentro de Datos faltantes).
+*   Decisiones del usuario (01/10): Mosca Doulay (AF948EU) es un reclamo a **dos compañías**, no un duplicado. Usa **Tabla**; el tablero le resulta incómodo (queda, sin cambios). El caso de prueba EKF078 va a la papelera (lo hace el usuario desde la app).
+*   **Clientes** (`TabClientes.jsx`): "Sin Pas" deja de figurar como PAS y se muestra arriba como **Casos directos** (sin comisión, portal ni resumen del mes). Chips Con casos (por defecto) / Sin casos / Todos; buscando aparecen todos.
+*   **Ritmo de derivación** (`estadisticasPas.js`): cuenta días distintos (varios casos el mismo día = una derivación; se acabó "cada 0 d") y la fecha de llegada es la derivación, o el inicio del reclamo, o el alta (`fechaLlegada`). Un PAS con casos sin ninguna fecha dice "sin fecha de derivación" en vez de "sin casos".
+*   **Finanzas → Gastos**: atajos "+ Matrícula" y "+ Suscripción a Claude" que abren el gasto ya armado como "se repite todos los meses"; solo falta el monto. Desaparecen cuando ya están cargados.
+*   **Expedientes**: no hay listado. En el Drive (carpeta "Causas") hay 18 carpetas que sirven de borrador; ver "Expedientes para cargar" en Pendientes.
+*   Probado en Chromium con Supabase simulado (filtros combinados, abrir en Datos/Montos, casos directos, ritmo, atajo de gasto fijo, 375 px).
 
 ### 2026-10-01 — Ficha del caso: ofertas en un solo lugar, Montos según la etapa, sin checklist
 *   **Ofertas**: se cargan solo en Montos → "Ofertas de la compañía" (se sacó "Último ofrecimiento"). Cargar una pasa el caso a Con ofrecimiento si estaba antes; pasar a Esperando pago (ficha, fila o tablero) deja **aceptada** la última sin responder y, si no hay monto acordado, lo completa con esa oferta (`aceptarUltimaPendiente` devuelve la oferta).
