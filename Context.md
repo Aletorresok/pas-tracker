@@ -121,6 +121,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Compañías: CUIT, fichas que faltaban y notas (SQL 40)
+*   **SQL 40** (`sql/2026-10-01_40_companias_cuit.sql`, correr a mano; requiere el 39): crea la ficha de cada compañía que aparece en los casos (26), carga el CUIT de 17 (sacados de las facturas de ARCA, dígito verificador controlado; no pisa uno cargado) y borra `legal_domicilio`, `legal_cp`, `legal_localidad`, `legal_provincia` (sin uso).
+*   **Ficha de la compañía**: nueva sección **Notas** (`pas_companias.notas`, texto largo que se guarda al salir del campo): cómo se reclama, qué documentación piden, a quién llamar.
+*   Facturas de honorarios 0009 a 0062 cargadas en cada caso (`nro_factura` en formato ARCA `0001-000000NN`) con `sql/datos_2026-10-01_carga_facturas.sql` (datos, no se versiona).
+
 ### 2026-10-01 — Arreglo de errores (compañías, pantalla en blanco, ficha del caso)
 *   **SQL 39** (`sql/2026-10-01_39_auditoria_sin_id.sql`, **correr a mano**): el trigger de auditoría del SQL 31 sacaba `fila_id` de la columna `id`, que `pas_companias` no tiene → **todo guardado de una compañía fallaba** ("null value in column fila_id"). Ahora usa `id`, o `compania`, o `pas_id`. Verificado en vivo antes del arreglo.
 *   **Pantalla en blanco**: `vite.config.js` pasa de `base: './'` a `base: '/'` (con `./assets/…`, entrar a `/portal/` con barra final pedía `/portal/assets/…` y Vercel devolvía el HTML). `vercel.json` ya no reescribe `/assets/*` a `index.html` (un archivo de una versión vieja da 404 real). Nuevo `ui/AtrapaErrores.jsx`: envuelve toda la app y cada pestaña (se limpia al cambiar de pestaña); si falta un archivo de una versión anterior (deploy con la app abierta) recarga sola una vez por minuto; si no, muestra "Algo falló" con Reintentar / Recargar.

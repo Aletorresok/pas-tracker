@@ -125,7 +125,7 @@ export const fichaDe = buscar;
 export const nombreLegal = (cia, nombre) => cia?.razon_social?.trim() || cia?.compania || nombre || "";
 
 // Un solo domicilio por compañía (legal = para notificar): columnas domicilio, cp, localidad, provincia.
-// Las columnas legal_* del SQL 30 quedaron sin uso.
+// Las columnas legal_* del SQL 30 se borraron en el SQL 40.
 export const domicilioDe = cia => ({
   domicilio: cia?.domicilio || "", cp: cia?.cp || "", localidad: cia?.localidad || "", provincia: cia?.provincia || "",
 });
