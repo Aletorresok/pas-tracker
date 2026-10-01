@@ -248,7 +248,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     const fechas = { ...fechas0, ...plazoPorDefecto({ ...formData, ...fechas0, estado: nuevo }) };
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
     registrarAccion(caso.id, textoCambioEstado(anterior, nuevo), { visiblePas: true }).then(ok => ok && cargarAcciones());
-    if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(ok => ok && setVersionOfertas(v => v + 1));
+    // La última oferta sin responder queda aceptada y, si no hay monto acordado, es ese
+    if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(o => {
+      if (!o) return;
+      setFormData(prev => (Number(prev.monto_acordado) ? prev : { ...prev, monto_acordado: o.monto }));
+      setVersionOfertas(v => v + 1);
+    });
     const casoNuevo = { ...caso, ...formData, ...fechas, estado: nuevo };
     setSugerencia({ estado: nuevo, accion: accionSugerida(casoNuevo, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
   };
