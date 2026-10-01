@@ -11,6 +11,7 @@ import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/cop
 import { saveStorage, upsertPasManual, insertHistorialEntry, deleteCaso, restaurarCaso } from "./utils/storage.js";
 import { leerAbrir, limpiarAbrir } from "./utils/enlaces.js";
 import AvisoDeshacer from "./components/ui/AvisoDeshacer.jsx";
+import AtrapaErrores from "./components/ui/AtrapaErrores.jsx";
 
 // ── IMPORTS: HOOKS
 import { usePASData } from "./hooks/usePASData.js";
@@ -370,6 +371,7 @@ function AppPrincipal() {
           )}
 
           {/* TABS CONTENT · cada pestaña se descarga recién cuando se abre */}
+          <AtrapaErrores clave={mainTab}>
           <Suspense fallback={<div className="cargando-tab" aria-busy="true">Cargando…</div>}>
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} descartados={descartados} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "rutina" && <TabRutina pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} darkMode={darkMode} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
@@ -382,6 +384,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           </Suspense>
+          </AtrapaErrores>
         </div>
       </main>
 
