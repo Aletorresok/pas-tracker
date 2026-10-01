@@ -80,7 +80,7 @@
 
 ## 🧹 Pendientes de mejora (actualizado 2026-09-29)
 **Para mostrar la app (anotado 01/10):**
-- [ ] **Usuario de demostración**: login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
+- [x] ✅ **Usuario de demostración** → `/portal/demo` (01/10): login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
 - [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
 
 **Próximos pasos acordados (29/09):**
@@ -125,6 +125,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-01 — Demostración del portal de productores (/portal/demo)
+*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
+*   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.
+*   Reemplaza a las cuentas de prueba del portal (se borran a mano en Supabase → Authentication).
+*   Probado en Chromium (celular): sin pedidos a Supabase, ninguna mención a comisión, derivar avisa sin guardar.
 
 ### 2026-10-01 — Portal PAS: la comisión solo aparece si hay, y un solo "Próximos cobros"
 *   **Resumen del portal** (`PortalHome.jsx`): "Tu comisión cobrada" solo cuando hay comisión cobrada; "Por pagarte" solo si hay comisión pendiente. Un PAS sin comisiones cargadas no ve ninguna referencia a la comisión (en la tarjeta del caso ya se mostraba solo con monto). Se sacó la línea "Próximo cobro" del resumen: queda la tarjeta "Próximos cobros".

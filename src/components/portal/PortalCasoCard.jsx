@@ -11,6 +11,7 @@ import { diasDesde, primerNombre } from "../../utils/formatters.js";
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { adjuntosDelCaso } from "../../utils/adjuntosPas.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
+import { TEXTO_ACCESO } from "./demoPortal.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 
 // Último movimiento del caso: lo más nuevo entre la bitácora que ve el PAS y las fechas que se actualizan con lo interno
@@ -55,7 +56,8 @@ const MONTOS = [
 ];
 
 // Tarjeta de un caso en el portal del PAS: lo esencial arriba, el detalle al tocar
-export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCia }) {
+// demo: en la demostración no se sube nada y "Consultar al estudio" pide el acceso
+export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCia, demo = false }) {
   const [open, setOpen] = useState(false);
   const [escrito, setEscrito] = useState(false);
   const abierto = !["cobrado", "desistido"].includes(caso.estado) && !caso._demo;
@@ -71,10 +73,10 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   // El escrito para que firme el asegurado sirve hasta que se reclama
   const conEscrito = ["doc_pendiente", "iniciado", "reclamado"].includes(caso.estado) && !caso._demo;
   // Consulta por WhatsApp con el caso ya identificado
-  const consulta = linkWhatsApp(TELEFONO_ESTUDIO, `Hola Alexis, te consulto por el caso de ${caso.asegurado || "mi asegurado"}${[caso.patente, caso.compania_aseguradora].filter(Boolean).length ? ` (${[caso.patente, caso.compania_aseguradora].filter(Boolean).join(", ")})` : ""}: `);
+  const consulta = demo ? linkWhatsApp(TELEFONO_ESTUDIO, TEXTO_ACCESO) : linkWhatsApp(TELEFONO_ESTUDIO, `Hola Alexis, te consulto por el caso de ${caso.asegurado || "mi asegurado"}${[caso.patente, caso.compania_aseguradora].filter(Boolean).length ? ` (${[caso.patente, caso.compania_aseguradora].filter(Boolean).join(", ")})` : ""}: `);
 
   const cargarEnviados = () => adjuntosDelCaso(caso.pas_id, caso.id).then(r => setEnviados(r ? r.delCaso : null));
-  useEffect(() => { if (open && !caso._demo) cargarEnviados(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open && !caso._demo && !demo) cargarEnviados(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const historial = [...(caso.movimientos || [])].sort((a, b) => b.ts - a.ts);
   const ultima = historial[0];
@@ -230,7 +232,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
 
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>Adjuntar documentación</div>
-            <SelectorArchivos archivos={archivos} onChange={setArchivos} disabled={subiendo || caso._demo} />
+            <SelectorArchivos archivos={archivos} onChange={setArchivos} disabled={subiendo || caso._demo || demo} />
             {archivos.length > 0 && (
               <Boton variante="primario" icono="adjuntar" onClick={subir} disabled={subiendo} style={{ marginTop: 10 }}>
                 {subiendo ? "Enviando…" : `Enviar ${archivos.length === 1 ? "1 archivo" : `${archivos.length} archivos`} al estudio`}
