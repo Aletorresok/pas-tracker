@@ -14,6 +14,7 @@ import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
+import { diaDeAccion, fechaLocalISO, fechaEnDias } from "../../utils/formatters.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -27,10 +28,10 @@ const DEMO_CASO = {
   id: "demo",
   asegurado: "Ejemplo: García Juan (caso de demostración)",
   estado: "reclamado",
-  fecha_derivacion: new Date().toISOString().slice(0, 10),
-  fecha_contacto_asegurado: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10),
-  fecha_inicio_reclamo: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10),
-  fecha_ultimo_movimiento: new Date().toISOString().slice(0, 10),
+  fecha_derivacion: fechaLocalISO(),
+  fecha_contacto_asegurado: fechaEnDias(-3),
+  fecha_inicio_reclamo: fechaEnDias(-2),
+  fecha_ultimo_movimiento: fechaLocalISO(),
   monto_ofrecimiento: "",
   monto_cobro_asegurado: "",
   monto_cobro_yo: "",
@@ -97,7 +98,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         const accionesPorCaso = {};
         (accionesData || []).forEach(a => {
           if (!accionesPorCaso[a.caso_id]) accionesPorCaso[a.caso_id] = [];
-          accionesPorCaso[a.caso_id].push({ texto: a.descripcion, fecha: a.fecha, ts: new Date(a.fecha).getTime() });
+          accionesPorCaso[a.caso_id].push({ texto: a.descripcion, fecha: diaDeAccion(a.fecha), ts: new Date(a.fecha).getTime() });
         });
         const casosConAcciones = casosData.map(c => ({ ...c, movimientos: accionesPorCaso[c.id] || [] }));
         setCasos(casosConAcciones);

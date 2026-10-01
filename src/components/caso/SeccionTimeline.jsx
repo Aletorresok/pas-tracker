@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
+import { formatoFecha, fechaLocalISO, diaDeAccion } from "../../utils/formatters.js";
 import CambiosDatos from "./CambiosDatos.jsx";
 
 // cambios (opcional): { tabla, filaId, version, puedeRestaurar, valorActual, onRestaurar } → suma la vista "Cambios de datos"
 // cliente (opcional, SQL 35): { aviso(texto) → link de WhatsApp o null } → cada movimiento se puede marcar "Lo ve el cliente"
-export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, cambios, cliente, Th }) {
+// editarId: abre la edición de ese movimiento (por ejemplo, desde "Últimos movimientos" de Resumen); onEditarAbierto lo limpia
+export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, cambios, cliente, editarId, onEditarAbierto, avisoPas = false, Th }) {
   const [vista, setVista] = useState("movimientos"); // movimientos | cambios
   const [visible, setVisible] = useState(false);
   const [textoCliente, setTextoCliente] = useState("");
   const [avisar, setAvisar] = useState(null); // link de WhatsApp para contarle la novedad recién marcada
   const [modalOpen, setModalOpen] = useState(false);
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(fechaLocalISO());
+  const [fechaOriginal, setFechaOriginal] = useState(""); // al editar: si no cambia, se conserva la hora guardada
   const [descripcion, setDescripcion] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [editandoId, setEditandoId] = useState(null); // Guardamos solo el ID, no todo el objeto
@@ -31,13 +33,20 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
   
   const abrirEditar = (a, mostrar = false) => { 
     setEditandoId(a.id); // ID exacto de la base de datos
-    setFecha(a.fecha?.slice(0, 10) || ""); 
+    setFecha(diaDeAccion(a.fecha)); setFechaOriginal(diaDeAccion(a.fecha));
     setDescripcion(a.descripcion || ""); 
     setVisible(mostrar || !!a.visible_cliente); setTextoCliente(a.texto_cliente || "");
     setModalOpen(true); 
   };
   
-  const cerrar = () => { 
+  useEffect(() => {
+    if (!editarId) return;
+    const a = acciones.find(x => x.id === editarId);
+    if (a) abrirEditar(a);
+    onEditarAbierto?.();
+  }, [editarId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cerrar = () => {
     setModalOpen(false); 
     setDescripcion(""); 
     setEditandoId(null); 
@@ -50,7 +59,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
     const paraCliente = cliente ? { visible_cliente: visible, texto_cliente: visible && textoCliente.trim() ? textoCliente.trim() : null } : {};
     if (editandoId) {
       // Es una edición explícita
-      await onActualizar({ id: editandoId, fecha, descripcion: descripcion.trim(), ...paraCliente });
+      await onActualizar({ id: editandoId, fecha: fecha === fechaOriginal ? undefined : fecha, descripcion: descripcion.trim(), ...paraCliente });
     } else {
       // Es una creación explícita
       await onCrear({ fecha, descripcion: descripcion.trim(), ...paraCliente });
@@ -111,9 +120,10 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
             </div>
             <div style={{ flex: 1, paddingBottom: 6 }}>
               <div style={{ fontSize: 11, color: i === 0 ? "var(--accent)" : Th.muted, fontWeight: i === 0 ? 700 : 500, marginBottom: 2 }}>
-                {formatoFecha(a.fecha?.slice(0, 10))}{i === 0 ? " · más reciente" : ""}
+                {formatoFecha(diaDeAccion(a.fecha))}{i === 0 ? " · más reciente" : ""}
               </div>
-              <div style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8 }}>{a.descripcion}</div>
+              <div role="button" tabIndex={0} title="Tocá para editar el texto o la fecha" onClick={() => abrirEditar(a)} onKeyDown={e => { if (e.key === "Enter") abrirEditar(a); }}
+                style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8, cursor: "text", overflowWrap: "anywhere" }}>{a.descripcion}</div>
               {cliente && a.visible_cliente && (
                 <div style={{ fontSize: 12.5, lineHeight: 1.45, marginBottom: 8, padding: "6px 10px", borderRadius: "var(--r-xs)", background: "color-mix(in srgb, var(--ok) 8%, transparent)", color: Th.text }}>
                   <b style={{ color: "var(--ok)", fontWeight: 700 }}>Lo ve el cliente</b>{a.texto_cliente ? <>: “{a.texto_cliente}”</> : " (con este mismo texto)"}
@@ -145,6 +155,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
               <label style={{ display: "block", marginBottom: 20 }}>
                 <span style={labelStyle}>Descripción *</span>
                 <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ej: Natalia aceptó el ofrecimiento..." rows={3} style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
+                {avisoPas && <span style={{ display: "block", fontSize: 11, color: Th.muted, marginTop: 4 }}>El PAS ve este movimiento, con esta fecha y este texto, en su portal.</span>}
               </label>
               {cliente && (
                 <div style={{ marginTop: -8, marginBottom: 20, display: "grid", gap: 8 }}>

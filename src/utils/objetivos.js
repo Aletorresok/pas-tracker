@@ -21,8 +21,8 @@ export function rangoPeriodo(periodo, hoy = fechaLocalISO()) {
   const anio = Number(hoy.slice(0, 4)), mes = Number(hoy.slice(5, 7)) - 1;
   const mesIni = Math.floor(mes / meses) * meses;
   const inicio = `${anio}-${String(mesIni + 1).padStart(2, "0")}-01`;
-  const fin = new Date(anio, mesIni + meses, 0);
-  return { inicio, fin: fechaLocalISO(fin) };
+  const fin = new Date(Date.UTC(anio, mesIni + meses, 0)).toISOString().slice(0, 10); // último día del período
+  return { inicio, fin };
 }
 
 export function nombrePeriodo(periodo, inicio) {

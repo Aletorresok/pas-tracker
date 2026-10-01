@@ -23,6 +23,9 @@ export function agruparPorCaso(tareas) {
   }).sort((a, b) => fecha(a).localeCompare(fecha(b)));
 }
 
+// Alto de la lista: se ven unas 3 tarjetas y el resto con scroll (como Cobros pendientes)
+const ALTO_LISTA = 470;
+
 const leer = () => { try { return localStorage.getItem("paraHacer:proximos") === "1"; } catch { return false; } };
 const guardar = v => { try { localStorage.setItem("paraHacer:proximos", v ? "1" : "0"); } catch { /* sin storage */ } };
 
@@ -63,7 +66,7 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
         </div>
       )}
       {deHoy.length > 0 && (
-        <div style={{ margin: "0 -10px", padding: "6px 10px 10px" }}>
+        <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "0 -10px", padding: "6px 10px 10px" }}>
           <ListaOrdenable items={deHoy} storageKey="paraHacer-hoy" render={tarjeta} />
         </div>
       )}
@@ -75,7 +78,7 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
             {verProximos ? "Ocultar" : "Ver"} próximos días y sin plazo ({proximos.length})
           </button>
           {verProximos && (
-            <div style={{ margin: "6px -10px 0", padding: "6px 10px 10px" }}>
+            <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "6px -10px 0", padding: "6px 10px 10px" }}>
               <ListaOrdenable items={proximos} storageKey="paraHacer-proximos" render={tarjeta} />
             </div>
           )}

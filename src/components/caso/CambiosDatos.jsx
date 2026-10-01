@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { historialDe, renglonesDe, aValorFormulario } from "../../utils/auditoria.js";
+import { partesAR, diasEntreFechas } from "../../utils/formatters.js";
 
-const dos = n => String(n).padStart(2, "0");
 function cuando(iso) {
-  const d = new Date(iso), hoy = new Date();
-  const dia = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  const dif = Math.round((dia(hoy) - dia(d)) / 86400000);
-  const hora = `${dos(d.getHours())}:${dos(d.getMinutes())}`;
-  if (dif === 0) return `Hoy ${hora}`;
-  if (dif === 1) return `Ayer ${hora}`;
-  return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}${d.getFullYear() !== hoy.getFullYear() ? `/${String(d.getFullYear()).slice(-2)}` : ""} ${hora}`;
+  const p = partesAR(iso), hoy = partesAR();
+  const dif = diasEntreFechas(p.fecha, hoy.fecha);
+  if (dif === 0) return `Hoy ${p.hora}`;
+  if (dif === 1) return `Ayer ${p.hora}`;
+  const [a, m, d] = p.fecha.split("-");
+  return `${d}/${m}${a !== hoy.fecha.slice(0, 4) ? `/${a.slice(-2)}` : ""} ${p.hora}`;
 }
 
 const POR_PAGINA = 40;

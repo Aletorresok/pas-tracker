@@ -121,6 +121,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Hora de Argentina en toda la app y bitácora editable desde Resumen
+*   **Hora de Argentina siempre** (`America/Argentina/Buenos_Aires`, aunque el dispositivo esté en otra zona): `formatters.js` → `ZONA_AR`, `partesAR`, `instanteAR`, `diasEntreFechas`; `fechaLocalISO()` = hoy en Argentina; `sumarDias`, `diasHasta`, `diasDesde`, `fechaEnDias` cuentan días de calendario sin horas. `main.jsx` hace que todo `toLocaleDateString/TimeString/String` use esa zona y 24 h. Agenda (`armarInicio`, `fechaDe`, `horaDe`, Google Calendar), rutina (`minutosAhora`), Cambios de datos y los `toISOString().slice(0, 10)` (fecha de derivación del portal, alta de caso, backups, índices) pasaron a hora de Argentina.
+*   **Bitácora**: los movimientos automáticos se guardan con hora UTC y se mostraban cortando la fecha: lo hecho después de las 21 h figuraba al día siguiente (también en el portal del PAS y en la vista del cliente). `diaDeAccion(fecha)` da el día de Argentina (las fechas elegidas a mano, 00:00 UTC, se toman tal cual).
+*   Editar un movimiento: tocar el texto en Bitácora o en "Últimos movimientos" de Resumen abre "Editar acción" (texto y fecha). Si no se cambia la fecha, se conserva la hora guardada. En casos PAS avisa que el PAS lo ve en su portal.
+*   Para hacer: alto fijo (unas 3 tarjetas) con scroll, como Cobros pendientes.
+
 ### 2026-10-01 — Hoy ordenado
 *   **Para hacer**: una tarjeta por caso (o expediente) con todos sus pendientes; arriba lo vencido y lo de hoy, plegado lo de los próximos días y sin plazo. Acciones rápidas sin abrir la ficha: **Hecho** (la acción va a la bitácora como "Hecho: …" y se carga la próxima con plazo Mañana/3/7/14 d o fecha), **Posponer** y **Reiteré hoy** (`storage.completarAccion`, `posponerAccion`).
 *   **Mi día** (reemplaza "Ahora toca" y "Prospección del día"): toda la rutina del día por bloques, semanales/mensuales pendientes y objetivo del año. Se tildan solos (por el título del ítem, `utils/medidasRutina.js`): WhatsApp y mails a PAS (barra con la meta del título), reclamos quietos, pedir respuesta a iniciados, próximas acciones al día.

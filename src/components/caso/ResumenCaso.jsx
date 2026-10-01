@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { clientePuedeEntrar } from "../../utils/mensajes.js";
 import { estadoHonorarios } from "../../utils/metricas.js";
-import { fmtMoney, formatoFecha, fechaLocalISO } from "../../utils/formatters.js";
+import { fmtMoney, formatoFecha, fechaLocalISO, diaDeAccion } from "../../utils/formatters.js";
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
@@ -13,7 +13,7 @@ import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje, AvisoPr
 const num = v => Number(String(v ?? "").replace(/[^\d.-]/g, "")) || 0;
 
 // Pestaña "Resumen": lo que se mira todos los días
-export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro, pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, irA, Th }) {
+export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro, pasNombre, pasTelefono, tercero_contacto, formData, onChange, acciones, onCrearAccion, onEditarAccion, irA, Th }) {
   const [nueva, setNueva] = useState("");
   const [guardandoAccion, setGuardandoAccion] = useState(false);
   const [copiado, setCopiado] = useState(false);
@@ -113,8 +113,9 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
           </form>
           {acciones.length === 0 && <div style={{ fontSize: 13, color: Th.muted }}>Todavía no hay movimientos.</div>}
           {acciones.slice(0, 3).map(a => (
-            <div key={a.id} style={{ display: "grid", gridTemplateColumns: "72px minmax(0, 1fr)", gap: 8, padding: "6px 0", borderTop: `1px solid ${Th.border}`, fontSize: 13 }}>
-              <span className="num" style={{ color: Th.muted }}>{formatoFecha(a.fecha?.slice(0, 10))}</span>
+            <div key={a.id} role="button" tabIndex={0} title="Tocá para editar el texto o la fecha" onClick={() => onEditarAccion?.(a)} onKeyDown={e => { if (e.key === "Enter") onEditarAccion?.(a); }}
+              style={{ display: "grid", gridTemplateColumns: "72px minmax(0, 1fr)", gap: 8, padding: "6px 0", borderTop: `1px solid ${Th.border}`, fontSize: 13, cursor: "pointer" }}>
+              <span className="num" style={{ color: Th.muted }}>{formatoFecha(diaDeAccion(a.fecha))}</span>
               <span style={{ color: Th.sub }}>{a.descripcion}</span>
             </div>
           ))}

@@ -1,5 +1,6 @@
 // Agenda de los casos: mediaciones, audiencias, vencimientos y reuniones (tabla pas_eventos).
 import { supabase } from "../supabase.js";
+import { partesAR, instanteAR, fechaLocalISO, diasEntreFechas, ZONA_AR } from "./formatters.js";
 
 export const TIPOS_EVENTO = [
   { k: "mediacion", l: "Mediación" },
@@ -10,20 +11,17 @@ export const TIPOS_EVENTO = [
 ];
 export const tipoEvento = k => TIPOS_EVENTO.find(t => t.k === k)?.l || "Evento";
 
-const ZONA = "America/Argentina/Buenos_Aires";
+const ZONA = ZONA_AR;
 const CAMBIO = "pas-eventos-cambio"; // aviso interno para que Hoy recargue la agenda
 
-// Fecha y hora locales → Date. Hora vacía = 9:00.
-export const armarInicio = (fecha, hora) => new Date(`${fecha}T${hora || "09:00"}:00`);
-const dos = n => String(n).padStart(2, "0");
-export const fechaDe = d => `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
-export const horaDe = d => `${dos(d.getHours())}:${dos(d.getMinutes())}`;
+// Fecha y hora de Argentina → Date. Hora vacía = 9:00.
+export const armarInicio = (fecha, hora) => instanteAR(fecha, hora || "09:00");
+export const fechaDe = d => partesAR(d).fecha;
+export const horaDe = d => partesAR(d).hora;
 
 export function describirCuando(inicio, hoy = new Date()) {
   const d = new Date(inicio);
-  const dia = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const hoy0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-  const diff = Math.round((dia - hoy0) / 86400000);
+  const diff = diasEntreFechas(fechaLocalISO(hoy), fechaLocalISO(d));
   const hora = horaDe(d);
   if (diff === 0) return `Hoy ${hora}`;
   if (diff === 1) return `Mañana ${hora}`;
@@ -36,7 +34,7 @@ export function describirCuando(inicio, hoy = new Date()) {
 export function linkGoogleCalendar(ev, caso = {}) {
   const ini = new Date(ev.inicio);
   const fin = new Date(ini.getTime() + (Number(ev.duracion_min) || 60) * 60000);
-  const f = d => `${d.getFullYear()}${dos(d.getMonth() + 1)}${dos(d.getDate())}T${dos(d.getHours())}${dos(d.getMinutes())}00`;
+  const f = d => { const p = partesAR(d); return `${p.fecha.replace(/-/g, "")}T${p.hora.replace(":", "")}00`; };
   const titulo = `${tipoEvento(ev.tipo)} · ${caso.asegurado || "Caso"}${caso.compania_aseguradora ? ` vs ${caso.compania_aseguradora}` : ""}`;
   const detalle = [
     ev.link && `Link: ${ev.link}`,
@@ -61,7 +59,7 @@ export async function eventosDelCaso(casoId) {
 
 // Próximos eventos (desde el comienzo de hoy) de todos los casos
 export async function proximosEventos(dias = 30) {
-  const desde = new Date(); desde.setHours(0, 0, 0, 0);
+  const desde = instanteAR(fechaLocalISO()); // comienzo de hoy en Argentina
   const hasta = new Date(desde.getTime() + dias * 86400000);
   const { data, error } = await supabase.from("pas_eventos").select("*")
     .gte("inicio", desde.toISOString()).lt("inicio", hasta.toISOString()).order("inicio");

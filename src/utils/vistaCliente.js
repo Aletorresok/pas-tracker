@@ -1,12 +1,8 @@
 // Textos de la vista del cliente, compartidos con la ficha del caso (para que veas lo mismo que ve el cliente).
-import { fmtDate, fmtMoney } from "./formatters.js";
+import { fmtDate, fmtMoney, sumarDias } from "./formatters.js";
 import { ESTADOS_CASO, estadoInfo } from "../constants.js";
 
-const masDias = (iso, dias) => {
-  const d = new Date(String(iso).slice(0, 10) + "T12:00:00");
-  d.setDate(d.getDate() + Number(dias));
-  return d.toISOString().slice(0, 10);
-};
+const masDias = (iso, dias) => (Number(dias) ? sumarDias(String(iso).slice(0, 10), dias) : String(iso).slice(0, 10));
 
 // Fecha en que la compañía se comprometió a pagar y de dónde sale: firma + plazo del convenio; si no hay firma,
 // aceptación + plazo; si no hay plazo, la fecha de pago cargada. { fecha, segun } (fecha null si no hay datos).
