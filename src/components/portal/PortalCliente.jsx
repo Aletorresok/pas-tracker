@@ -3,7 +3,7 @@ import { DOCS_CLIENTE, subirDocumentoCliente, extrasCliente, etiquetaDoc } from 
 import { notificarSubidaCliente } from "../../utils/portalStorageUtils.js";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
-import { primerNombre } from "../../utils/formatters.js";
+import { primerNombre, diaDeAccion } from "../../utils/formatters.js";
 import { estadoInfo } from "../../constants.js";
 import { PASOS_SIMPLES } from "../ui/BarraAvance.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
@@ -245,7 +245,7 @@ export function Novedades({ lista, caja, titulo = "Novedades de tu reclamo" }) {
           <li key={i} style={{ display: "grid", gridTemplateColumns: "10px minmax(0, 1fr)", gap: 10 }}>
             <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", marginTop: 6, background: i === 0 ? "var(--accent)" : "var(--border2)" }} />
             <span style={{ minWidth: 0 }}>
-              <span className="num" style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{new Date(n.fecha).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</span>
+              <span className="num" style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{new Date(`${diaDeAccion(n.fecha)}T12:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</span>
               <span style={{ display: "block", fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{n.texto}</span>
             </span>
           </li>

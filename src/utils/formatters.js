@@ -64,15 +64,35 @@ export function parsePAS(rows) {
 }
 
 // ── FECHAS ────────────────────────────────────────────────────────────────────────
+// Toda la app usa la hora de Argentina, aunque el dispositivo esté en otra zona.
+// "Hoy" y "ahora" salen de acá; las fechas AAAA-MM-DD se cuentan como días de calendario (sin horas).
+export const ZONA_AR = "America/Argentina/Buenos_Aires";
+const PARTES_AR = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_AR, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+
+// { fecha: "2026-10-01", hora: "14:05", minutos: 845 } de un instante, en hora de Argentina
+export function partesAR(d = new Date()) {
+  const fecha = new Date(d);
+  if (isNaN(fecha)) return { fecha: "", hora: "", minutos: 0 };
+  const o = {};
+  PARTES_AR.formatToParts(fecha).forEach(p => { o[p.type] = p.value; });
+  return { fecha: `${o.year}-${o.month}-${o.day}`, hora: `${o.hour}:${o.minute}`, minutos: Number(o.hour) * 60 + Number(o.minute) };
+}
+// Fecha y hora de Argentina → instante (Argentina no tiene horario de verano: siempre -03:00)
+export const instanteAR = (fecha, hora = "00:00") => new Date(`${fecha}T${hora}:00-03:00`);
+
+const diaUTC = iso => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+// Días de calendario de `desde` a `hasta` (AAAA-MM-DD)
+export const diasEntreFechas = (desde, hasta) => Math.round((diaUTC(String(hasta)) - diaUTC(String(desde))) / 86400000);
+
 export function diasDesde(iso) {
   if (!iso) return null;
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return diasEntreFechas(diaDeAccion(iso), fechaLocalISO());
 }
 
 export function sumarDias(iso, dias) {
   if (!iso || !dias) return null;
-  const d = new Date(iso);
-  d.setDate(d.getDate() + Number(dias));
+  const d = new Date(diaUTC(String(iso).slice(0, 10)));
+  d.setUTCDate(d.getUTCDate() + Number(dias));
   return d.toISOString().slice(0, 10);
 }
 
@@ -98,26 +118,32 @@ export async function verificarPermiso(handle, mode = "readwrite") {
     return false;
   }
 }
-// ── PLAZOS (fecha local, no UTC: evita que después de las 21 h ya sea "mañana") ──
+// ── PLAZOS (día de Argentina, no UTC: evita que después de las 21 h ya sea "mañana") ──
+// Día de Argentina (AAAA-MM-DD) de un instante; sin argumento, hoy
 export function fechaLocalISO(d = new Date()) {
-  const p = n => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return partesAR(d).fecha;
+}
+
+// Día (AAAA-MM-DD, hora de Argentina) de un movimiento de la bitácora. Hay dos formas guardadas:
+// fecha elegida a mano ("2026-09-30" → 00:00 UTC, se toma el día tal cual) y momento exacto
+// (automáticos: 23:16 del 30/09 queda 02:16 UTC del 01/10 → hay que pasarlo a la hora de Argentina).
+export function diaDeAccion(fecha) {
+  if (!fecha) return "";
+  const s = String(fecha);
+  if (s.length <= 10 || /T00:00:00(\.0+)?(Z|\+00(:?00)?)$/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
+  return isNaN(d) ? s.slice(0, 10) : fechaLocalISO(d);
 }
 
 // Fecha (YYYY-MM-DD) dentro de N días desde hoy
 export function fechaEnDias(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + Number(n));
-  return fechaLocalISO(d);
+  return Number(n) ? sumarDias(fechaLocalISO(), n) : fechaLocalISO();
 }
 
 // Días que faltan hasta una fecha (negativo = vencido). null si no hay fecha.
 export function diasHasta(iso) {
   if (!iso) return null;
-  const [y, m, d] = String(iso).slice(0, 10).split("-").map(Number);
-  const objetivo = new Date(y, m - 1, d);
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  return Math.round((objetivo - hoy) / 86400000);
+  return diasEntreFechas(fechaLocalISO(), String(iso).slice(0, 10));
 }
 
 // Texto y severidad de un plazo: para chips de "vence en…"

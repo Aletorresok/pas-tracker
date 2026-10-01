@@ -1,7 +1,7 @@
 import { Fragment, useState, useMemo, useEffect } from "react";
 import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
-import { fmtMoney, fmtDate, diasDesde, primerNombre } from "../utils/formatters.js";
+import { fmtMoney, fmtDate, diasDesde, primerNombre, fechaLocalISO } from "../utils/formatters.js";
 import { estadisticasPas } from "../utils/estadisticasPas.js";
 import { linkWhatsApp } from "../utils/mensajes.js";
 import ResumenMensual from "./clientes/ResumenMensual.jsx";
@@ -222,7 +222,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
     });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Casos");
-    XLSX.writeFile(wb, `pastracker_casos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `pastracker_casos_${fechaLocalISO()}.xlsx`);
   };
 
   const menuPas = p => propsMenu(() => itemsPAS(p, {

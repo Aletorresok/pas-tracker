@@ -3,7 +3,7 @@ import { supabase } from "../../supabase.js";
 import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 import { listaCompanias } from "../../utils/companias.js";
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, FIRMA } from "../../utils/mensajes.js";
-import { primerNombre } from "../../utils/formatters.js";
+import { primerNombre, fechaLocalISO } from "../../utils/formatters.js";
 import { estadoInfo } from "../../constants.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
 import Boton from "../ui/Boton.jsx";
@@ -65,7 +65,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
       fecha_siniestro: form.fecha_siniestro,
       compania_aseguradora: form.compania.trim(),
       estado: "doc_pendiente",
-      fecha_derivacion: new Date().toISOString().slice(0, 10),
+      fecha_derivacion: fechaLocalISO(),
       caso_id: Date.now(),
     };
     const { data, error: dbError } = await supabase.from("pas_casos").insert([nuevoCaso]).select().single();
@@ -129,7 +129,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
                 </span>}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
               <label><span style={etiqueta}>Fecha del siniestro</span>
-                <input type="date" value={form.fecha_siniestro} max={new Date().toISOString().slice(0, 10)} onChange={e => cambiar("fecha_siniestro", e.target.value)} style={campo} />
+                <input type="date" value={form.fecha_siniestro} max={fechaLocalISO()} onChange={e => cambiar("fecha_siniestro", e.target.value)} style={campo} />
               </label>
               <label><span style={etiqueta}>Compañía del tercero</span>
                 <input value={form.compania} onChange={e => cambiar("compania", e.target.value)} list="companias-portal" placeholder="Escribí para buscar" autoComplete="off" style={campo} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../supabase.js";
 import { THEME } from "../../utils/theme.js";
-import { fmtDate } from "../../utils/formatters.js";
+import { fmtDate, diaDeAccion } from "../../utils/formatters.js";
 import {
   CAMPOS_EXPEDIENTE, ESTADOS_EXPEDIENTE, FUEROS, JURISDICCIONES, ROLES_CLIENTE,
   actualizarExpediente, crearExpediente, eliminarExpediente, estadoExpediente, generarCodigoCliente, pendientesOrdenados,
@@ -284,7 +284,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
                       {acciones.length === 0 && <div style={{ padding: "0 16px 16px", color: Th.muted, fontSize: 14 }}>Sin movimientos.</div>}
                       {acciones.slice(0, 4).map(a => (
                         <div key={a.id} style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr)", gap: 10, padding: "9px 16px", borderTop: `1px solid ${Th.border}`, fontSize: 14 }}>
-                          <span className="num" style={{ color: Th.muted }}>{fmtDate(a.fecha)}</span><span style={{ overflowWrap: "anywhere" }}>{a.descripcion}</span>
+                          <span className="num" style={{ color: Th.muted }}>{fmtDate(diaDeAccion(a.fecha))}</span><span style={{ overflowWrap: "anywhere" }}>{a.descripcion}</span>
                         </div>
                       ))}
                     </div>

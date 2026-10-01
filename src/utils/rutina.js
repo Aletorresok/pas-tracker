@@ -1,7 +1,7 @@
 // Rutina (etapa 6 de ATG Lex): bloques del día, la semana y el mes, lo tildado y los días de escuela.
 // Tablas del SQL 25: rutina_items, rutina_registro, dias_escuela (solo administrador).
 import { supabase } from "../supabase.js";
-import { fechaLocalISO, sumarDias } from "./formatters.js";
+import { fechaLocalISO, sumarDias, partesAR } from "./formatters.js";
 
 export const FRECUENCIAS = [
   { k: "diaria", l: "Día" },
@@ -58,7 +58,7 @@ export function tocaHoy(item, hoy = fechaLocalISO()) {
 
 export const hhmm = t => (t ? String(t).slice(0, 5) : "");
 const minutos = t => { if (!t) return null; const [h, m] = String(t).split(":").map(Number); return h * 60 + (m || 0); };
-export const minutosAhora = (d = new Date()) => d.getHours() * 60 + d.getMinutes();
+export const minutosAhora = (d = new Date()) => partesAR(d).minutos; // hora de Argentina
 
 // ── Días de escuela ─────────────────────────────────────────────────────────
 export function escuelaDelDia(dias, hoy = fechaLocalISO()) {

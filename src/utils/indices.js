@@ -1,5 +1,6 @@
 // Series de índices para la calculadora de intereses (tabla indices, SQL 27).
 import { supabase } from "../supabase.js";
+import { fechaLocalISO } from "./formatters.js";
 
 export const SERIES = {
   ipc: { l: "IPC (INDEC)", unidad: "variación mensual %", fuente: "INDEC · Índice de precios al consumidor, nivel general", automatica: true },
@@ -118,7 +119,7 @@ async function bajarICL() {
   })(lista);
   const icl = vars.find(v => /contratos de locaci|\bICL\b/i.test(String(v.descripcion || v.detalle || "")));
   if (!icl) throw new Error("no encontré el ICL en la lista del BCRA");
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaLocalISO();
   const puntos = [];
   for (let anio = 2020; anio <= Number(hoy.slice(0, 4)); anio++) {
     const desde = anio === 2020 ? "2020-07-01" : `${anio}-01-01`;

@@ -76,6 +76,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const [pestana, setPestana] = useState(pestanaInicial || "resumen");
   const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
   const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
+  const [editarAccionId, setEditarAccionId] = useState(null); // movimiento tocado en Resumen: se edita en Bitácora
   const dirHandleRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -370,7 +371,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
           <div style={{ padding: 20 }}>
             {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
             <div {...panel("resumen")}>
-              <ResumenCaso recepcionNuevos={recepcion.length} casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} irA={setPestana} Th={Th} />
+              <ResumenCaso recepcionNuevos={recepcion.length} casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} onEditarAccion={a => { setPestana("bitacora"); setEditarAccionId(a.id); }} irA={setPestana} Th={Th} />
             </div>
             <div {...panel("datos")}>
               <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
@@ -394,7 +395,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>
             <div {...panel("bitacora")}>
-              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} Th={Th}
+              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} editarId={editarAccionId} onEditarAbierto={() => setEditarAccionId(null)} avisoPas Th={Th}
                 cambios={caso.id ? { tabla: "pas_casos", filaId: caso.id, version: versionAuditoria,
                   // estado_honorarios y monto_honorarios los calcula el guardado: se restauran cambiando lo que los origina
                   puedeRestaurar: k => k in formData && !["estado_honorarios", "monto_honorarios"].includes(k),

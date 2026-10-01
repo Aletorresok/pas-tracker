@@ -1,6 +1,7 @@
 import { useState } from "react";
 import EstadoSelector from "../caso/EstadoSelector.jsx";
 import CompaniaSelector from "../caso/CompaniaSelector.jsx";
+import { fechaLocalISO } from "../../utils/formatters.js";
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -14,7 +15,7 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
   const [asegurado, setAsegurado] = useState("");
   const [compania, setCompania] = useState("");
   const [fechaSiniestro, setFechaSiniestro] = useState("");
-  const [fechaDerivacion, setFechaDerivacion] = useState(new Date().toISOString().slice(0, 10));
+  const [fechaDerivacion, setFechaDerivacion] = useState(fechaLocalISO());
   const [estado, setEstado] = useState("doc_pendiente");
   const [patente, setPatente] = useState("");
   const [dni, setDni] = useState("");
