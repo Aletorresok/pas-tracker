@@ -11,7 +11,7 @@ import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
-import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "../../utils/ofertas.js";
+import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "../../utils/ofertas.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { useMargenes } from "../../utils/margenes.js";
 
@@ -92,6 +92,7 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     if (nuevo === "esperando_pago" && !Number(actual.plazo_pago) && plazoCompania) fechas.plazo_pago = plazoCompania;
     Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
     registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo), { visiblePas: true });
+    if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id);
     setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
     cambiar("estado", nuevo);
   };

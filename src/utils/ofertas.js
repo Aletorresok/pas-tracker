@@ -39,6 +39,14 @@ export async function actualizarOferta(id, cambios) {
   const { error } = await supabase.from("pas_ofertas").update(cambios).eq("id", id);
   return error ? error.message : null;
 }
+// Al pasar a Esperando pago (conformidad firmada): la última oferta sin responder queda aceptada.
+// Devuelve true si cambió alguna (sin el SQL 21 o sin ofertas, no hace nada).
+export async function aceptarUltimaPendiente(casoId) {
+  const lista = casoId ? await cargarOfertas(casoId) : null;
+  const ultima = lista?.[lista.length - 1];
+  if (!ultima || ultima.respuesta !== "pendiente") return false;
+  return !(await actualizarOferta(ultima.id, { respuesta: "aceptada" }));
+}
 export async function borrarOferta(id) {
   const { error } = await supabase.from("pas_ofertas").delete().eq("id", id);
   return error ? error.message : null;

@@ -19,13 +19,12 @@ import { abrirEscritos } from "./utils/escritoAbierto.js";
 import { hayNovedadesCliente, avisoNovedad } from "./utils/novedadesCliente.js";
 import CasoDocumentos from "./components/caso/CasoDocumentos.jsx";
 import PlazosCaso from "./components/caso/PlazosCaso.jsx";
-import ChecklistDocumental from "./components/caso/ChecklistDocumental.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
 import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
 import AvisarWhatsApp from "./components/caso/AvisarWhatsApp.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "./utils/flujoEstados.js";
 import { registrarAccion } from "./utils/storage.js";
-import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "./utils/ofertas.js";
+import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "./utils/ofertas.js";
 import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import { estadoHonorarios } from "./utils/metricas.js";
@@ -54,6 +53,16 @@ const PAS_CASOS_COLS = new Set([
 const pickCols = (obj) => Object.fromEntries(
   Object.entries(obj).filter(([k]) => PAS_CASOS_COLS.has(k)).map(([k, v]) => [k, v === "" ? null : v])
 );
+
+// Bloque que se abre y se cierra (lo que no corresponde a la etapa del caso)
+function Plegable({ titulo, Th, children }) {
+  return (
+    <details style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-md)", marginBottom: 16 }}>
+      <summary style={{ cursor: "pointer", padding: "12px 16px", fontSize: 15, fontWeight: 700, color: Th.text }}>{titulo}</summary>
+      <div style={{ padding: "0 12px 4px" }}>{children}</div>
+    </details>
+  );
+}
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -239,6 +248,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     const fechas = { ...fechas0, ...plazoPorDefecto({ ...formData, ...fechas0, estado: nuevo }) };
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
     registrarAccion(caso.id, textoCambioEstado(anterior, nuevo), { visiblePas: true }).then(ok => ok && cargarAcciones());
+    if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(ok => ok && setVersionOfertas(v => v + 1));
     const casoNuevo = { ...caso, ...formData, ...fechas, estado: nuevo };
     setSugerencia({ estado: nuevo, accion: accionSugerida(casoNuevo, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
   };
@@ -296,6 +306,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   ];
   const TEXTO_GUARDADO = { guardado: "✓ Guardado", pendiente: "Sin guardar…", guardando: "Guardando…", error: "No se guardó · reintentar" };
   const COLOR_GUARDADO = { guardado: "var(--ok)", pendiente: "var(--muted)", guardando: "var(--muted)", error: "var(--warn)" };
+  // Montos: con acuerdo (aceptado, esperando pago o cobrado) lo primero es cobrar; antes, reclamar y negociar
+  const enCobro = ["esperando_pago", "cobrado"].includes(formData.estado) || !!formData.fecha_aceptacion;
   const panel = (k) => ({ hidden: pestana !== k, role: "tabpanel", id: `panel-${k}`, "aria-labelledby": `tab-${k}` });
 
   return (
@@ -380,19 +392,31 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               {caso.id && <PlazosCaso caso={caso} setToast={setToast} />}
             </div>
             <div {...panel("montos")}>
-              <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
-              <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
-              <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
-              <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
-              {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
+              {/* Arriba lo que corresponde a la etapa: en reclamo, montos y ofertas; con acuerdo, pagos, factura y resultado */}
+              {enCobro ? <>
+                <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
+                <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
+                <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+                {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
+                <Plegable titulo="Ofertas de la compañía" Th={Th}>
+                  <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
+                </Plegable>
+              </> : <>
+                <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
+                <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
+                <Plegable titulo="Pagos, factura y resultado" Th={Th}>
+                  <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
+                  <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+                  {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
+                </Plegable>
+              </>}
             </div>
             <div {...panel("documentos")}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentación para el reclamo</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentos</span>
               </div>
               <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
-              <div style={{ marginBottom: 16 }}><ChecklistDocumental documentacion={formData.documentacion} onChange={v => handleFormChange("documentacion", v)} Th={Th} /></div>
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>
             <div {...panel("bitacora")}>

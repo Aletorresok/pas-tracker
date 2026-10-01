@@ -39,6 +39,8 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
     setOfertas(lista);
     sincronizar(lista);
     setNueva({ fecha: fechaLocalISO(), monto: "", respuesta: "pendiente", contraoferta: "", nota: "" });
+    // Llegó un ofrecimiento: si el caso estaba antes de esa etapa, pasa a Con ofrecimiento (fecha, bitácora y próxima acción sugerida)
+    if (["doc_pendiente", "iniciado", "reclamado"].includes(formData.estado)) onChange("estado", "con_ofrecimiento");
     await anotar(textoOferta(r.data, cia));
     await anotar(textoRespuesta(r.data));
   };
@@ -74,7 +76,7 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
   return (
     <div style={caja}>
       <div style={{ fontSize: 16, fontWeight: 700, color: Th.text, marginBottom: 4 }}>Ofertas de la compañía</div>
-      <div style={{ fontSize: 12, color: Th.sub, marginBottom: 10 }}>Cada ofrecimiento con lo que respondiste. El último queda como "Monto ofrecimiento" (es el que ve el PAS). Solo lo ves vos.</div>
+      <div style={{ fontSize: 12, color: Th.sub, marginBottom: 10 }}>Cada ofrecimiento con lo que respondiste; el último es el que ve el PAS. Cargar uno nuevo pasa el caso a Con ofrecimiento; marcarlo "Aceptada" completa la fecha de aceptación y el monto acordado.</div>
 
       {ofertas.length > 0 && (
         <div style={{ marginBottom: 12 }}>
