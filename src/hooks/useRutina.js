@@ -24,8 +24,11 @@ export function useRutina() {
     return () => window.removeEventListener(CAMBIO, recargar);
   }, [recargar]);
 
-  const hecho = useCallback((item, hoy = fechaLocalISO()) =>
-    !!datos?.registro.some(r => r.item_id === item.id && r.fecha === clavePeriodo(item.frecuencia, hoy)), [datos]);
+  // `hoy` solo si es una fecha: con items.filter(hecho) / every(hecho) llega la posición en la lista
+  const hecho = useCallback((item, hoy) => {
+    const fecha = clavePeriodo(item.frecuencia, typeof hoy === "string" ? hoy : fechaLocalISO());
+    return !!datos?.registro.some(r => r.item_id === item.id && r.fecha === fecha);
+  }, [datos]);
 
   // Tilda al instante y, si falla, vuelve atrás
   const tildar = useCallback(async (item, valor) => {

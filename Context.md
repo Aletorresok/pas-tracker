@@ -27,8 +27,8 @@
 *   `components/BuscadorGlobal.jsx` — Ctrl/Cmd+K: casos (asegurado, patente, DNI, siniestro, compañía, PAS) y PAS (cargados + búsqueda en los 51 mil contactos).
 
 **Pestañas del estudio**
-*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, KPIs y dos columnas parejas: Para hacer (izquierda) · Cobros pendientes + Agenda (derecha).
-    *   `dashboard/RecepcionHoy.jsx` (archivos que mandaron clientes) · `NuevosPortal.jsx` (casos derivados sin revisar) · `ParaHacer.jsx` (próximas acciones, honorarios, reclamos quietos con "Reiteré hoy", PAS dormidos con "Escribirle") · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `GraficoBarraMensual.jsx`.
+*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, dos columnas: Para hacer (izquierda) · Cobros pendientes + Agenda (derecha), y abajo **Mi día** (rutina + prospección). Sin KPIs (están en Finanzas y Análisis).
+    *   `dashboard/RecepcionHoy.jsx` · `NuevosPortal.jsx` · `ParaHacer.jsx` (una tarjeta por caso con todos sus pendientes, `TarjetaCaso.jsx`; "Hoy" = vencido y de hoy, "Próximos días y sin plazo" plegado; acciones rápidas Hecho + nueva acción, Posponer, Reiteré hoy) · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `MiDia.jsx` (bloques del día con el de ahora resaltado; los ítems medibles se tildan solos: `utils/medidasRutina.js`).
 *   `TabCasos.jsx` (**Casos**) — tabla con chips (Activos, Todos, Sin DNI, por estado), orden, filas de dos líneas en celular. Botón **Papelera** (`casos/Papelera.jsx`: casos eliminados de los últimos 30 días con "Recuperar").
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
 *   `TabProspeccion.jsx` (**Contactos**; la clave interna sigue siendo `prospeccion`) — Sin contactar (orden por defecto: teléfono, alfanumérico; `TabContactos.jsx`, paginado en servidor), Contactados / Descartados (`prospeccion/ListaContactados.jsx`); fila `PASCard.jsx` con botón Registrar (y Mail si no tiene teléfono); registrar contacto `ContactModal.jsx`.
@@ -120,6 +120,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-01 — Hoy ordenado
+*   **Para hacer**: una tarjeta por caso (o expediente) con todos sus pendientes; arriba lo vencido y lo de hoy, plegado lo de los próximos días y sin plazo. Acciones rápidas sin abrir la ficha: **Hecho** (la acción va a la bitácora como "Hecho: …" y se carga la próxima con plazo Mañana/3/7/14 d o fecha), **Posponer** y **Reiteré hoy** (`storage.completarAccion`, `posponerAccion`).
+*   **Mi día** (reemplaza "Ahora toca" y "Prospección del día"): toda la rutina del día por bloques, semanales/mensuales pendientes y objetivo del año. Se tildan solos (por el título del ítem, `utils/medidasRutina.js`): WhatsApp y mails a PAS (barra con la meta del título), reclamos quietos, pedir respuesta a iniciados, próximas acciones al día.
+*   Sin KPIs en Hoy. "Ver detalle en Análisis" de Cobros va a Análisis (iba a Finanzas). En Cobros, "Falta: …" solo si falta una de las dos cosas.
+*   Lógica: "A la firma" solo en Con ofrecimiento; al pasar a Esperando pago se completa `fecha_firma` si está vacía. "Honorarios facturados sin cobrar" solo cuando la indemnización ya se pagó (vence 30 d después de la factura o del pago).
+*   Arreglo: `useRutina.hecho` recibía la posición de la lista como fecha en `filter(hecho)` y los contadores de la rutina daban 0.
 
 ### 2026-10-01 — Honorarios % y plazo de pago por compañía (SQL 42)
 *   `sql/2026-10-01_42_condiciones_companias.sql` (correr a mano): % de honorarios (honorarios / indemnización) de 14 compañías y plazo de pago (mediana firma o aceptación → pago, casos cobrados) de 10, calculados con los casos. Quedan para cargar a mano el % de Mercantil Andina y San Cristóbal (casos al 10 y al 15) y el plazo de Paraná (un solo caso, 116 días).

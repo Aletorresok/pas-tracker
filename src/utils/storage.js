@@ -235,6 +235,26 @@ export async function registrarReiteracion(caso) {
   return cambios;
 }
 
+// Desde Hoy: da por hecha la próxima acción (queda en la bitácora) y carga la nueva con su plazo.
+// Sin `nueva`, el caso queda sin próxima acción. Devuelve los campos guardados del caso, o null si falló.
+export async function completarAccion(caso, { nueva = "", vence = null } = {}) {
+  const hecha = caso.proxima_accion?.trim();
+  if (hecha && !(await registrarAccion(caso.id, `Hecho: ${hecha}`))) return null;
+  const texto = nueva.trim();
+  const cambios = { proxima_accion: texto || null, proxima_accion_vence: texto ? vence : null, fecha_ultimo_movimiento: fechaLocalISO() };
+  const { error } = await supabase.from("pas_casos").update(cambios).eq("id", caso.id);
+  if (error) { console.error("[completarAccion]", error); return null; }
+  return cambios;
+}
+
+// Corre el plazo de la próxima acción. Devuelve los campos guardados, o null si falló.
+export async function posponerAccion(caso, vence) {
+  const cambios = { proxima_accion_vence: vence };
+  const { error } = await supabase.from("pas_casos").update(cambios).eq("id", caso.id);
+  if (error) { console.error("[posponerAccion]", error); return null; }
+  return cambios;
+}
+
 // Deja una nota en la bitácora del caso (la ve también el PAS en "Movimientos"). Devuelve true si se guardó.
 export async function registrarAccion(casoId, descripcion) {
   if (!casoId) return false;

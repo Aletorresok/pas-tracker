@@ -13,7 +13,7 @@ const FECHAS_DE_ESTADO = {
   reclamado: ["fecha_inicio_reclamo", "fecha_reclamo"],
   con_ofrecimiento: ["fecha_ofrecimiento"],
   en_juicio: ["fecha_inicio_juicio"],
-  esperando_pago: ["fecha_aceptacion"],
+  esperando_pago: ["fecha_aceptacion", "fecha_firma"], // pasa a Esperando pago con la conformidad firmada
 };
 
 export function fechasAlCambiarEstado(caso, nuevo, hoy = fechaLocalISO()) {

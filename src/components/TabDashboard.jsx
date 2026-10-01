@@ -1,48 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
-import { fmtMoney } from "../utils/formatters.js";
-import { aplanarCasos, kpis as calcularKpis, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
+import { aplanarCasos, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
-import ProspeccionHoy from "./dashboard/ProspeccionHoy.jsx";
-import AhoraToca from "./dashboard/AhoraToca.jsx";
+import MiDia from "./dashboard/MiDia.jsx";
 import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto } from "../utils/expedientes.js";
 import { useCalendarioJudicial } from "../hooks/useCalendarioJudicial.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
-import { registrarReiteracion } from "../utils/storage.js";
+import Toast from "./caso/Toast.jsx";
+import { registrarReiteracion, completarAccion, posponerAccion } from "../utils/storage.js";
 import { useMargenes } from "../utils/margenes.js";
-import { quienTiene } from "../utils/pelota.js";
+import { contarParaRutina, contactosDeHoy } from "../utils/medidasRutina.js";
 
-const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
-
-function Variacion({ valor, contra }) {
-  if (valor === null || valor === undefined) return <span style={{ fontSize: 12, color: "var(--muted)" }}>sin comparación</span>;
-  const sube = valor >= 0;
-  return (
-    <span className="num" style={{ fontSize: 12, fontWeight: 600, color: sube ? "var(--ok)" : "var(--bad)" }}>
-      {sube ? "▲" : "▼"} {Math.abs(valor)}% <span style={{ color: "var(--muted)", fontWeight: 400 }}>vs {contra}</span>
-    </span>
-  );
-}
-
-function Kpi({ label, valor, pie, destacado }) {
-  return (
-    <div style={{ padding: "12px 16px", minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: "var(--sub)" }}>{label}</div>
-      <div className="num" style={{ fontSize: destacado ? "clamp(19px, 2vw, 26px)" : "clamp(17px, 1.7vw, 22px)", fontWeight: 700, whiteSpace: "nowrap", letterSpacing: -0.5, color: destacado ? "var(--accent-ink)" : "var(--text)", marginTop: 2, overflowWrap: "anywhere" }}>{valor}</div>
-      <div style={{ marginTop: 2 }}>{pie}</div>
-    </div>
-  );
-}
-
+// Hoy: lo que entró (documentación del cliente, casos del portal), lo que hay que hacer, la plata que falta entrar,
+// la agenda y, abajo, Mi día (rutina + prospección). Los números del estudio están en Finanzas y Análisis.
 export default function TabDashboard({ pas, casos, derivadores, descartados = {}, historial, darkMode, pasManuales = [], onCasoLocal, onIrA, onAbrirExpediente }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
-  const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
   const margenes = useMargenes();
   const cal = useCalendarioJudicial();
+  const [toast, setToast] = useState(null);
 
   // Plazos procesales y escritos pendientes (de expedientes y de casos PAS)
   const [pendientes, setPendientes] = useState({ plazos: [], expedientes: [] });
@@ -66,18 +45,17 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     });
   }, [pendientes, allCasos]);
 
-  // Tareas de casos (el ritmo de cada PAS se mira en Clientes) + plazos y escritos, por vencimiento
-  const tareas = useMemo(() => [...tareasPendientes({ allCasos, margenes: margenes || {} }), ...tareasPlazos]
-    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [allCasos, margenes, tareasPlazos]);
+  // Tareas de casos + plazos y escritos, por vencimiento (Para hacer las agrupa por caso)
+  const tareasCasos = useMemo(() => tareasPendientes({ allCasos, margenes: margenes || {} }), [allCasos, margenes]);
+  const tareas = useMemo(() => [...tareasCasos, ...tareasPlazos]
+    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [tareasCasos, tareasPlazos]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
-  const teTocan = useMemo(() => allCasos.filter(c => quienTiene(c) === "vos").length, [allCasos]);
-  const nDerivadores = Object.values(derivadores).filter(Boolean).length;
+  const conteo = useMemo(() => contarParaRutina({ contactos: contactosDeHoy(historial), tareas: tareasCasos, allCasos }), [historial, tareasCasos, allCasos]);
   const nuevos = useMemo(() => allCasos
     .filter(c => c.origen === "portal" && !c.revisado_en)
     .sort((a, b) => String(b.created_at || b.fecha_derivacion || "").localeCompare(String(a.created_at || a.fecha_derivacion || ""))), [allCasos]);
 
   const [abierto, setAbierto] = useState(null); // { caso, pasId }
-
 
   const fechaHoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
   const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
@@ -87,6 +65,18 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     else if (t.caso) setAbierto({ caso: t.caso, pasId: t.caso._pasId });
   };
 
+  // Acciones rápidas de Para hacer: guardan, actualizan el caso en pantalla y devuelven true si salió bien
+  const aplicar = (c, cambios, ok) => {
+    if (!cambios) { setToast({ msg: "No se pudo guardar. Revisá la conexión.", type: "error" }); return false; }
+    const { _pasId, _pasNombre, ...limpio } = c;
+    onCasoLocal(_pasId, { ...limpio, ...cambios });
+    setToast({ msg: ok, type: "success" });
+    return true;
+  };
+  const alHecho = async (c, nueva) => aplicar(c, await completarAccion(c, nueva), nueva.nueva?.trim() ? "Listo. Próxima acción cargada" : "Listo");
+  const alPosponer = async (c, vence) => aplicar(c, await posponerAccion(c, vence), "Pospuesta");
+  const alReiterar = async c => aplicar(c, await registrarReiteracion(c), "Reiteración registrada");
+
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
@@ -94,41 +84,20 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
       </header>
 
-      <AhoraToca allCasos={allCasos} historial={historial} onIrA={onIrA} />
-
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
       <NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
 
-      {/* KPIs */}
-      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr 1fr" }}>
-        <Kpi destacado label={`Mis honorarios cobrados · ${k.anio}`} valor={fmtMoney(k.cobradoAnio)} pie={<Variacion valor={k.varAnual} contra={k.anio - 1} />} />
-        <Kpi label="Por cobrar" valor={fmtMoney(k.porCobrar)} pie={<span style={{ fontSize: 12, color: "var(--muted)" }}>{k.porCobrarCasos} {k.porCobrarCasos === 1 ? "caso" : "casos"}</span>} />
-        <Kpi label="En gestión" valor={k.enGestion} pie={<span style={{ fontSize: 12, color: "var(--muted)" }}>de {k.total} casos · <button type="button" onClick={() => onIrA?.("casos")} title="En Casos, filtro Te toca a vos" style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer" }}>{teTocan} te {teTocan === 1 ? "toca" : "tocan"} a vos</button></span>} />
-        <Kpi label="Este mes" valor={fmtMoney(k.esteMes)} pie={<Variacion valor={k.varMensual} contra={k.mesAnteriorNombre.toLowerCase()} />} />
-      </section>
-
-      {/* Dos columnas parejas: lo que hay que hacer y la plata que falta entrar */}
-      <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-        <ParaHacer tareas={tareas} cal={cal} onAbrir={abrirTarea} onReiterar={async c => {
-          const cambios = await registrarReiteracion(c);
-          if (cambios) { const { _pasId, _pasNombre, ...limpio } = c; onCasoLocal(_pasId, { ...limpio, ...cambios }); }
-        }} />
+      {/* Lo que hay que hacer y, al lado, la plata que falta entrar y la agenda */}
+      <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
+        <ParaHacer tareas={tareas} cal={cal} onAbrir={abrirTarea} onHecho={alHecho} onPosponer={alPosponer} onReiterar={alReiterar} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("finanzas")} />
+          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
-          <ProspeccionHoy historial={historial} derivadores={derivadores} descartados={descartados} onIr={() => onIrA?.("prospeccion")} />
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        {[["finanzas", "Resultado del mes, gastos, facturación y flujo de caja → Finanzas"], ["analisis", "Casos por etapa, compañías y PAS → Análisis"]].map(([tab, texto]) => (
-          <button key={tab} type="button" onClick={() => onIrA?.(tab)}
-            style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", padding: 0, textAlign: "left" }}>
-            {texto}
-          </button>
-        ))}
-      </div>
+      <MiDia conteo={conteo} allCasos={allCasos} historial={historial} derivadores={derivadores} descartados={descartados} onIrA={onIrA} />
 
       {abierto && (
         <CasoOverlay
@@ -138,6 +107,7 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
           onClose={() => setAbierto(null)}
         />
       )}
+      {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>
   );
 }
