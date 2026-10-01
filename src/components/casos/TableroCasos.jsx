@@ -4,7 +4,7 @@ import { ESTADOS_CASO } from "../../constants.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
-import { cargarCompania } from "../../utils/ofertas.js";
+import { cargarCompania, aceptarUltimaPendiente } from "../../utils/ofertas.js";
 import { useMargenes } from "../../utils/margenes.js";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
@@ -62,6 +62,8 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, acciones = {
     const actualizado = await guardar(caso, cambios);
     if (!actualizado) return;
     registrarAccion(caso.id, textoCambioEstado(caso.estado, estado), { visiblePas: true });
+    // La última oferta sin responder queda aceptada y, si no hay monto acordado, es ese
+    if (estado === "esperando_pago") aceptarUltimaPendiente(caso.id).then(o => o && !Number(actualizado.monto_acordado) && guardar(actualizado, { monto_acordado: o.monto }));
     setSugerencia({ caso: actualizado, estado, accion: accionSugerida(actualizado, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(estado) });
   };
 

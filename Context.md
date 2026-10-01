@@ -42,8 +42,8 @@
 *   `CasoUnificado.jsx` — encabezado fijo, línea de etapas (`caso/EtapasCaso.jsx`), pestañas Resumen / Datos / Montos / Documentos / Bitácora, autoguardado (upsert de un caso), Eliminar (si se abre desde Casos PAS o el buscador), PDF, "Generar escrito". **Ojo:** `.modal-panel` tiene `transform`, así que lo que use `position: fixed` adentro (flotantes, modales) va con `createPortal` a `document.body`.
 *   `caso/CasoOverlay.jsx` — abre la ficha encima de cualquier pantalla (marca revisados los casos del portal). Con `onEliminarCaso` muestra "Eliminar" (guarda lo pendiente antes).
 *   Resumen: `caso/ResumenCaso.jsx` (próxima acción `CasoProximaAccion.jsx`, mensaje al cliente + "Copiar link del cliente" + `AvisarWhatsApp.jsx`, últimos movimientos, `AgendaCaso.jsx`, números).
-*   Datos: `SeccionInfo.jsx` (asegurado, patente, compañía `CompaniaSelector.jsx`, DNI, teléfono) · `SeccionFechas.jsx`. Montos: `SeccionMontos.jsx` · `SeccionHonorarios.jsx`.
-*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `ChecklistDocumental.jsx` (manual) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access; vista previa al pasar el mouse `carpeta/ArchivoPreviewFlotante.jsx`; click derecho: Ver / Renombrar / Categorizar como) + `carpeta/GestorPDF.jsx` (botón "Gestor de PDF", aparece con la carpeta vinculada; "Guardar en la carpeta del caso" en un click, o "Guardar como…" con el explorador abierto en esa carpeta).
+*   Datos: `SeccionInfo.jsx` (asegurado, patente, compañía `CompaniaSelector.jsx`, DNI, teléfono) · `SeccionFechas.jsx`. Montos (según la etapa: en reclamo, montos + `HistorialOfertas.jsx` arriba y "Pagos, factura y resultado" plegado; con acuerdo, al revés): `SeccionPagos` · `SeccionMontos.jsx` · `SeccionHonorarios.jsx` · `ResultadoCaso.jsx`. Las ofertas se cargan solo en "Ofertas de la compañía" (no hay campo "Último ofrecimiento").
+*   Documentos: `RecepcionCliente.jsx` (guardar lo que mandó el cliente en la carpeta) · `CasoDocumentos.jsx` + `CarpetaLocal.jsx` + `carpeta/ArchivoLocalRow.jsx` (carpeta local con File System Access; vista previa al pasar el mouse `carpeta/ArchivoPreviewFlotante.jsx`; click derecho: Ver / Renombrar / Categorizar como) + `carpeta/GestorPDF.jsx` (botón "Gestor de PDF", aparece con la carpeta vinculada; "Guardar en la carpeta del caso" en un click, o "Guardar como…" con el explorador abierto en esa carpeta).
 *   Bitácora: `SeccionTimeline.jsx`. Otros: `ModalGenerarEscrito.jsx`, `PreviewModal.jsx`, `Toast.jsx`, `EstadoSelector.jsx`.
 
 **Portal PAS y vista del cliente** (`components/portal/`)
@@ -79,6 +79,10 @@
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
 ## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+**Para mostrar la app (anotado 01/10):**
+- [ ] **Usuario de demostración**: login simple, con 5 o 6 casos en distintas etapas y acciones precargadas (bitácora, próxima acción, ofertas, agenda) para mostrar lo útil de la app. **Sin ninguna referencia a la comisión** (no se ofrecen más comisiones a los PAS).
+- [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
+
 **Próximos pasos acordados (29/09):**
 - [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
 - [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
@@ -121,6 +125,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-01 — Ficha del caso: ofertas en un solo lugar, Montos según la etapa, sin checklist
+*   **Ofertas**: se cargan solo en Montos → "Ofertas de la compañía" (se sacó "Último ofrecimiento"). Cargar una pasa el caso a Con ofrecimiento si estaba antes; pasar a Esperando pago (ficha, fila o tablero) deja **aceptada** la última sin responder y, si no hay monto acordado, lo completa con esa oferta (`aceptarUltimaPendiente` devuelve la oferta).
+*   **Fila rápida de Casos PAS**: "Ofrecido" ya no se autoguarda con cada tecla; al salir del campo (o Enter) con otro monto **carga una oferta nueva** (la anterior queda en el historial, nota en la bitácora y pase a Con ofrecimiento). No corrige la última: eso se hace en la ficha.
+*   **Montos** ordenado por etapa con bloques plegables. **Sin checklist de documentación** (borrado `caso/ChecklistDocumental.jsx`; la columna `documentacion` queda en la base).
+*   Probado en Chromium con Supabase simulado: oferta desde la ficha (pasa a Con ofrecimiento, mensaje con el monto), Esperando pago desde la ficha y la fila (oferta aceptada + monto acordado), fila con pausa a mitad de escritura (no crea ofertas intermedias), 375 px sin desborde. El tablero usa el mismo código, sin prueba propia.
 
 ### 2026-10-01 — Menú de 8 pestañas + Ajustes, Números y Mi día compacto
 *   **Menú**: Hoy, Casos PAS, Expedientes, Contactos, Clientes, Compañías, **Números**, Herramientas; abajo **Ajustes** y Apariencia y backup.

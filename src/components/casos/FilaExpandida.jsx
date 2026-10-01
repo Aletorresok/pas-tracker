@@ -11,17 +11,16 @@ import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
-import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara } from "../../utils/ofertas.js";
+import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente, textoOferta } from "../../utils/ofertas.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { useMargenes } from "../../utils/margenes.js";
 
 // Campos que se editan desde la fila desplegada de la tabla
-// (las fechas de etapa se completan solas al cambiar de estado)
-const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_ofrecimiento", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
+// (las fechas de etapa se completan solas al cambiar de estado). El ofrecimiento va aparte: cada monto nuevo es una oferta.
+const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
   "fecha_inicio_reclamo", "fecha_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago"];
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
-  { k: "monto_ofrecimiento", l: "Ofrecido" },
   { k: "monto_cobro_yo", l: "Mis honorarios" },
   { k: "monto_comision_pas", l: "Comisión PAS" },
 ];
@@ -72,13 +71,31 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
       setEstadoGuardado("guardando");
       const { error } = await supabase.from("pas_casos").update(cambios).eq("id", actual.id);
       if (error) { console.error("[FilaExpandida] error al guardar:", error); setEstadoGuardado("error"); return; }
-      // Ofrecimiento nuevo: el anterior queda en el historial de ofertas
-      if ("monto_ofrecimiento" in cambios && cambios.monto_ofrecimiento) registrarCambioOfrecimiento(actual, cambios.monto_ofrecimiento, fechaLocalISO());
       onCasoLocal({ ...actual, ...cambios });
       setEstadoGuardado("guardado");
     }, 1200);
     return () => clearTimeout(t);
   }, [borrador, estadoGuardado, onCasoLocal]);
+
+  // Ofrecido: al salir del campo con otro monto se carga una oferta nueva (la anterior queda en el historial).
+  // No corrige la última: para eso, ficha → Montos → Ofertas de la compañía.
+  const [ofrecido, setOfrecido] = useState(caso.monto_ofrecimiento ?? "");
+  const cargarOferta = async () => {
+    const actual = casoRef.current;
+    const monto = Number(ofrecido);
+    if (!monto || monto === Number(actual.monto_ofrecimiento)) return;
+    setEstadoGuardado("guardando");
+    const cambios = { monto_ofrecimiento: monto };
+    if (!Number(actual.primer_ofrecimiento)) cambios.primer_ofrecimiento = Number(actual.monto_ofrecimiento) || monto;
+    const { error } = await supabase.from("pas_casos").update(cambios).eq("id", actual.id);
+    if (error) { console.error("[FilaExpandida] error al guardar la oferta:", error); setEstadoGuardado("error"); return; }
+    await registrarCambioOfrecimiento(actual, monto, fechaLocalISO());
+    registrarAccion(actual.id, textoOferta({ monto }, actual.compania_aseguradora));
+    onCasoLocal({ ...actual, ...cambios });
+    setEstadoGuardado("guardado");
+    // Llegó un ofrecimiento: si el caso estaba antes de esa etapa, pasa a Con ofrecimiento
+    if (["doc_pendiente", "iniciado", "reclamado"].includes(borrador.estado)) cambiarEstado("con_ofrecimiento");
+  };
 
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
@@ -92,6 +109,12 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     if (nuevo === "esperando_pago" && !Number(actual.plazo_pago) && plazoCompania) fechas.plazo_pago = plazoCompania;
     Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
     registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo), { visiblePas: true });
+    // La última oferta sin responder queda aceptada y, si no hay monto acordado, es ese
+    if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(async o => {
+      if (!o || Number(casoRef.current.monto_acordado)) return;
+      const { error } = await supabase.from("pas_casos").update({ monto_acordado: o.monto }).eq("id", caso.id);
+      if (!error) onCasoLocal({ ...casoRef.current, monto_acordado: o.monto });
+    });
     setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
     cambiar("estado", nuevo);
   };
@@ -106,6 +129,12 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
   const area = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-xs)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", resize: "vertical", minHeight: 40 };
   const chip = activo => ({ padding: "4px 10px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1px solid ${activo ? "var(--text)" : "var(--border)"}`, background: activo ? "var(--text)" : "var(--card)", color: activo ? "var(--bg)" : "var(--sub)" });
 
+  const filaMonto = m => (
+    <div key={m.k} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 10, alignItems: "center" }}>
+      <label htmlFor={`${m.k}-${caso.id}`} style={{ fontSize: 13, color: "var(--sub)" }}>{m.l}</label>
+      <CampoMonto id={`${m.k}-${caso.id}`} value={borrador[m.k]} onChange={v => cambiar(m.k, v)} />
+    </div>
+  );
   const textoGuardado = { guardado: "✓ Guardado", pendiente: "Cambios sin guardar…", guardando: "Guardando…", error: "No se pudo guardar · reintentar" }[estadoGuardado];
   const colorGuardado = { guardado: "var(--ok)", pendiente: "var(--muted)", guardando: "var(--muted)", error: "var(--warn)" }[estadoGuardado];
 
@@ -190,12 +219,14 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
       </div>
 
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
-        {MONTOS.map(m => (
-          <div key={m.k} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 10, alignItems: "center" }}>
-            <label htmlFor={`${m.k}-${caso.id}`} style={{ fontSize: 13, color: "var(--sub)" }}>{m.l}</label>
-            <CampoMonto id={`${m.k}-${caso.id}`} value={borrador[m.k]} onChange={v => cambiar(m.k, v)} />
-          </div>
-        ))}
+        {MONTOS.slice(0, 1).map(filaMonto)}
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 10, alignItems: "center" }}>
+          <label htmlFor={`monto_ofrecimiento-${caso.id}`} style={{ fontSize: 13, color: "var(--sub)" }}>Ofrecido</label>
+          <CampoMonto id={`monto_ofrecimiento-${caso.id}`} value={ofrecido} onChange={setOfrecido} onBlur={cargarOferta}
+            onKeyDown={e => e.key === "Enter" && e.currentTarget.blur()} />
+          <span style={{ gridColumn: "1 / -1", marginTop: -4, fontSize: 11, color: "var(--muted)", textAlign: "right" }}>Otro monto suma una oferta nueva</span>
+        </div>
+        {MONTOS.slice(1).map(filaMonto)}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
           <span role="status" style={{ fontSize: 12, color: colorGuardado, fontWeight: 600 }}>
             {estadoGuardado === "error"
