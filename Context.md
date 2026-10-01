@@ -121,6 +121,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Honorarios % y plazo de pago por compañía (SQL 42)
+*   `sql/2026-10-01_42_condiciones_companias.sql` (correr a mano): % de honorarios (honorarios / indemnización) de 14 compañías y plazo de pago (mediana firma o aceptación → pago, casos cobrados) de 10, calculados con los casos. Quedan para cargar a mano el % de Mercantil Andina y San Cristóbal (casos al 10 y al 15) y el plazo de Paraná (un solo caso, 116 días).
+
 ### 2026-10-01 — Directorio de compañías desde la SSN (SQL 41 y 41b)
 *   `sql/2026-10-01_41_companias_ssn.sql` + `41b` (correr a mano, en orden 39 → 40 → 41 → 41b): razón social y CUIT de las 26 compañías con casos y 86 nuevas, del listado `Aseguradoras_SSN.xlsx` (SSN, Datos Abiertos a 12/2025). Solo Seguros Generales, Transporte Público y "Todas". No pisa razón social ni CUIT cargados. La razón social queda como en la SSN. Domicilios, mails y teléfonos: pendientes (la SSN pide reCAPTCHA por compañía).
 *   Nombres cortos de las nuevas: los de `COMPANIAS_CONOCIDAS` cuando coinciden; "(Transporte)" para mutuales de transporte público homónimas; "Galicia Seguros" = SEGUROS GALICIA S.A. (30-50000012-7, la de las facturas) y "Galicia Seguros SAU" la otra.
