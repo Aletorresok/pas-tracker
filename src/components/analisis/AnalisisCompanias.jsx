@@ -8,7 +8,7 @@ import { fmtDate } from "../../utils/formatters.js";
 const dias = v => (v === null ? "—" : `${v} d`);
 
 // Análisis → Compañías: plazos de oferta y pago, cuánto ofrecen y cuántos terminan en mediación o juicio
-export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso, cambios = {}, directorio, onCompaniasGuardadas }) {
+export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso, cambios = {}, directorio }) {
   const [minimo, setMinimo] = useState(1);
   const { general, companias } = useMemo(() => statsCompanias(allCasos, ofertas), [allCasos, ofertas]);
   const filas = companias.filter(c => c.total >= minimo);
@@ -90,7 +90,7 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
 
       <Mediacion allCasos={allCasos} cambios={cambios} ofertas={ofertas} />
 
-      <CondicionesCompanias allCasos={allCasos} companias={directorio} onGuardado={onCompaniasGuardadas} />
+      <CondicionesCompanias allCasos={allCasos} companias={directorio} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 // Cálculos del Dashboard y de Análisis. Funciones puras sobre la lista de casos.
-import { fechaLocalISO, sumarDias } from "./formatters.js";
+import { fechaLocalISO, sumarDias, diasHasta } from "./formatters.js";
 import { margenPara } from "./margenes.js";
 import { prescripcion, PRESCRIPCION_ANIOS } from "./flujoEstados.js";
 import { fechaPagoEstimada } from "./vistaCliente.js";
@@ -88,7 +88,6 @@ export function kpis(allCasos, hoy = new Date()) {
 
 // Cobros pendientes: casos esperando pago, o con uno de los dos pagos hecho y el otro no. Con su fecha estimada.
 export function cobrosPendientes(allCasos) {
-  const hoyMs = Date.now();
   const falta = c => ({ faltaIndemnizacion: !indemnizacionPagada(c), faltaHonorarios: tieneHonorarios(c) && !honorariosCobrados(c) });
   return allCasos
     .filter(c => {
@@ -100,7 +99,7 @@ export function cobrosPendientes(allCasos) {
     .map(c => {
       let diasRestantes = null;
       const fechaEstimada = fechaPagoEstimada(c); // firma o aceptación + plazo, o fecha de pago
-      if (fechaEstimada) diasRestantes = Math.ceil((new Date(fechaEstimada).getTime() - hoyMs) / 86400000);
+      if (fechaEstimada) diasRestantes = diasHasta(fechaEstimada);
       const f = falta(c);
       return { ...c, ...f, fechaEstimada, diasRestantes,
         montoYo: f.faltaHonorarios ? Number(c.monto_cobro_yo) || 0 : 0,
