@@ -148,13 +148,14 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     setLoadingAcciones(false);
   };
 
-  // visible_cliente / texto_cliente (SQL 35) solo vienen si está corrido
-  const handleCrearAccion = async ({ fecha, descripcion, ...paraCliente }) => {
+  // visible_cliente / texto_cliente (SQL 35) solo vienen si está corrido. Lo cargado a mano lo ve el PAS salvo que se marque interno (SQL 43)
+  const handleCrearAccion = async ({ fecha, descripcion, visible_pas = true, ...paraCliente }) => {
     const { error } = await supabase.from("acciones").insert({ 
       caso_id: caso.id, 
       descripcion, 
       fecha, 
       tipo: "nota",
+      visible_pas,
       ...paraCliente,
     });
     if (error) { 
@@ -237,7 +238,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     const fechas0 = fechasAlCambiarEstado(formData, nuevo);
     const fechas = { ...fechas0, ...plazoPorDefecto({ ...formData, ...fechas0, estado: nuevo }) };
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
-    registrarAccion(caso.id, textoCambioEstado(anterior, nuevo)).then(ok => ok && cargarAcciones());
+    registrarAccion(caso.id, textoCambioEstado(anterior, nuevo), { visiblePas: true }).then(ok => ok && cargarAcciones());
     const casoNuevo = { ...caso, ...formData, ...fechas, estado: nuevo };
     setSugerencia({ estado: nuevo, accion: accionSugerida(casoNuevo, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
   };

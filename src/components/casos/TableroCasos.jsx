@@ -61,7 +61,7 @@ export default function TableroCasos({ casos, todosLosPas, onAbrir, acciones = {
     }
     const actualizado = await guardar(caso, cambios);
     if (!actualizado) return;
-    registrarAccion(caso.id, textoCambioEstado(caso.estado, estado));
+    registrarAccion(caso.id, textoCambioEstado(caso.estado, estado), { visiblePas: true });
     setSugerencia({ caso: actualizado, estado, accion: accionSugerida(actualizado, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(estado) });
   };
 

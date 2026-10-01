@@ -9,6 +9,7 @@ import CambiosDatos from "./CambiosDatos.jsx";
 export default function SeccionTimeline({ acciones, loading, onCrear, onActualizar, onEliminar, cambios, cliente, editarId, onEditarAbierto, avisoPas = false, Th }) {
   const [vista, setVista] = useState("movimientos"); // movimientos | cambios
   const [visible, setVisible] = useState(false);
+  const [vePas, setVePas] = useState(true); // SQL 43: lo cargado a mano lo ve el PAS, salvo que lo marques interno
   const [textoCliente, setTextoCliente] = useState("");
   const [avisar, setAvisar] = useState(null); // link de WhatsApp para contarle la novedad recién marcada
   const [modalOpen, setModalOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
     setEditandoId(null); 
     setFecha(fechaLocalISO()); 
     setDescripcion(""); 
-    setVisible(false); setTextoCliente("");
+    setVisible(false); setTextoCliente(""); setVePas(true);
     setModalOpen(true); 
   };
   
@@ -35,7 +36,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
     setEditandoId(a.id); // ID exacto de la base de datos
     setFecha(diaDeAccion(a.fecha)); setFechaOriginal(diaDeAccion(a.fecha));
     setDescripcion(a.descripcion || ""); 
-    setVisible(mostrar || !!a.visible_cliente); setTextoCliente(a.texto_cliente || "");
+    setVisible(mostrar || !!a.visible_cliente); setTextoCliente(a.texto_cliente || ""); setVePas(!!a.visible_pas);
     setModalOpen(true); 
   };
   
@@ -56,7 +57,10 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
     if (!descripcion.trim()) return;
     setGuardando(true);
 
-    const paraCliente = cliente ? { visible_cliente: visible, texto_cliente: visible && textoCliente.trim() ? textoCliente.trim() : null } : {};
+    const paraCliente = {
+      ...(cliente ? { visible_cliente: visible, texto_cliente: visible && textoCliente.trim() ? textoCliente.trim() : null } : {}),
+      ...(avisoPas ? { visible_pas: vePas } : {}),
+    };
     if (editandoId) {
       // Es una edición explícita
       await onActualizar({ id: editandoId, fecha: fecha === fechaOriginal ? undefined : fecha, descripcion: descripcion.trim(), ...paraCliente });
@@ -124,6 +128,9 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
               </div>
               <div role="button" tabIndex={0} title="Tocá para editar el texto o la fecha" onClick={() => abrirEditar(a)} onKeyDown={e => { if (e.key === "Enter") abrirEditar(a); }}
                 style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8, cursor: "text", overflowWrap: "anywhere" }}>{a.descripcion}</div>
+              {avisoPas && !a.visible_pas && (
+                <div style={{ fontSize: 11, fontWeight: 700, color: Th.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4 }}>Interno · no lo ve el PAS</div>
+              )}
               {cliente && a.visible_cliente && (
                 <div style={{ fontSize: 12.5, lineHeight: 1.45, marginBottom: 8, padding: "6px 10px", borderRadius: "var(--r-xs)", background: "color-mix(in srgb, var(--ok) 8%, transparent)", color: Th.text }}>
                   <b style={{ color: "var(--ok)", fontWeight: 700 }}>Lo ve el cliente</b>{a.texto_cliente ? <>: “{a.texto_cliente}”</> : " (con este mismo texto)"}
@@ -155,7 +162,12 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
               <label style={{ display: "block", marginBottom: 20 }}>
                 <span style={labelStyle}>Descripción *</span>
                 <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ej: Natalia aceptó el ofrecimiento..." rows={3} style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
-                {avisoPas && <span style={{ display: "block", fontSize: 11, color: Th.muted, marginTop: 4 }}>El PAS ve este movimiento, con esta fecha y este texto, en su portal.</span>}
+                {avisoPas && (
+                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14, color: Th.text, cursor: "pointer", marginTop: 10 }}>
+                    <input type="checkbox" checked={vePas} onChange={e => setVePas(e.target.checked)} style={{ accentColor: "var(--accent)" }} />
+                    Lo ve el PAS (en su portal, con esta fecha y este texto)
+                  </label>
+                )}
               </label>
               {cliente && (
                 <div style={{ marginTop: -8, marginBottom: 20, display: "grid", gap: 8 }}>
