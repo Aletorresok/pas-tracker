@@ -132,6 +132,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Contactos: el mail se registra antes de abrirse y chip "Para descartar"
+*   **Mail de presentación** (`PASCard.mandarMail`, `TabContactos`, `App.handleMailEnviado`): primero se guarda el contacto y recién después se abre Gmail (la pestaña se abre en el click y se cierra si falla) o el correo del celular. Si no se pudo guardar, aviso en la lista, el PAS queda y no se abre el mail. Si se guardó, el PAS aparece al instante en Contactados ("mail enviado"). `insertHistorialEntry` devuelve si se guardó.
+*   Dato del 01/10: los mails sí quedaban registrados (consulta en `pas_historial`: 31 el 29/09, 9 el 30/09). Que un PAS "vuelva" al día siguiente tiene otra causa, en revisión (posible: el mismo mail en varios contactos del Excel).
+*   **Contactados → "Para descartar"**: contactados hace más de 60 días que no derivaron, no están descartados ni quedaron como interesados. Botón "Descartar los N" (confirma y deja "Deshacer") y de a uno como siempre. `App.handleDescartarVarios(ids, valor)`.
+*   Probado en Chromium con Supabase simulado (falla y éxito del registro, descarte en bloque y deshacer).
+
 ### 2026-10-01 — Números → Análisis con los números del estudio y objetivos; Compañías prioriza las que tienen casos
 *   **Análisis → Resumen**: arriba, los números que salieron de Hoy: Cobrado en el año (contra el anterior), Este mes (contra el anterior), Por cobrar (casos con honorarios cargados) e Histórico cobrado (casos totales y en gestión). Sigue "Comisiones pagadas a PAS" (los PAS que ya tienen comisión la mantienen; solo no se ofrece a PAS nuevos). Debajo, **Objetivos** del período en curso con su avance (`analisis/ObjetivosResumen.jsx`, reusa `TarjetaObjetivo`; se editan en Ajustes). `App.jsx` pasa `historial` a `TabAnalisis`.
 *   **Compañías**: abre en "Con casos en curso"; "Ficha incompleta" cuenta solo las que tienen casos en curso (antes marcaba las 112); buscando aparecen todas.

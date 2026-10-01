@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import AvisoDeshacer from "../ui/AvisoDeshacer.jsx";
+import { diasDesde } from "../../utils/formatters.js";
 import PASCard from "../PASCard.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
@@ -7,15 +9,26 @@ import { recordatorioPendiente, fueInteresado, recibioRecordatorio, textoRecorda
 const POR_TANDA = 40;
 export const ultimoContacto = (historial, id) => { const h = historial[id] || []; return h[h.length - 1]; };
 
+// "Para descartar": el último contacto fue hace más de DIAS_DESCARTAR días y no quedó como interesado
+// (los que derivan o ya están descartados no entran)
+const DIAS_DESCARTAR = 60;
+const paraDescartar = lista => {
+  const ultimo = lista?.[lista.length - 1];
+  return !!ultimo?.fecha && diasDesde(ultimo.fecha) > DIAS_DESCARTAR && !fueInteresado(lista) && !recordatorioPendiente(lista);
+};
+
 // Contactados = con al menos un contacto, que no derivan ni están descartados
 export const FILTROS_CONTACTADOS = [
   { k: "contactados", l: "Contactados", test: (p, h, d, x) => h[p.id]?.length > 0 && !d[p.id] && !x[p.id] },
   { k: "interesados", l: "Interesados", test: (p, h, d, x) => fueInteresado(h[p.id]) && !d[p.id] && !x[p.id] },
   { k: "recordar", l: "Para recordar", test: (p, h, d, x) => !!recordatorioPendiente(h[p.id]) && !d[p.id] && !x[p.id] },
+  { k: "descartar", l: "Para descartar", test: (p, h, d, x) => paraDescartar(h[p.id]) && !d[p.id] && !x[p.id] },
   { k: "descartados", l: "Descartados", test: (p, h, d, x) => !!x[p.id] },
 ];
 
-export default function ListaContactados({ pas, historial, derivadores, descartados, filtro, onContactar, onToggleDerivador, onToggleDescartado, onRecordatorio }) {
+export default function ListaContactados({ pas, historial, derivadores, descartados, filtro, onContactar, onToggleDerivador, onToggleDescartado, onDescartarVarios, onRecordatorio }) {
+  const [deshacer, setDeshacer] = useState(null); // ids recién descartados de una vez
+  const cerrarAviso = useCallback(() => setDeshacer(null), []);
   const [busqueda, setBusqueda] = useState("");
   const [orden, setOrden] = useState("recientes");
   const [mostrar, setMostrar] = useState(POR_TANDA);
@@ -52,6 +65,23 @@ export default function ListaContactados({ pas, historial, derivadores, descarta
       </div>
 
       {filtro === "recordar" && <AyudaRecordatorio pas={pas} historial={historial} derivadores={derivadores} />}
+      {filtro === "descartar" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 13, color: "var(--sub)", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "10px 14px", lineHeight: 1.5 }}>
+          <span style={{ flex: "1 1 260px" }}>PAS contactados hace más de {DIAS_DESCARTAR} días que no derivaron ni quedaron como interesados. Descartalos de a uno (click derecho o desde su detalle) o todos juntos.</span>
+          {onDescartarVarios && lista.length > 0 && (
+            <Boton tamaño="sm" onClick={async () => {
+              if (!window.confirm(`¿Descartar ${lista.length === 1 ? "este PAS" : `estos ${lista.length} PAS`}? Pasan a Descartados y no vuelven a aparecer en Contactos.`)) return;
+              const ids = lista.map(p => p.id);
+              await onDescartarVarios(ids, true);
+              setDeshacer(ids);
+            }}>Descartar {lista.length === 1 ? "este PAS" : `los ${lista.length.toLocaleString("es-AR")}`}</Boton>
+          )}
+        </div>
+      )}
+      {deshacer && (
+        <AvisoDeshacer texto={`${deshacer.length.toLocaleString("es-AR")} PAS descartados`} onCerrar={cerrarAviso}
+          onDeshacer={() => onDescartarVarios(deshacer, false)} />
+      )}
 
       {filtro === "recordar" && lista.length > 0 ? (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
