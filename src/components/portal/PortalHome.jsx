@@ -167,7 +167,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
     .filter(c => !estadoActivo || c.estado === estadoActivo)
     .filter(c => !q || (c.asegurado || "").toLowerCase().includes(q) || (c.patente || "").toLowerCase().includes(q) || (c.compania_aseguradora || "").toLowerCase().includes(q))
     .sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
-  const proximo = pagosPendientes[0];
   const esDemo = casos[0]?._demo;
 
   if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos…</div>;
@@ -223,16 +222,14 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark }) {
         {/* Resumen del PAS */}
         <aside className="portal-resumen" style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 84 }}>
           <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
-            <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
-            <div className="num" style={{ fontSize: 28, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: -0.5 }}>{fmtMoney(comisionTotal || 0)}</div>
-            {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>Por pagarte: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
-            {proximo && (
-              <div style={{ fontSize: 13, color: T.sub, marginTop: 4 }}>
-                Próximo cobro: <b className="num" style={{ color: T.text }}>{Number(proximo.monto_comision_pas) > 0 ? fmtMoney(proximo.monto_comision_pas) : proximo.asegurado}</b>
-                {proximo._fechaPago ? ` · ${fmtDate(proximo._fechaPago)}` : " · fecha a confirmar"}
-              </div>
-            )}
-            <div className="stats-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 10 }}>
+            {/* La comisión solo aparece cuando hay algo: cobrada o por pagarle. Un PAS sin comisión no ve ninguna referencia.
+                Los próximos cobros van en su propia tarjeta (abajo). */}
+            {comisionTotal > 0 && <>
+              <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
+              <div className="num" style={{ fontSize: 28, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: -0.5 }}>{fmtMoney(comisionTotal)}</div>
+            </>}
+            {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>{comisionTotal > 0 ? "Por pagarte" : "Tu comisión por pagarte"}: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
+            <div className="stats-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", ...(comisionTotal > 0 || comisionPendiente > 0 ? { marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 10 } : {}) }}>
               {[["En curso", enCurso.length], ["Cobrados", casosCobrados.length], ["Total", casos.filter(c => !c._demo).length]].map(([l, n]) => (
                 <div key={l}><div className="num" style={{ fontSize: 20, fontWeight: 700 }}>{n}</div><div style={{ fontSize: 12, color: T.muted }}>{l}</div></div>
               ))}

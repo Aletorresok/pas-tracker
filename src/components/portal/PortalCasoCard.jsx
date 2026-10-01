@@ -13,14 +13,20 @@ import { adjuntosDelCaso } from "../../utils/adjuntosPas.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 
+// Último movimiento del caso: lo más nuevo entre la bitácora que ve el PAS y las fechas que se actualizan con lo interno
+// (reiteraciones, próxima acción), así un reclamo reiterado no figura como quieto
+const ultimoMovimiento = c => [c.movimientos?.[0]?.fecha, c.fecha_ultimo_movimiento, c.fecha_ultimo_reclamo, c.fecha_reclamo, c.fecha_inicio_reclamo]
+  .map(f => String(f || "").slice(0, 10)).filter(Boolean).sort().pop() || null;
+
 // Una línea con lo que sigue y cuándo, para contestarle al cliente sin abrir nada
 function queSigue(caso, plazoCia) {
   const cia = caso.compania_aseguradora || "La compañía";
   if (caso.estado === "reclamado") {
-    const desde = caso.fecha_ultimo_reclamo || caso.fecha_reclamo || caso.fecha_inicio_reclamo;
+    const desde = ultimoMovimiento(caso);
     const d = desde ? diasDesde(desde) : null;
     if (d === null) return plazoCia ? `${cia} suele responder en unos ${plazoCia} días` : null;
-    return `Reclamado hace ${d} ${d === 1 ? "día" : "días"}${plazoCia ? ` · ${cia} suele responder en unos ${plazoCia} días` : ""}`;
+    const cuando = d <= 0 ? "hoy" : `hace ${d} ${d === 1 ? "día" : "días"}`;
+    return `Reclamado · último movimiento ${cuando}${plazoCia ? ` · ${cia} suele responder en unos ${plazoCia} días` : ""}`;
   }
   if (caso.estado === "con_ofrecimiento") {
     return Number(caso.monto_ofrecimiento) > 0 ? `Ofrecieron ${fmtMoney(caso.monto_ofrecimiento)}` : `${cia} hizo un ofrecimiento`;

@@ -132,6 +132,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-01 — Portal PAS: la comisión solo aparece si hay, y un solo "Próximos cobros"
+*   **Resumen del portal** (`PortalHome.jsx`): "Tu comisión cobrada" solo cuando hay comisión cobrada; "Por pagarte" solo si hay comisión pendiente. Un PAS sin comisiones cargadas no ve ninguna referencia a la comisión (en la tarjeta del caso ya se mostraba solo con monto). Se sacó la línea "Próximo cobro" del resumen: queda la tarjeta "Próximos cobros".
+*   Revisión del portal y la vista del cliente (01/10, decisiones del usuario): "Generar escrito" del portal queda (ya genera solo el reclamo extrajudicial). "Reclamado hace N días" pasa a "Reclamado · último movimiento hace N días": toma lo más nuevo entre la bitácora visible para el PAS y `fecha_ultimo_movimiento` / `fecha_ultimo_reclamo` (reiteraciones y próxima acción, que son internas). Patente y DNI siguen opcionales al derivar. Derivar con fotos y el mail al estudio ya están probados en uso real; "Olvidé mi contraseña" queda para más adelante.
+*   Probado en Chromium con Supabase simulado (PAS sin comisión: cero menciones; con comisión cobrada: aparece).
+
 ### 2026-10-01 — Contactos: el mail se registra antes de abrirse y chip "Para descartar"
 *   **Mail de presentación** (`PASCard.mandarMail`, `TabContactos`, `App.handleMailEnviado`): primero se guarda el contacto y recién después se abre Gmail (la pestaña se abre en el click y se cierra si falla) o el correo del celular. Si no se pudo guardar, aviso en la lista, el PAS queda y no se abre el mail. Si se guardó, el PAS aparece al instante en Contactados ("mail enviado"). `insertHistorialEntry` devuelve si se guardó.
 *   Dato del 01/10: los mails sí quedaban registrados (consulta en `pas_historial`: 31 el 29/09, 9 el 30/09). Que un PAS "vuelva" al día siguiente tiene otra causa, en revisión (posible: el mismo mail en varios contactos del Excel).
