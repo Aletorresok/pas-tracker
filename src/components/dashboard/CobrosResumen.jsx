@@ -20,7 +20,7 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
       <div className="lista-scroll" style={{ maxHeight: 340, overflowY: "auto", margin: "0 -10px", padding: "6px 10px 10px" }}>
         <ListaOrdenable items={cobros} storageKey="cobros" render={(c, { dragging, dragProps }) => (
           <TarjetaTarea dragging={dragging} dragProps={dragProps} vence={c.fechaEstimada} titulo={c.asegurado}
-            detalle={`${c.compania_aseguradora || "Sin compañía"} · ${textoFalta(c)}`} onClick={() => onAbrir(c)}
+            detalle={[c.compania_aseguradora || "Sin compañía", !(c.faltaIndemnizacion && c.faltaHonorarios) && textoFalta(c)].filter(Boolean).join(" · ")} onClick={() => onAbrir(c)}
             menu={() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ver cobros en Análisis", onClick: onVerTodos }] })}
             derecha={netoPendiente(c) ? fmtMoney(netoPendiente(c)) : "—"} />
         )} />

@@ -204,8 +204,9 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
         : `Iniciado hace ${dias} d: se pasó la ventana de ${VENTANA_RECLAMO.desde} a ${VENTANA_RECLAMO.hasta} d para pedirle respuesta a ${cia}` });
   });
 
-  // Acuerdo aceptado sin firmar: no debería pasar de unos días
-  allCasos.filter(c => esActivo(c) && c.fecha_aceptacion && !c.fecha_firma).forEach(c => {
+  // Acuerdo aceptado sin firmar: no debería pasar de unos días. Solo en Con ofrecimiento:
+  // a Esperando pago se pasa con la conformidad firmada.
+  allCasos.filter(c => c.estado === "con_ofrecimiento" && c.fecha_aceptacion && !c.fecha_firma).forEach(c => {
     const desde = aISO(c.fecha_aceptacion);
     const dias = diasEntre(desde, hoyISO);
     if (dias === null || dias <= DIAS_A_LA_FIRMA) return;
@@ -226,9 +227,12 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
     tareas.push({ id: `monto-${c.id}`, tipo: "dato", vence: null, titulo: c.asegurado || "Sin nombre", caso: c, detalle: "Falta cargar el monto reclamado" });
   });
 
+  // Honorarios facturados sin cobrar: recién cuando la compañía ya pagó la indemnización (antes es "Fecha de pago").
+  // Vence a los 30 días de la factura o del pago, lo que sea más tarde.
   allCasos.forEach(c => {
-    if (c.estado_honorarios === "FACTURADO" && c.fecha_factura && !c.fecha_cobro_honorarios) {
-      const vence = sumarDias(String(c.fecha_factura).slice(0, 10), 30);
+    if (c.estado_honorarios === "FACTURADO" && c.fecha_factura && !c.fecha_cobro_honorarios && indemnizacionPagada(c)) {
+      const base = [String(c.fecha_factura).slice(0, 10), aISO(c.fecha_cobro)].filter(Boolean).sort().pop();
+      const vence = sumarDias(base, 30);
       if (vence && vence <= enUnaSemana) {
         tareas.push({ id: `hon-${c.id}`, tipo: "honorarios", vence, titulo: c.asegurado || "Sin nombre", detalle: "Honorarios facturados sin cobrar", monto: Number(c.monto_cobro_yo || c.monto_honorarios) || null, caso: c });
       }
