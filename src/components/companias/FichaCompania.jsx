@@ -27,8 +27,8 @@ const seccion = { background: "var(--card)", border: "1px solid color-mix(in srg
 const titulo = { margin: 0, fontSize: 15, fontWeight: 700 };
 const grilla = cols => ({ display: "grid", gridTemplateColumns: cols, gap: 12 });
 
-// Campo que guarda al salir (solo si cambió)
-function Campo({ l, valor, onGuardar, tipo = "text", ph, ayuda, error, formatear, style }) {
+// Campo que guarda al salir (solo si cambió). `multilinea`: texto largo (Enter hace un renglón nuevo)
+function Campo({ l, valor, onGuardar, tipo = "text", ph, ayuda, error, formatear, style, multilinea }) {
   const [v, setV] = useState(valor ?? "");
   useEffect(() => setV(valor ?? ""), [valor]);
   const salir = () => {
@@ -38,10 +38,13 @@ function Campo({ l, valor, onGuardar, tipo = "text", ph, ayuda, error, formatear
   };
   return (
     <label style={{ display: "block", minWidth: 0, ...style }}>
-      <span style={etiqueta}>{l}</span>
-      <input type={tipo} value={v} placeholder={ph} onChange={e => setV(e.target.value)} onBlur={salir}
-        onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
-        style={{ ...campo, borderColor: error ? "var(--bad)" : undefined }} aria-invalid={error ? true : undefined} />
+      {l && <span style={etiqueta}>{l}</span>}
+      {multilinea
+        ? <textarea value={v} placeholder={ph} onChange={e => setV(e.target.value)} onBlur={salir} rows={4} aria-label={l || "Notas"}
+            style={{ ...campo, resize: "vertical", lineHeight: 1.5 }} />
+        : <input type={tipo} value={v} placeholder={ph} onChange={e => setV(e.target.value)} onBlur={salir}
+            onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            style={{ ...campo, borderColor: error ? "var(--bad)" : undefined }} aria-invalid={error ? true : undefined} />}
       {(error || ayuda) && <span style={{ display: "block", fontSize: 11, marginTop: 3, color: error ? "var(--bad)" : "var(--muted)" }}>{error || ayuda}</span>}
     </label>
   );
@@ -202,6 +205,12 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
                 {contactos.map(c => <FilaContacto key={c.id} contacto={c} onGuardar={guardarContacto} onBorrar={() => borrarContacto(c)} />)}
                 {borrador && <FilaContacto contacto={{ tipo: "estudio" }} onGuardar={guardarContacto} onBorrar={() => setBorrador(false)} />}
                 {!contactos.length && !borrador && <div style={{ fontSize: 13, color: "var(--muted)" }}>Sumá estudios gestores, analistas o el mail de siniestros de terceros: aparecen en la ficha de cada caso de esta compañía.</div>}
+              </section>
+
+              <section style={seccion}>
+                <h3 style={titulo}>Notas</h3>
+                <Campo multilinea valor={ficha.notas} onGuardar={v => guardar({ notas: v })}
+                  ph="Cómo se reclama, qué documentación piden, a quién llamar, horarios…" />
               </section>
 
               <section style={seccion}>
