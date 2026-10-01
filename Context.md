@@ -128,7 +128,7 @@
 
 ### 2026-10-01 — Portal PAS: la comisión solo aparece si hay, y un solo "Próximos cobros"
 *   **Resumen del portal** (`PortalHome.jsx`): "Tu comisión cobrada" solo cuando hay comisión cobrada; "Por pagarte" solo si hay comisión pendiente. Un PAS sin comisiones cargadas no ve ninguna referencia a la comisión (en la tarjeta del caso ya se mostraba solo con monto). Se sacó la línea "Próximo cobro" del resumen: queda la tarjeta "Próximos cobros".
-*   Revisión del portal y la vista del cliente (01/10, decisiones del usuario): "Generar escrito" del portal queda (ya genera solo el reclamo extrajudicial). "Reclamado hace N días" queda (cuenta desde la última reiteración: el aviso de reclamo quieto tiene que evitar que llegue lejos). Patente y DNI siguen opcionales al derivar. Derivar con fotos y el mail al estudio ya están probados en uso real; "Olvidé mi contraseña" queda para más adelante.
+*   Revisión del portal y la vista del cliente (01/10, decisiones del usuario): "Generar escrito" del portal queda (ya genera solo el reclamo extrajudicial). "Reclamado hace N días" pasa a "Reclamado · último movimiento hace N días": toma lo más nuevo entre la bitácora visible para el PAS y `fecha_ultimo_movimiento` / `fecha_ultimo_reclamo` (reiteraciones y próxima acción, que son internas). Patente y DNI siguen opcionales al derivar. Derivar con fotos y el mail al estudio ya están probados en uso real; "Olvidé mi contraseña" queda para más adelante.
 *   Probado en Chromium con Supabase simulado (PAS sin comisión: cero menciones; con comisión cobrada: aparece).
 
 ### 2026-10-01 — Ficha del caso: ofertas en un solo lugar, Montos según la etapa, sin checklist
