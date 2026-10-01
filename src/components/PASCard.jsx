@@ -30,6 +30,20 @@ function Interruptor({ activo, label, detalle, onClick }) {
   );
 }
 
+// Mail de presentación: primero queda registrado el contacto y recién después se abre el mail (Gmail en la compu,
+// la app de correo en el celular). La pestaña de Gmail se abre en el momento del click (si no, el navegador la bloquea)
+// y se cierra si el registro falla. onMail devuelve true si se guardó.
+async function mandarMail(x, onMail) {
+  const celular = window.matchMedia("(max-width: 900px)").matches;
+  const link = linkMailPresentacion(x.mail, x.nombre, celular);
+  const ventana = celular ? null : window.open("", "_blank");
+  if (ventana) ventana.opener = null;
+  const ok = await onMail(x);
+  if (!ok) { ventana?.close(); return; }
+  if (ventana) ventana.location.href = link;
+  else window.location.href = link;
+}
+
 // Fila de un PAS en Contactos: resumen en una línea, detalle al tocar
 export default function PASCard({ pas, historial, derivadores, onContactar, onToggleDerivador, onToggleDescartado, descartados, expanded, onToggle, onMail, mailBloqueado }) {
   const contactos = historial[pas.id] || [];
@@ -41,7 +55,7 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
   const menu = propsMenu(() => itemsPAS(pas, {
     abrir: { label: expanded ? "Cerrar detalle" : "Ver detalle", onClick: onToggle },
     contactar: onContactar,
-    mail: onMail && !mailBloqueado ? x => { window.open(linkMailPresentacion(x.mail, x.nombre, window.matchMedia("(max-width: 900px)").matches), "_blank", "noopener"); onMail(x); } : undefined,
+    mail: onMail && !mailBloqueado ? x => mandarMail(x, onMail) : undefined,
     derivador: onToggleDerivador && { activo: esDerivador, onToggle: onToggleDerivador },
     descartado: onToggleDescartado && { activo: esDescartado, onToggle: onToggleDescartado },
   }));
@@ -66,11 +80,10 @@ export default function PASCard({ pas, historial, derivadores, onContactar, onTo
         )}
         {!telefonos[0] && pas.mail && onMail && (mailBloqueado
           ? <Boton tamaño="sm" icono="mensaje" disabled title="Llegaste al tope de mails de hoy">Mail</Boton>
-          : <a href={linkMailPresentacion(pas.mail, pas.nombre, window.matchMedia("(max-width: 900px)").matches)} target="_blank" rel="noreferrer"
-              onClick={() => onMail(pas)} title={`Mail de presentación a ${pas.mail}`}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+          : <button type="button" onClick={() => mandarMail(pas, onMail)} title={`Mail de presentación a ${pas.mail}`}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, font: "inherit", cursor: "pointer", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
               <Icono nombre="mensaje" size={14} />Mail
-            </a>)}
+            </button>)}
         {telefonos[0] && (
           <a href={waLink(telefonos[0], pas.nombre)} target="_blank" rel="noreferrer" className="btn-wa" aria-label={`Escribir por WhatsApp a ${pas.nombre}`} title="WhatsApp">
             <Icono nombre="mensaje" size={18} />

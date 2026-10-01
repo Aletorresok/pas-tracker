@@ -141,11 +141,13 @@ function AppPrincipal() {
     setModalPas(null);
   }, [modalPas, derivadores, descartados]);
 
-  // Mail de presentación: al abrirlo queda registrado como contacto (sale de "Sin contactar")
+  // Mail de presentación: se registra como contacto antes de abrir el mail (sale de "Sin contactar").
+  // Devuelve si se guardó: si falló, el PAS queda en la lista y el mail no se abre.
   const handleMailEnviado = useCallback(async (p) => {
     const entry = { fecha: fechaLocalISO(), resultados: [RESULTADO_MAIL], nota: "Mail de presentación", ts: Date.now() };
-    setHistorial(prev => ({ ...prev, [p.id]: [...(prev[p.id] || []), entry] }));
-    await insertHistorialEntry(p.id, entry);
+    const ok = await insertHistorialEntry(p.id, entry);
+    if (ok) setHistorial(prev => ({ ...prev, [p.id]: [...(prev[p.id] || []), entry] }));
+    return ok;
   }, []);
   // Recordatorio único a un PAS interesado (o "no mandar"): queda anotado y sale de "Para recordar"
   const handleRecordatorio = useCallback(async (p, { sinMandar } = {}) => {
@@ -236,6 +238,12 @@ function AppPrincipal() {
     setDescartados(updated);
     await saveStorage("pas_descartados", updated);
   }, [descartados]);
+  // Descartar (o, con valor false, recuperar) varios PAS de una vez: "Para descartar" en Contactados
+  const handleDescartarVarios = useCallback(async (ids, valor = true) => {
+    const cambios = Object.fromEntries(ids.map(id => [String(id), valor]));
+    setDescartados(prev => ({ ...prev, ...cambios }));
+    await saveStorage("pas_descartados", cambios);
+  }, []);
 
   const handleAddPasManual = useCallback(async (datos) => {
     // PAS nuevo: número libre en el rango de los manuales (el guardado pisa por id, así que no puede repetirse)
@@ -377,12 +385,12 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "dashboard" && <TabDashboard pas={pas} casos={casos} derivadores={derivadores} descartados={descartados} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} onAbrirExpediente={abrirExpediente} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "ajustes" && <TabAjustes pas={pas} casos={casos} pasManuales={pasManuales} historial={historial} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "finanzas" && <TabFinanzas pas={pas} casos={casos} pasManuales={pasManuales} darkMode={darkMode} onCasoLocal={handleCasoLocal} encabezado={<EncabezadoNumeros actual="finanzas" onIr={setMainTab} />} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} encabezado={<EncabezadoNumeros actual="analisis" onIr={setMainTab} />} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} encabezado={<EncabezadoNumeros actual="analisis" onIr={setMainTab} />} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "companias" && <TabCompanias allCasos={allCasos} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onDescartarVarios={handleDescartarVarios} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           </Suspense>
           </AtrapaErrores>

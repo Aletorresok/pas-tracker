@@ -11,6 +11,11 @@ import AnalisisCompanias from "./analisis/AnalisisCompanias.jsx";
 import AnalisisPas from "./analisis/AnalisisPas.jsx";
 import AnalisisEtapas from "./analisis/AnalisisEtapas.jsx";
 import CasosPorEtapa from "./analisis/CasosPorEtapa.jsx";
+import ObjetivosResumen from "./analisis/ObjetivosResumen.jsx";
+
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+// "+12 % que 2025" / "−5 % que agosto"; sin base para comparar, null
+const comparar = (v, contra) => (v === null || v === undefined ? null : `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v)} % que ${contra}`);
 
 const card = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 
@@ -26,7 +31,7 @@ const leerVista = () => {
 };
 
 // Métricas de fondo para decidir: lo que no hace falta mirar todos los días
-export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], onCasoLocal, onIrA, encabezado }) {
+export default function TabAnalisis({ pas, casos, historial, darkMode, pasManuales = [], onCasoLocal, onIrA, encabezado }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
@@ -88,19 +93,24 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
 
       {vista === "resumen" && (
         <>
-          <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
+          {/* Los números del estudio (honorarios netos, ya descontada la comisión) */}
+          <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
             {[
-              { l: "Mis honorarios cobrados · histórico", v: fmtMoney(k.totalHistorico), s: "neto, ya descontada la comisión" },
+              { l: `Cobrado en ${k.anio}`, v: fmtMoney(k.cobradoAnio), s: comparar(k.varAnual, k.anio - 1), var: k.varAnual },
+              { l: `Este mes · ${MESES[new Date().getMonth()]}`, v: fmtMoney(k.esteMes), s: comparar(k.varMensual, MESES[(new Date().getMonth() + 11) % 12]), var: k.varMensual },
+              { l: "Por cobrar", v: fmtMoney(k.porCobrar), s: `${k.porCobrarCasos} ${k.porCobrarCasos === 1 ? "caso" : "casos"} con honorarios cargados` },
+              { l: "Histórico cobrado", v: fmtMoney(k.totalHistorico), s: `${k.total} casos · ${k.enGestion} en gestión` },
               { l: "Comisiones pagadas a PAS", v: fmtMoney(k.comisionesPAS), s: "de los casos con honorarios cobrados" },
-              { l: "Casos totales", v: k.total },
             ].map(x => (
-              <div key={x.l} style={{ padding: "12px 16px" }}>
+              <div key={x.l} style={{ padding: "12px 16px", minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
                 <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2 }}>{x.v}</div>
-                {x.s && <div style={{ fontSize: 12, color: "var(--muted)" }}>{x.s}</div>}
+                {x.s && <div style={{ fontSize: 12, color: x.var > 0 ? "var(--ok)" : x.var < 0 ? "var(--warn)" : "var(--muted)" }}>{x.s}</div>}
               </div>
             ))}
           </section>
+
+          <ObjetivosResumen allCasos={allCasos} historial={historial} onIrA={onIrA} />
 
           <CasosPorEtapa allCasos={allCasos} onVerCasos={onIrA ? () => onIrA("casos") : undefined} />
 
