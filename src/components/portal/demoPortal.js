@@ -80,10 +80,14 @@ export function eventosDemo() {
   return { "demo-4": { caso_id: "demo-4", tipo: "mediacion", inicio: d.toISOString() } };
 }
 
-// Cuánto tardan las compañías en ofrecer (para el gráfico del portal): días entre reclamo y ofrecimiento
+// "Plazos por compañía" del portal: días hasta el ofrecimiento, hasta el cobro y % cobrado sobre lo reclamado
 export function plazosDemo() {
   const filas = [];
   [["Sancor", [35, 42, 50]], ["Federación Patronal", [28, 33, 40]], ["La Segunda", [45, 52, 60]], ["Rivadavia", [55, 62]], ["Mercantil Andina", [38, 47]]]
-    .forEach(([cia, dias]) => dias.forEach(d => filas.push({ compania_aseguradora: cia, fecha_inicio_reclamo: fechaEnDias(-d - 30), fecha_ofrecimiento: fechaEnDias(-30) })));
+    .forEach(([cia, dias]) => dias.forEach((d, i) => filas.push({
+      compania_aseguradora: cia,
+      fecha_inicio_reclamo: fechaEnDias(-d - 70), fecha_ofrecimiento: fechaEnDias(-70), fecha_cobro: fechaEnDias(-20 - i * 5),
+      monto_reclamado: 2000000, monto_cobro_asegurado: 1500000 + i * 150000,
+    })));
   return filas;
 }
