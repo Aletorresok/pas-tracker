@@ -5,7 +5,7 @@ import { todasLasOfertas, todasLasCompanias } from "../utils/ofertas.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { fmtMoney } from "../utils/formatters.js";
 import { aplanarCasos, kpis as calcularKpis, cobrosPendientes } from "../utils/metricas.js";
-import CobrosPendientesCard from "./dashboard/CobrosPendientesCard.jsx";
+import CobrosPorCompania from "./analisis/CobrosPorCompania.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import AnalisisCompanias from "./analisis/AnalisisCompanias.jsx";
 import AnalisisPas from "./analisis/AnalisisPas.jsx";
@@ -26,7 +26,7 @@ const leerVista = () => {
 };
 
 // Métricas de fondo para decidir: lo que no hace falta mirar todos los días
-export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], onCasoLocal, onIrA }) {
+export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], onCasoLocal, onIrA, encabezado }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const k = useMemo(() => calcularKpis(allCasos), [allCasos]);
@@ -40,8 +40,13 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
   useEffect(() => { todasLasOfertas().then(o => setOfertas(o || {})); }, [casos]);
   // Directorio de compañías (SQL 21; % de honorarios con el SQL 23). null = falta el SQL.
   const [companias, setCompanias] = useState({});
-  const cargarCompanias = () => todasLasCompanias().then(setCompanias);
-  useEffect(() => { cargarCompanias(); }, []);
+  // Se recarga cuando cambia una ficha de compañía (las condiciones se editan ahí)
+  useEffect(() => {
+    const cargar = () => todasLasCompanias().then(setCompanias);
+    cargar();
+    window.addEventListener("pas-companias-cambio", cargar);
+    return () => window.removeEventListener("pas-companias-cambio", cargar);
+  }, []);
   useEffect(() => {
     let vigente = true;
     (async () => {
@@ -76,7 +81,7 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Análisis</h1>
+      {encabezado || <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Análisis</h1>}
       <div role="group" aria-label="Elegir estadística" className="segmentado" style={{ alignSelf: "flex-start", maxWidth: "100%", overflowX: "auto" }}>
         {VISTAS.map(chip)}
       </div>
@@ -99,10 +104,10 @@ export default function TabAnalisis({ pas, casos, darkMode, pasManuales = [], on
 
           <CasosPorEtapa allCasos={allCasos} onVerCasos={onIrA ? () => onIrA("casos") : undefined} />
 
-          <CobrosPendientesCard cobrosPendientes={cobros} darkMode={darkMode} />
+          <CobrosPorCompania cobros={cobros} />
         </>
       )}
-      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} cambios={cambios} directorio={companias} onCompaniasGuardadas={cargarCompanias} />}
+      {vista === "companias" && <AnalisisCompanias allCasos={allCasos} ofertas={ofertas} onAbrirCaso={abrirCaso} cambios={cambios} directorio={companias} />}
       {vista === "pas" && <AnalisisPas allCasos={allCasos} />}
       {vista === "etapas" && <AnalisisEtapas allCasos={allCasos} onAbrirCaso={abrirCaso} cambios={cambios} />}
 

@@ -8,16 +8,17 @@ import Logo from "./ui/Logo.jsx";
 
 const TABS = [
   { k: "dashboard", l: "Hoy", icon: "inicio" },
-  { k: "rutina", l: "Rutina", icon: "rutina" },
   { k: "casos", l: "Casos PAS", icon: "casos" },
   { k: "expedientes", l: "Expedientes", icon: "balanza" },
   { k: "prospeccion", l: "Contactos", icon: "telefono" },
   { k: "clientes", l: "Clientes", icon: "clientes" },
   { k: "companias", l: "Compañías", icon: "edificio" },
-  { k: "finanzas", l: "Finanzas", icon: "finanzas" },
-  { k: "analisis", l: "Análisis", icon: "grafico" },
+  { k: "finanzas", l: "Números", icon: "grafico", tambien: ["analisis"] }, // Finanzas + Análisis
   { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];
+
+// Pestaña activa (Números también está activa en Análisis)
+const esActiva = (t, mainTab) => mainTab === t.k || (t.tambien || []).includes(mainTab);
 
 // En celular entran 4 pestañas + "Más"
 const TABS_MOVIL = ["dashboard", "casos", "prospeccion", "clientes"];
@@ -122,7 +123,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
 
           <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {TABS.map(t => {
-              const active = mainTab === t.k;
+              const active = esActiva(t, mainTab);
               return (
                 <button
                   key={t.k}
@@ -146,6 +147,10 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
         </div>
 
         <div style={{ position: "relative", borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+          <button type="button" className="nav-item" onClick={() => setMainTab("ajustes")} aria-current={mainTab === "ajustes" ? "page" : undefined}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: mainTab === "ajustes" ? T.card2 : "transparent", border: "none", borderRadius: "var(--r-sm)", color: mainTab === "ajustes" ? T.text : T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: mainTab === "ajustes" ? 600 : 500 }}>
+            <span style={{ color: mainTab === "ajustes" ? T.accent : "inherit", display: "flex" }}><Icono nombre="rutina" /></span> Ajustes
+          </button>
           <button
             type="button"
             onClick={() => setShowMenu(v => !v)}
@@ -173,7 +178,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
       {/* ── BARRA INFERIOR (celular) ── */}
       <nav className="bottom-nav" aria-label="Navegación">
         {TABS.filter(t => TABS_MOVIL.includes(t.k)).map(t => {
-          const active = mainTab === t.k;
+          const active = esActiva(t, mainTab);
           return (
             <button key={t.k} type="button" onClick={() => { setMainTab(t.k); setShowMas(false); }} aria-current={active ? "page" : undefined}
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", padding: "4px 0", cursor: "pointer", color: active ? T.accentInk : T.muted, fontSize: 11, fontWeight: active ? 600 : 500 }}>
@@ -193,10 +198,14 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           <div style={{ position: "fixed", left: 8, right: 8, bottom: "calc(70px + env(safe-area-inset-bottom, 0px))", zIndex: 145, background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", padding: 8, boxShadow: T.shadow }}>
             {TABS.filter(t => !TABS_MOVIL.includes(t.k)).map(t => (
               <button key={t.k} type="button" onClick={() => { setMainTab(t.k); setShowMas(false); }}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: mainTab === t.k ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: "var(--r-sm)" }}>
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: esActiva(t, mainTab) ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: "var(--r-sm)" }}>
                 <Icono nombre={t.icon} />{t.l}
               </button>
             ))}
+            <button type="button" onClick={() => { setMainTab("ajustes"); setShowMas(false); }}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: mainTab === "ajustes" ? T.card2 : "none", border: "none", color: T.text, padding: "12px", cursor: "pointer", fontSize: 15, textAlign: "left", borderRadius: "var(--r-sm)" }}>
+              <Icono nombre="rutina" />Ajustes
+            </button>
             <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />
             <MenuUtilidades {...utilidades} onClose={() => setShowMas(false)} />
           </div>

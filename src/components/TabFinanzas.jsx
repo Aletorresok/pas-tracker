@@ -23,7 +23,7 @@ const VISTAS = [
 const moverMes = (mes, n) => { const d = new Date(`${mes}-15T12:00:00`); d.setMonth(d.getMonth() + n); return fechaLocalISO(d).slice(0, 7); };
 
 // Finanzas del estudio: resultado del mes, gastos, facturación de honorarios y flujo de caja
-export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, onCasoLocal }) {
+export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, onCasoLocal, encabezado }) {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const [vista, setVista] = useState("mes");
@@ -56,10 +56,12 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <header>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Finanzas</h1>
-        <div style={{ fontSize: 13, color: "var(--muted)" }}>Lo que entra, lo que sale y lo que falta facturar o cobrar</div>
-      </header>
+      {encabezado || (
+        <header>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Finanzas</h1>
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>Lo que entra, lo que sale y lo que falta facturar o cobrar</div>
+        </header>
+      )}
       {faltaSql && (
         <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", background: alpha("var(--warn)", 12), color: "var(--warn)", fontSize: 14 }}>
           Para cargar gastos falta correr el SQL 28 (<code>sql/2026-09-28_28_finanzas.sql</code>) en Supabase. Facturación y flujo de caja ya funcionan.
