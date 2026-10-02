@@ -132,6 +132,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-02 — Carta documento: la firma va debajo del texto y se respetan los párrafos
+*   Comparado con otra carta de preimpresos (Guariello c/ RUS, 21 renglones): preimpresos **respeta los párrafos** y ubica la **firma 5,5 renglones debajo del último renglón**. Ahora la app hace lo mismo (los mismos cortes de renglón y la firma a la misma altura). Con textos de hasta 12 renglones la firma queda donde estaba.
+*   "Respetar párrafos" viene tildado; destildado, el texto va en un bloque con tres espacios entre párrafos (entra más).
+*   Máximo **25 renglones** (antes 15): la firma termina a unos 297 mm del borde superior, lejos del recuadro de certificación de Correo. Se recortan los espacios sobrantes de la firma.
+
 ### 2026-10-02 — Carta documento: mismo formato que preimpresos.com
 *   Comparada número por número con un PDF de preimpresos.com que calzó en el formulario (CD Gavilán Duarte c/ Providencia): las posiciones ya eran iguales; cambia cómo se arma el texto.
 *   **Cuerpo en un solo bloque justificado**, como preimpresos: cada punto y aparte se escribe en el mismo renglón con tres espacios. La justificación reparte el sobrante entre todos los espacios. Opción **"Respetar párrafos"** para cortar renglón en cada párrafo.
