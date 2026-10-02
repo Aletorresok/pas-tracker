@@ -49,6 +49,7 @@ const PAS_CASOS_COLS = new Set([
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
   "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail",
+  "domicilio_asegurado", "cp_asegurado", "localidad_asegurado", "provincia_asegurado",
   ...COLUMNAS_SQL44
 ]);
 

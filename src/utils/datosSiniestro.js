@@ -1,4 +1,5 @@
 // Datos del siniestro para cargar los reclamos: grupos de la pestaña Datos y texto para copiar.
+import { supabase } from "../supabase.js";
 
 // Columnas del SQL 44 (si no se corrió, la ficha no las muestra)
 export const COLUMNAS_SQL44 = [
@@ -6,8 +7,9 @@ export const COLUMNAS_SQL44 = [
   "titular_poliza", "conductor_nombre", "conductor_dni", "conductor_tel", "hora_siniestro", "tercero_conductor", "tercero_cia",
   "observaciones_siniestro",
 ];
-// Columnas viejas de pas_casos que la ficha no mostraba
-export const COLUMNAS_PREVIAS = ["nro_siniestro", "ubicacion", "relato", "vehiculo", "tercero_nombre", "tercero_dni", "tercero_contacto", "vehiculo_tercero", "dominio_tercero"];
+// Columnas viejas de pas_casos que la ficha no mostraba (el domicilio es del SQL 27)
+export const COLUMNAS_PREVIAS = ["nro_siniestro", "ubicacion", "relato", "vehiculo", "motor", "chasis", "tercero_nombre", "tercero_dni", "tercero_contacto", "vehiculo_tercero", "dominio_tercero",
+  "domicilio_asegurado", "cp_asegurado", "localidad_asegurado", "provincia_asegurado"];
 
 // t: text | date | time | area ; ancho: columnas de 6 ; ayuda: texto gris debajo
 export const GRUPOS_SINIESTRO = [
@@ -28,10 +30,16 @@ export const GRUPOS_SINIESTRO = [
       { k: "vigencia_hasta", l: "Vigencia hasta", t: "date", ancho: 2 },
       { k: "productor_poliza", l: "Productor de la póliza", ancho: 2 },
       { k: "vehiculo", l: "Vehículo del cliente", ancho: 6, ph: "Marca, modelo y año", sql44: false },
+      { k: "motor", l: "N° de motor", ancho: 3, mayus: true, sql44: false },
+      { k: "chasis", l: "N° de chasis", ancho: 3, mayus: true, sql44: false },
     ],
   },
   {
-    k: "personas", titulo: "Titular y conductor", sql44: true, campos: [
+    k: "personas", titulo: "Asegurado, titular y conductor", sql44: true, campos: [
+      { k: "domicilio_asegurado", l: "Domicilio del asegurado", ancho: 4, sql44: false },
+      { k: "cp_asegurado", l: "CP", ancho: 2, sql44: false },
+      { k: "localidad_asegurado", l: "Localidad", ancho: 3, sql44: false },
+      { k: "provincia_asegurado", l: "Provincia", ancho: 3, sql44: false },
       { k: "titular_poliza", l: "Titular de la póliza", ancho: 6, ph: "Vacío = el asegurado" },
       { k: "conductor_nombre", l: "Conductor", ancho: 3, ph: "Vacío = conducía el asegurado" },
       { k: "conductor_dni", l: "DNI del conductor", ancho: 1 },
@@ -78,7 +86,8 @@ export function lineasReclamo(c) {
   const v = (l, x) => (x ? [l, String(x).trim()] : null);
   return [
     v("Asegurado", c.asegurado), v("DNI", c.dni_asegurado), v("Teléfono", c.telefono_asegurado),
-    v("Patente", c.patente), v("Vehículo", c.vehiculo),
+    v("Domicilio", [c.domicilio_asegurado, c.localidad_asegurado, c.cp_asegurado && `CP ${c.cp_asegurado}`, c.provincia_asegurado].filter(Boolean).join(", ")),
+    v("Patente", c.patente), v("Vehículo", c.vehiculo), v("N° de motor", c.motor), v("N° de chasis", c.chasis),
     v("Fecha del siniestro", fechaDMA(c.fecha_siniestro)), v("Hora", hora(c.hora_siniestro)), v("Lugar", c.ubicacion),
     v("Compañía del cliente", c.cia_propia), v("Póliza", c.poliza_propia), v("N° de siniestro / denuncia", c.nro_siniestro_propio),
     v("Cobertura", c.cobertura),
@@ -98,7 +107,16 @@ export const textoReclamo = c => lineasReclamo(c).map(([l, x]) => `${l}: ${x}`).
 // ¿Ya se corrió el SQL 44? Se pregunta una vez por sesión
 let consultaSql44 = null;
 export function hayColumnasSql44() {
-  if (!consultaSql44) consultaSql44 = import("../supabase.js").then(({ supabase }) =>
-    supabase.from("pas_casos").select("hora_siniestro").limit(1).then(({ error }) => !error));
+  if (!consultaSql44) consultaSql44 = supabase.from("pas_casos").select("hora_siniestro").limit(1).then(({ error }) => !error);
   return consultaSql44;
+}
+
+// Misma persona si todas las palabras del nombre más corto están en el otro ("ALAN DIAZ" = "DIAZ ALAN JOEL")
+const palabrasNombre = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\(.*?\)/g, " ")
+  .replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean);
+export function mismaPersona(a, b) {
+  const x = palabrasNombre(a), y = palabrasNombre(b);
+  if (!x.length || !y.length) return false;
+  const [corto, largo] = x.length <= y.length ? [x, new Set(y)] : [y, new Set(x)];
+  return corto.every(p => largo.has(p));
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import CompaniaSelector from "./CompaniaSelector.jsx";
 import Boton from "../ui/Boton.jsx";
+import LeerDocumentos from "./LeerDocumentos.jsx";
 import { GRUPOS_SINIESTRO, necesitaSql44, hayColumnasSql44, ciaNoCoincide, lineasReclamo, textoReclamo } from "../../utils/datosSiniestro.js";
 
 const copiar = async texto => {
@@ -16,9 +17,8 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
   const [sql44, setSql44] = useState(null); // null = preguntando
   useEffect(() => { let vivo = true; hayColumnasSql44().then(v => vivo && setSql44(v)); return () => { vivo = false; }; }, []);
 
-  // Los grupos con datos arrancan abiertos; los vacíos, plegados
+  // Los grupos con datos se abren (también cuando se completan desde la denuncia); los vacíos quedan plegados
   const visibles = GRUPOS_SINIESTRO.map(g => ({ ...g, campos: g.campos.filter(c => !necesitaSql44(g, c) || sql44) })).filter(g => g.campos.length);
-  const [abiertos] = useState(() => new Set(GRUPOS_SINIESTRO.filter(g => g.campos.some(c => formData[c.k])).map(g => g.k)));
 
   const [copiado, setCopiado] = useState(null);
   const marcarCopiado = async (clave, texto) => { if (await copiar(texto)) { setCopiado(clave); setTimeout(() => setCopiado(c => (c === clave ? null : c)), 1500); } };
@@ -90,8 +90,10 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
       </div>
     </div>
 
+    <LeerDocumentos formData={formData} onChange={onChange} Th={Th} sql44={sql44} />
+
     {visibles.map(g => (
-      <details key={g.k} open={abiertos.has(g.k)} style={tarjeta}>
+      <details key={g.k} open={g.campos.some(c => formData[c.k])} style={tarjeta}>
         <summary style={{ cursor: "pointer", padding: "12px 16px", fontSize: 15, fontWeight: 700, color: Th.text }}>
           {g.titulo}
           {g.k === "tercero" && ciaDistinta && <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 600, color: "var(--warn)" }}>Revisar compañía</span>}

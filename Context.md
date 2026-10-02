@@ -132,6 +132,13 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-02 — Ficha del caso: completar desde la denuncia (Provincia Seguros)
+*   **"Completar desde la denuncia"** en la pestaña Datos (`caso/LeerDocumentos.jsx`): botón "Leer PDF" o arrastrar uno o varios PDF. Muestra una tabla dato / en la ficha / leído; los vacíos vienen tildados, los que ya tenían otro valor no (para revisar). Nada se guarda hasta "Completar".
+*   **Lectores** en `utils/lectores/` (`textoPdf.js` arma los renglones con pdf.js; `index.js` tiene la lista `LECTORES` y `proponer()`). `provincia.js` lee la **denuncia** (siniestro, póliza, DNI y domicilio del titular, vehículo con motor y chasis, conductor, fecha, hora, lugar, relato, testigos, comisaría, tabla de terceros), el **certificado de cobertura** (vigencia, productor, cobertura, domicilio) y la **carta de franquicia** (va a observaciones: daños, franquicia y a cargo de Provincia). Para sumar otra compañía: un archivo igual y agregarlo a `LECTORES`. Sin IA.
+*   Si el titular no es el asegurado del caso, va a "Titular de la póliza"; si conducía otra persona, a "Conductor". Teléfonos y DNI se comparan por dígitos.
+*   La pestaña Datos suma domicilio del asegurado (CP, localidad, provincia, del SQL 27), N° de motor y de chasis; "Datos para cargar el reclamo" los incluye. Los grupos se abren solos cuando se completan.
+*   Probado con las denuncias de Alemis, Blanco y Briozzo, el certificado y la carta de franquicia de Blanco: coincide con lo relevado en el Excel. El PDF de Provincia pierde algunas letras acentuadas en la tabla de terceros ("Andr s"): se ve en la tabla para corregir.
+
 ### 2026-10-02 — Ficha del caso: datos del siniestro para cargar los reclamos (SQL 44)
 *   **SQL 44** (`sql/2026-10-02_44_datos_siniestro.sql`): `pas_casos` suma `cia_propia`, `nro_siniestro_propio`, `poliza_propia`, `productor_poliza`, `cobertura`, `vigencia_desde`/`_hasta`, `titular_poliza`, `conductor_nombre`/`_dni`/`_tel`, `hora_siniestro`, `tercero_conductor`, `tercero_cia`, `observaciones_siniestro`.
 *   **Pestaña Datos** (`caso/SeccionInfo.jsx` + `utils/datosSiniestro.js`): debajo de los datos de siempre, grupos plegables (abiertos si tienen algo): **El hecho** (hora, lugar, relato), **Póliza del cliente** (compañía, N° de siniestro/denuncia en su compañía, póliza, cobertura, vigencia, productor, vehículo), **Titular y conductor** (vacío = el asegurado), **Tercero** (N° de siniestro en la compañía reclamada, compañía según la denuncia, titular, DNI/registro, contacto, conductor, vehículo, dominio) y **Observaciones**. Muestra columnas que ya existían y no tenían pantalla (`nro_siniestro`, `ubicacion`, `relato`, `vehiculo`, `tercero_*`, `vehiculo_tercero`, `dominio_tercero`).
