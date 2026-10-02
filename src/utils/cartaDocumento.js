@@ -1,6 +1,6 @@
 // Carta documento para imprimir sobre el formulario preimpreso de Correo Argentino (oficio, 8,5 × 14").
 // Solo se imprime el texto, en las posiciones del formulario (tomadas de un PDF de ejemplo que calza).
-// Unidades: puntos; y = línea base desde arriba. Helvetica 10 (8 en localidad y provincia).
+// Unidades: puntos; y = línea base desde arriba. Helvetica 10 (8 en localidad y provincia), sin achicar.
 
 export const PAGINA = [612, 1008];
 const MM = 72 / 25.4;
@@ -37,52 +37,88 @@ export const fechaCarta = (lugar, iso) => {
   return `${lugar ? `${lugar}, ` : ""}${d} de ${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${a}`;
 };
 
-// Escribe achicando la letra (hasta 6 pt) si no entra en el campo
+// Escribe en tamaño fijo (como preimpresos.com). Devuelve false si no entra en el campo.
 function escribir(doc, texto, { x, y, ancho, t, negrita }) {
-  if (!texto) return;
+  if (!texto) return true;
   doc.setFont("helvetica", negrita ? "bold" : "normal");
-  let tam = t;
-  doc.setFontSize(tam);
-  while (tam > 6 && doc.getTextWidth(texto) > ancho) { tam -= 0.5; doc.setFontSize(tam); }
+  doc.setFontSize(t);
   doc.text(texto, x, y);
+  return doc.getTextWidth(texto) <= ancho + 0.5;
 }
 
-// El nombre va en dos renglones: lo que entra en el primero, el resto en el segundo
-function partirNombre(doc, nombre, campo1) {
+// Palabras antes de las que conviene cortar una razón social: "PROVIDENCIA / COMPAÑÍA ARGENTINA DE SEGUROS"
+const CORTES = /^(COMPAÑ[IÍ]A|COOPERATIVA|SOCIEDAD|MUTUAL|ASEGURADORA|ASEGURADORES|SEGUROS|ART|S\.?A\.?|S\.?R\.?L\.?)$/;
+
+// El nombre va en dos renglones. Con "|" se elige el corte a mano; si no, entra todo en el primero,
+// o se corta antes de "Compañía", "Cooperativa", etc., o lo que entre en el primero y el resto en el segundo.
+function partirNombre(doc, nombre, campo1, campo2) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(campo1.t);
-  const palabras = (nombre || "").trim().split(/\s+/).filter(Boolean);
-  let uno = "";
-  while (palabras.length && doc.getTextWidth(`${uno} ${palabras[0]}`.trim()) <= campo1.ancho) uno = `${uno} ${palabras.shift()}`.trim();
-  return [uno, palabras.join(" ")];
+  const limpio = (nombre || "").trim();
+  if (limpio.includes("|")) {
+    const i = limpio.indexOf("|");
+    return [limpio.slice(0, i).trim(), limpio.slice(i + 1).replace(/\|/g, " ").trim()];
+  }
+  const palabras = limpio.split(/\s+/).filter(Boolean);
+  const entra = (ps, c) => doc.getTextWidth(ps.join(" ")) <= c.ancho;
+  if (entra(palabras, campo1)) return [palabras.join(" "), ""];
+  for (let k = 1; k < palabras.length; k++) {
+    if (CORTES.test(palabras[k]) && entra(palabras.slice(0, k), campo1) && entra(palabras.slice(k), campo2))
+      return [palabras.slice(0, k).join(" "), palabras.slice(k).join(" ")];
+  }
+  let k = 0;
+  while (k < palabras.length && entra(palabras.slice(0, k + 1), campo1)) k++;
+  return [palabras.slice(0, k).join(" "), palabras.slice(k).join(" ")];
 }
 
+// Justifica repartiendo el sobrante entre todos los espacios (lo mismo que hace preimpresos con Tw),
+// así los tres espacios que separan las ideas se mantienen
 function renglonJustificado(doc, linea, x, y, ancho) {
-  const palabras = linea.trim().split(/\s+/);
-  const anchoPalabras = palabras.reduce((s, p) => s + doc.getTextWidth(p), 0);
-  const hueco = palabras.length > 1 ? (ancho - anchoPalabras) / (palabras.length - 1) : 0;
-  // Si quedaría muy estirado (renglón corto), va sin justificar
-  if (palabras.length < 2 || hueco > doc.getTextWidth(" ") * 4) { doc.text(linea.trim(), x, y); return; }
+  const partes = linea.split(" ");
+  if (partes.length < 2) { doc.text(linea, x, y); return; }
+  const extra = (ancho - doc.getTextWidth(linea)) / (partes.length - 1);
+  const espacio = doc.getTextWidth(" ");
   let cx = x;
-  for (const p of palabras) { doc.text(p, cx, y); cx += doc.getTextWidth(p) + hueco; }
+  for (const p of partes) {
+    if (p) doc.text(p, cx, y);
+    cx += doc.getTextWidth(p) + espacio + extra;
+  }
 }
 
-// Renglones del cuerpo: cada párrafo justificado salvo su último renglón
-export function renglonesCuerpo(doc, texto) {
+// Corta en renglones por los espacios, respetando los espacios múltiples dentro del renglón
+function partirRenglones(doc, texto, ancho) {
+  const lineas = [];
+  let linea = "";
+  for (const palabra of texto.split(" ")) {
+    if (!linea && !palabra) continue; // espacios al empezar un renglón
+    const prueba = linea ? `${linea} ${palabra}` : palabra;
+    if (!linea || doc.getTextWidth(prueba) <= ancho) { linea = prueba; continue; }
+    lineas.push(linea.trimEnd());
+    linea = palabra;
+  }
+  if (linea.trim()) lineas.push(linea.trimEnd());
+  return lineas;
+}
+
+// Renglones del cuerpo. Como en las cartas de preimpresos, el texto va en un solo bloque justificado y
+// cada punto y aparte se escribe como tres espacios. Con parrafos: true, cada párrafo empieza renglón.
+export function renglonesCuerpo(doc, texto, { parrafos = false } = {}) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
+  const partes = String(texto || "").split(/\n+/).map(p => p.trim().replace(/[ \t]+/g, " ")).filter(Boolean);
+  const bloques = parrafos ? partes : (partes.length ? [partes.join("   ")] : []);
   const renglones = [];
-  for (const parrafo of String(texto || "").split(/\n+/)) {
-    if (!parrafo.trim()) continue;
-    const lineas = doc.splitTextToSize(parrafo.trim(), CUERPO.ancho);
+  for (const bloque of bloques) {
+    const lineas = partirRenglones(doc, bloque, CUERPO.ancho);
     lineas.forEach((l, i) => renglones.push({ texto: l, ultimo: i === lineas.length - 1 }));
   }
   return renglones;
 }
 
 // datos: { remitente: { nombre, domicilio, cp, localidad, provincia }, destinatario: {...}, fecha, cuerpo,
-//          firma: [renglón1, renglón2] }, opciones: { corrimientoX, corrimientoY (mm), referencias }
-export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, referencias = false } = {}) {
+//          firma: [renglón1, renglón2] }, opciones: { corrimientoX, corrimientoY (mm), referencias, parrafos }
+// Devuelve también los campos que no entran (excedidos), para avisar en vez de achicar la letra.
+export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, referencias = false, parrafos = false } = {}) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: PAGINA });
   const dx = corrimientoX * MM, dy = corrimientoY * MM;
@@ -100,16 +136,17 @@ export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, 
     doc.setTextColor(0);
   }
 
-  for (const [clave, persona] of [["rem", datos.remitente], ["dest", datos.destinatario]]) {
+  const excedidos = new Set();
+  for (const [clave, persona, quien] of [["rem", datos.remitente, "remitente"], ["dest", datos.destinatario, "destinatario"]]) {
     const c = CAMPOS[clave];
-    const [n1, n2] = partirNombre(doc, (persona.nombre || "").toUpperCase(), c.nombre1);
+    const [n1, n2] = partirNombre(doc, (persona.nombre || "").toUpperCase(), c.nombre1, c.nombre2);
+    const campos = [["nombre", n1, "nombre1"], ["nombre", n2, "nombre2"], ["domicilio", persona.domicilio, "domicilio"],
+      ["CP", persona.cp, "cp"], ["localidad", persona.localidad, "localidad"], ["provincia", persona.provincia, "provincia"]];
     for (const extra of [0, COPIA_2]) {
-      escribir(doc, n1, en(c.nombre1, extra));
-      escribir(doc, n2, en(c.nombre2, extra));
-      escribir(doc, persona.domicilio, en(c.domicilio, extra));
-      escribir(doc, persona.cp, en(c.cp, extra, extra ? c.cp.x2 : undefined));
-      escribir(doc, persona.localidad, en(c.localidad, extra));
-      escribir(doc, persona.provincia, en(c.provincia, extra));
+      for (const [nombre, texto, k] of campos) {
+        const x2 = k === "cp" && extra ? c.cp.x2 : undefined;
+        if (!escribir(doc, texto, en(c[k], extra, x2))) excedidos.add(`${nombre} del ${quien}`);
+      }
     }
   }
 
@@ -117,10 +154,10 @@ export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, 
   doc.setFontSize(10);
   if (datos.fecha) doc.text(datos.fecha, FECHA.derecha + dx, FECHA.y + dy, { align: "right" });
 
-  const renglones = renglonesCuerpo(doc, datos.cuerpo);
+  const renglones = renglonesCuerpo(doc, datos.cuerpo, { parrafos });
   renglones.forEach((r, i) => {
     const y = CUERPO.y + dy + i * CUERPO.interlineado;
-    if (r.ultimo) doc.text(r.texto.trim(), CUERPO.x + dx, y);
+    if (r.ultimo) doc.text(r.texto, CUERPO.x + dx, y);
     else renglonJustificado(doc, r.texto, CUERPO.x + dx, y, CUERPO.ancho);
   });
 
@@ -128,7 +165,7 @@ export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, 
   if (f1) doc.text(f1, FIRMA.centro + dx, FIRMA.y + dy, { align: "center" });
   if (f2) doc.text(f2, FIRMA.centro + dx, FIRMA.y2 + dy, { align: "center" });
 
-  return { bytes: new Uint8Array(doc.output("arraybuffer")), renglones: renglones.length };
+  return { bytes: new Uint8Array(doc.output("arraybuffer")), renglones: renglones.length, excedidos: [...excedidos] };
 }
 
 // ── Modelos de texto ───────────────────────────────────────────────────────
