@@ -132,6 +132,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-02 — Para hacer: lo marcado como hecho ya no queda vencido
+*   **Problema:** "Hecho" resolvía solo la próxima acción; si el caso tenía además un aviso automático vencido ("Reclamo quieto", "Pedir respuesta", "A la firma", "Fecha de pago"), la tarjeta seguía en rojo. Con "Hecho, sin nueva acción" el reclamo quieto volvía al instante.
+*   **Ahora:** esos cuatro avisos se callan mientras el caso tenga una próxima acción con plazo de hoy en adelante (antes solo el reclamo quieto). La **prescripción** aparece siempre. `metricas.tareasPendientes` marca esa acción con `callaAviso`.
+*   En una tarjeta con avisos, "Hecho" pide la próxima acción **con fecha** (no se ofrece "Hecho, sin nueva acción" y no deja guardar sin fecha o con fecha pasada) (`dashboard/TarjetaCaso.jsx`).
+
 ### 2026-10-01 — Demostración del portal de productores (/portal/demo)
 *   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
 *   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.

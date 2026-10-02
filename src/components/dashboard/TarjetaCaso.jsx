@@ -4,6 +4,8 @@ import { propsMenu } from "../ui/MenuContextual.jsx";
 import Boton from "../ui/Boton.jsx";
 
 const NIVEL = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)", tranquilo: "var(--info)" };
+// Avisos que se callan mientras el caso tenga una próxima acción con plazo vigente (metricas.js: tareasPendientes)
+const AVISOS = new Set(["quieto", "pedir_respuesta", "firma", "cobro"]);
 const PLAZOS = [["Mañana", 1], ["3 d", 3], ["7 d", 7], ["14 d", 14]];
 const campo = { boxSizing: "border-box", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
 // Lo de adentro (botones, campos) no abre la tarjeta ni empieza a arrastrarla
@@ -34,6 +36,9 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const tieneAccion = !!caso?.proxima_accion?.trim();
   const quieto = grupo.tareas.some(t => t.tipo === "quieto");
   const monto = grupo.tareas.find(t => t.monto)?.monto;
+  // Con avisos, "Hecho" pide una próxima acción con fecha: sin ella el aviso vuelve enseguida y la tarjeta no se va
+  const conAvisos = grupo.tareas.some(t => AVISOS.has(t.tipo) || t.callaAviso);
+  const faltaFecha = conAvisos && (!vence || vence < fechaLocalISO());
 
   const correr = async fn => { setGuardando(true); const ok = await fn(); setGuardando(false); if (ok) setModo(null); };
   const guardarHecho = sinNueva => correr(() => onHecho(caso, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }));
@@ -74,11 +79,12 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
           <div {...aislar} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
             {tieneAccion && <div style={{ fontSize: 12, color: "var(--muted)" }}>"{caso.proxima_accion.trim()}" queda en la bitácora como hecho.</div>}
             <input autoFocus value={nueva} onChange={e => setNueva(e.target.value)} placeholder="Próxima acción (ej.: Reiterar el reclamo)" aria-label="Próxima acción"
-              onKeyDown={e => { e.stopPropagation(); if (e.key === "Enter" && nueva.trim()) guardarHecho(false); if (e.key === "Escape") setModo(null); }} style={campo} />
+              onKeyDown={e => { e.stopPropagation(); if (e.key === "Enter" && nueva.trim() && !faltaFecha) guardarHecho(false); if (e.key === "Escape") setModo(null); }} style={campo} />
             <ChipsPlazo valor={vence} onElegir={setVence} />
+            {faltaFecha && <div style={{ fontSize: 12, color: "var(--muted)" }}>Elegí una fecha de hoy en adelante para que el aviso no vuelva.</div>}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <Boton tamaño="sm" variante="primario" disabled={guardando || !nueva.trim()} onClick={() => guardarHecho(false)}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              {tieneAccion && <Boton tamaño="sm" variante="fantasma" disabled={guardando} onClick={() => guardarHecho(true)}>Hecho, sin nueva acción</Boton>}
+              <Boton tamaño="sm" variante="primario" disabled={guardando || !nueva.trim() || faltaFecha} onClick={() => guardarHecho(false)}>{guardando ? "Guardando…" : "Guardar"}</Boton>
+              {tieneAccion && !conAvisos && <Boton tamaño="sm" variante="fantasma" disabled={guardando} onClick={() => guardarHecho(true)}>Hecho, sin nueva acción</Boton>}
               <Boton tamaño="sm" variante="fantasma" onClick={() => setModo(null)}>Cancelar</Boton>
             </div>
           </div>
