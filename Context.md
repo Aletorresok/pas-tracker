@@ -132,6 +132,14 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-02 — Ficha del caso: datos del siniestro para cargar los reclamos (SQL 44)
+*   **SQL 44** (`sql/2026-10-02_44_datos_siniestro.sql`): `pas_casos` suma `cia_propia`, `nro_siniestro_propio`, `poliza_propia`, `productor_poliza`, `cobertura`, `vigencia_desde`/`_hasta`, `titular_poliza`, `conductor_nombre`/`_dni`/`_tel`, `hora_siniestro`, `tercero_conductor`, `tercero_cia`, `observaciones_siniestro`.
+*   **Pestaña Datos** (`caso/SeccionInfo.jsx` + `utils/datosSiniestro.js`): debajo de los datos de siempre, grupos plegables (abiertos si tienen algo): **El hecho** (hora, lugar, relato), **Póliza del cliente** (compañía, N° de siniestro/denuncia en su compañía, póliza, cobertura, vigencia, productor, vehículo), **Titular y conductor** (vacío = el asegurado), **Tercero** (N° de siniestro en la compañía reclamada, compañía según la denuncia, titular, DNI/registro, contacto, conductor, vehículo, dominio) y **Observaciones**. Muestra columnas que ya existían y no tenían pantalla (`nro_siniestro`, `ubicacion`, `relato`, `vehiculo`, `tercero_*`, `vehiculo_tercero`, `dominio_tercero`).
+*   Aviso **"Revisar compañía"** si la compañía del tercero según la denuncia no coincide con la compañía reclamada.
+*   **Datos para cargar el reclamo**: lista de lo que tiene dato con "Copiar" en cada renglón y "Copiar todo" (texto para pegar en el formulario de la compañía o en un mail).
+*   Si el SQL 44 no se corrió, los campos nuevos no aparecen (la ficha lo avisa) y no se rompe el autoguardado.
+*   **Carga del Excel** "Siniestros - datos sin campo en app" (35 casos): `sql/datos_2026-10-02_carga_datos_siniestro.sql`. Busca cada caso por el nombre del asegurado, primero muestra el control (1 caso por fila) y solo completa lo vacío.
+
 ### 2026-10-02 — Carta documento: la firma va debajo del texto y se respetan los párrafos
 *   Comparado con otra carta de preimpresos (Guariello c/ RUS, 21 renglones): preimpresos **respeta los párrafos** y ubica la **firma 5,5 renglones debajo del último renglón**. Ahora la app hace lo mismo (los mismos cortes de renglón y la firma a la misma altura). Con textos de hasta 12 renglones la firma queda donde estaba.
 *   "Respetar párrafos" viene tildado; destildado, el texto va en un bloque con tres espacios entre párrafos (entra más).
