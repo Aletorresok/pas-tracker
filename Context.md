@@ -132,6 +132,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-02 — Carta documento: mismo formato que preimpresos.com
+*   Comparada número por número con un PDF de preimpresos.com que calzó en el formulario (CD Gavilán Duarte c/ Providencia): las posiciones ya eran iguales; cambia cómo se arma el texto.
+*   **Cuerpo en un solo bloque justificado**, como preimpresos: cada punto y aparte se escribe en el mismo renglón con tres espacios. La justificación reparte el sobrante entre todos los espacios. Opción **"Respetar párrafos"** para cortar renglón en cada párrafo.
+*   **Nombre en dos renglones con criterio:** si entra, va entero en el primero; si no, se corta antes de "Compañía", "Cooperativa", "Sociedad", "Mutual", "Seguros", "S.A.", etc. ("PROVIDENCIA / COMPAÑÍA ARGENTINA DE SEGUROS"). Con **`|`** se elige el corte a mano (no aparece en la firma ni en el nombre del archivo).
+*   **Letra fija** (10 / 8 en localidad y provincia, como preimpresos): ya no se achica; si un dato no entra en su casillero, la pantalla avisa cuál. El corrimiento general en mm queda como estaba.
+
 ### 2026-10-01 — Demostración del portal de productores (/portal/demo)
 *   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
 *   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.

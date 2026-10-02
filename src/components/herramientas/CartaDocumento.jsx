@@ -10,6 +10,7 @@ import { abrirCompania } from "../../utils/companiaAbierta.js";
 
 const VACIO = { nombre: "", domicilio: "", cp: "", localidad: "", provincia: "" };
 const CLAVE_AJUSTE = "carta_documento_ajuste"; // corrimiento de la impresora: queda en esta compu
+const sinCorte = n => (n || "").replace(/\s*\|\s*/g, " ").trim(); // el "|" solo elige dónde se parte el nombre
 const leerAjuste = () => { try { return { x: 0, y: 0, ...JSON.parse(localStorage.getItem(CLAVE_AJUSTE) || "{}") }; } catch { return { x: 0, y: 0 }; } };
 
 const campo = { padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", width: "100%" };
@@ -17,12 +18,13 @@ const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBo
 const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 14, display: "flex", flexDirection: "column", gap: 10 };
 const titulo = { fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" };
 
-function Persona({ valor, onChange, sugerencias }) {
+function Persona({ valor, onChange, sugerencias, quien }) {
   const cambiar = (k, v) => onChange({ ...valor, [k]: v });
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}>
       <label style={{ gridColumn: "span 6" }}><span style={etiqueta}>Nombre y apellido / razón social</span>
-        <input value={valor.nombre} onChange={e => cambiar("nombre", e.target.value)} list={sugerencias ? "companias-carta" : undefined} style={campo} /></label>
+        <input value={valor.nombre} onChange={e => cambiar("nombre", e.target.value)} list={sugerencias ? "companias-carta" : undefined} placeholder={quien === "dest" ? "PROVIDENCIA | COMPAÑÍA ARGENTINA DE SEGUROS" : ""} style={campo} />
+        <span style={{ display: "block", fontSize: 11, color: "var(--muted)", marginTop: 3 }}>Va en dos renglones. Para elegir dónde se corta, escribí | en el corte.</span></label>
       <label style={{ gridColumn: "span 6" }}><span style={etiqueta}>Domicilio</span>
         <input value={valor.domicilio} onChange={e => cambiar("domicilio", e.target.value)} style={campo} /></label>
       <label style={{ gridColumn: "span 2" }}><span style={etiqueta}>CP</span>
@@ -48,12 +50,14 @@ export default function CartaDocumento({ allCasos = [] }) {
   const [firma, setFirma] = useState(["", ""]);
   const [ajuste, setAjuste] = useState(leerAjuste);
   const [referencias, setReferencias] = useState(false);
+  const [parrafos, setParrafos] = useState(false); // por defecto, un solo bloque como las cartas de preimpresos
   const dir = useDirectorio(); // directorio de compañías (pestaña Compañías)
   const [ciaDest, setCiaDest] = useState(null); // nombre corto de la compañía destinataria, si es una
   const [misDatos, setMisDatos] = useState(null);
   const [modelos, setModelos] = useState([]);
   const [vista, setVista] = useState(null);
   const [renglones, setRenglones] = useState(0);
+  const [excedidos, setExcedidos] = useState([]);
   const [aviso, setAviso] = useState(null);
   const [trabajando, setTrabajando] = useState(false);
   const urlVista = useRef(null);
@@ -61,7 +65,7 @@ export default function CartaDocumento({ allCasos = [] }) {
   // Datos guardados (si falta el SQL 27, la carta igual funciona, solo no recuerda domicilios)
   useEffect(() => {
     supabase.from("pas_ajustes").select("valor").eq("clave", "remitente_estudio").maybeSingle().then(({ data }) => {
-      if (data?.valor) { setMisDatos(data.valor); setRem(r => (r.nombre ? r : { ...VACIO, ...data.valor })); setFirma(f => (f[0] ? f : [data.valor.nombre || "", data.valor.firma2 || ""])); setLugar(l => l || data.valor.localidad || ""); }
+      if (data?.valor) { setMisDatos(data.valor); setRem(r => (r.nombre ? r : { ...VACIO, ...data.valor })); setFirma(f => (f[0] ? f : [sinCorte(data.valor.nombre), data.valor.firma2 || ""])); setLugar(l => l || data.valor.localidad || ""); }
     });
     cargarModelos();
   }, []);
@@ -101,7 +105,7 @@ export default function CartaDocumento({ allCasos = [] }) {
   };
   const usarEstudio = () => {
     setTipoRem("estudio");
-    if (misDatos) { setRem({ ...VACIO, ...misDatos }); setLugar(misDatos.localidad || ""); setFirma([misDatos.nombre || "", misDatos.firma2 || ""]); }
+    if (misDatos) { setRem({ ...VACIO, ...misDatos }); setLugar(misDatos.localidad || ""); setFirma([sinCorte(misDatos.nombre), misDatos.firma2 || ""]); }
   };
   const guardarMisDatos = async () => {
     const valor = { ...rem, firma2: firma[1] };
@@ -132,14 +136,14 @@ export default function CartaDocumento({ allCasos = [] }) {
   };
 
   const datos = { remitente: rem, destinatario: dest, fecha: fechaCarta(lugar.trim() || rem.localidad, fecha), cuerpo: texto, firma };
-  const opciones = { corrimientoX: Number(ajuste.x) || 0, corrimientoY: Number(ajuste.y) || 0, referencias };
+  const opciones = { corrimientoX: Number(ajuste.x) || 0, corrimientoY: Number(ajuste.y) || 0, referencias, parrafos };
 
   // Vista previa: el PDF real dibujado con pdf.js
   useEffect(() => {
     let vivo = true;
     const t = setTimeout(async () => {
       try {
-        const { bytes, renglones: n } = await generarCarta(datos, opciones);
+        const { bytes, renglones: n, excedidos: ex } = await generarCarta(datos, opciones);
         const doc = await abrirPdf(bytes);
         const { canvas } = await dibujarPagina(doc, 0, { ancho: 900 });
         doc.destroy();
@@ -147,7 +151,7 @@ export default function CartaDocumento({ allCasos = [] }) {
         if (!vivo) { URL.revokeObjectURL(url); return; }
         if (urlVista.current) URL.revokeObjectURL(urlVista.current);
         urlVista.current = url;
-        setVista(url); setRenglones(n);
+        setVista(url); setRenglones(n); setExcedidos(ex);
       } catch (e) { console.error("[carta] vista previa:", e); }
     }, 350);
     return () => { vivo = false; clearTimeout(t); };
@@ -165,7 +169,7 @@ export default function CartaDocumento({ allCasos = [] }) {
       await supabase.from("pas_casos").update({ domicilio_asegurado: rem.domicilio, cp_asegurado: rem.cp || null, localidad_asegurado: rem.localidad || null, provincia_asegurado: rem.provincia || null }).eq("id", caso.id);
   };
 
-  const nombreArchivo = `Carta documento - ${(dest.nombre || "destinatario").trim()} - ${fecha.split("-").reverse().join("-")}.pdf`;
+  const nombreArchivo = `Carta documento - ${sinCorte(dest.nombre) || "destinatario"} - ${fecha.split("-").reverse().join("-")}.pdf`;
 
   const imprimir = async () => {
     setTrabajando(true); setAviso(null);
@@ -237,13 +241,13 @@ export default function CartaDocumento({ allCasos = [] }) {
               <Boton tamaño="sm" variante={tipoRem === "cliente" ? "secundario" : "fantasma"} onClick={() => usarCliente()} disabled={!caso} title={caso ? "" : "Elegí un caso primero"}>El cliente del caso</Boton>
             </div>
           </div>
-          <Persona valor={rem} onChange={setRem} />
+          <Persona valor={rem} onChange={setRem} quien="rem" />
           {tipoRem !== "cliente" && <div><Boton tamaño="sm" variante="fantasma" onClick={guardarMisDatos}>Guardar como mis datos</Boton></div>}
         </div>
 
         <div style={tarjeta}>
           <div style={titulo}>Destinatario</div>
-          <Persona valor={dest} onChange={cambiarDest} sugerencias />
+          <Persona valor={dest} onChange={cambiarDest} sugerencias quien="dest" />
           {ciaDest && (() => {
             const f = datosCompania(ciaDest);
             const sinDom = !f?.domicilio;
@@ -267,16 +271,21 @@ export default function CartaDocumento({ allCasos = [] }) {
               <option value="">Elegí un modelo…</option>
               {todosLosModelos.map(m => <option key={m.id} value={m.id}>{m.propio ? "★ " : ""}{m.titulo}</option>)}
             </select></label>
-          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={11} placeholder="Texto de la carta. Lo que queda entre [corchetes] hay que completarlo."
+          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={11} placeholder="Texto de la carta. Lo que queda entre [corchetes] hay que completarlo. Cada punto y aparte se imprime en el mismo renglón, separado por tres espacios."
             style={{ ...campo, lineHeight: 1.5, resize: "vertical", borderColor: pasado ? "var(--bad)" : "var(--border)" }} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span className="num" style={{ fontSize: 12, fontWeight: 600, color: pasado ? "var(--bad)" : "var(--muted)" }}>
               {renglones} de {LINEAS_MAXIMAS} renglones{pasado ? " · no entra en el formulario: acortalo" : ""}
             </span>
-            <span style={{ display: "flex", gap: 6 }}>
+            <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "var(--sub)" }} title="Si no, el texto va en un solo bloque, como las cartas de preimpresos">
+                <input type="checkbox" checked={parrafos} onChange={e => setParrafos(e.target.checked)} style={{ accentColor: "var(--accent)" }} />
+                Respetar párrafos
+              </label>
               {texto.trim() && <Boton tamaño="sm" variante="fantasma" onClick={guardarModelo}>Guardar como modelo</Boton>}
             </span>
           </div>
+          {excedidos.length > 0 && <div style={{ fontSize: 12, color: "var(--bad)" }}>No entra en su casillero: {excedidos.join(", ")}. Acortalo (por ejemplo, abreviando).</div>}
           {/\[[^\]]+\]/.test(texto) && <div style={{ fontSize: 12, color: "var(--warn)" }}>Quedan datos entre [corchetes] para completar.</div>}
           {modelos.length > 0 && (
             <details><summary style={{ fontSize: 12, color: "var(--muted)", cursor: "pointer" }}>Mis modelos ({modelos.length})</summary>
