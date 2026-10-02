@@ -35,6 +35,7 @@ import ResumenCaso from "./components/caso/ResumenCaso.jsx";
 import Boton from "./components/ui/Boton.jsx";
 import Icono from "./components/ui/Icono.jsx";
 import { ESTADOS_CASO } from "./constants.js";
+import { COLUMNAS_SQL44, COLUMNAS_PREVIAS } from "./utils/datosSiniestro.js";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","nro_siniestro",
@@ -47,7 +48,8 @@ const PAS_CASOS_COLS = new Set([
   "fecha_firma","fecha_pago","fecha_cobro","fecha_mediacion","fecha_inicio_juicio","monto_acordado",
   "plazo_pago","porcentaje_honorarios","monto_honorarios","estado_honorarios","fecha_factura",
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
-  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail"
+  "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail",
+  ...COLUMNAS_SQL44
 ]);
 
 const pickCols = (obj) => Object.fromEntries(
@@ -104,7 +106,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     // Comisión pagada al PAS: solo si la columna ya existe (SQL 20)
     ...("fecha_pago_comision" in casoProp ? { fecha_pago_comision: casoProp.fecha_pago_comision || "" } : {}),
     // Número de factura y link del hilo de Gmail: solo si las columnas ya existen (SQL 28)
-    ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {})
+    ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {}),
+    // Datos del siniestro (pestaña Datos): los de siempre y, si ya se corrió el SQL 44, los nuevos
+    ...Object.fromEntries(COLUMNAS_PREVIAS.map(k => [k, casoProp[k] || ""])),
+    ...("hora_siniestro" in casoProp ? Object.fromEntries(COLUMNAS_SQL44.map(k => [k, casoProp[k] || ""])) : {})
   });
 
   // Lo último que quedó guardado en la base: el autoguardado compara contra esto (no contra cómo se abrió la ficha)
