@@ -174,12 +174,17 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
   const hoyISO = fechaLocalISO(hoy);
   const enUnaSemana = sumarDias(hoyISO, 7);
 
-  // Reclamos quietos (salvo que ya tengan una próxima acción con plazo vigente: ya lo estás siguiendo)
+  // Avisos automáticos (quieto, pedir respuesta, a la firma, fecha de pago): con una próxima acción de plazo vigente
+  // ya lo estás siguiendo y no aparecen; la acción queda marcada (callaAviso) para que "Hecho" pida la siguiente.
+  const siguiendo = c => Boolean(c.proxima_accion?.trim() && c.proxima_accion_vence && c.proxima_accion_vence >= hoyISO);
+  const callados = new Set();
+  const aviso = t => { if (siguiendo(t.caso)) callados.add(t.caso.id); else tareas.push(t); };
+
+  // Reclamos quietos
   reclamosQuietos(allCasos, hoy, margenes).forEach(q => {
     const c = q.caso;
-    if (c.proxima_accion?.trim() && c.proxima_accion_vence && c.proxima_accion_vence >= hoyISO) return;
     const cia = c.compania_aseguradora || "La compañía";
-    tareas.push({
+    aviso({
       id: `quieto-${c.id}`, tipo: "quieto", vence: q.vence, titulo: c.asegurado || "Sin nombre", caso: c,
       detalle: `${cia}: sin respuesta hace ${q.dias} d (margen ${q.umbral} d)`,
     });
@@ -197,7 +202,7 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
     const dias = diasEntre(desde, hoyISO);
     if (!desde || dias === null || dias < VENTANA_RECLAMO.desde) return;
     const cia = c.compania_aseguradora || "la compañía";
-    tareas.push({ id: `pedir-${c.id}`, tipo: "pedir_respuesta", vence: sumarDias(desde, VENTANA_RECLAMO.hasta), titulo: c.asegurado || "Sin nombre", caso: c,
+    aviso({ id: `pedir-${c.id}`, tipo: "pedir_respuesta", vence: sumarDias(desde, VENTANA_RECLAMO.hasta), titulo: c.asegurado || "Sin nombre", caso: c,
       detalle: dias <= VENTANA_RECLAMO.hasta
         ? `Iniciado hace ${dias} d: ya podés pedirle respuesta a ${cia}`
         : `Iniciado hace ${dias} d: se pasó la ventana de ${VENTANA_RECLAMO.desde} a ${VENTANA_RECLAMO.hasta} d para pedirle respuesta a ${cia}` });
@@ -209,7 +214,7 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
     const desde = aISO(c.fecha_aceptacion);
     const dias = diasEntre(desde, hoyISO);
     if (dias === null || dias <= DIAS_A_LA_FIRMA) return;
-    tareas.push({ id: `firma-${c.id}`, tipo: "firma", vence: sumarDias(desde, DIAS_A_LA_FIRMA), titulo: c.asegurado || "Sin nombre", caso: c,
+    aviso({ id: `firma-${c.id}`, tipo: "firma", vence: sumarDias(desde, DIAS_A_LA_FIRMA), titulo: c.asegurado || "Sin nombre", caso: c,
       detalle: `Aceptado hace ${dias} d y todavía sin firmar el convenio${c.compania_aseguradora ? ` con ${c.compania_aseguradora}` : ""}` });
   });
 
@@ -217,7 +222,7 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
   allCasos.filter(c => c.estado === "esperando_pago" && !indemnizacionPagada(c)).forEach(c => {
     const fecha = fechaPagoEstimada(c);
     if (!fecha || fecha > sumarDias(hoyISO, 1)) return;
-    tareas.push({ id: `cobro-${c.id}`, tipo: "cobro", vence: fecha, titulo: c.asegurado || "Sin nombre", caso: c,
+    aviso({ id: `cobro-${c.id}`, tipo: "cobro", vence: fecha, titulo: c.asegurado || "Sin nombre", caso: c,
       detalle: `${fecha < hoyISO ? "Pasó la fecha de pago" : fecha === hoyISO ? "Hoy es la fecha de pago" : "Mañana es la fecha de pago"}${c.compania_aseguradora ? ` de ${c.compania_aseguradora}` : ""}: confirmalo y avisale al cliente y al PAS` });
   });
 
@@ -252,6 +257,7 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
       detalle: `Pagarle la comisión por ${c.asegurado || "el caso"}`, monto: Number(c.monto_comision_pas) || null });
   });
 
+  tareas.forEach(t => { if (t.tipo === "accion" && callados.has(t.caso.id)) t.callaAviso = true; });
   return tareas.sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31"));
 }
 
