@@ -50,7 +50,7 @@ export default function CartaDocumento({ allCasos = [] }) {
   const [firma, setFirma] = useState(["", ""]);
   const [ajuste, setAjuste] = useState(leerAjuste);
   const [referencias, setReferencias] = useState(false);
-  const [parrafos, setParrafos] = useState(false); // por defecto, un solo bloque como las cartas de preimpresos
+  const [parrafos, setParrafos] = useState(true); // como preimpresos: cada párrafo empieza renglón
   const dir = useDirectorio(); // directorio de compañías (pestaña Compañías)
   const [ciaDest, setCiaDest] = useState(null); // nombre corto de la compañía destinataria, si es una
   const [misDatos, setMisDatos] = useState(null);
@@ -271,14 +271,14 @@ export default function CartaDocumento({ allCasos = [] }) {
               <option value="">Elegí un modelo…</option>
               {todosLosModelos.map(m => <option key={m.id} value={m.id}>{m.propio ? "★ " : ""}{m.titulo}</option>)}
             </select></label>
-          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={11} placeholder="Texto de la carta. Lo que queda entre [corchetes] hay que completarlo. Cada punto y aparte se imprime en el mismo renglón, separado por tres espacios."
+          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={11} placeholder="Texto de la carta. Lo que queda entre [corchetes] hay que completarlo. La firma se ubica sola debajo del texto."
             style={{ ...campo, lineHeight: 1.5, resize: "vertical", borderColor: pasado ? "var(--bad)" : "var(--border)" }} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span className="num" style={{ fontSize: 12, fontWeight: 600, color: pasado ? "var(--bad)" : "var(--muted)" }}>
               {renglones} de {LINEAS_MAXIMAS} renglones{pasado ? " · no entra en el formulario: acortalo" : ""}
             </span>
             <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "var(--sub)" }} title="Si no, el texto va en un solo bloque, como las cartas de preimpresos">
+              <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "var(--sub)" }} title="Si lo destildás, el texto va en un solo bloque y cada punto y aparte se escribe como tres espacios (entra más texto)">
                 <input type="checkbox" checked={parrafos} onChange={e => setParrafos(e.target.checked)} style={{ accentColor: "var(--accent)" }} />
                 Respetar párrafos
               </label>

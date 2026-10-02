@@ -27,8 +27,10 @@ const CAMPOS = {
 };
 const FECHA = { derecha: 549.9, y: 462.21 };
 const CUERPO = { x: 45.35, ancho: 504.55, y: 490.56, interlineado: 11.34 };
-export const LINEAS_MAXIMAS = 15; // después viene la firma
-const FIRMA = { centro: 425.18, y: 677.65, y2: 691.82 };
+// Como preimpresos, la firma va 5,5 renglones debajo del último renglón del texto (nunca más arriba que
+// con 12 renglones: 677,65). Con 25 renglones la firma termina a 840 pt, lejos del recuadro de certificación.
+export const LINEAS_MAXIMAS = 25;
+const FIRMA = { centro: 425.18, separacion: 62.37, renglon2: 14.17, minimoRenglones: 12 };
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 export const fechaCarta = (lugar, iso) => {
@@ -100,9 +102,9 @@ function partirRenglones(doc, texto, ancho) {
   return lineas;
 }
 
-// Renglones del cuerpo. Como en las cartas de preimpresos, el texto va en un solo bloque justificado y
-// cada punto y aparte se escribe como tres espacios. Con parrafos: true, cada párrafo empieza renglón.
-export function renglonesCuerpo(doc, texto, { parrafos = false } = {}) {
+// Renglones del cuerpo, justificados. Como en preimpresos, cada párrafo empieza renglón; con parrafos: false
+// el texto va en un solo bloque y cada punto y aparte se escribe como tres espacios.
+export function renglonesCuerpo(doc, texto, { parrafos = true } = {}) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   const partes = String(texto || "").split(/\n+/).map(p => p.trim().replace(/[ \t]+/g, " ")).filter(Boolean);
@@ -118,7 +120,7 @@ export function renglonesCuerpo(doc, texto, { parrafos = false } = {}) {
 // datos: { remitente: { nombre, domicilio, cp, localidad, provincia }, destinatario: {...}, fecha, cuerpo,
 //          firma: [renglón1, renglón2] }, opciones: { corrimientoX, corrimientoY (mm), referencias, parrafos }
 // Devuelve también los campos que no entran (excedidos), para avisar en vez de achicar la letra.
-export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, referencias = false, parrafos = false } = {}) {
+export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, referencias = false, parrafos = true } = {}) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: PAGINA });
   const dx = corrimientoX * MM, dy = corrimientoY * MM;
@@ -161,9 +163,10 @@ export async function generarCarta(datos, { corrimientoX = 0, corrimientoY = 0, 
     else renglonJustificado(doc, r.texto, CUERPO.x + dx, y, CUERPO.ancho);
   });
 
-  const [f1, f2] = datos.firma || [];
-  if (f1) doc.text(f1, FIRMA.centro + dx, FIRMA.y + dy, { align: "center" });
-  if (f2) doc.text(f2, FIRMA.centro + dx, FIRMA.y2 + dy, { align: "center" });
+  const [f1, f2] = (datos.firma || []).map(t => (t || "").trim());
+  const yFirma = CUERPO.y + dy + (Math.max(renglones.length, FIRMA.minimoRenglones) - 1) * CUERPO.interlineado + FIRMA.separacion;
+  if (f1) doc.text(f1, FIRMA.centro + dx, yFirma, { align: "center" });
+  if (f2) doc.text(f2, FIRMA.centro + dx, yFirma + FIRMA.renglon2, { align: "center" });
 
   return { bytes: new Uint8Array(doc.output("arraybuffer")), renglones: renglones.length, excedidos: [...excedidos] };
 }
