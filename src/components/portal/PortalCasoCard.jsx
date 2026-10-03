@@ -65,13 +65,15 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   // El cliente entra a su vista con la patente y los últimos 3 números del DNI: hacen falta los dos
   const puedeSeguirlo = abierto && clientePuedeEntrar(caso);
   const textoCliente = `Hola ${primerNombre(caso.asegurado || "")}, podés seguir cómo va tu reclamo cuando quieras en ${linkVistaCliente(caso.patente)} (entrás con la patente y los últimos 3 números de tu DNI).`;
-  const linkCliente = puedeSeguirlo ? (linkWhatsApp(caso.telefono_asegurado, textoCliente) || `https://wa.me/?text=${encodeURIComponent(textoCliente)}`) : null;
+  // En la demo no va a ningún número (los teléfonos son inventados): abre WhatsApp para elegir a quién, y se ve el mensaje
+  const linkCliente = !puedeSeguirlo ? null : demo ? `https://wa.me/?text=${encodeURIComponent(textoCliente)}`
+    : (linkWhatsApp(caso.telefono_asegurado, textoCliente) || `https://wa.me/?text=${encodeURIComponent(textoCliente)}`);
   const [subiendo, setSubiendo] = useState(false);
   const [aviso, setAviso] = useState(null); // { tipo, texto }
   const [archivos, setArchivos] = useState([]);
   const [enviados, setEnviados] = useState(null); // lo que ya mandó el PAS (null = no se puede ver: falta el SQL 29)
   // El escrito para que firme el asegurado sirve hasta que se reclama
-  const conEscrito = ["doc_pendiente", "iniciado", "reclamado"].includes(caso.estado) && !caso._demo;
+  const conEscrito = ["doc_pendiente", "iniciado", "reclamado"].includes(caso.estado) && !caso._demo && !demo;
   // Consulta por WhatsApp con el caso ya identificado
   const consulta = demo ? linkWhatsApp(TELEFONO_ESTUDIO, TEXTO_ACCESO) : linkWhatsApp(TELEFONO_ESTUDIO, `Hola Alexis, te consulto por el caso de ${caso.asegurado || "mi asegurado"}${[caso.patente, caso.compania_aseguradora].filter(Boolean).length ? ` (${[caso.patente, caso.compania_aseguradora].filter(Boolean).join(", ")})` : ""}: `);
 
@@ -148,7 +150,7 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
 
         {caso.mensaje_cliente && (
           <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent-ink)", marginBottom: 3 }}>Mensaje del estudio</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent-ink)", marginBottom: 3 }}>Mensaje para tu cliente</div>
             <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.45 }}>{caso.mensaje_cliente}</div>
           </div>
         )}
@@ -173,9 +175,9 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
             )}
             {conEscrito && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
             {consulta && !caso._demo && (
-              <a href={consulta} target="_blank" rel="noreferrer" title="Te abre WhatsApp con el caso ya identificado"
+              <a href={consulta} target="_blank" rel="noreferrer" title={demo ? "Te abre WhatsApp para pedir tu acceso" : "Te abre WhatsApp con el caso ya identificado"}
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
-                <Icono nombre="telefono" size={14} />Consultar al estudio
+                <Icono nombre={demo ? "mensaje" : "telefono"} size={14} />{demo ? "Quiero mi acceso" : "Consultar al estudio"}
               </a>
             )}
           </span>

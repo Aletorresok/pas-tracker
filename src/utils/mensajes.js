@@ -137,7 +137,7 @@ export const MAIL_PRESENTACION = {
     "",
     "Trabajo junto a productores de seguros llevando los reclamos de sus asegurados contra terceros. Te hago una consulta rápida: cuando a un cliente tuyo lo chocan, ¿el reclamo lo hace por su cuenta o se lo derivás a alguien?",
     "",
-    "Si me lo derivás, me ocupo del reclamo de principio a fin y vos te llevás una comisión por el caso. Además tenés acceso a un portal web donde ves cómo avanza cada expediente, sin tener que llamarme para preguntar.",
+    "Si me lo derivás, me ocupo del reclamo de principio a fin. Además tenés acceso a un portal web donde ves cómo avanza cada caso; si querés más detalle, me escribís.",
     "",
     "Si te interesa, respondeme este mail y te cuento cómo funciona.",
     "",
@@ -185,6 +185,6 @@ export const recibioRecordatorio = entradas => (entradas || []).some(e => tiene(
 
 export const textoRecordatorio = nombrePas => [
   `Hola ${primerNombre(nombrePas) || ""}, ¿cómo va? Soy Alexis Torres Gaveglio, hablamos hace un mes por los reclamos a terceros.`.replace("Hola , ", "Hola, "),
-  "Te escribo solo para dejarte esto a mano: si a algún cliente tuyo lo chocan y no tuvo la culpa, pasame sus datos por acá y me encargo de todo el reclamo. El cliente no adelanta nada, vos seguís el caso desde el portal sin llamarme y cobrás tu parte cuando se cobra.",
+  "Te escribo solo para dejarte esto a mano: si a algún cliente tuyo lo chocan y no tuvo la culpa, pasame sus datos por acá y me encargo de todo el reclamo. El cliente no adelanta nada y vos seguís el caso desde el portal o me escribís cuando quieras.",
   "No te vuelvo a escribir por esto; cuando lo necesites, acá estoy.",
 ].join("\n\n");

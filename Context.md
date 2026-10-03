@@ -132,6 +132,14 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-03 — Demo del portal: preguntas frecuentes; estadísticas solo de compañías con datos; mensajes sin comisión
+*   **Preguntas frecuentes** al final de `/portal/demo` (`portal/PreguntasDemo.jsx`, desplegables + "Quiero mi acceso"): qué casos toman (todo reclamo al tercero, lesiones incluidas, e incumplimientos de la propia compañía), cuánto le cuesta al cliente (administrativa nada; mediación, su costo; juicio, gastos y un % de la indemnización), qué hace el PAS, cuánto tarda, qué pasa si ofrecen poco, zona (CABA y Provincia de Buenos Aires) y cómo pedir el acceso. Sin mención a comisión.
+*   **Estadísticas por compañía**: solo aparecen las compañías con algún dato; un reclamo iniciado que todavía espera el ofrecimiento ya alcanza. Esos reclamos se muestran en "Días hasta ofrecimiento" ("Hay reclamos esperando hace N días"; si ninguno fue respondido, "+N días"). En el portal, la nota técnica se reemplaza por una para el PAS.
+*   **Mail de presentación y recordatorio a PAS** (`utils/mensajes.js`): sin la oferta de comisión y sin "sin llamarme" (el PAS sigue el caso desde el portal o escribe).
+*   **Portal (real y demo)**: la tarjeta del caso dice "Mensaje para tu cliente" (antes "Mensaje del estudio": es el texto que el PAS le reenvía al cliente); las pestañas Cobrados y Desistidos no aparecen si están vacías; "Próximos cobros" muestra lo que cobra el cliente (acordado o último ofrecimiento) y, si hay, la comisión debajo.
+*   **Solo en la demo**: sin "Generar escrito"; "Consultar al estudio" pasa a "Quiero mi acceso"; "Pasale el seguimiento al cliente" abre WhatsApp sin destinatario (los teléfonos son inventados); aviso de arriba más corto.
+*   Datos actualizados: los domicilios de 18 compañías (`sql/datos_2026-10-03_domicilios_companias.sql`, corrido).
+
 ### 2026-10-03 — Estadísticas por compañía: instancia del ofrecimiento, concurrencia/franquicia e incumplimientos (⚠️ requiere SQL 45)
 *   **SQL 45** (`sql/2026-10-03_45_instancia_tipo_reclamo.sql`): `pas_ofertas.instancia` y `pas_casos.instancia_ofrecimiento` (administrativa por defecto / mediación / juicio); `pas_casos.tipo_reclamo` (culpa_tercero / concurrencia / franquicia) y `porcentaje_culpa` (% a cargo del tercero; vacío = 50); `pas_companias.instancia_habitual`. Carga inicial: ofertas desde la fecha de mediación o juicio pasan a esa instancia; Río Uruguay queda con mediación como habitual y sus ofertas en mediación. `plazos_companias()` (portal) suma montos, instancia, tipo y datos de pago.
 *   **Cuadro "Estadísticas por compañía"** (`GraficoCompanias.jsx`, cálculo en `cuadroCompania()` de `utils/analisis.js`): vuelve arriba de Análisis → Compañías y sigue en el portal. Suma **incumplimientos** (pagos tarde + vencidos sin pagar) con los días de demora en promedio, y el **% ofrecido en cada instancia** (solo las instancias en que esa compañía ofreció). Promedios.
