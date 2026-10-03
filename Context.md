@@ -137,7 +137,7 @@
 *   **Estadísticas por compañía**: solo aparecen las compañías con algún dato; un reclamo iniciado que todavía espera el ofrecimiento ya alcanza. Esos reclamos se muestran en "Días hasta ofrecimiento" ("Hay reclamos esperando hace N días"; si ninguno fue respondido, "+N días"). En el portal, la nota técnica se reemplaza por una para el PAS.
 *   **Mail de presentación y recordatorio a PAS** (`utils/mensajes.js`): sin la oferta de comisión y sin "sin llamarme" (el PAS sigue el caso desde el portal o escribe).
 *   **Portal (real y demo)**: la tarjeta del caso dice "Mensaje para tu cliente" (antes "Mensaje del estudio": es el texto que el PAS le reenvía al cliente); las pestañas Cobrados y Desistidos no aparecen si están vacías; "Próximos cobros" muestra lo que cobra el cliente (acordado o último ofrecimiento) y, si hay, la comisión debajo.
-*   **Solo en la demo**: sin "Generar escrito"; "Consultar al estudio" pasa a "Quiero mi acceso"; "Pasale el seguimiento al cliente" abre WhatsApp sin destinatario (los teléfonos son inventados); aviso de arriba más corto.
+*   **Solo en la demo**: sin "Generar escrito"; sin "Consultar al estudio" en cada caso (el acceso se pide arriba y al final); "Pasale el seguimiento al cliente" abre WhatsApp sin destinatario (los teléfonos son inventados); aviso de arriba más corto.
 *   Datos actualizados: los domicilios de 18 compañías (`sql/datos_2026-10-03_domicilios_companias.sql`, corrido).
 
 ### 2026-10-03 — Estadísticas por compañía: instancia del ofrecimiento, concurrencia/franquicia e incumplimientos (⚠️ requiere SQL 45)

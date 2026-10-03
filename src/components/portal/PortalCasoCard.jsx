@@ -174,7 +174,8 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
               </a>
             )}
             {conEscrito && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
-            {consulta && !caso._demo && (
+            {/* En la demo no va: el acceso se pide arriba y al final */}
+            {consulta && !caso._demo && !demo && (
               <a href={consulta} target="_blank" rel="noreferrer" title={demo ? "Te abre WhatsApp para pedir tu acceso" : "Te abre WhatsApp con el caso ya identificado"}
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
                 <Icono nombre={demo ? "mensaje" : "telefono"} size={14} />{demo ? "Quiero mi acceso" : "Consultar al estudio"}
