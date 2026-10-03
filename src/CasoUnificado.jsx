@@ -50,6 +50,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
   "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail",
   "domicilio_asegurado", "cp_asegurado", "localidad_asegurado", "provincia_asegurado",
+  "instancia_ofrecimiento", "tipo_reclamo", "porcentaje_culpa",
   ...COLUMNAS_SQL44
 ]);
 
@@ -110,7 +111,9 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     ...("nro_factura" in casoProp ? { nro_factura: casoProp.nro_factura || "", hilo_gmail: casoProp.hilo_gmail || "" } : {}),
     // Datos del siniestro (pestaña Datos): los de siempre y, si ya se corrió el SQL 44, los nuevos
     ...Object.fromEntries(COLUMNAS_PREVIAS.map(k => [k, casoProp[k] || ""])),
-    ...("hora_siniestro" in casoProp ? Object.fromEntries(COLUMNAS_SQL44.map(k => [k, casoProp[k] || ""])) : {})
+    ...("hora_siniestro" in casoProp ? Object.fromEntries(COLUMNAS_SQL44.map(k => [k, casoProp[k] || ""])) : {}),
+    // Tipo de reclamo y % de culpa del tercero en concurrencia: solo si ya se corrió el SQL 45
+    ...("tipo_reclamo" in casoProp ? { tipo_reclamo: casoProp.tipo_reclamo || "culpa_tercero", porcentaje_culpa: casoProp.porcentaje_culpa ?? "" } : {})
   });
 
   // Lo último que quedó guardado en la base: el autoguardado compara contra esto (no contra cómo se abrió la ficha)
@@ -216,6 +219,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
       if (!("nro_factura" in casoProp)) { delete fila.nro_factura; delete fila.hilo_gmail; }
+      if (!("tipo_reclamo" in casoProp)) { delete fila.tipo_reclamo; delete fila.porcentaje_culpa; delete fila.instancia_ofrecimiento; }
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) {
         guardadoRef.current = enviado;

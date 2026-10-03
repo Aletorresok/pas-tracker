@@ -1,4 +1,5 @@
 import CampoMonto from "../ui/CampoMonto.jsx";
+import { TIPOS_RECLAMO, CULPA_CONCURRENCIA } from "../../constants.js";
 
 export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
@@ -28,6 +29,28 @@ export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
           </label>
         ))}
       </div>
+      {/* Tipo de reclamo (SQL 45): Análisis mide la concurrencia sobre la parte del tercero y deja la franquicia fuera de los % */}
+      {"tipo_reclamo" in formData && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+          <label>
+            <span style={labelStyle}>Tipo de reclamo</span>
+            <select value={formData.tipo_reclamo || "culpa_tercero"} onChange={e => onChange("tipo_reclamo", e.target.value)} style={inputStyle}>
+              {TIPOS_RECLAMO.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+            {formData.tipo_reclamo === "franquicia" && (
+              <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>Se paga entera: no entra en el % ofrecido ni cobrado de la compañía.</span>
+            )}
+          </label>
+          {formData.tipo_reclamo === "concurrencia" && (
+            <label>
+              <span style={labelStyle}>Culpa a cargo del tercero (%)</span>
+              <input type="number" min={1} max={100} value={formData.porcentaje_culpa ?? ""} placeholder={String(CULPA_CONCURRENCIA)}
+                onChange={e => onChange("porcentaje_culpa", e.target.value === "" ? "" : Math.min(100, Math.max(1, Number(e.target.value))))} style={inputStyle} />
+              <span style={{ display: "block", fontSize: 12, color: Th.muted, marginTop: 4 }}>Lo ofrecido se mide sobre esta parte del reclamo.</span>
+            </label>
+          )}
+        </div>
+      )}
     </div>
   );
 }

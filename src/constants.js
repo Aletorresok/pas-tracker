@@ -32,3 +32,18 @@ export const VISTAS_C = [
   { key: "multi", label: "Varios teléfonos", color: "var(--accent)" },
   { key: "sin_tel", label: "Sin teléfono", color: "var(--accent)" },
 ];
+// ── OFRECIMIENTOS Y TIPO DE RECLAMO (SQL 45) ─────────────────────────────────────
+// En qué instancia ofreció la compañía. Por defecto, administrativa.
+export const INSTANCIAS = [
+  { key: "administrativa", label: "Administrativa" },
+  { key: "mediacion", label: "Mediación" },
+  { key: "juicio", label: "Juicio" },
+];
+export const instanciaLabel = k => INSTANCIAS.find(i => i.key === k)?.label || "Administrativa";
+// Concurrencia: se ofrece sobre la parte de culpa del tercero. Franquicia: se paga entera, no se negocia.
+export const TIPOS_RECLAMO = [
+  { key: "culpa_tercero", label: "Culpa del tercero" },
+  { key: "concurrencia", label: "Concurrencia" },
+  { key: "franquicia", label: "Franquicia" },
+];
+export const CULPA_CONCURRENCIA = 50; // % a cargo del tercero si no se cargó otro

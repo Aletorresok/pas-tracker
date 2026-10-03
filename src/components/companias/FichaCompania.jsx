@@ -11,6 +11,8 @@ import EstadoPill from "../ui/EstadoPill.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import { abrirCompania, cerrarCompania, suscribirCompania, companiaAbierta } from "../../utils/companiaAbierta.js";
+import { haySql45 } from "../../utils/ofertas.js";
+import { INSTANCIAS } from "../../constants.js";
 
 
 // Se monta una vez en App (necesita los casos para listar los de la compañía y poder abrirlos)
@@ -98,6 +100,8 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [estado, setEstado] = useState(""); // "" | guardando | ok | error: …
   const [borrador, setBorrador] = useState(false); // contacto nuevo sin guardar
+  const [conInstancia, setConInstancia] = useState(false); // SQL 45: instancia habitual de los ofrecimientos
+  useEffect(() => { haySql45().then(setConInstancia); }, []);
 
   const ficha = useMemo(() => (nombre && dir ? fichaDe(dir.fichas, nombre) || { compania: nombre } : null), [dir, nombre]);
   const contactos = useMemo(() => (dir?.contactos || []).filter(c => c.compania === ficha?.compania), [dir, ficha]);
@@ -221,6 +225,16 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
                   <Numero l="Margen para reiterar" valor={margenPropio} placeholder={String(margenPara(margenes, ficha.compania))} max={365}
                     unidad={margenPropio ? "días sin respuesta" : "días (usa el general)"} onGuardar={async n => { setEstado("guardando"); resultado((await guardarMargen(ficha.compania, n ? Math.round(n) : null)) ? null : "error"); }} />
                 </div>
+                {conInstancia && (
+                  <label style={{ display: "block", maxWidth: 320 }}>
+                    <span style={etiqueta}>Instancia habitual de los ofrecimientos</span>
+                    <select value={ficha.instancia_habitual || "administrativa"} style={campo}
+                      onChange={e => guardar({ instancia_habitual: e.target.value === "administrativa" ? null : e.target.value })}>
+                      {INSTANCIAS.map(i => <option key={i.key} value={i.key}>{i.label}</option>)}
+                    </select>
+                    <span style={{ display: "block", fontSize: 11, marginTop: 3, color: "var(--muted)" }}>Las ofertas nuevas de esta compañía vienen marcadas así (se puede cambiar en cada una).</span>
+                  </label>
+                )}
               </section>
 
               <section style={seccion}>

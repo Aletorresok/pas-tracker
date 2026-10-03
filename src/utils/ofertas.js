@@ -18,10 +18,22 @@ export async function cargarOfertas(casoId) {
   const { data, error } = await supabase.from("pas_ofertas").select("*").eq("caso_id", casoId);
   return error ? null : ordenar(data || []);
 }
+// ¿Ya se corrió el SQL 45? (instancia de cada oferta, tipo de reclamo del caso, instancia habitual de la compañía)
+let consultaSql45 = null;
+export function haySql45() {
+  if (!consultaSql45) consultaSql45 = supabase.from("pas_ofertas").select("instancia").limit(1).then(({ error }) => !error);
+  return consultaSql45;
+}
+
+// Instancia que se propone para una oferta nueva: la del estado del caso si está en mediación o juicio; si no,
+// la habitual de la compañía (Río Uruguay: mediación); si no, administrativa.
+export const instanciaSugerida = (estado, habitual) => (estado === "en_juicio" ? "juicio" : estado === "en_mediacion" ? "mediacion" : habitual || "administrativa");
+
 export async function todasLasOfertas() {
+  const columnas = "caso_id, fecha, monto, respuesta, creado" + ((await haySql45()) ? ", instancia" : "");
   const filas = [];
   for (let desde = 0; ; desde += 1000) {
-    const { data, error } = await supabase.from("pas_ofertas").select("caso_id, fecha, monto, respuesta, creado").order("id").range(desde, desde + 999);
+    const { data, error } = await supabase.from("pas_ofertas").select(columnas).order("id").range(desde, desde + 999);
     if (error) return null;
     filas.push(...(data || []));
     if (!data || data.length < 1000) break;
@@ -59,6 +71,8 @@ export function camposDesdeOfertas(ofertas, caso) {
   const lista = ordenar(ofertas);
   const primera = lista[0], ultima = lista[lista.length - 1];
   const cambios = { monto_ofrecimiento: ultima.monto };
+  // La instancia del último ofrecimiento (SQL 45) es la que cuenta en Análisis y en el portal
+  if (ultima.instancia && "instancia_ofrecimiento" in caso) cambios.instancia_ofrecimiento = ultima.instancia;
   if (!Number(caso.primer_ofrecimiento)) cambios.primer_ofrecimiento = primera.monto;
   if (!caso.fecha_ofrecimiento) cambios.fecha_ofrecimiento = primera.fecha;
   const aceptada = [...lista].reverse().find(o => o.respuesta === "aceptada");
@@ -69,7 +83,7 @@ export function camposDesdeOfertas(ofertas, caso) {
   return cambios;
 }
 
-export const textoOferta = (o, cia) => `Ofrecimiento de ${cia || "la compañía"}: ${fmtMoney(o.monto)}`;
+export const textoOferta = (o, cia) => `Ofrecimiento de ${cia || "la compañía"}${o.instancia === "mediacion" ? " en mediación" : o.instancia === "juicio" ? " en juicio" : ""}: ${fmtMoney(o.monto)}`;
 export const textoRespuesta = o =>
   o.respuesta === "contraoferta" && Number(o.contraoferta) ? `Contraoferta a ${fmtMoney(o.monto)}: ${fmtMoney(o.contraoferta)}`
   : o.respuesta === "rechazada" ? `Se rechazó el ofrecimiento de ${fmtMoney(o.monto)}`
@@ -119,7 +133,9 @@ export async function registrarCambioOfrecimiento(caso, nuevo, hoy) {
   if (!previas.length && anterior && anterior !== monto) {
     await agregarOferta(caso.id, { fecha: String(caso.fecha_ofrecimiento || hoy).slice(0, 10), monto: anterior, respuesta: "pendiente", nota: "Ofrecimiento anterior" });
   }
-  const r = await agregarOferta(caso.id, { fecha: hoy, monto, respuesta: "pendiente" });
+  // Instancia (SQL 45): la del estado si está en mediación o juicio; si no, la que ya tenía el caso
+  const instancia = "instancia_ofrecimiento" in caso ? { instancia: instanciaSugerida(caso.estado, caso.instancia_ofrecimiento) } : {};
+  const r = await agregarOferta(caso.id, { fecha: hoy, monto, respuesta: "pendiente", ...instancia });
   return !r.error;
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fmtMoney, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
-import { RESPUESTAS, cargarOfertas, agregarOferta, actualizarOferta, borrarOferta, camposDesdeOfertas, textoOferta, textoRespuesta } from "../../utils/ofertas.js";
+import { RESPUESTAS, cargarOfertas, agregarOferta, actualizarOferta, borrarOferta, camposDesdeOfertas, textoOferta, textoRespuesta, haySql45, instanciaSugerida, cargarCompania } from "../../utils/ofertas.js";
+import { INSTANCIAS } from "../../constants.js";
 import { registrarAccion } from "../../utils/storage.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
@@ -9,15 +10,25 @@ const COLOR = { pendiente: "var(--muted)", rechazada: "var(--bad)", contraoferta
 
 // Ficha → Montos: cada ofrecimiento de la compañía con lo que se respondió. Mantiene al día el "Monto ofrecimiento"
 // del caso (el último, que es el que ve el PAS) y deja cada movimiento en la bitácora.
+// Con el SQL 45, cada oferta dice en qué instancia se hizo (administrativa, mediación o juicio).
 export default function HistorialOfertas({ casoId, formData, onChange, onBitacora, Th }) {
   const [ofertas, setOfertas] = useState(undefined); // undefined = cargando, null = falta el SQL 21
   const [nueva, setNueva] = useState({ fecha: fechaLocalISO(), monto: "", respuesta: "pendiente", contraoferta: "", nota: "" });
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [conInstancia, setConInstancia] = useState(false); // SQL 45 corrido
+  const [habitual, setHabitual] = useState(null); // instancia habitual de la compañía
   const reclamado = Number(formData.monto_reclamado) || 0;
   const cia = formData.compania_aseguradora;
+  const sugerida = instanciaSugerida(formData.estado, habitual);
+  const vacia = () => ({ fecha: fechaLocalISO(), monto: "", respuesta: "pendiente", contraoferta: "", nota: "", instancia: sugerida });
 
   useEffect(() => { if (casoId) cargarOfertas(casoId).then(setOfertas); }, [casoId]);
+  useEffect(() => { haySql45().then(setConInstancia); }, []);
+  useEffect(() => { cargarCompania(cia).then(d => setHabitual(d?.instancia_habitual || null)); }, [cia]);
+  // Mientras no se toque, la oferta nueva sigue la instancia sugerida (estado del caso o habitual de la compañía)
+  const [instanciaTocada, setInstanciaTocada] = useState(false);
+  useEffect(() => { if (!instanciaTocada) setNueva(n => ({ ...n, instancia: sugerida })); }, [sugerida, instanciaTocada]);
 
   // Después de cada cambio: actualiza los campos del caso que siguen al historial
   const sincronizar = lista => {
@@ -31,14 +42,15 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
     const monto = Number(nueva.monto);
     if (!monto) return;
     setGuardando(true); setError("");
-    const fila = { fecha: nueva.fecha || fechaLocalISO(), monto, respuesta: nueva.respuesta, contraoferta: nueva.respuesta === "contraoferta" ? Number(nueva.contraoferta) || null : null, nota: nueva.nota.trim() || null };
+    const fila = { fecha: nueva.fecha || fechaLocalISO(), monto, respuesta: nueva.respuesta, contraoferta: nueva.respuesta === "contraoferta" ? Number(nueva.contraoferta) || null : null, nota: nueva.nota.trim() || null,
+      ...(conInstancia ? { instancia: nueva.instancia || "administrativa" } : {}) };
     const r = await agregarOferta(casoId, fila);
     setGuardando(false);
     if (r.error) { setError("No se pudo guardar: " + r.error); return; }
     const lista = [...ofertas, r.data];
     setOfertas(lista);
     sincronizar(lista);
-    setNueva({ fecha: fechaLocalISO(), monto: "", respuesta: "pendiente", contraoferta: "", nota: "" });
+    setNueva(vacia()); setInstanciaTocada(false);
     // Llegó un ofrecimiento: si el caso estaba antes de esa etapa, pasa a Con ofrecimiento (fecha, bitácora y próxima acción sugerida)
     if (["doc_pendiente", "iniciado", "reclamado"].includes(formData.estado)) onChange("estado", "con_ofrecimiento");
     await anotar(textoOferta(r.data, cia));
@@ -54,6 +66,14 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
     setOfertas(lista);
     sincronizar(lista);
     if (respuesta !== o.respuesta || cambios.contraoferta !== o.contraoferta) await anotar(textoRespuesta(actualizada));
+  };
+
+  const cambiarInstancia = async (o, instancia) => {
+    const err = await actualizarOferta(o.id, { instancia });
+    if (err) { setError("No se pudo guardar: " + err); return; }
+    const lista = ofertas.map(x => (x.id === o.id ? { ...x, instancia } : x));
+    setOfertas(lista);
+    sincronizar(lista);
   };
 
   const borrar = async o => {
@@ -94,6 +114,12 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
                   {o.nota && <span style={{ display: "block", fontSize: 12, color: Th.sub }}>{o.nota}</span>}
                 </span>
                 <span style={{ display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  {conInstancia && (
+                    <select value={o.instancia || "administrativa"} onChange={e => cambiarInstancia(o, e.target.value)} aria-label="Instancia" title="Instancia en que se ofreció"
+                      style={{ ...campo, width: "auto" }}>
+                      {INSTANCIAS.map(i => <option key={i.key} value={i.key}>{i.label}</option>)}
+                    </select>
+                  )}
                   <select value={o.respuesta} onChange={e => cambiarRespuesta(o, e.target.value)} aria-label="Respuesta"
                     style={{ ...campo, width: "auto", color: COLOR[o.respuesta], fontWeight: 600 }}>
                     {RESPUESTAS.map(r => <option key={r.k} value={r.k}>{r.l}</option>)}
@@ -110,7 +136,7 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 150px", gap: 8, alignItems: "end" }}>
+      <div style={{ display: "grid", gridTemplateColumns: conInstancia ? "140px 1fr 140px 140px" : "140px 1fr 150px", gap: 8, alignItems: "end" }}>
         <label style={{ fontSize: 12, color: Th.sub }}>Fecha
           <input type="date" value={nueva.fecha} onChange={e => setNueva(n => ({ ...n, fecha: e.target.value }))} style={{ ...campo, marginTop: 4 }} />
         </label>
@@ -122,6 +148,13 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
             {RESPUESTAS.map(r => <option key={r.k} value={r.k}>{r.l}</option>)}
           </select>
         </label>
+        {conInstancia && (
+          <label style={{ fontSize: 12, color: Th.sub }}>Instancia
+            <select value={nueva.instancia} onChange={e => { setInstanciaTocada(true); setNueva(n => ({ ...n, instancia: e.target.value })); }} style={{ ...campo, marginTop: 4 }}>
+              {INSTANCIAS.map(i => <option key={i.key} value={i.key}>{i.label}</option>)}
+            </select>
+          </label>
+        )}
       </div>
       {nueva.respuesta === "contraoferta" && (
         <label style={{ display: "block", fontSize: 12, color: Th.sub, marginTop: 8, maxWidth: 220 }}>Contraoferta ($)
