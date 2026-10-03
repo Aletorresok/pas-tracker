@@ -92,5 +92,7 @@ export function plazosDemo() {
       instancia_ofrecimiento: i === 2 ? "mediacion" : "administrativa",
       fecha_aceptacion: fechaEnDias(-60), plazo_pago: cia === "Rivadavia" ? 30 : 45,
     })));
+  // Un reclamo que todavía espera el ofrecimiento (cuenta en "Días hasta ofrecimiento")
+  filas.push({ compania_aseguradora: "Sancor", estado: "reclamado", fecha_inicio_reclamo: fechaEnDias(-60), monto_reclamado: 1800000 });
   return filas;
 }

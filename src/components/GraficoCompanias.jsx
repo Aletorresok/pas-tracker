@@ -15,19 +15,16 @@ export default function GraficoCompanias({ allCasos, ofertas, darkMode, cardBg, 
       if (!porComp[comp]) porComp[comp] = [];
       porComp[comp].push(c);
     });
+    // Solo las compañías con algún dato (alcanza un reclamo iniciado que espera el ofrecimiento)
     return Object.entries(porComp)
-      .map(([nombre, casos]) => ({ nombre, casos, total: casos.length }))
+      .map(([nombre, casos]) => ({ nombre, total: casos.length, stats: (() => { try { return cuadroCompania(casos, ofertas); } catch { return null; } })() }))
+      .filter(c => c.stats?.conDatos)
       .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  }, [allCasos]);
+  }, [allCasos, ofertas]);
 
-  const activeComp = selectedComp || (companias.length ? companias[0].nombre : "");
-
-  const stats = useMemo(() => {
-    try {
-      const comp = companias.find(c => c.nombre === activeComp);
-      return comp ? cuadroCompania(comp.casos, ofertas) : null;
-    } catch { return null; }
-  }, [activeComp, companias, ofertas]);
+  const activa = companias.find(c => c.nombre === selectedComp) || companias[0];
+  const activeComp = activa?.nombre || "";
+  const stats = activa?.stats || null;
 
   if (!companias.length) return null;
 
@@ -47,8 +44,14 @@ export default function GraficoCompanias({ allCasos, ofertas, darkMode, cardBg, 
   };
 
   const inc = stats?.incumplimientos;
+  const espera = stats?.sinOferta;
+  // Reclamos que todavía esperan el ofrecimiento: si no hay ninguno respondido, el número es lo que ya llevan (+N días)
+  const tileOferta = !stats ? null : stats.diasOferta.valor === null && espera.n
+    ? { label: "Días hasta ofrecimiento · todavía sin ofrecer", valor: espera.dias, texto: `+${espera.dias} días`, casos: espera.n, sobre: "reclamo", color: "var(--info)" }
+    : { label: "Días hasta ofrecimiento", valor: stats.diasOferta.valor, texto: `${stats.diasOferta.valor} días`, casos: stats.diasOferta.n, color: "var(--info)",
+        nota: espera.n ? (mostrarCasos ? `${espera.n} sin ofrecer: llevan ${espera.dias} días` : `Hay reclamos esperando hace ${espera.dias} días`) : null };
   const barras = stats ? [
-    { label: "Días hasta ofrecimiento", valor: stats.diasOferta.valor, texto: `${stats.diasOferta.valor} días`, casos: stats.diasOferta.n, color: "var(--info)" },
+    tileOferta,
     { label: "Días hasta cobro", valor: stats.diasCobro.valor, texto: `${stats.diasCobro.valor} días`, casos: stats.diasCobro.n, color: "var(--accent)" },
     { label: "% cobro / reclamado", valor: stats.pctCobrado.valor, texto: `${stats.pctCobrado.valor}%`, casos: stats.pctCobrado.n, color: "var(--ok)" },
     // Pagos tarde o vencidos sin pagar, con la demora promedio. Sin pagos con fecha comprometida, no hay dato.
@@ -97,12 +100,15 @@ export default function GraficoCompanias({ allCasos, ofertas, darkMode, cardBg, 
               </div>
               <div style={{ fontSize: 12, color: subColor, marginTop: 4, lineHeight: 1.3 }}>{b.label}</div>
               {mostrarCasos && b.valor !== null && <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>sobre {b.casos} {b.sobre || "caso"}{b.casos !== 1 ? "s" : ""}</div>}
+              {b.nota && <div style={{ fontSize: 11, color: "var(--warn)", marginTop: 2 }}>{b.nota}</div>}
             </div>
           ))}
         </div>
       ))}
       <div style={{ fontSize: 11, color: subColor, marginTop: 12, lineHeight: 1.4 }}>
-        Promedios. Las concurrencias se miden sobre la parte de culpa del tercero; las franquicias no entran en los %, porque se pagan enteras.
+        {mostrarCasos
+          ? "Promedios. Las concurrencias se miden sobre la parte de culpa del tercero; las franquicias no entran en los %, porque se pagan enteras. Solo aparecen las compañías con algún dato."
+          : "Promedios con los casos del estudio: te sirven para decirle a tu cliente cuánto suele tardar cada compañía."}
       </div>
     </div>
   );

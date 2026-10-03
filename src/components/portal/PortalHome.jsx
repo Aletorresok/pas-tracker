@@ -9,6 +9,7 @@ import Icono from "../ui/Icono.jsx";
 import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
+import PreguntasDemo from "./PreguntasDemo.jsx";
 import { alpha } from "../../utils/theme.js";
 import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
@@ -225,7 +226,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
       {demo && (
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "16px 16px 0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: "color-mix(in srgb, var(--accent) 9%, var(--card))", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14 }}>
-              <span style={{ flex: "1 1 240px" }}><b>Demostración.</b> Así ves tus casos en el portal: en qué etapa está cada uno, los mensajes del estudio y cuándo cobra tu cliente. Los casos son inventados.</span>
+              <span style={{ flex: "1 1 240px" }}><b>Demostración</b> con casos inventados: así vas a seguir los reclamos de tus clientes.</span>
               <a href={linkWhatsApp(TELEFONO_ESTUDIO, TEXTO_ACCESO)} target="_blank" rel="noreferrer" className="btn-wa-grande" style={{ padding: "8px 14px", fontSize: 14 }}><Icono nombre="mensaje" size={15} /> Quiero mi acceso</a>
             </div>
         </div>
@@ -260,7 +261,11 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
                       <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.asegurado}</span>
                       <span style={{ color: T.muted, fontSize: 12 }}>{p._fechaPago ? fmtDate(p._fechaPago) : "Fecha a confirmar"}</span>
                     </span>
-                    {Number(p.monto_comision_pas) > 0 && <span className="num" style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{fmtMoney(p.monto_comision_pas)}</span>}
+                    {/* Lo que cobra el cliente (acordado o, si no, el último ofrecimiento); debajo, la comisión si la hay */}
+                    <span style={{ textAlign: "right", flex: "none" }}>
+                      {Number(p.monto_acordado || p.monto_ofrecimiento) > 0 && <span className="num" style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap" }}>{fmtMoney(p.monto_acordado || p.monto_ofrecimiento)}</span>}
+                      {Number(p.monto_comision_pas) > 0 && <span className="num" style={{ color: T.muted, fontSize: 12, whiteSpace: "nowrap" }}>tu comisión {fmtMoney(p.monto_comision_pas)}</span>}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -274,8 +279,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
 
           <div role="tablist" aria-label="Mis casos" style={{ display: "flex", gap: 20, borderBottom: `1px solid ${T.border}`, overflowX: "auto" }}>
             {pestanaBtn("curso", "En curso", enCurso.length)}
-            {pestanaBtn("cobrados", "Cobrados", casosCobrados.length)}
-            {pestanaBtn("desistidos", "Desistidos", casosDesistidos.length)}
+            {/* Sin casos, la pestaña no aparece (salvo que sea la elegida) */}
+            {(casosCobrados.length > 0 || pestana === "cobrados") && pestanaBtn("cobrados", "Cobrados", casosCobrados.length)}
+            {(casosDesistidos.length > 0 || pestana === "desistidos") && pestanaBtn("desistidos", "Desistidos", casosDesistidos.length)}
             {pestanaBtn("todos", "Todos", casos.length)}
           </div>
 
@@ -313,6 +319,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
               <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false} />
             </GraficoBoundary>
           )}
+
+          {demo && <PreguntasDemo T={T} />}
         </main>
       </div>
 

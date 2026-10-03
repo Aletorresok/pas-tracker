@@ -154,14 +154,22 @@ export function cuadroCompania(casos, ofertas = {}) {
   const cobrado = casos.filter(c => baseReclamo(c) > 0 && num(c.monto_cobro_asegurado) > 0).map(c => Math.round((num(c.monto_cobro_asegurado) / baseReclamo(c)) * 100));
   const oferta = dias(c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento), cobro = dias(c => c.fecha_inicio_reclamo, c => c.fecha_cobro);
   const pagos = resumenPagos(casos);
-  return {
+  // Reclamos iniciados que todavía esperan el ofrecimiento: cuántos días llevan (cuentan aunque no haya respuesta)
+  const hoyISO = fechaLocalISO(new Date());
+  const esperando = casos.filter(c => c.fecha_inicio_reclamo && !c.fecha_ofrecimiento && !num(c.monto_ofrecimiento) && !["desistido", "cobrado"].includes(c.estado))
+    .map(c => diasEntre(c.fecha_inicio_reclamo, hoyISO)).filter(d => d !== null && d <= 730);
+  const r = {
     total: casos.length, ...tiposDeReclamo(casos),
     diasOferta: { valor: promedio(oferta), n: oferta.length },
+    sinOferta: { n: esperando.length, dias: promedio(esperando) },
     diasCobro: { valor: promedio(cobro), n: cobro.length },
     pctCobrado: { valor: promedio(cobrado), n: cobrado.length },
     incumplimientos: { cantidad: pagos.incumplidos, demora: pagos.demoraPromedio, evaluados: pagos.cerrados + pagos.impagos },
     instancias: Object.fromEntries(Object.entries(pctsPorInstancia(casos, ofertas)).map(([k, v]) => [k, { valor: promedio(v), n: v.length }])),
   };
+  // ¿Hay algo para mostrar? Un reclamo esperando ofrecimiento ya alcanza
+  r.conDatos = r.sinOferta.n > 0 || [r.diasOferta, r.diasCobro, r.pctCobrado, ...Object.values(r.instancias)].some(x => x.n > 0) || r.incumplimientos.evaluados > 0;
+  return r;
 }
 
 // ── PAS ─────────────────────────────────────────────────────────────────────
