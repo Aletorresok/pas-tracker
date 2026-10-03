@@ -5,6 +5,7 @@ import { netoYo, esActivo, tieneHonorarios, honorariosCobrados } from "./metrica
 import { estadisticasPas } from "./estadisticasPas.js";
 import { subaOfertas } from "./ofertas.js";
 import { fechaPagoComprometida } from "./vistaCliente.js";
+import { INSTANCIAS, CULPA_CONCURRENCIA } from "../constants.js";
 
 const MAX_DIAS = 1825; // más de 5 años entre dos fechas = error de carga
 const aISO = v => (v ? String(v).slice(0, 10) : "");
@@ -30,6 +31,43 @@ function medianaDias(casos, desde, hasta) {
   const ds = casos.map(c => diasEntre(desde(c), hasta(c))).filter(d => d !== null);
   return { valor: mediana(ds), n: ds.length };
 }
+const promedio = xs => (xs.length ? Math.round(xs.reduce((s, x) => s + x, 0) / xs.length) : null);
+
+// Sobre qué monto se mide lo ofrecido y lo cobrado (SQL 45). En concurrencia, sobre la parte a cargo del tercero
+// (50% si no se cargó otra): si ofrecen la mitad de lo reclamado con culpa compartida, es el 100% de lo que correspondía.
+// La franquicia devuelve 0 y queda afuera de los %: se paga entera y no muestra cómo negocia la compañía.
+export function baseReclamo(c) {
+  if (c.tipo_reclamo === "franquicia") return 0;
+  const r = num(c.monto_reclamado);
+  return c.tipo_reclamo === "concurrencia" ? Math.round(r * (num(c.porcentaje_culpa) || CULPA_CONCURRENCIA) / 100) : r;
+}
+
+// Instancia del último ofrecimiento del caso. Sin el SQL 45, se deduce de las fechas y el estado como antes.
+export const instanciaDe = c => c.instancia_ofrecimiento
+  || (c.fecha_inicio_juicio || c.estado === "en_juicio" ? "juicio" : c.fecha_mediacion || c.estado === "en_mediacion" ? "mediacion" : "administrativa");
+
+// Lo ofrecido en cada instancia, en % de la base: la última oferta de cada instancia (con historial de ofertas;
+// sin él, el último ofrecimiento del caso con su instancia). { administrativa: [pcts], mediacion: [...], juicio: [...] }
+function pctsPorInstancia(casos, ofertas = {}) {
+  const por = Object.fromEntries(INSTANCIAS.map(i => [i.key, []]));
+  casos.forEach(c => {
+    const base = baseReclamo(c);
+    if (!base) return;
+    const hist = ofertas[c.id];
+    const ultimas = {};
+    if (hist?.length && hist.some(o => o.instancia)) hist.forEach(o => { ultimas[o.instancia || "administrativa"] = num(o.monto); });
+    else if (num(c.monto_ofrecimiento)) ultimas[instanciaDe(c)] = num(c.monto_ofrecimiento);
+    Object.entries(ultimas).forEach(([k, m]) => { if (m && por[k]) por[k].push(Math.round((m / base) * 100)); });
+  });
+  return por;
+}
+
+// Cuántos casos de cada tipo hay en el grupo (para aclarar sobre qué base están los %)
+export const tiposDeReclamo = casos => ({
+  concurrencias: casos.filter(c => c.tipo_reclamo === "concurrencia").length,
+  franquicias: casos.filter(c => c.tipo_reclamo === "franquicia").length,
+});
+
 function medianaPct(casos, parte, total) {
   const ps = casos.filter(c => num(total(c)) > 0 && num(parte(c)) > 0).map(c => Math.round((num(parte(c)) / num(total(c))) * 100));
   return { valor: mediana(ps), n: ps.length };
@@ -62,19 +100,27 @@ export function incumplimientos(casos, hoy = new Date()) {
 function resumenPagos(casos) {
   const lista = incumplimientos(casos);
   const tarde = lista.filter(x => x.estado === "tarde");
+  const incumplidos = lista.filter(x => x.estado !== "a_termino");
   const aTermino = lista.filter(x => x.estado === "a_termino").length;
   const cerrados = aTermino + tarde.length; // los impagos todavía no terminaron
   return {
     total: lista.length, aTermino, tarde: tarde.length, impagos: lista.filter(x => x.estado === "impago").length,
     pctATermino: pct(aTermino, cerrados), cerrados,
     atraso: mediana(tarde.map(x => x.atraso)),
+    // Pagos tarde + vencidos sin pagar, y los días de demora en promedio (los impagos, hasta hoy)
+    incumplidos: incumplidos.length,
+    demoraPromedio: promedio(incumplidos.map(x => x.atraso)),
   };
 }
 
 // ── Compañías ───────────────────────────────────────────────────────────────
 function statsDeGrupo(nombre, casos, ofertas = {}) {
   const subas = casos.map(c => subaOfertas(ofertas[c.id], c)).filter(v => v !== null);
+  const porInstancia = pctsPorInstancia(casos, ofertas);
   return {
+    ...tiposDeReclamo(casos),
+    // % ofrecido en cada instancia (mediana); n = 0 si la compañía no ofreció en esa instancia
+    instancias: Object.fromEntries(Object.entries(porInstancia).map(([k, xs]) => [k, { valor: mediana(xs), n: xs.length }])),
     suba: { valor: mediana(subas), n: subas.length },
     pagos: resumenPagos(casos),
     nombre,
@@ -84,8 +130,9 @@ function statsDeGrupo(nombre, casos, ofertas = {}) {
     diasHonorarios: medianaDias(casos, fechaAcuerdo, c => c.fecha_cobro_honorarios),
     diasFactura: medianaDias(casos, c => c.fecha_factura, c => c.fecha_cobro_honorarios),
     // Primer ofrecimiento si está cargado; si no, el último
-    pctOfrecido: medianaPct(casos, c => num(c.primer_ofrecimiento) || num(c.monto_ofrecimiento), c => c.monto_reclamado),
-    pctCobrado: medianaPct(casos, c => c.monto_cobro_asegurado, c => c.monto_reclamado),
+    // Sobre la base del reclamo (concurrencia: la parte del tercero; franquicias afuera)
+    pctOfrecido: medianaPct(casos, c => num(c.primer_ofrecimiento) || num(c.monto_ofrecimiento), baseReclamo),
+    pctCobrado: medianaPct(casos, c => c.monto_cobro_asegurado, baseReclamo),
     mediacion: casos.filter(fueAMediacion).length,
     juicio: casos.filter(fueAJuicio).length,
   };
@@ -97,6 +144,23 @@ export function statsCompanias(allCasos, ofertas = {}) {
   return {
     general: statsDeGrupo("Todas", allCasos.filter(c => c.compania_aseguradora), ofertas),
     companias: Object.entries(grupos).map(([nombre, casos]) => statsDeGrupo(nombre, casos, ofertas)),
+  };
+}
+
+// Cuadro de una compañía (Análisis → Compañías y portal del PAS): promedios simples, para leer de un vistazo.
+// Sin `ofertas` (portal), el % por instancia sale del último ofrecimiento de cada caso.
+export function cuadroCompania(casos, ofertas = {}) {
+  const dias = (a, b) => casos.map(c => diasEntre(a(c), b(c))).filter(d => d !== null && d <= 730);
+  const cobrado = casos.filter(c => baseReclamo(c) > 0 && num(c.monto_cobro_asegurado) > 0).map(c => Math.round((num(c.monto_cobro_asegurado) / baseReclamo(c)) * 100));
+  const oferta = dias(c => c.fecha_inicio_reclamo, c => c.fecha_ofrecimiento), cobro = dias(c => c.fecha_inicio_reclamo, c => c.fecha_cobro);
+  const pagos = resumenPagos(casos);
+  return {
+    total: casos.length, ...tiposDeReclamo(casos),
+    diasOferta: { valor: promedio(oferta), n: oferta.length },
+    diasCobro: { valor: promedio(cobro), n: cobro.length },
+    pctCobrado: { valor: promedio(cobrado), n: cobrado.length },
+    incumplimientos: { cantidad: pagos.incumplidos, demora: pagos.demoraPromedio, evaluados: pagos.cerrados + pagos.impagos },
+    instancias: Object.fromEntries(Object.entries(pctsPorInstancia(casos, ofertas)).map(([k, v]) => [k, { valor: promedio(v), n: v.length }])),
   };
 }
 
@@ -250,14 +314,17 @@ export const GRUPOS_MEDIACION = [
 export function comparativaMediacion(casos, cambios = {}, ofertas = {}) {
   const paso = (c, estado) => (cambios[c.id] || []).some(t => t.a === estado);
   const cobrados = casos.filter(c => (c.estado === "cobrado" || c.fecha_cobro) && num(c.monto_cobro_asegurado) > 0);
-  const grupoDe = c => (c.fecha_inicio_juicio || paso(c, "en_juicio") ? "juicio" : c.fecha_mediacion || paso(c, "en_mediacion") ? "mediacion" : "sin");
+  // Con el SQL 45, la instancia marcada en el ofrecimiento; antes, por fechas y cambios de estado
+  const grupoDe = c => (c.instancia_ofrecimiento ? (c.instancia_ofrecimiento === "administrativa" ? "sin" : c.instancia_ofrecimiento)
+    : c.fecha_inicio_juicio || paso(c, "en_juicio") ? "juicio" : c.fecha_mediacion || paso(c, "en_mediacion") ? "mediacion" : "sin");
   return GRUPOS_MEDIACION.map(g => {
     const del = cobrados.filter(c => grupoDe(c) === g.k);
-    const pctCobrado = del.filter(c => num(c.monto_reclamado) > 0).map(c => Math.round((num(c.monto_cobro_asegurado) / num(c.monto_reclamado)) * 100));
+    const pctCobrado = del.filter(c => baseReclamo(c) > 0).map(c => Math.round((num(c.monto_cobro_asegurado) / baseReclamo(c)) * 100));
     const dias = del.map(c => diasEntre(c.fecha_derivacion, c.fecha_cobro)).filter(d => d !== null);
     const neto = del.map(c => netoYo(c)).filter(v => v > 0);
     const mejora = g.k === "mediacion" ? del.map(c => {
-      const previas = (ofertas[c.id] || []).filter(o => c.fecha_mediacion && String(o.fecha) < aISO(c.fecha_mediacion));
+      // Ofertas antes de la mediación: las marcadas administrativas o, sin esa marca, las anteriores a la fecha de mediación
+      const previas = (ofertas[c.id] || []).filter(o => (o.instancia ? o.instancia === "administrativa" : c.fecha_mediacion && String(o.fecha) < aISO(c.fecha_mediacion)));
       const ultima = previas.length ? num(previas[previas.length - 1].monto) : 0;
       return ultima ? Math.round((num(c.monto_cobro_asegurado) / ultima - 1) * 100) : null;
     }).filter(v => v !== null) : [];
@@ -300,7 +367,9 @@ export function proyeccion(allCasos, companias = {}, hoy = new Date(), comisione
       let indem = num(c.monto_acordado), baseTxt = "Acordado";
       if (!indem) {
         const p = pctCobradoCia[cia] ?? general.pctCobrado.valor;
-        if (num(c.monto_reclamado) && p) { indem = Math.round(num(c.monto_reclamado) * p / 100); baseTxt = `Reclamado × ${p}%${pctCobradoCia[cia] != null ? "" : " (todas)"}`; }
+        // Franquicia: se cobra entera. Concurrencia: el % habitual sobre la parte del tercero.
+        if (c.tipo_reclamo === "franquicia" && num(c.monto_reclamado)) { indem = num(c.monto_reclamado); baseTxt = "Franquicia (reclamado)"; }
+        else if (baseReclamo(c) && p) { indem = Math.round(baseReclamo(c) * p / 100); baseTxt = `${c.tipo_reclamo === "concurrencia" ? "Parte del tercero" : "Reclamado"} × ${p}%${pctCobradoCia[cia] != null ? "" : " (todas)"}`; }
       }
       // Honorarios
       let honor = num(c.monto_cobro_yo), honTxt = "Cargados";

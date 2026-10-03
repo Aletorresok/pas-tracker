@@ -4,6 +4,8 @@ import { statsCompanias, pct, incumplimientos, comparativaMediacion } from "../.
 import CondicionesCompanias from "./CondicionesCompanias.jsx";
 import { fmtMoney } from "../../utils/formatters.js";
 import { fmtDate } from "../../utils/formatters.js";
+import GraficoCompanias from "../GraficoCompanias.jsx";
+import { INSTANCIAS } from "../../constants.js";
 
 const dias = v => (v === null ? "—" : `${v} d`);
 
@@ -24,14 +26,27 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
     celda: f => f[k] ? <span className="num">{f[k]} <span style={{ color: "var(--muted)", fontSize: 12 }}>({pct(f[k], f.total)}%)</span></span> : <span style={{ color: "var(--muted)" }}>0</span>,
   });
 
+  // % ofrecido por instancia: una columna por cada instancia en que alguna compañía ofreció
+  const colsInstancia = INSTANCIAS.filter(i => filas.some(f => f.instancias[i.key].n > 0)).map(i => ({
+    k: `inst_${i.key}`, l: `% en ${i.key === "administrativa" ? "admin." : i.label.toLowerCase()}`, ancho: "9%", derecha: true,
+    ayuda: `Última oferta en ${i.key === "administrativa" ? "instancia administrativa" : i.label.toLowerCase()} sobre lo reclamado`,
+    valor: f => f.instancias[i.key].valor,
+    celda: f => f.instancias[i.key].n ? <ConMuestra valor={f.instancias[i.key].valor} n={f.instancias[i.key].n} sufijo="%" /> : <span style={{ color: "var(--muted)" }}>—</span>,
+  }));
+  const tiposTxt = f => [f.concurrencias && `${f.concurrencias} conc.`, f.franquicias && `${f.franquicias} franq.`].filter(Boolean).join(" · ");
+
   const columnas = [
-    { k: "nombre", l: "Compañía", ancho: "16%", valor: f => f.nombre.toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.nombre}</b> },
+    { k: "nombre", l: "Compañía", ancho: "16%", valor: f => f.nombre.toLowerCase(), celda: f => <>
+      <b style={{ fontWeight: 600 }}>{f.nombre}</b>
+      {tiposTxt(f) && <span style={{ display: "block", fontSize: 11, color: "var(--muted)" }}>{tiposTxt(f)}</span>}
+    </> },
     { k: "total", l: "Casos", ancho: "7%", derecha: true, celda: f => <span className="num">{f.total}</span> },
     colDias("diasOferta", "Reclamo a oferta", "Días desde el inicio del reclamo hasta el ofrecimiento"),
     colDias("diasIndemnizacion", "Pago indemn.", "Días desde el acuerdo (aceptación o firma) hasta que se cobró la indemnización"),
     colDias("diasHonorarios", "Pago honor.", "Días desde el acuerdo (aceptación o firma) hasta que cobraste los honorarios"),
     colDias("diasFactura", "Factura a cobro", "Días desde la factura hasta el cobro de honorarios"),
     colPct("pctOfrecido", "% ofrecido", "Primer ofrecimiento sobre el monto reclamado"),
+    ...colsInstancia,
     colPct("pctCobrado", "% cobrado", "Lo que cobró el asegurado sobre el monto reclamado"),
     colPct("suba", "Suba 1ª → última", "Cuánto subió la compañía de la primera oferta a la última (casos con 2 o más ofertas)"),
     { k: "pagos", l: "Paga a término", ancho: "11%", derecha: true, ayuda: "Pagos con fecha comprometida que llegaron a tiempo. Al lado, los atrasados e impagos",
@@ -57,6 +72,8 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
 
   return (
     <>
+      <GraficoCompanias allCasos={allCasos} ofertas={ofertas} cardBg="var(--card)" cardBorder="var(--border)" textColor="var(--text)" subColor="var(--sub)" />
+
       <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
         {kpis.map(x => (
           <div key={x.l} style={{ padding: "12px 16px" }}>
@@ -78,11 +95,12 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
             </select>
           </label>
         </div>
-        <TablaAnalisis columnas={columnas} filas={filas} ordenInicial={{ k: "total", desc: true }} clave={f => f.nombre} minWidth={1200}
+        <TablaAnalisis columnas={columnas} filas={filas} ordenInicial={{ k: "total", desc: true }} clave={f => f.nombre} minWidth={1200 + colsInstancia.length * 100}
           vacio="Todavía no hay casos con compañía cargada." />
         <Nota>
           Los plazos son la <b>mediana</b> (el caso del medio), así un juicio de años no desfigura el número. Al lado va cuántos casos tienen las dos fechas cargadas: con pocos, tomalo como una pista.
           "Acuerdo" es la fecha de aceptación, o la de firma si no hay aceptación. Tocá un encabezado para ordenar.
+          Los % se miden sobre lo reclamado; en las concurrencias, sobre la parte de culpa del tercero. Las franquicias no entran en los %, porque se pagan enteras.
         </Nota>
       </section>
 

@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react";
-import { alpha } from "../utils/theme.js";
+import { cuadroCompania } from "../utils/analisis.js";
+import { INSTANCIAS } from "../constants.js";
 
-export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorder, textColor, subColor, mostrarCasos = true }) {
+// Cuadro de una compañía: plazos, % cobrado, incumplimientos de pago y % ofrecido en cada instancia.
+// Lo usan Análisis → Compañías y el portal del PAS. `ofertas` (historial, solo admin) afina el % por instancia.
+export default function GraficoCompanias({ allCasos, ofertas, darkMode, cardBg, cardBorder, textColor, subColor, mostrarCasos = true }) {
   const [selectedComp, setSelectedComp] = useState("");
 
   const companias = useMemo(() => {
@@ -22,22 +25,9 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
   const stats = useMemo(() => {
     try {
       const comp = companias.find(c => c.nombre === activeComp);
-      if (!comp) return null;
-      const diff = (a, b) => { if (!a || !b) return null; const d = Math.floor((new Date(String(b)).getTime() - new Date(String(a)).getTime()) / 86400000); return isFinite(d) ? d : null; };
-      const validos1 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_ofrecimiento).map(c => diff(c.fecha_inicio_reclamo, c.fecha_ofrecimiento)).filter(d => d !== null && d >= 0 && d <= 730);
-      const validos2 = comp.casos.filter(c => c.fecha_inicio_reclamo && c.fecha_cobro).map(c => diff(c.fecha_inicio_reclamo, c.fecha_cobro)).filter(d => d !== null && d >= 0 && d <= 730);
-      const validos3 = comp.casos.filter(c => Number(c.monto_cobro_asegurado) > 0 && Number(c.monto_reclamado) > 0).map(c => (Number(c.monto_cobro_asegurado) / Number(c.monto_reclamado)) * 100).filter(v => isFinite(v));
-      return {
-        diasOfrecimiento: validos1.length ? Math.round(validos1.reduce((s, x) => s + x, 0) / validos1.length) : null,
-        diasOfrecimientoCasos: validos1.length,
-        diasCobro: validos2.length ? Math.round(validos2.reduce((s, x) => s + x, 0) / validos2.length) : null,
-        diasCobroCasos: validos2.length,
-        pctCobro: validos3.length ? Math.round(validos3.reduce((s, x) => s + x, 0) / validos3.length) : null,
-        pctCobroCasos: validos3.length,
-        totalCasos: comp.total,
-      };
+      return comp ? cuadroCompania(comp.casos, ofertas) : null;
     } catch { return null; }
-  }, [activeComp, companias]);
+  }, [activeComp, companias, ofertas]);
 
   if (!companias.length) return null;
 
@@ -56,18 +46,29 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
     cursor: "pointer",
   };
 
-  const maxBarHeight = 180;
-  const maxDias = stats ? Math.max(stats.diasOfrecimiento || 0, stats.diasCobro || 0, 1) : 1;
-
+  const inc = stats?.incumplimientos;
   const barras = stats ? [
-    { label: "Días hasta ofrecimiento", valor: stats.diasOfrecimiento, casos: stats.diasOfrecimientoCasos, color: "var(--info)", suffix: "d", max: maxDias },
-    { label: "Días hasta cobro", valor: stats.diasCobro, casos: stats.diasCobroCasos, color: "var(--accent)", suffix: "d", max: maxDias },
-    { label: "% cobro / reclamado", valor: stats.pctCobro, casos: stats.pctCobroCasos, color: "var(--ok)", suffix: "%", max: 100 },
-  ] : [];
+    { label: "Días hasta ofrecimiento", valor: stats.diasOferta.valor, texto: `${stats.diasOferta.valor} días`, casos: stats.diasOferta.n, color: "var(--info)" },
+    { label: "Días hasta cobro", valor: stats.diasCobro.valor, texto: `${stats.diasCobro.valor} días`, casos: stats.diasCobro.n, color: "var(--accent)" },
+    { label: "% cobro / reclamado", valor: stats.pctCobrado.valor, texto: `${stats.pctCobrado.valor}%`, casos: stats.pctCobrado.n, color: "var(--ok)" },
+    // Pagos tarde o vencidos sin pagar, con la demora promedio. Sin pagos con fecha comprometida, no hay dato.
+    inc.evaluados > 0 && {
+      label: inc.cantidad ? `Incumplimientos · ${inc.demora} días de demora en promedio` : "Incumplimientos de pago",
+      valor: inc.cantidad, texto: String(inc.cantidad), casos: inc.evaluados, sobre: "pago",
+      color: inc.cantidad ? "var(--bad)" : "var(--ok)",
+    },
+    // % ofrecido en cada instancia: solo las instancias en que esta compañía ofreció
+    ...INSTANCIAS.filter(i => stats.instancias[i.key].n > 0).map(i => ({
+      label: `% ofrecido en ${i.key === "administrativa" ? "instancia administrativa" : i.label.toLowerCase()}`,
+      valor: stats.instancias[i.key].valor, texto: `${stats.instancias[i.key].valor}%`, casos: stats.instancias[i.key].n, color: "var(--warn)",
+    })),
+  ].filter(Boolean) : [];
+
+  const tipos = stats && [stats.concurrencias && `${stats.concurrencias} ${stats.concurrencias === 1 ? "concurrencia" : "concurrencias"}`, stats.franquicias && `${stats.franquicias} ${stats.franquicias === 1 ? "franquicia" : "franquicias"}`].filter(Boolean);
 
   return (
     <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: "var(--r-md)", padding: "18px", marginBottom: 20 }}>
-      <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: textColor }}>Plazos por compañía</h2>
+      <h2 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: textColor }}>Estadísticas por compañía</h2>
 
       <select value={activeComp} onChange={e => setSelectedComp(e.target.value)} style={selectStyle}>
         {companias.map(c => (
@@ -76,25 +77,33 @@ export default function GraficoCompanias({ allCasos, darkMode, cardBg, cardBorde
           </option>
         ))}
       </select>
+      {mostrarCasos && stats && (
+        <div style={{ fontSize: 12, color: subColor, marginTop: 6 }}>
+          {stats.total} {stats.total === 1 ? "caso" : "casos"}{tipos.length ? ` · ${tipos.join(" · ")}` : ""}
+        </div>
+      )}
 
       {stats && (barras.every(b => b.valor === null) ? (
         <div style={{ fontSize: 13, color: subColor, padding: "16px 0 4px" }}>
           Todavía no hay fechas suficientes de esta compañía para calcular plazos.
         </div>
       ) : (
-        // Tres números independientes (días y %), no un gráfico: tienen escalas distintas
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginTop: 14 }}>
+        // Números independientes (días, % y cantidades), no un gráfico: tienen escalas distintas
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginTop: 14 }}>
           {barras.map(b => (
             <div key={b.label} style={{ borderTop: `3px solid ${b.valor !== null ? b.color : "var(--border)"}`, paddingTop: 8 }}>
               <div className="num" style={{ fontSize: 24, fontWeight: 700, color: textColor, lineHeight: 1.1 }}>
-                {b.valor !== null ? `${b.valor}${b.suffix === "d" ? " días" : "%"}` : "—"}
+                {b.valor !== null ? b.texto : "—"}
               </div>
               <div style={{ fontSize: 12, color: subColor, marginTop: 4, lineHeight: 1.3 }}>{b.label}</div>
-              {mostrarCasos && b.valor !== null && <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>sobre {b.casos} caso{b.casos !== 1 ? "s" : ""}</div>}
+              {mostrarCasos && b.valor !== null && <div style={{ fontSize: 11, color: subColor, marginTop: 2 }}>sobre {b.casos} {b.sobre || "caso"}{b.casos !== 1 ? "s" : ""}</div>}
             </div>
           ))}
         </div>
       ))}
+      <div style={{ fontSize: 11, color: subColor, marginTop: 12, lineHeight: 1.4 }}>
+        Promedios. Las concurrencias se miden sobre la parte de culpa del tercero; las franquicias no entran en los %, porque se pagan enteras.
+      </div>
     </div>
   );
 }

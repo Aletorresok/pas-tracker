@@ -85,9 +85,12 @@ export function plazosDemo() {
   const filas = [];
   [["Sancor", [35, 42, 50]], ["Federación Patronal", [28, 33, 40]], ["La Segunda", [45, 52, 60]], ["Rivadavia", [55, 62]], ["Mercantil Andina", [38, 47]]]
     .forEach(([cia, dias]) => dias.forEach((d, i) => filas.push({
-      compania_aseguradora: cia,
+      compania_aseguradora: cia, estado: "cobrado",
       fecha_inicio_reclamo: fechaEnDias(-d - 70), fecha_ofrecimiento: fechaEnDias(-70), fecha_cobro: fechaEnDias(-20 - i * 5),
-      monto_reclamado: 2000000, monto_cobro_asegurado: 1500000 + i * 150000,
+      monto_reclamado: 2000000, monto_ofrecimiento: 1400000 + i * 150000, monto_cobro_asegurado: 1500000 + i * 150000,
+      // Ejemplos de instancia y pagos: el tercer caso se arregló en mediación; Rivadavia pagó tarde
+      instancia_ofrecimiento: i === 2 ? "mediacion" : "administrativa",
+      fecha_aceptacion: fechaEnDias(-60), plazo_pago: cia === "Rivadavia" ? 30 : 45,
     })));
   return filas;
 }
