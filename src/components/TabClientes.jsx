@@ -69,12 +69,11 @@ const COLUMNAS = [
   { k: "ritmo", l: "Ritmo", ancho: "35%", valor: p => p._ultimo },
 ];
 
-// "cada 30 d · último hace 5 d", o "Dormido" si pasó el doble de su ritmo sin derivar
+// "cada 30 d · último hace 5 d"
 function Ritmo({ est }) {
   if (!est.ultimo) return <span style={{ color: "var(--muted)" }}>{est.total ? "sin fecha de derivación" : "sin casos"}</span>;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-      {est.dormido && <span style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>Dormido</span>}
       <span className="num" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{est.ritmo !== null ? `cada ${est.ritmo} d · ` : ""}{hace(est.ultimo)}</span>
     </span>
   );
@@ -87,7 +86,6 @@ function InfoDelPas({ est }) {
     <div style={{ fontSize: 12, color: "var(--sub)" }}>
       {est.primero && <>Cliente desde el {fmtDate(est.primero)}</>}
       {est.companias.length > 0 && <> · Compañías: {est.companias.map(c => `${c.nombre} (${c.n})`).join(", ")}</>}
-      {est.dormido && <span style={{ color: "var(--warn)", fontWeight: 600 }}> · Hace {est.diasDesdeUltimo} días que no te deriva (su ritmo es cada {est.ritmo})</span>}
       <span style={{ color: "var(--muted)" }}> · Números en Análisis → PAS</span>
     </div>
   );

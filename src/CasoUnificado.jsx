@@ -301,6 +301,27 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const cerrar = async () => { await guardarPendiente(); onClose(); };
   const eliminar = async () => { await guardarPendiente(); onEliminar(); };
 
+  // Escape cierra la ficha. Si estás escribiendo, el primer Escape solo sale del campo;
+  // si hay un menú o una ventana abierta encima, Escape es de ella.
+  const dialogoRef = useRef(null);
+  const cerrarRef = useRef(cerrar);
+  cerrarRef.current = cerrar;
+  const hayVentanaRef = useRef(false);
+  hayVentanaRef.current = !!previewArchivo || modalEscrito;
+  useEffect(() => {
+    const tecla = e => {
+      if (e.key !== "Escape" || e.defaultPrevented || hayVentanaRef.current) return;
+      if (document.querySelector(".menu-ctx")) return;
+      const dialogos = document.querySelectorAll('[aria-modal="true"]');
+      if (dialogos[dialogos.length - 1] !== dialogoRef.current) return;
+      const t = e.target;
+      if (t instanceof HTMLElement && (t.matches("input, textarea, select") || t.isContentEditable)) { t.blur(); return; }
+      cerrarRef.current();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
+
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
     const { exportarCasoPDF } = await import("./utils/exportarCasoPDF.js"); // jsPDF se descarga solo al exportar
@@ -328,7 +349,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   return (
     <>
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
-      <div className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
+      <div ref={dialogoRef} className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
         <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
 

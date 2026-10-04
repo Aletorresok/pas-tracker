@@ -17,9 +17,7 @@ const mediana = xs => {
 const promedio = xs => (xs.length ? Math.round(xs.reduce((s, x) => s + x, 0) / xs.length) : null);
 const pct = (n, total) => (total ? Math.round((n / total) * 100) : null);
 
-// Un PAS está "dormido" si pasó el doble de su ritmo habitual (y al menos 45 días) sin derivarte
 export const MIN_CASOS_RITMO = 3;
-const MIN_DIAS_DORMIDO = 45;
 
 // Día en que llegó el caso: la derivación; si no se cargó, el inicio del reclamo o el alta en la base
 export const fechaLlegada = c => aISO(c.fecha_derivacion || c.fecha_inicio_reclamo || c.created_at);
@@ -33,7 +31,6 @@ export function estadisticasPas(casos, hoy = new Date()) {
   const ritmo = dias1.length >= MIN_CASOS_RITMO ? mediana(intervalos) : null;
   const ultimo = fechas[fechas.length - 1] || "";
   const diasDesdeUltimo = ultimo ? dias(ultimo, hoyISO) : null;
-  const umbralDormido = ritmo !== null ? Math.max(ritmo * 2, MIN_DIAS_DORMIDO) : null;
 
   const cobrados = casos.filter(c => c.estado === "cobrado");
   const desistidos = casos.filter(c => c.estado === "desistido");
@@ -57,8 +54,6 @@ export function estadisticasPas(casos, hoy = new Date()) {
     ultimo,
     diasDesdeUltimo,
     ritmo,                                            // cada cuántos días deriva (mediana)
-    dormido: umbralDormido !== null && diasDesdeUltimo !== null && diasDesdeUltimo > umbralDormido,
-    umbralDormido,
     diasACobro: promedio(cobrados.map(c => dias(c.fecha_derivacion, c.fecha_cobro)).filter(d => d !== null && d >= 0 && d < 1500)),
     cobroPromedioCliente: promedio(cobrados.map(c => Number(c.monto_cobro_asegurado)).filter(v => v > 0)),
     honorarios: cobrados.reduce((s, c) => s + netoYo(c), 0),

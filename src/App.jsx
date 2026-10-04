@@ -205,12 +205,12 @@ function AppPrincipal() {
     });
   }, [setCasos, autoBackup]);
 
-  // Eliminar manda el caso a la papelera (30 días) y muestra "Deshacer". Devuelve true si se eliminó.
+  // Eliminar manda el caso a la papelera (30 días) y muestra "Deshacer": no hace falta preguntar antes.
+  // Devuelve true si se eliminó.
   const [casoEliminado, setCasoEliminado] = useState(null); // { papeleraId, nombre }
   const cerrarAvisoEliminado = useCallback(() => setCasoEliminado(null), []);
   const handleEliminarCaso = useCallback(async (caso, pasId) => {
     const nombre = caso.asegurado || "Sin nombre";
-    if (!window.confirm(`¿Eliminar el caso de ${nombre}?\n\nVa a la papelera: lo podés recuperar durante 30 días.`)) return false;
     const { papeleraId, error } = await deleteCaso(caso.id);
     if (error) { window.alert(error); return false; }
     handleQuitarCaso(String(pasId), caso.id);
@@ -306,18 +306,23 @@ function AppPrincipal() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   }, [historial, casos, derivadores, descartados]);
 
+  // Restaurar pisa los casos actuales con los del archivo: siempre muestra qué trae y pide confirmación
+  const avisar = useCallback((ok, texto) => { setCopiaAviso({ ok, texto }); setTimeout(() => setCopiaAviso(null), 8000); }, []);
   const handleRestore = useCallback(async (file) => {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (data.version === 1) {
-      setHistorial(data.historial || {}); setCasos(data.casos || {}); setDerivadores(data.derivadores || {});
-      setDescartados(data.descartados || {});
-      await Promise.all([
-        saveStorage("pas_historial", data.historial || {}), saveStorage("pas_casos", data.casos || {}),
-        saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_descartados", data.descartados || {}),
-      ]);
-    }
-  }, []);
+    let data;
+    try { data = JSON.parse(await file.text()); } catch { avisar(false, "Ese archivo no es un backup válido."); return; }
+    if (data?.version !== 1 || !data.casos) { avisar(false, "Ese archivo no es un backup de \"Descargar backup\". La copia completa no se restaura desde acá."); return; }
+    const contar = cs => Object.values(cs || {}).reduce((s, l) => s + (Array.isArray(l) ? l.length : 0), 0);
+    const fecha = data.fecha ? new Date(data.fecha).toLocaleDateString("es-AR") : "sin fecha";
+    if (!window.confirm(`¿Restaurar el backup del ${fecha}?\n\nTrae ${contar(data.casos)} casos; hoy tenés ${contar(casos)}. Los casos que estén en los dos quedan como estaban en el backup: se pierde lo que cambiaste después.\n\nAntes de seguir conviene descargar un backup de hoy.`)) return;
+    setHistorial(data.historial || {}); setCasos(data.casos || {}); setDerivadores(data.derivadores || {});
+    setDescartados(data.descartados || {});
+    await Promise.all([
+      saveStorage("pas_historial", data.historial || {}), saveStorage("pas_casos", data.casos || {}),
+      saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_descartados", data.descartados || {}),
+    ]);
+    avisar(true, `Backup del ${fecha} restaurado.`);
+  }, [casos, avisar]);
 
   // ── RENDER
   return (
