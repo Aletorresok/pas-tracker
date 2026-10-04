@@ -316,7 +316,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
 
           {Object.keys(plazos).length >= 3 && (
             <GraficoBoundary>
-              <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false} />
+              <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false}
+                aclaracion={demo ? "Datos inventados para la demostración. En tu portal vas a ver los promedios reales de los casos del estudio." : null} />
             </GraficoBoundary>
           )}
 
