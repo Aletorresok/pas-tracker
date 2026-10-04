@@ -9,7 +9,8 @@ import Boton from "../ui/Boton.jsx";
 import AvisoEstadoCliente, { EtiquetaMensajeCliente, VistaPreviaMensaje } from "../caso/AvisoEstadoCliente.jsx";
 import AvisarWhatsApp from "../caso/AvisarWhatsApp.jsx";
 import SugerenciaEstado from "../caso/SugerenciaEstado.jsx";
-import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "../../utils/flujoEstados.js";
+import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO, pideDialogoEtapa } from "../../utils/flujoEstados.js";
+import DialogoEtapa from "../caso/DialogoEtapa.jsx";
 import { registrarAccion } from "../../utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente, textoOferta } from "../../utils/ofertas.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
@@ -18,7 +19,8 @@ import { useMargenes } from "../../utils/margenes.js";
 // Campos que se editan desde la fila desplegada de la tabla
 // (las fechas de etapa se completan solas al cambiar de estado). El ofrecimiento va aparte: cada monto nuevo es una oferta.
 const CAMPOS = ["estado", "proxima_accion", "proxima_accion_vence", "mensaje_cliente", "monto_reclamado", "monto_cobro_yo", "monto_comision_pas", "dni_asegurado", "telefono_asegurado",
-  "fecha_inicio_reclamo", "fecha_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago"];
+  "fecha_inicio_reclamo", "fecha_reclamo", "fecha_ofrecimiento", "fecha_inicio_juicio", "fecha_aceptacion", "plazo_pago",
+  "fecha_firma", "fecha_pago", "monto_acordado", "fecha_cobro", "monto_cobro_asegurado"]; // estos los completa el cambio de etapa
 const MONTOS = [
   { k: "monto_reclamado", l: "Reclamado" },
   { k: "monto_cobro_yo", l: "Mis honorarios" },
@@ -99,7 +101,14 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
 
   const margenes = useMargenes();
   const [sugerencia, setSugerencia] = useState(null); // { estado, accion, avisar }
-  const cambiarEstado = (nuevo, { sinDeshacer = false } = {}) => {
+  // Esperando pago, Cobrado, Desistido y volver atrás preguntan antes (DialogoEtapa)
+  const [dialogoEtapa, setDialogoEtapa] = useState(null);
+  const pedirEstado = nuevo => {
+    if (nuevo === borrador.estado) return;
+    if (pideDialogoEtapa({ ...caso, ...borrador }, nuevo)) setDialogoEtapa(nuevo);
+    else cambiarEstado(nuevo);
+  };
+  const cambiarEstado = (nuevo, { sinDeshacer = false, cambios = {}, nota = "" } = {}) => {
     if (nuevo === borrador.estado) return;
     if (!sinDeshacer && ESTADOS_FINALES.includes(nuevo)) setDeshacer({ anterior: borrador.estado, nuevo });
     // Completa la fecha de la etapa, lo anota en la bitácora y sugiere la próxima acción
@@ -108,15 +117,18 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
     // Con acuerdo y sin plazo cargado, el plazo de pago de la compañía
     if (nuevo === "esperando_pago" && !Number(actual.plazo_pago) && plazoCompania) fechas.plazo_pago = plazoCompania;
     Object.entries(fechas).forEach(([k, v]) => cambiar(k, v));
-    registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo), { visiblePas: true });
+    registrarAccion(caso.id, textoCambioEstado(borrador.estado, nuevo, nota), { visiblePas: true });
     // La última oferta sin responder queda aceptada y, si no hay monto acordado, es ese
     if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(async o => {
       if (!o || Number(casoRef.current.monto_acordado)) return;
       const { error } = await supabase.from("pas_casos").update({ monto_acordado: o.monto }).eq("id", caso.id);
-      if (!error) onCasoLocal({ ...casoRef.current, monto_acordado: o.monto });
+      if (error) return;
+      onCasoLocal({ ...casoRef.current, monto_acordado: o.monto });
+      setBorrador(b => (Number(b.monto_acordado) ? b : { ...b, monto_acordado: String(o.monto) })); // que el guardado automático no lo borre
     });
     setSugerencia({ estado: nuevo, accion: accionSugerida({ ...actual, ...fechas, estado: nuevo }, margenes || {}), avisar: ESTADOS_CON_AVISO.includes(nuevo) });
     cambiar("estado", nuevo);
+    Object.entries(cambios).forEach(([k, v]) => cambiar(k, v ?? ""));
   };
   useEffect(() => {
     if (!deshacer) return;
@@ -140,6 +152,8 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
 
   return (
     <div className="fila-exp" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 16, padding: "4px 16px 16px" }}>
+      {dialogoEtapa && <DialogoEtapa caso={{ ...caso, ...borrador }} nuevo={dialogoEtapa} plazoCompania={plazoCompania}
+        onCancelar={() => setDialogoEtapa(null)} onConfirmar={r => { const n = dialogoEtapa; setDialogoEtapa(null); cambiarEstado(n, r); }} />}
       <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
         {(pas?.nombre || caso._pasNombre) && (
           <div style={{ fontSize: 13, color: "var(--sub)" }}>
@@ -149,12 +163,12 @@ export default function FilaExpandida({ caso, pas, onCasoLocal, onAbrirFicha, on
         )}
         <div>
           <span style={etiqueta}>Estado · tocá para cambiar</span>
-          <div style={{ marginBottom: 6 }}><AvisoEstadoCliente caso={{ ...caso, ...borrador }} onCambiar={e => cambiarEstado(e)} /></div>
+          <div style={{ marginBottom: 6 }}><AvisoEstadoCliente caso={{ ...caso, ...borrador }} onCambiar={pedirEstado} /></div>
           <div role="radiogroup" aria-label="Estado del caso" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {ESTADOS_CASO.map(e => {
               const activo = borrador.estado === e.key;
               return (
-                <button key={e.key} type="button" role="radio" aria-checked={activo} onClick={() => cambiarEstado(e.key)}
+                <button key={e.key} type="button" role="radio" aria-checked={activo} onClick={() => pedirEstado(e.key)}
                   style={{
                     padding: "4px 10px", borderRadius: "var(--r-xs)", fontSize: 12, fontWeight: activo ? 700 : 500, cursor: "pointer",
                     border: `1px solid ${activo ? e.color : "var(--border)"}`,

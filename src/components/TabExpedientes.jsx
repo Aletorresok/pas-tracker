@@ -35,7 +35,8 @@ const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === 
 
 const juzgadoDe = e => [e.fuero, e.juzgado && `Juzg. ${e.juzgado}`, e.numero && `Expte. ${e.numero}`].filter(Boolean).join(" · ");
 
-export default function TabExpedientes({ abrirId, onAbierto }) {
+// pegarNovedad: número que cambia cuando se pide "Pegar novedad" desde el buscador
+export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 }) {
   const esCelular = useEsCelular();
   const cal = useCalendarioJudicial();
   const [expedientes, setExpedientes] = useState(null); // null = cargando
@@ -47,6 +48,8 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
   const [vista, setVista] = useState(leerVista); // tabla | tablero
   const [errorMover, setErrorMover] = useState("");
   const [novedades, setNovedades] = useState(null); // null = falta el SQL 37 (el chip no aparece)
+  const [pegarAhora, setPegarAhora] = useState(0); // "Pegar novedad" de arriba: abre la bandeja ya con lo copiado
+  useEffect(() => { if (pegarNovedad) { setFiltro("novedades"); setPegarAhora(n => n + 1); } }, [pegarNovedad]);
   const [toast, setToast] = useState(null);
   const cerrarToast = useCallback(() => setToast(null), []);
   const elegirVista = v => { setVista(v); try { localStorage.setItem(VISTA_GUARDADA, v); } catch { /* sin storage */ } };
@@ -176,13 +179,13 @@ export default function TabExpedientes({ abrirId, onAbierto }) {
         )}
         {FILTROS.map(chip)}
         {novedades && !novedades.length && filtro !== "novedades" && (
-          <button type="button" onClick={() => setFiltro("novedades")} className="chip">Pegar novedad</button>
+          <button type="button" onClick={() => { setFiltro("novedades"); setPegarAhora(n => n + 1); }} className="chip">Pegar novedad</button>
         )}
       </div>
 
       {filtro === "novedades" && novedades && (
         <BandejaNovedades novedades={novedades} setNovedades={setNovedades} expedientes={expedientes || []} cal={cal}
-          onAbrirExpediente={id => setFicha({ id })} onPlazo={alCambiarPlazo} setToast={setToast} />
+          onAbrirExpediente={id => setFicha({ id })} onPlazo={alCambiarPlazo} setToast={setToast} pegarAhora={pegarAhora} />
       )}
 
       {expedientes === null && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando expedientes…</div>}

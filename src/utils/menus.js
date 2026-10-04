@@ -4,7 +4,7 @@
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar } from "./mensajes.js";
 import { primerNombre } from "./formatters.js";
 import { abrirCompania } from "./companiaAbierta.js";
-import { cuitValido } from "./companias.js";
+import { cuitValido, textoParaEscrito } from "./companias.js";
 import { linkFicha } from "./enlaces.js";
 import { abrirEscritos } from "./escritoAbierto.js";
 import { linkPortal, nombrePortal } from "./novedadesJudiciales.js";
@@ -31,10 +31,10 @@ export function itemsCaso(c, { abrir, resumen, eliminar, mover, extra = [] } = {
     c.id && { label: "Generar escrito…", onClick: () => abrirEscritos({ caso: c, pasId: c._pasId ?? c.pas_id }) },
     c.compania_aseguradora && { label: `Ver compañía (${c.compania_aseguradora})`, onClick: () => abrirCompania(c.compania_aseguradora) },
     whatsapp(tel, c.asegurado, "WhatsApp al cliente"),
-    clientePuedeEntrar(c) && { label: "Copiar link de la vista del cliente", onClick: () => copiar(linkVistaCliente(c.patente)) },
     ...moverA(c.estado, mover?.estados || [], mover && (estado => mover.onMover(c, estado))),
     { separador: true },
     c.id && { label: "Copiar link de la ficha", onClick: () => copiar(linkFicha("caso", c.id)) },
+    clientePuedeEntrar(c) && { label: "Copiar link de la vista del cliente", onClick: () => copiar(linkVistaCliente(c.patente)) },
     c.patente && { label: `Copiar patente (${c.patente})`, onClick: () => copiar(c.patente) },
     c.nro_siniestro && { label: "Copiar N° de siniestro", onClick: () => copiar(c.nro_siniestro) },
     tel && { label: "Copiar teléfono del cliente", onClick: () => copiar(tel) },
@@ -88,6 +88,7 @@ export function itemsCompania(nombre, ficha = {}, contactos = []) {
     { label: "Abrir ficha", onClick: () => abrirCompania(nombre) },
     ...conMail.slice(0, 3).map(m => ({ label: `Mail a ${m.label}`, onClick: () => window.open(`mailto:${m.mail}`) })),
     { separador: true },
+    ficha.razon_social && { label: "Copiar para escrito (razón social, CUIT y domicilio)", onClick: () => copiar(textoParaEscrito(ficha, nombre)) },
     ficha.razon_social && { label: "Copiar razón social", onClick: () => copiar(ficha.razon_social) },
     ficha.cuit && { label: `Copiar CUIT${cuitValido(ficha.cuit) === false ? " (revisar)" : ""}`, onClick: () => copiar(ficha.cuit) },
     ficha.mail && { label: "Copiar mail general", onClick: () => copiar(ficha.mail) },

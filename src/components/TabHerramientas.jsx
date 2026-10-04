@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import Icono from "./ui/Icono.jsx";
 import { aplanarCasos } from "../utils/metricas.js";
 
@@ -42,8 +42,10 @@ const HERRAMIENTAS = [
   // Modelos de escritos, Calendario en el celular y Mis datos están en Ajustes
 ];
 
-export default function TabHerramientas({ casos = {}, todosLosPas = [] }) {
-  const [abierta, setAbierta] = useState(null);
+// abrir: { k, t } para abrir una herramienta desde el buscador (t cambia en cada pedido)
+export default function TabHerramientas({ casos = {}, todosLosPas = [], abrir = null }) {
+  const [abierta, setAbierta] = useState(abrir?.k || null);
+  useEffect(() => { if (abrir?.k) setAbierta(abrir.k); }, [abrir]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const h = HERRAMIENTAS.find(x => x.k === abierta);
 

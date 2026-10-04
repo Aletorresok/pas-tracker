@@ -14,12 +14,37 @@ const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", bor
 const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" };
 const nombreExp = e => e ? `${e.caratula}${e.numero ? ` · Expte. ${e.numero}` : ""}` : "";
 
+// Buscador de expediente (carátula, número, juzgado o cliente) en vez de una lista con todas las carátulas
+const normal = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 function ElegirExpediente({ id, valor, expedientes, onChange }) {
+  const [q, setQ] = useState("");
+  const elegido = expedientes.find(e => e.id === valor);
+  const palabras = normal(q).split(/\s+/).filter(Boolean);
+  const hits = palabras.length
+    ? expedientes.filter(e => { const t = normal([e.caratula, e.numero, e.juzgado, e.cliente_nombre].join(" ")); return palabras.every(w => t.includes(w)); }).slice(0, 6)
+    : [];
+  if (elegido) return (
+    <div style={{ ...campo, display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nombreExp(elegido)}</span>
+      <button type="button" onClick={() => onChange(null)} style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>Cambiar</button>
+    </div>
+  );
   return (
-    <select id={id} value={valor || ""} onChange={e => onChange(e.target.value || null)} style={campo}>
-      <option value="">Sin asignar</option>
-      {expedientes.map(e => <option key={e.id} value={e.id}>{nombreExp(e)}</option>)}
-    </select>
+    <div>
+      <input id={id} value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar por carátula, número, juzgado o cliente…" style={campo}
+        onKeyDown={e => { if (e.key === "Enter" && hits.length) { e.preventDefault(); onChange(hits[0].id); } }} />
+      {hits.length > 0 && (
+        <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
+          {hits.map(e => (
+            <button key={e.id} type="button" onClick={() => onChange(e.id)}
+              style={{ textAlign: "left", font: "inherit", fontSize: 13.5, padding: "7px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {nombreExp(e)}
+            </button>
+          ))}
+        </div>
+      )}
+      {palabras.length > 0 && !hits.length && <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>Ningún expediente coincide.</div>}
+    </div>
   );
 }
 
@@ -95,24 +120,39 @@ function Integrar({ nov, expediente, cal, onListo, onCancelar, setToast }) {
 
 // Bandeja de novedades judiciales (SQL 37): pegás el despacho o la cédula que copiaste del PJN / MEV,
 // se engancha solo con el expediente si trae el número, y cada una se integra (Bitácora + plazo) o se descarta.
-export default function BandejaNovedades({ novedades, setNovedades, expedientes, cal, onAbrirExpediente, onPlazo, setToast }) {
+// pegarAhora: número que cambia cada vez que se toca "Pegar novedad" afuera (abre el formulario con lo copiado)
+export default function BandejaNovedades({ novedades, setNovedades, expedientes, cal, onAbrirExpediente, onPlazo, setToast, pegarAhora = 0 }) {
   const [form, setForm] = useState(null);
+  // Abre el formulario con lo que hay en el portapapeles (el navegador puede pedir permiso la primera vez;
+  // si no lo da, queda el campo vacío para pegar con Ctrl+V)
+  const abrirPegado = async () => {
+    const vacio = { texto: "", expediente_id: null, fecha: fechaLocalISO(), tipo: "despacho", url: "" };
+    setForm(vacio);
+    try {
+      const texto = (await navigator.clipboard?.readText?.())?.trim();
+      if (texto && texto.length > 15) setForm(f => (f && !f.texto ? { ...f, texto } : f));
+    } catch { /* sin permiso: se pega a mano */ }
+  };
+  useEffect(() => { if (pegarAhora) abrirPegado(); }, [pegarAhora]); // eslint-disable-line react-hooks/exhaustive-deps
   const [integrando, setIntegrando] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const porId = useMemo(() => new Map(expedientes.map(e => [e.id, e])), [expedientes]);
   const detectado = form ? expedienteDelTexto(form.texto, expedientes) : null;
-  const expForm = form?.expediente_id || detectado?.id || null;
+  const expForm = form?.expediente_id || (form?.sinDetectar ? null : detectado?.id) || null;
 
   const guardar = async () => {
     if (!form.texto.trim()) { setToast({ msg: "Pegá el texto de la novedad", type: "error" }); return; }
     setGuardando(true);
-    const r = await pegarNovedad({ ...form, expediente_id: expForm });
+    const { sinDetectar, ...datos } = form;
+    const r = await pegarNovedad({ ...datos, expediente_id: expForm });
     setGuardando(false);
     if (r.duplicada) { setToast({ msg: "Esa novedad ya estaba cargada", type: "error" }); return; }
     if (r.error) { setToast({ msg: "No se guardó: " + r.error, type: "error" }); return; }
     setNovedades(ns => [r.data, ...ns]);
     setForm(null);
-    setToast({ msg: r.data.expediente_id ? `Cargada en ${porId.get(r.data.expediente_id)?.caratula || "el expediente"}` : "Cargada sin expediente: asignala abajo", type: "success" });
+    // Con el expediente ya identificado, sigue directo a integrarla
+    if (r.data.expediente_id) setIntegrando(r.data.id);
+    else setToast({ msg: "Cargada sin expediente: asignala abajo", type: "success" });
   };
 
   const asignar = async (n, expedienteId) => {
@@ -140,7 +180,7 @@ export default function BandejaNovedades({ novedades, setNovedades, expedientes,
             <div style={{ fontSize: 15, fontWeight: 700 }}>Novedades judiciales</div>
             <div style={{ fontSize: 12.5, color: "var(--muted)" }}>Copiá el despacho o la cédula del PJN o la MEV y pegalo acá. Nada se toca hasta que lo integres.</div>
           </div>
-          {!form && <Boton tamaño="sm" variante="primario" icono="agregar" onClick={() => setForm({ texto: "", expediente_id: null, fecha: fechaLocalISO(), tipo: "despacho", url: "" })}>Pegar novedad</Boton>}
+          {!form && <Boton tamaño="sm" variante="primario" icono="agregar" onClick={abrirPegado}>Pegar novedad</Boton>}
         </div>
         {form && (
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -148,15 +188,15 @@ export default function BandejaNovedades({ novedades, setNovedades, expedientes,
               <textarea autoFocus value={form.texto} onChange={e => setForm(f => ({ ...f, texto: e.target.value }))} rows={5} style={{ ...campo, resize: "vertical" }}
                 placeholder="Ej.: Expte. 12345/2024 — Buenos Aires, 15 de septiembre de 2026. Téngase por contestada la demanda. Córrase traslado…" /></label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
-              <label style={{ gridColumn: "1 / -1" }}><span style={etiqueta}>Expediente{detectado && !form.expediente_id ? " (lo encontré por el número)" : ""}</span>
-                <ElegirExpediente valor={expForm} expedientes={expedientes} onChange={v => setForm(f => ({ ...f, expediente_id: v }))} /></label>
+              <div style={{ gridColumn: "1 / -1" }}><span style={etiqueta}>Expediente{detectado && !form.expediente_id ? " (lo encontré por el número)" : ""}</span>
+                <ElegirExpediente valor={expForm} expedientes={expedientes} onChange={v => setForm(f => ({ ...f, expediente_id: v, sinDetectar: !v }))} /></div>
               <label><span style={etiqueta}>Fecha</span><input type="date" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} style={campo} /></label>
               <label><span style={etiqueta}>Tipo</span>
                 <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} style={campo}>{TIPOS_NOVEDAD.map(t => <option key={t.k} value={t.k}>{t.l}</option>)}</select></label>
               <label><span style={etiqueta}>Link (opcional)</span><input type="url" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} style={campo} /></label>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <Boton tamaño="sm" variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
+              <Boton tamaño="sm" variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : expForm ? "Guardar e integrar" : "Guardar"}</Boton>
               <Boton tamaño="sm" variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
             </div>
           </div>
@@ -187,8 +227,8 @@ export default function BandejaNovedades({ novedades, setNovedades, expedientes,
             </div>
             <div style={{ marginTop: 8, fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere", maxHeight: 160, overflow: "auto" }}>{n.texto}</div>
             {!exp && (
-              <label style={{ display: "block", marginTop: 10 }}><span style={etiqueta}>Asignar a</span>
-                <ElegirExpediente valor={null} expedientes={expedientes} onChange={v => v && asignar(n, v)} /></label>
+              <div style={{ marginTop: 10 }}><span style={etiqueta}>Asignar a</span>
+                <ElegirExpediente valor={null} expedientes={expedientes} onChange={v => v && asignar(n, v)} /></div>
             )}
             {integrando === n.id && exp && <Integrar nov={n} expediente={exp} cal={cal} onListo={integrada} onCancelar={() => setIntegrando(null)} setToast={setToast} />}
           </article>

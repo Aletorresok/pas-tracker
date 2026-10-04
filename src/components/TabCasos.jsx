@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo, useCallback } from "react";
+import { Fragment, useState, useMemo, useCallback, useEffect } from "react";
 import { fmtMoney, diasDesde } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { aplanarCasos, esActivo } from "../utils/metricas.js";
@@ -10,11 +10,17 @@ import CasoOverlay from "./caso/CasoOverlay.jsx";
 import FilaExpandida from "./casos/FilaExpandida.jsx";
 import TableroCasos from "./casos/TableroCasos.jsx";
 import { QUIEN, quienTiene } from "../utils/pelota.js";
-import { propsMenu } from "./ui/MenuContextual.jsx";
+import { propsMenu, abrirMenu } from "./ui/MenuContextual.jsx";
 import { itemsCaso } from "../utils/menus.js";
+import { useMoverCaso } from "./casos/useMoverCaso.jsx";
 
 const VISTA_GUARDADA = "pas_casos_vista";
 const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
+// Los filtros se recuerdan mientras la pestaña del navegador esté abierta (ir a otra sección y volver no los borra)
+const FILTROS_GUARDADOS = "pas_casos_filtros";
+const ORDEN_INICIAL = { k: "mov", desc: true };
+const FILTROS_INICIALES = { busqueda: "", alcance: "activos", etapa: "", quien: "", faltan: false, orden: ORDEN_INICIAL };
+const leerFiltros = () => { try { return { ...FILTROS_INICIALES, ...JSON.parse(sessionStorage.getItem(FILTROS_GUARDADOS) || "{}") }; } catch { return FILTROS_INICIALES; } };
 
 const DIAS_QUIETO = 30;
 
@@ -28,7 +34,7 @@ const COLUMNAS = [
   { k: "estado", l: "Estado", ancho: "19%", valor: c => ORDEN_ESTADO[c.estado] ?? 99 },
   { k: "compania", l: "Compañía", ancho: "21%", valor: c => (c.compania_aseguradora || "").toLowerCase() },
   { k: "mov", l: "Últ. mov.", ancho: "13%", valor: ultimoMov },
-  { k: "monto", l: "Monto", ancho: "13%", valor: montoCaso, derecha: true },
+  { k: "monto", l: "Monto", ancho: "13%", valor: montoCaso, derecha: true, ayuda: "Acordado; si no hay, el ofrecido; si no, el reclamado", alFinal: c => !montoCaso(c) },
 ];
 
 function Movimiento({ caso }) {
@@ -68,14 +74,21 @@ const datosFaltantes = c => {
 export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, onCasoLocal, darkMode, pasManuales = [] }) {
   const [papelera, setPapelera] = useState(false);
   const esCelular = useEsCelular();
-  const [busqueda, setBusqueda] = useState("");
+  const [inicial] = useState(leerFiltros);
+  const [busqueda, setBusqueda] = useState(inicial.busqueda);
   // Filtros que se combinan: alcance (o una etapa puntual), a quién le toca y datos faltantes
-  const [alcance, setAlcance] = useState("activos"); // activos | todos
-  const [etapa, setEtapa] = useState(""); // "" | clave de ESTADOS_CASO
-  const [quien, setQuien] = useState(""); // "" | clave de QUIEN
-  const [faltan, setFaltan] = useState(false);
+  const [alcance, setAlcance] = useState(inicial.alcance); // activos | todos
+  const [etapa, setEtapa] = useState(inicial.etapa); // "" | clave de ESTADOS_CASO
+  const [quien, setQuien] = useState(inicial.quien); // "" | clave de QUIEN
+  const [faltan, setFaltan] = useState(inicial.faltan);
+  const [orden, setOrden] = useState(inicial.orden);
   const limpiarFiltros = () => { setAlcance("todos"); setEtapa(""); setQuien(""); setFaltan(false); };
-  const [orden, setOrden] = useState({ k: "mov", desc: true });
+  // Todo a cero: Activos, sin búsqueda ni filtros, orden por último movimiento
+  const restablecer = () => { setBusqueda(""); setAlcance("activos"); setEtapa(""); setQuien(""); setFaltan(false); setOrden(ORDEN_INICIAL); };
+  const cuantosFiltros = [busqueda.trim(), alcance !== "activos" && !etapa, etapa, quien, faltan, orden.k !== ORDEN_INICIAL.k || orden.desc !== ORDEN_INICIAL.desc].filter(Boolean).length;
+  useEffect(() => {
+    try { sessionStorage.setItem(FILTROS_GUARDADOS, JSON.stringify({ busqueda, alcance, etapa, quien, faltan, orden })); } catch { /* sin almacenamiento */ }
+  }, [busqueda, alcance, etapa, quien, faltan, orden]);
   const [abiertoId, setAbiertoId] = useState(null);
   const [ficha, setFicha] = useState(null); // { caso, pasId }
   const [vista, setVista] = useState(leerVista); // tabla | tablero
@@ -84,38 +97,44 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
 
+  // Cada filtro por separado; el número de un chip cuenta con todos los demás filtros puestos
+  const pasaAlcance = useCallback(c => (etapa ? c.estado === etapa : alcance === "todos" || esActivo(c)), [etapa, alcance]);
+  const pasaQuien = useCallback(c => !quien || quienTiene(c) === quien, [quien]);
+  const pasaFaltan = useCallback(c => !faltan || datosFaltantes(c).length > 0, [faltan]);
+  const pasaBusqueda = useCallback(c => coincide(c, busqueda), [busqueda]);
+
   const conteos = useMemo(() => {
-    const c = { todos: allCasos.length, activos: allCasos.filter(esActivo).length, faltan: allCasos.filter(x => datosFaltantes(x).length).length };
-    QUIEN.forEach(q => { c[`p_${q.k}`] = allCasos.filter(x => quienTiene(x) === q.k).length; });
-    ESTADOS_CASO.forEach(e => { c[e.key] = allCasos.filter(x => x.estado === e.key).length; });
+    const sinAlcance = allCasos.filter(c => pasaQuien(c) && pasaFaltan(c) && pasaBusqueda(c));
+    const sinQuien = allCasos.filter(c => pasaAlcance(c) && pasaFaltan(c) && pasaBusqueda(c));
+    const c = {
+      todos: sinAlcance.length, activos: sinAlcance.filter(esActivo).length,
+      faltan: allCasos.filter(x => pasaAlcance(x) && pasaQuien(x) && pasaBusqueda(x) && datosFaltantes(x).length).length,
+      hayFaltan: allCasos.some(x => datosFaltantes(x).length),
+    };
+    QUIEN.forEach(q => { c[`p_${q.k}`] = sinQuien.filter(x => quienTiene(x) === q.k).length; c[`hay_${q.k}`] = allCasos.some(x => quienTiene(x) === q.k); });
+    ESTADOS_CASO.forEach(e => { c[e.key] = sinAlcance.filter(x => x.estado === e.key).length; c[`hay_${e.key}`] = allCasos.some(x => x.estado === e.key); });
     return c;
-  }, [allCasos]);
+  }, [allCasos, pasaAlcance, pasaQuien, pasaFaltan, pasaBusqueda]);
+
+  // Contra qué se cuenta el encabezado: "21 de 38 activos"
+  const base = etapa
+    ? { n: allCasos.filter(c => c.estado === etapa).length, l: `en ${ESTADOS_CASO.find(e => e.key === etapa)?.label || etapa}` }
+    : alcance === "todos" ? { n: allCasos.length, l: "en total" } : { n: allCasos.filter(esActivo).length, l: "activos" };
 
   const filtrados = useMemo(() => {
-    let lista = allCasos.filter(c =>
+    const lista = allCasos.filter(c =>
       c.id === abiertoId || // la fila abierta no desaparece aunque le cambies el estado
-      ((etapa ? c.estado === etapa : alcance === "todos" || esActivo(c)) &&
-        (!quien || quienTiene(c) === quien) &&
-        (!faltan || datosFaltantes(c).length > 0))
-    );
-    const q = busqueda.trim().toLowerCase();
-    if (q) {
-      const qSinEspacios = q.replace(/\s/g, "");
-      lista = lista.filter(c =>
-        (c.asegurado || "").toLowerCase().includes(q) ||
-        (c._pasNombre || "").toLowerCase().includes(q) ||
-        (c.compania_aseguradora || "").toLowerCase().includes(q) ||
-        (c.nro_siniestro || "").toLowerCase().includes(q) ||
-        (c.patente || "").toLowerCase().replace(/\s/g, "").includes(qSinEspacios)
-      );
-    }
+      (pasaAlcance(c) && pasaQuien(c) && pasaFaltan(c) && pasaBusqueda(c)));
     const col = COLUMNAS.find(x => x.k === orden.k);
     return [...lista].sort((a, b) => {
+      // Los que no tienen el dato van siempre al final, en cualquier sentido
+      const fa = !!col.alFinal?.(a), fb = !!col.alFinal?.(b);
+      if (fa !== fb) return fa ? 1 : -1;
       const va = col.valor(a), vb = col.valor(b);
       const r = va < vb ? -1 : va > vb ? 1 : 0;
       return orden.desc ? -r : r;
     });
-  }, [allCasos, alcance, etapa, quien, faltan, busqueda, orden, abiertoId]);
+  }, [allCasos, pasaAlcance, pasaQuien, pasaFaltan, pasaBusqueda, orden, abiertoId]);
 
   const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k === "mov" || k === "monto" }));
 
@@ -123,11 +142,17 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
     if (await onEliminarCaso(caso, caso._pasId)) setAbiertoId(null);
   };
 
+  // Mover de etapa sin abrir nada (menú "Mover a" y la etiqueta de estado); cierra el resumen de ese caso si estaba abierto
+  const { mover, ui: uiMover } = useMoverCaso({ todosLosPas, onCasoLocal: ({ _pasId, _pasNombre, ...limpio }) => onCasoLocal(_pasId, limpio) });
+  const moverDesdeTabla = (c, estado) => { if (abiertoId === c.id) setAbiertoId(null); mover(c, estado); };
+  const menuEtapas = (e, c) => abrirMenu(e, [{ titulo: "Mover a" }, ...ESTADOS_CASO.filter(x => x.key !== c.estado).map(x => ({ label: x.label, onClick: () => moverDesdeTabla(c, x.key) }))]);
+
   // Mismas acciones que en el resto de la app (utils/menus.js)
   const accionesCaso = { abrir: c => setFicha({ caso: c, pasId: c._pasId }), eliminar: handleDelete };
   const menuCaso = c => propsMenu(() => itemsCaso(c, {
     ...accionesCaso,
     resumen: vista === "tabla" && { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
+    mover: { estados: ESTADOS_CASO, onMover: moverDesdeTabla },
   }));
 
   // Guarda en memoria el caso editado desde la fila (ya se guardó en Supabase)
@@ -143,8 +168,9 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
     setAbiertoId(a => (a === id ? null : id));
   };
 
+  // Un chip que daría 0 resultados se atenúa (salvo que ya esté puesto: así se puede sacar)
   const chip = (key, label, n, activo, onClick) => (
-    <button key={key} type="button" onClick={onClick} aria-pressed={activo} className="chip">
+    <button key={key} type="button" onClick={onClick} aria-pressed={activo} className="chip" disabled={!n && !activo}>
       {label} <b className="num" style={{ color: "var(--text)" }}>{n}</b>
     </button>
   );
@@ -170,7 +196,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Casos PAS</h1>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {vista === "tabla" && <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {allCasos.length}</span>}
+          {vista === "tabla" && <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {base.n} {base.l}</span>}
           <button type="button" onClick={() => setPapelera(true)} title="Casos eliminados en los últimos 30 días"
             style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "inherit", fontSize: 13, padding: "5px 10px", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", background: "var(--card)", color: "var(--sub)", cursor: "pointer" }}>
             <Icono nombre="papelera" size={15} />Papelera
@@ -187,8 +213,15 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       <div style={{ position: "relative" }}>
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={16} /></span>
         <input value={busqueda} onChange={e => setBusqueda(e.target.value)} aria-label="Buscar casos"
+          onKeyDown={e => { if (e.key === "Escape" && busqueda) { e.preventDefault(); setBusqueda(""); } }}
           placeholder="Buscar por asegurado, patente, PAS, compañía o siniestro…"
-          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px 10px 36px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+          style={{ width: "100%", boxSizing: "border-box", padding: `10px ${busqueda ? 36 : 12}px 10px 36px`, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" }} />
+        {busqueda && (
+          <button type="button" onClick={() => setBusqueda("")} aria-label="Borrar búsqueda" title="Borrar búsqueda (Esc)"
+            style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 6, cursor: "pointer", color: "var(--muted)", display: "flex", borderRadius: "var(--r-xs)" }}>
+            <Icono nombre="cerrar" size={15} />
+          </button>
+        )}
       </div>
 
       {vista === "tablero" && (
@@ -209,14 +242,20 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
           <select value={etapa} onChange={e => setEtapa(e.target.value)} aria-label="Etapa"
             style={{ border: "none", background: "transparent", color: "inherit", font: "inherit", padding: `6px 8px 6px ${etapaInfo ? 24 : 14}px`, borderRadius: "var(--r-pill)", cursor: "pointer", boxShadow: "none", fieldSizing: "content" }}>
             <option value="">Etapa: todas</option>
-            {ESTADOS_CASO.filter(e => conteos[e.key] > 0).map(e => <option key={e.key} value={e.key}>{e.label} ({conteos[e.key]})</option>)}
+            {ESTADOS_CASO.filter(e => conteos[`hay_${e.key}`]).map(e => <option key={e.key} value={e.key} disabled={!conteos[e.key] && etapa !== e.key}>{e.label} ({conteos[e.key]})</option>)}
           </select>
         </span>
-        {conteos.faltan > 0 && chip("faltan", "Datos faltantes", conteos.faltan, faltan, () => setFaltan(v => !v))}
+        {conteos.hayFaltan && chip("faltan", "Datos faltantes", conteos.faltan, faltan, () => setFaltan(v => !v))}
+        {cuantosFiltros > 0 && (
+          <button type="button" onClick={restablecer} title="Volver a Activos, sin búsqueda ni filtros"
+            style={{ marginLeft: "auto", background: "none", border: "none", padding: "6px 4px", font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
+            Limpiar ({cuantosFiltros})
+          </button>
+        )}
       </div>
       <div className="chips" role="group" aria-label="A quién le toca" style={{ alignItems: "center" }}>
         <span style={{ fontSize: 12, color: "var(--muted)", flex: "none", marginRight: 2 }}>A quién le toca</span>
-        {QUIEN.filter(q => conteos[`p_${q.k}`] > 0).map(q => chip(`p_${q.k}`, q.corto, conteos[`p_${q.k}`], quien === q.k, () => setQuien(v => (v === q.k ? "" : q.k))))}
+        {QUIEN.filter(q => conteos[`hay_${q.k}`]).map(q => chip(`p_${q.k}`, q.corto, conteos[`p_${q.k}`], quien === q.k, () => setQuien(v => (v === q.k ? "" : q.k))))}
       </div>
       {faltan && <div style={{ fontSize: 12, color: "var(--sub)" }}>Tocá un caso para completar lo que falta en su ficha.</div>}
 
@@ -261,9 +300,9 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                   return (
                     <th key={col.k} scope="col" aria-sort={activa ? (orden.desc ? "descending" : "ascending") : "none"}
                       style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)", textAlign: col.derecha ? "right" : "left" }}>
-                      <button type="button" onClick={() => ordenarPor(col.k)}
+                      <button type="button" onClick={() => ordenarPor(col.k)} title={col.ayuda} className="th-orden"
                         style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", font: "inherit", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: activa ? "var(--text)" : "var(--muted)", textAlign: col.derecha ? "right" : "left" }}>
-                        {col.l}{activa ? (orden.desc ? " ↓" : " ↑") : ""}
+                        {col.l}<span aria-hidden="true" className={activa ? undefined : "th-flecha"} style={{ marginLeft: 4 }}>{activa ? (orden.desc ? "↓" : "↑") : "↕"}</span>
                       </button>
                     </th>
                   );
@@ -285,7 +324,12 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                         {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{c.patente}</span>}
                         {faltantesDe(c)}
                       </td>
-                      <td style={celda}><EstadoPill estado={c.estado} size="sm" /></td>
+                      <td style={celda}>
+                        <button type="button" onClick={e => menuEtapas(e, c)} aria-haspopup="menu" title="Mover a otra etapa"
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", display: "inline-flex", alignItems: "center", gap: 4, color: "var(--muted)" }}>
+                          <EstadoPill estado={c.estado} size="sm" /><span aria-hidden="true" style={{ fontSize: 10 }}>▾</span>
+                        </button>
+                      </td>
                       <td style={{ ...celda, color: "var(--sub)" }}>{c.compania_aseguradora || "—"}</td>
                       <td style={{ ...celda, fontSize: 13 }}><Movimiento caso={c} /></td>
                       <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 500 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
@@ -316,6 +360,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
           onClose={() => { setFicha(null); setAbiertoId(null); }}
         />
       )}
+      {uiMover}
       {papelera && <Papelera todosLosPas={todosLosPas} onRestaurar={onRestaurarCaso} onClose={() => setPapelera(false)} />}
     </div>
   );

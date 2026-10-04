@@ -22,8 +22,45 @@ export function fechasAlCambiarEstado(caso, nuevo, hoy = fechaLocalISO()) {
   return fechas;
 }
 
-export const textoCambioEstado = (anterior, nuevo) =>
-  `Pasó de ${estadoInfo(anterior).label} a ${estadoInfo(nuevo).label}`;
+export const textoCambioEstado = (anterior, nuevo, nota = "") =>
+  `Pasó de ${estadoInfo(anterior).label} a ${estadoInfo(nuevo).label}${nota ? `: ${nota}` : ""}`;
+
+// ── Datos que pide o limpia un cambio de etapa ───────────────────────────────
+// Esperando pago, Cobrado y Desistido piden su dato (fecha y monto, monto, motivo).
+export const ESTADOS_CON_DATOS = ["esperando_pago", "cobrado", "desistido"];
+
+// Datos que pertenecen a una etapa: al volver a una anterior ya no corresponden.
+// Las fechas se ofrecen tildadas para borrar; montos y plazo, sin tildar.
+const DATOS_DE_ETAPA = [
+  { campo: "fecha_inicio_reclamo", label: "Fecha de inicio del reclamo", etapa: 2, fecha: true },
+  { campo: "fecha_reclamo", label: "Fecha del reclamo", etapa: 3, fecha: true },
+  { campo: "fecha_ofrecimiento", label: "Fecha del ofrecimiento", etapa: 4, fecha: true },
+  { campo: "fecha_inicio_juicio", label: "Fecha de inicio del juicio", etapa: 5, fecha: true },
+  { campo: "fecha_aceptacion", label: "Fecha de aceptación", etapa: 6, fecha: true },
+  { campo: "fecha_firma", label: "Fecha de firma del acuerdo", etapa: 6, fecha: true },
+  { campo: "fecha_pago", label: "Fecha de pago", etapa: 6, fecha: true },
+  { campo: "monto_acordado", label: "Monto acordado", etapa: 6 },
+  { campo: "plazo_pago", label: "Plazo de pago", etapa: 6 },
+  { campo: "fecha_cobro", label: "Fecha en que cobró el asegurado", etapa: 7, fecha: true },
+];
+
+// Volver a una etapa anterior (Desistido no cuenta: no es parte del camino)
+export const esRetroceso = (anterior, nuevo) => {
+  const a = estadoInfo(anterior).etapa, n = estadoInfo(nuevo).etapa;
+  return a > 0 && n > 0 && n < a;
+};
+
+// Lo que sobra al volver a `nuevo`: [{ campo, label, valor, fecha, marcado }]
+export function datosQueSobran(caso, nuevo) {
+  if (!esRetroceso(caso.estado, nuevo)) return [];
+  const hasta = estadoInfo(nuevo).etapa;
+  return DATOS_DE_ETAPA
+    .filter(d => d.etapa > hasta && caso[d.campo] !== null && caso[d.campo] !== undefined && caso[d.campo] !== "" && Number(caso[d.campo]) !== 0)
+    .map(d => ({ ...d, valor: caso[d.campo], marcado: !!d.fecha }));
+}
+
+// ¿Hace falta preguntar algo antes de mover el caso?
+export const pideDialogoEtapa = (caso, nuevo) => ESTADOS_CON_DATOS.includes(nuevo) || datosQueSobran(caso, nuevo).length > 0;
 
 // Estados en los que conviene avisarle al cliente en el momento
 export const ESTADOS_CON_AVISO = ["con_ofrecimiento", "esperando_pago"];
