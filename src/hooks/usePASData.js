@@ -153,6 +153,19 @@ export function usePASData() {
     loadAllData();
   }, [loadAllData]);
 
+  // Vuelve a traer solo los casos, sin pantalla de carga (al volver a la pestaña después de un rato:
+  // cubre lo que el tiempo real se pudo perder con la compu suspendida o sin conexión)
+  const refrescarCasos = useCallback(async () => {
+    try {
+      const casosData = await traerTodo(() => supabase.from("pas_casos").select("*").order("id"));
+      const c = {};
+      casosData.forEach(({ pas_id, ...resto }) => { (c[String(pas_id)] ||= []).push(resto); });
+      setCasos(c);
+    } catch (err) {
+      console.warn("[usePASData] No se pudieron refrescar los casos:", err);
+    }
+  }, []);
+
   return {
     pas, setPas, agregarPas,
     totalContactos,
@@ -163,5 +176,6 @@ export function usePASData() {
     pasManuales, setPasManuales,
     loading,
     reloadAllData: loadAllData,
+    refrescarCasos,
   };
 }

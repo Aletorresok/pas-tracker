@@ -4,7 +4,6 @@ import { supabase } from "../supabase.js";
 import { fechaLocalISO, sumarDias, fmtMoney } from "./formatters.js";
 import { netoYo, esActivo } from "./metricas.js";
 import { mediana, diasEntre } from "./analisis.js";
-import { estadisticasPas } from "./estadisticasPas.js";
 import { rutinaCumplida } from "./rutina.js";
 
 export const PERIODOS = [
@@ -89,11 +88,7 @@ export function avanceObjetivo(obj, datos, hoy = fechaLocalISO()) {
   const pct = Math.min(100, Math.round((valor / meta) * 100));
   if (!m.acumula) {
     const nivel = valor >= meta ? "ok" : valor >= meta * 0.8 ? "atras" : "muy_atras";
-    let frase = valor >= meta ? "Meta cumplida." : `Faltan ${formatoValor(m, meta - valor)}.`;
-    if (m.k === "pas_activos" && valor < meta) {
-      const dormidos = pasDormidos(datos.allCasos);
-      if (dormidos) frase += ` Hay ${dormidos} PAS dormidos que derivaban.`;
-    }
+    const frase = valor >= meta ? "Meta cumplida." : `Faltan ${formatoValor(m, meta - valor)}.`;
     return { m, valor, meta, pct, esperadoPct: null, nivel, frase };
   }
 
@@ -105,13 +100,6 @@ export function avanceObjetivo(obj, datos, hoy = fechaLocalISO()) {
   else if (pasados < 3 || !valor) frase = `Para llegar hacen falta ${formatoValor(m, meta / totalDias * 30)} por mes.`;
   else frase = `A este ritmo cerrás ${obj.periodo === "anio" ? "el año" : obj.periodo === "mes" ? "el mes" : `el ${obj.periodo}`} en ${formatoValor(m, valor / fraccion)}.`;
   return { m, valor, meta, pct, esperadoPct: Math.round(fraccion * 100), nivel, frase };
-}
-
-// PAS que derivaban con ritmo y hace rato no derivan
-export function pasDormidos(allCasos) {
-  const porPas = {};
-  allCasos.forEach(c => { (porPas[c._pasId] ||= []).push(c); });
-  return Object.values(porPas).filter(cs => estadisticasPas(cs).dormido).length;
 }
 
 // Casos activos: se usa en la frase de algunos objetivos y en listas

@@ -201,7 +201,6 @@ export const RUTINA_SUGERIDA = [
   { frecuencia: "diaria", bloque: "Cierre", hora_inicio: "18:00", hora_fin: "18:30", titulo: "Actualizar el mensaje a los clientes con novedades", prioridad: "postergable", acceso: "casos" },
   { frecuencia: "diaria", bloque: "Cierre", hora_inicio: "18:00", hora_fin: "18:30", titulo: "Dejar cargadas las próximas acciones de mañana", prioridad: "postergable", acceso: "hoy" },
   { frecuencia: "semanal", dia: 1, bloque: "Revisión semanal", titulo: "Repasar los casos que te tocan a vos", prioridad: "importante", acceso: "casos" },
-  { frecuencia: "semanal", dia: 5, bloque: "Revisión semanal", titulo: "Llamar a los PAS dormidos", prioridad: "importante", acceso: "clientes" },
   { frecuencia: "mensual", dia: 1, bloque: "Cierre del mes", titulo: "Facturar honorarios pendientes", prioridad: "importante", acceso: "analisis" },
   { frecuencia: "mensual", dia: 1, bloque: "Cierre del mes", titulo: "Pagar comisiones a PAS", prioridad: "importante", acceso: "hoy" },
   { frecuencia: "mensual", dia: 0, bloque: "Cierre del mes", titulo: "Revisar los objetivos del mes", prioridad: "importante", acceso: null },

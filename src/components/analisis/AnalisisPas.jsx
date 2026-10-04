@@ -30,12 +30,9 @@ export default function AnalisisPas({ allCasos }) {
     { k: "neto", l: "Neto total", ancho: "11%", derecha: true, celda: f => f.neto ? <><span className="num">{fmtMoney(f.neto)}</span><Barrita valor={f.neto} max={maxNeto} /></> : nada },
     { k: "diasACobro", l: "Deriv. a cobro", ancho: "9%", derecha: true, ayuda: "Promedio de días desde que te derivó el caso hasta que se cobró",
       celda: f => f.diasACobro === null ? nada : <span className="num">{f.diasACobro} d</span> },
-    { k: "ritmo", l: "Ritmo", ancho: "12%", ayuda: "Cada cuántos días te deriva (mediana, desde 3 casos). Dormido: pasó el doble de su ritmo sin derivarte",
+    { k: "ritmo", l: "Ritmo", ancho: "12%", ayuda: "Cada cuántos días te deriva (mediana, desde 3 casos)",
       valor: f => f.ritmo,
-      celda: f => f.ritmo === null ? nada : <span className="num" style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-        {f.dormido && <span title={`Hace ${f.diasDesdeUltimo} días que no te deriva`} style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", background: "color-mix(in srgb, var(--warn) 13%, transparent)", borderRadius: "var(--r-xs)", padding: "1px 6px" }}>Dormido</span>}
-        cada {f.ritmo} d
-      </span> },
+      celda: f => f.ritmo === null ? nada : <span className="num">cada {f.ritmo} d</span> },
     { k: "tendencia", l: "Últ. 6 meses", ancho: "9%", derecha: true, ayuda: "Casos derivados en los últimos 6 meses contra los 6 anteriores",
       valor: f => f.ult6 - f.prev6,
       celda: f => <span className="num" title={`${f.ult6} casos en los últimos 6 meses, ${f.prev6} en los 6 anteriores`}>
@@ -76,7 +73,7 @@ export default function AnalisisPas({ allCasos }) {
           vacio={q ? "Ningún PAS coincide con la búsqueda." : "Todavía no hay casos derivados."} />
         <Nota>
           "Cobrados" se mide sobre los casos <b>cerrados</b> (cobrados + desistidos), así un PAS con todo en trámite no queda en 0%. "Desistidos" se mide sobre el total, igual que en Clientes.
-          Neto = tus honorarios menos la comisión del PAS, de los casos donde ya cobraste los honorarios. Ritmo = cada cuántos días te deriva; "Dormido" si pasó el doble sin derivarte (lo mismo que ves en Clientes).
+          Neto = tus honorarios menos la comisión del PAS, de los casos donde ya cobraste los honorarios. Ritmo = cada cuántos días te deriva (lo mismo que ves en Clientes).
         </Nota>
       </section>
     </>

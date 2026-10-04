@@ -25,21 +25,31 @@ export async function cargarNovedades(estado = "nueva") {
   return data || [];
 }
 
-// Números de expediente que aparecen en el texto ("12345/2024", "CIV 012345/2024", "Expte. N° 45.678/23")
+// Forma única "número/año" para comparar: sin ceros a la izquierda, sin puntos y con el año en 4 cifras
+// ("045.678/23" → "45678/2023"; "MG-6061-2024" → "6061/2024")
+const sinCeros = n => n.replace(/^0+/, "");
+const canonico = (num, anio) => `${sinCeros(num.replace(/\D/g, ""))}/${anio.length === 2 ? `20${anio}` : anio}`;
+
+// Números de expediente que aparecen en el texto: con barra ("12345/2024", "CIV 012345/2024", "Expte. N° 45.678/23")
+// o con guion y año completo como en la MEV ("MG-6061-2024", "6061-2024"; el año de 4 cifras evita confundirlo con un teléfono)
 export function numerosEnTexto(texto) {
-  const hallados = String(texto || "").match(/(?<![\d/])\d[\d.]*\s*\/\s*\d{2,4}(?![\d/])/g) || [];
-  return [...new Set(hallados.map(n => n.replace(/[^0-9/]/g, "")))];
+  const t = String(texto || "");
+  const barra = [...t.matchAll(/(?<![\d/])(\d[\d.]*)\s*\/\s*(\d{2,4})(?![\d/])/g)];
+  const guion = [...t.matchAll(/(?<![\d/])(?<!\d-)(\d[\d.]*)\s*-\s*((?:19|20)\d{2})(?![\d/-])/g)];
+  return [...new Set([...barra, ...guion].map(m => canonico(m[1], m[2])))];
 }
 
-// Mismo criterio que la columna generada numero_normalizado, para no depender de que exista
-const normalizar = n => String(n || "").replace(/[^0-9/]/g, "");
-const sinCeros = n => n.replace(/^0+/, "");
+// El número cargado en el expediente, en la misma forma (el de la MEV viene como "MG-6061-2024")
+function numeroDelExpediente(numero) {
+  const m = String(numero || "").match(/(\d[\d.]*)\s*[/-]\s*(\d{2,4})\s*$/);
+  return m ? canonico(m[1], m[2]) : null;
+}
 
 // Expediente al que corresponde el texto, si el número aparece y coincide con uno solo
 export function expedienteDelTexto(texto, expedientes) {
-  const nums = numerosEnTexto(texto).map(sinCeros);
+  const nums = numerosEnTexto(texto);
   if (!nums.length) return null;
-  const hits = (expedientes || []).filter(e => { const n = sinCeros(e.numero_normalizado ?? normalizar(e.numero)); return n.includes("/") && nums.includes(n); });
+  const hits = (expedientes || []).filter(e => { const n = numeroDelExpediente(e.numero); return n && nums.includes(n); });
   return hits.length === 1 ? hits[0] : null;
 }
 

@@ -22,7 +22,8 @@ import PlazosCaso from "./components/caso/PlazosCaso.jsx";
 import EtapasCaso from "./components/caso/EtapasCaso.jsx";
 import SugerenciaEstado from "./components/caso/SugerenciaEstado.jsx";
 import AvisarWhatsApp from "./components/caso/AvisarWhatsApp.jsx";
-import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO } from "./utils/flujoEstados.js";
+import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO, pideDialogoEtapa } from "./utils/flujoEstados.js";
+import DialogoEtapa from "./components/caso/DialogoEtapa.jsx";
 import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "./utils/ofertas.js";
 import { fechaLocalISO } from "./utils/formatters.js";
@@ -253,11 +254,12 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   // Con acuerdo (aceptación, firma o Esperando pago) y sin plazo cargado, usa el de la compañía
   const plazoPorDefecto = datos => (!Number(datos.plazo_pago) && plazoCompania && (datos.fecha_aceptacion || datos.fecha_firma || datos.estado === "esperando_pago") ? { plazo_pago: plazoCompania } : {});
 
+  const notaEstadoRef = useRef(""); // motivo de Desistido: va en la nota de la bitácora
   const alCambiarEstado = (anterior, nuevo) => {
     const fechas0 = fechasAlCambiarEstado(formData, nuevo);
     const fechas = { ...fechas0, ...plazoPorDefecto({ ...formData, ...fechas0, estado: nuevo }) };
     if (Object.keys(fechas).length) setFormData(prev => ({ ...prev, ...fechas }));
-    registrarAccion(caso.id, textoCambioEstado(anterior, nuevo), { visiblePas: true }).then(ok => ok && cargarAcciones());
+    registrarAccion(caso.id, textoCambioEstado(anterior, nuevo, notaEstadoRef.current), { visiblePas: true }).then(ok => ok && cargarAcciones());
     // La última oferta sin responder queda aceptada y, si no hay monto acordado, es ese
     if (nuevo === "esperando_pago") aceptarUltimaPendiente(caso.id).then(o => {
       if (!o) return;
@@ -279,11 +281,21 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     setEstadoGuardado("pendiente");
   };
 
-  // Cambiar estado desde la línea de etapas; Cobrado/Desistido se pueden deshacer 6 s
+  // Cambiar estado desde la línea de etapas; Cobrado/Desistido se pueden deshacer 6 s.
+  // Esperando pago, Cobrado, Desistido y volver atrás preguntan antes (DialogoEtapa).
+  const [dialogoEtapa, setDialogoEtapa] = useState(null); // estado al que se quiere pasar
+  const aplicarEstado = (nuevo, { cambios = {}, nota = "" } = {}) => {
+    if (["cobrado", "desistido"].includes(nuevo)) setDeshacer({ anterior: formData.estado, nuevo });
+    notaEstadoRef.current = nota;
+    handleFormChange("estado", nuevo);
+    notaEstadoRef.current = "";
+    // Después del cambio de estado, así pisan las fechas que completa solo
+    if (Object.keys(cambios).length) setFormData(prev => ({ ...prev, ...Object.fromEntries(Object.entries(cambios).map(([k, v]) => [k, v ?? ""])) }));
+  };
   const cambiarEstado = (nuevo) => {
     if (nuevo === formData.estado) return;
-    if (["cobrado", "desistido"].includes(nuevo)) setDeshacer({ anterior: formData.estado, nuevo });
-    handleFormChange("estado", nuevo);
+    if (pideDialogoEtapa(formData, nuevo)) setDialogoEtapa(nuevo);
+    else aplicarEstado(nuevo);
   };
   useEffect(() => {
     if (!deshacer) return;
@@ -300,6 +312,27 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   };
   const cerrar = async () => { await guardarPendiente(); onClose(); };
   const eliminar = async () => { await guardarPendiente(); onEliminar(); };
+
+  // Escape cierra la ficha. Si estás escribiendo, el primer Escape solo sale del campo;
+  // si hay un menú o una ventana abierta encima, Escape es de ella.
+  const dialogoRef = useRef(null);
+  const cerrarRef = useRef(cerrar);
+  cerrarRef.current = cerrar;
+  const hayVentanaRef = useRef(false);
+  hayVentanaRef.current = !!previewArchivo || modalEscrito || !!dialogoEtapa;
+  useEffect(() => {
+    const tecla = e => {
+      if (e.key !== "Escape" || e.defaultPrevented || hayVentanaRef.current) return;
+      if (document.querySelector(".menu-ctx")) return;
+      const dialogos = document.querySelectorAll('[aria-modal="true"]');
+      if (dialogos[dialogos.length - 1] !== dialogoRef.current) return;
+      const t = e.target;
+      if (t instanceof HTMLElement && (t.matches("input, textarea, select") || t.isContentEditable)) { t.blur(); return; }
+      cerrarRef.current();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
 
   const handleExportarPDF = async () => {
     setExportandoPDF(true);
@@ -328,7 +361,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   return (
     <>
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
-      <div className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
+      <div ref={dialogoRef} className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
         <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
 
@@ -446,6 +479,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
         </div>
       </div>
 
+      {dialogoEtapa && <DialogoEtapa caso={formData} nuevo={dialogoEtapa} plazoCompania={plazoCompania}
+        onCancelar={() => setDialogoEtapa(null)} onConfirmar={r => { const n = dialogoEtapa; setDialogoEtapa(null); aplicarEstado(n, r); }} />}
       {previewArchivo && <PreviewModal archivo={previewArchivo} onClose={() => setPreviewArchivo(null)} />}
 
       <ModalGenerarEscrito dniInicial={formData.dni_asegurado} onDniNuevo={v => handleFormChange("dni_asegurado", v)} isOpen={modalEscrito} onClose={() => setModalEscrito(false)} caso={caso} pasId={pasId} dirHandle={dirHandleRef.current} Th={Th} onSuccess={({ guardadoEn }) => { setToast({ msg: `✓ PDF guardado en ${guardadoEn === "carpeta" ? "carpeta del caso" : "Descargas"}`, type: "success" }); if (guardadoEn === "carpeta") setVersionCarpeta(v => v + 1); }} onError={msg => setToast({ msg, type: "error" })} />

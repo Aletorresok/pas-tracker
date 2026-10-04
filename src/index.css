@@ -313,6 +313,10 @@ input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled),
 .chip:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
 .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--card)); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--text); font-weight: 600; }
 .chip .num, .chip b { font-weight: 700; color: var(--text); }
+.chip:disabled { opacity: .45; cursor: default; transform: none; border-color: var(--border); color: var(--sub); }
+/* Encabezados de tabla que ordenan: la flecha se insinúa siempre y se marca al pasar el mouse */
+.th-flecha { opacity: .35; transition: opacity .2s var(--ease); }
+.th-orden:hover .th-flecha, .th-orden:focus-visible .th-flecha { opacity: .9; }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 
@@ -343,8 +347,14 @@ input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled),
   .contacto-cia { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .contacto-cia > span { grid-column: 1 / -1; }
 }
-.fila-cia { grid-template-columns: minmax(150px, 1.2fr) minmax(0, 1.6fr) 90px 90px 160px; }
+/* Compañía · Razón social · CUIT · En curso · Total · Falta · acciones */
+.fila-cia { grid-template-columns: minmax(130px, 1fr) minmax(0, 1.7fr) 150px 70px 56px 120px 132px; }
 @media (max-width: 1180px) {
-  .fila-cia { grid-template-columns: minmax(140px, 1fr) minmax(0, 1fr) 70px 140px; }
-  .fila-cia > .col-contactos { display: none; }
+  .fila-cia { grid-template-columns: minmax(120px, 1fr) minmax(0, 1.2fr) 140px 64px 50px 110px; }
+  .fila-cia > .col-acciones { display: none; }
 }
+/* Acciones que aparecen al pasar el mouse por la fila (o al llegar con Tab) */
+.fila-hover .solo-hover { opacity: 0; transition: opacity .15s var(--ease); }
+.fila-hover:hover .solo-hover, .fila-hover:focus-within .solo-hover { opacity: 1; }
+@media (hover: none) { .fila-hover .solo-hover { opacity: 1; } }
+.fila-hover:hover { background: var(--card2); }

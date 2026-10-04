@@ -131,6 +131,12 @@ export const domicilioDe = cia => ({
 });
 export const textoDomicilio = d => [d.domicilio, [d.cp && `(${d.cp})`, d.localidad].filter(Boolean).join(" "), d.provincia].filter(Boolean).join(", ");
 
+// Lo que se pega en una demanda o carta: "RAZÓN SOCIAL, CUIT 30-…, con domicilio en …" (lo que falta, no va)
+export function textoParaEscrito(cia, nombre) {
+  const dom = textoDomicilio(domicilioDe(cia));
+  return [nombreLegal(cia, nombre), cia?.cuit && `CUIT ${cia.cuit}`, dom && `con domicilio en ${dom}`].filter(Boolean).join(", ");
+}
+
 // Qué le falta a la ficha para que sirva en escritos y cartas
 export function faltantes(cia) {
   const f = [];

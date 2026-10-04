@@ -5,7 +5,7 @@ import { marcarRevisado } from "../../utils/storage.js";
 
 // Abre la ficha de un caso por encima de cualquier pantalla. La ficha ya guarda su caso en Supabase;
 // acá solo se refleja el cambio en memoria (sin volver a guardar todos los casos).
-// Con onEliminarCaso (App.handleEliminarCaso: confirma, manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
+// Con onEliminarCaso (App.handleEliminarCaso: manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
 export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, onEliminarCaso, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 

@@ -10,10 +10,13 @@ const sinEspacios = s => norm(s).replace(/[\s.-]/g, "");
 
 const MAX_CASOS = 8;
 const MAX_PAS = 6;
+const MAX_ACCIONES = 5;
 
-// Buscador único (Ctrl + K): casos por asegurado, patente, siniestro, DNI, compañía o PAS; PAS por nombre, mail
-// o teléfono (los cargados en la app y, desde 3 letras, también los ~50 mil contactos de la base).
-export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasManuales, derivadores, onAbrirCaso, onAbrirCliente, onContactar }) {
+// Buscador único (Ctrl + K): herramientas y acciones ("plazo", "carta", "pegar novedad", "modo oscuro");
+// casos por asegurado, patente, siniestro, DNI, compañía o PAS; PAS por nombre, mail o teléfono
+// (los cargados en la app y, desde 3 letras, también los ~50 mil contactos de la base).
+// acciones: [{ k, l, d, icono, palabras, run }]
+export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasManuales, derivadores, onAbrirCaso, onAbrirCliente, onContactar, acciones = [] }) {
   const [q, setQ] = useState("");
   const [activo, setActivo] = useState(0);
   const [remotos, setRemotos] = useState([]);
@@ -28,6 +31,16 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
 
   const texto = norm(q.trim());
   const compacto = sinEspacios(q);
+
+  // Cada palabra escrita tiene que aparecer en el nombre o en sus palabras clave (al principio de alguna palabra)
+  const accionesHalladas = useMemo(() => {
+    const palabras = texto.split(/\s+/).filter(Boolean);
+    if (!palabras.length) return [];
+    return acciones.filter(a => {
+      const enAccion = norm(`${a.l} ${a.palabras || ""}`).split(/[\s·,()]+/);
+      return palabras.every(w => enAccion.some(x => x.startsWith(w)));
+    }).slice(0, MAX_ACCIONES);
+  }, [acciones, texto]);
 
   const casos = useMemo(() => {
     if (!texto) return [];
@@ -72,6 +85,7 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
   const otros = remotos.filter(p => !cargados.has(String(p.id))).slice(0, Math.max(0, MAX_PAS - locales.length));
 
   const items = [
+    ...accionesHalladas.map(a => ({ tipo: "accion", key: `a-${a.k}`, a })),
     ...casos.map(c => ({ tipo: "caso", key: `c-${c.id}`, c })),
     ...locales.map(p => ({ tipo: p._cliente ? "cliente" : "contacto", key: `p-${p.id}`, p })),
     ...otros.map(p => ({ tipo: "contacto", key: `r-${p.id}`, p, remoto: true })),
@@ -83,7 +97,8 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
   const elegir = (it) => {
     if (!it) return;
     onCerrar();
-    if (it.tipo === "caso") onAbrirCaso(it.c);
+    if (it.tipo === "accion") it.a.run();
+    else if (it.tipo === "caso") onAbrirCaso(it.c);
     else if (it.tipo === "cliente") onAbrirCliente(it.p);
     else onContactar(it.p, it.remoto);
   };
@@ -113,15 +128,22 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
         style={{ width: "100%", maxWidth: 620, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--shadow)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "75vh" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ color: "var(--muted)", display: "flex" }}><Icono nombre="buscar" size={18} /></span>
-          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={teclas} placeholder="Buscar caso, patente, DNI, siniestro o PAS…" aria-label="Buscar"
+          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={teclas} placeholder="Buscar caso, patente, PAS o herramienta…" aria-label="Buscar"
             role="combobox" aria-expanded={items.length > 0} aria-controls="buscador-resultados"
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: "var(--text)", fontSize: 16, fontFamily: "inherit" }} />
           <button type="button" onClick={onCerrar} className="kbd-esc" style={{ font: "inherit", fontSize: 11, border: "1px solid var(--border2)", borderRadius: "var(--r-xs)", padding: "1px 6px", background: "none", color: "var(--sub)", cursor: "pointer" }}>Esc</button>
         </div>
 
         <div id="buscador-resultados" role="listbox" ref={listaRef} style={{ overflowY: "auto", paddingBottom: 6 }}>
-          {!texto && <div style={{ padding: "18px 14px", fontSize: 13, color: "var(--muted)" }}>Escribí un apellido, una patente (AB123CD), un DNI, un número de siniestro, una compañía o un PAS.</div>}
+          {!texto && <div style={{ padding: "18px 14px", fontSize: 13, color: "var(--muted)" }}>Escribí un apellido, una patente (AB123CD), un DNI, un número de siniestro, una compañía, un PAS o lo que querés hacer ("plazo", "carta", "novedad").</div>}
           {texto && items.length === 0 && <div style={{ padding: "18px 14px", fontSize: 14, color: "var(--sub)" }}>Nada coincide con “{q.trim()}”.</div>}
+
+          {accionesHalladas.length > 0 && grupo("Herramientas y acciones")}
+          {accionesHalladas.map(a => { i++; return fila(items[i], i, <>
+            <span style={{ flex: "none", width: 28, height: 28, borderRadius: "var(--r-xs)", display: "grid", placeItems: "center", background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent-ink)" }}><Icono nombre={a.icono} size={15} /></span>
+            <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: 14 }}>{a.l}</span>
+            <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{a.d}</span>
+          </>); })}
 
           {casos.length > 0 && grupo("Casos")}
           {casos.map(c => { i++; return fila(items[i], i, <>

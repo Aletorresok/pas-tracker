@@ -3,6 +3,7 @@ import { supabase } from './supabase.js'
 
 // ── IMPORTS: CONTEXTO
 import { useTheme } from "./context/ThemeContext.jsx";
+import { abrirCompania } from "./utils/companiaAbierta.js";
 
 // ── IMPORTS: UTILIDADES
 import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
@@ -50,7 +51,7 @@ export default function App() {
 }
 
 function AppPrincipal() {
-  const { darkMode, T } = useTheme();
+  const { darkMode, toggleDarkMode, T } = useTheme();
 
   const {
     pas, setPas, agregarPas,
@@ -62,12 +63,40 @@ function AppPrincipal() {
     pasManuales, setPasManuales,
     loading,
     reloadAllData,
+    refrescarCasos,
   } = usePASData();
 
   // ── STATE GLOBAL
   const [mainTab, setMainTab] = useState("dashboard");
   const [expedienteAbrir, setExpedienteAbrir] = useState(null); // id a abrir al ir a Expedientes desde Hoy o Rutina
   const abrirExpediente = useCallback(id => { setExpedienteAbrir(id); setMainTab("expedientes"); }, []);
+  // Ctrl+K también lleva a herramientas y acciones (no solo a casos y PAS)
+  const [herramientaAbrir, setHerramientaAbrir] = useState(null); // { k, t }
+  const [pegarNovedad, setPegarNovedad] = useState(0);
+  const accionesBuscador = useMemo(() => {
+    const herramienta = k => () => { setHerramientaAbrir({ k, t: Date.now() }); setMainTab("herramientas"); };
+    const ir = k => () => setMainTab(k);
+    return [
+      { k: "h-plazos", l: "Calculadora de plazos", d: "Herramientas", icono: "calendario", palabras: "plazo vencimiento dias habiles feria", run: herramienta("plazos") },
+      { k: "h-intereses", l: "Intereses y actualización", d: "Herramientas", icono: "calculadora", palabras: "interes tasa activa ipc icl actualizar", run: herramienta("intereses") },
+      { k: "h-carta", l: "Carta documento", d: "Herramientas", icono: "sobre", palabras: "cd intimacion correo", run: herramienta("carta") },
+      { k: "h-pdf", l: "Editor de PDF", d: "Herramientas", icono: "escrito", palabras: "pdf juntar unir comprimir firmar sello rotar", run: herramienta("pdf") },
+      { k: "h-escaner", l: "Escáner", d: "Herramientas", icono: "camara", palabras: "escanear foto hoja", run: herramienta("escaner") },
+      { k: "a-novedad", l: "Pegar novedad judicial", d: "Expedientes", icono: "agregar", palabras: "novedad despacho cedula notificacion pjn mev", run: () => { setMainTab("expedientes"); setPegarNovedad(n => n + 1); } },
+      { k: "a-compania", l: "Nueva compañía", d: "Compañías", icono: "agregar", palabras: "aseguradora agregar", run: () => abrirCompania(null) },
+      { k: "a-oscuro", l: darkMode ? "Modo claro" : "Modo oscuro", d: "Apariencia", icono: darkMode ? "sol" : "luna", palabras: "tema oscuro claro noche", run: toggleDarkMode },
+      { k: "i-hoy", l: "Hoy", d: "Ir a", icono: "inicio", run: ir("dashboard") },
+      { k: "i-casos", l: "Casos PAS", d: "Ir a", icono: "casos", run: ir("casos") },
+      { k: "i-exp", l: "Expedientes", d: "Ir a", icono: "balanza", run: ir("expedientes") },
+      { k: "i-contactos", l: "Contactos", d: "Ir a", icono: "telefono", palabras: "prospeccion", run: ir("prospeccion") },
+      { k: "i-clientes", l: "Clientes", d: "Ir a", icono: "clientes", run: ir("clientes") },
+      { k: "i-cias", l: "Compañías", d: "Ir a", icono: "edificio", run: ir("companias") },
+      { k: "i-finanzas", l: "Finanzas", d: "Ir a · Números", icono: "grafico", palabras: "numeros gastos facturacion caja honorarios", run: ir("finanzas") },
+      { k: "i-analisis", l: "Análisis", d: "Ir a · Números", icono: "grafico", palabras: "numeros estadisticas cobros", run: ir("analisis") },
+      { k: "i-herr", l: "Herramientas", d: "Ir a", icono: "herramientas", run: ir("herramientas") },
+      { k: "i-ajustes", l: "Ajustes", d: "Ir a", icono: "rutina", palabras: "rutina modelos configuracion", run: ir("ajustes") },
+    ];
+  }, [darkMode, toggleDarkMode]);
   const [modalPas, setModalPas] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
   const [buscando, setBuscando] = useState(false);
@@ -181,20 +210,48 @@ function AppPrincipal() {
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
 
-  // Casos nuevos que llegan desde el portal mientras la app está abierta.
-  // Un solo canal por montaje (nombre único): si se recrea con el mismo nombre antes de que el anterior
-  // termine de cerrarse, Supabase tira error y se cae la pantalla.
-  const casoLocalRef = useRef(handleCasoLocal);
-  casoLocalRef.current = handleCasoLocal;
+  // Casos que cambian en otro lado mientras la app está abierta (el portal, el celular u otra pestaña):
+  // altas, cambios y bajas. Un solo canal por montaje (nombre único): si se recrea con el mismo nombre
+  // antes de que el anterior termine de cerrarse, Supabase tira error y se cae la pantalla.
   useEffect(() => {
+    const quitarDeTodos = (prev, id) => {
+      const next = {};
+      Object.entries(prev).forEach(([pid, lista]) => { next[pid] = lista.filter(c => c.id !== id); });
+      return next;
+    };
     const canal = supabase
-      .channel(`admin-pas-casos-nuevos-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pas_casos" }, ({ new: caso }) => {
-        if (caso?.id) casoLocalRef.current(String(caso.pas_id), caso);
+      .channel(`admin-pas-casos-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pas_casos" }, ({ eventType, new: nuevo, old }) => {
+        if (eventType === "DELETE") {
+          if (old?.id) setCasos(prev => quitarDeTodos(prev, old.id));
+          return;
+        }
+        if (!nuevo?.id) return;
+        const { pas_id, ...caso } = nuevo;
+        const pid = String(pas_id);
+        setCasos(prev => {
+          if ((prev[pid] || []).some(c => c.id === caso.id)) // mismo PAS: se actualiza en su lugar
+            return { ...prev, [pid]: prev[pid].map(c => (c.id === caso.id ? { ...c, ...caso } : c)) };
+          const next = quitarDeTodos(prev, caso.id); // nuevo, o cambió de PAS
+          next[pid] = [...(next[pid] || []), caso];
+          return next;
+        });
       })
       .subscribe();
     return () => { supabase.removeChannel(canal); };
-  }, []);
+  }, [setCasos]);
+
+  // Al volver a la pestaña después de 2 minutos o más, se traen los casos de nuevo (por si el tiempo real se cortó)
+  useEffect(() => {
+    let oculta = null;
+    const alCambiar = () => {
+      if (document.hidden) { oculta = Date.now(); return; }
+      if (oculta && Date.now() - oculta > 120000) refrescarCasos();
+      oculta = null;
+    };
+    document.addEventListener("visibilitychange", alCambiar);
+    return () => document.removeEventListener("visibilitychange", alCambiar);
+  }, [refrescarCasos]);
 
   // Saca un caso de memoria (quien llama ya lo borró de Supabase)
   const handleQuitarCaso = useCallback((pasId, id) => {
@@ -205,12 +262,12 @@ function AppPrincipal() {
     });
   }, [setCasos, autoBackup]);
 
-  // Eliminar manda el caso a la papelera (30 días) y muestra "Deshacer". Devuelve true si se eliminó.
+  // Eliminar manda el caso a la papelera (30 días) y muestra "Deshacer": no hace falta preguntar antes.
+  // Devuelve true si se eliminó.
   const [casoEliminado, setCasoEliminado] = useState(null); // { papeleraId, nombre }
   const cerrarAvisoEliminado = useCallback(() => setCasoEliminado(null), []);
   const handleEliminarCaso = useCallback(async (caso, pasId) => {
     const nombre = caso.asegurado || "Sin nombre";
-    if (!window.confirm(`¿Eliminar el caso de ${nombre}?\n\nVa a la papelera: lo podés recuperar durante 30 días.`)) return false;
     const { papeleraId, error } = await deleteCaso(caso.id);
     if (error) { window.alert(error); return false; }
     handleQuitarCaso(String(pasId), caso.id);
@@ -306,18 +363,23 @@ function AppPrincipal() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   }, [historial, casos, derivadores, descartados]);
 
+  // Restaurar pisa los casos actuales con los del archivo: siempre muestra qué trae y pide confirmación
+  const avisar = useCallback((ok, texto) => { setCopiaAviso({ ok, texto }); setTimeout(() => setCopiaAviso(null), 8000); }, []);
   const handleRestore = useCallback(async (file) => {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (data.version === 1) {
-      setHistorial(data.historial || {}); setCasos(data.casos || {}); setDerivadores(data.derivadores || {});
-      setDescartados(data.descartados || {});
-      await Promise.all([
-        saveStorage("pas_historial", data.historial || {}), saveStorage("pas_casos", data.casos || {}),
-        saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_descartados", data.descartados || {}),
-      ]);
-    }
-  }, []);
+    let data;
+    try { data = JSON.parse(await file.text()); } catch { avisar(false, "Ese archivo no es un backup válido."); return; }
+    if (data?.version !== 1 || !data.casos) { avisar(false, "Ese archivo no es un backup de \"Descargar backup\". La copia completa no se restaura desde acá."); return; }
+    const contar = cs => Object.values(cs || {}).reduce((s, l) => s + (Array.isArray(l) ? l.length : 0), 0);
+    const fecha = data.fecha ? new Date(data.fecha).toLocaleDateString("es-AR") : "sin fecha";
+    if (!window.confirm(`¿Restaurar el backup del ${fecha}?\n\nTrae ${contar(data.casos)} casos; hoy tenés ${contar(casos)}. Los casos que estén en los dos quedan como estaban en el backup: se pierde lo que cambiaste después.\n\nAntes de seguir conviene descargar un backup de hoy.`)) return;
+    setHistorial(data.historial || {}); setCasos(data.casos || {}); setDerivadores(data.derivadores || {});
+    setDescartados(data.descartados || {});
+    await Promise.all([
+      saveStorage("pas_historial", data.historial || {}), saveStorage("pas_casos", data.casos || {}),
+      saveStorage("pas_derivadores", data.derivadores || {}), saveStorage("pas_descartados", data.descartados || {}),
+    ]);
+    avisar(true, `Backup del ${fecha} restaurado.`);
+  }, [casos, avisar]);
 
   // ── RENDER
   return (
@@ -338,7 +400,7 @@ function AppPrincipal() {
       <Suspense fallback={null}><EscritosHost /></Suspense>
       <Suspense fallback={null}><CompaniaHost allCasos={allCasos} onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })} /></Suspense>
       <BuscadorGlobal abierto={buscando} onCerrar={() => setBuscando(false)}
-        allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores}
+        allCasos={allCasos} pas={pas} pasManuales={pasManuales} derivadores={derivadores} acciones={accionesBuscador}
         onAbrirCaso={c => setCasoBuscado({ caso: c, pasId: c._pasId })}
         onAbrirCliente={p => { setMainTab("clientes"); setClienteFoco({ id: p.id, nombre: p.nombre, t: Date.now() }); }}
         onContactar={(p, remoto) => { if (remoto) agregarPas(p); setModalPas(p); }} />
@@ -387,9 +449,9 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "finanzas" && <TabFinanzas pas={pas} casos={casos} pasManuales={pasManuales} darkMode={darkMode} onCasoLocal={handleCasoLocal} encabezado={<EncabezadoNumeros actual="finanzas" onIr={setMainTab} />} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "analisis" && <TabAnalisis pas={pas} casos={casos} historial={historial} darkMode={darkMode} pasManuales={pasManuales} onCasoLocal={handleCasoLocal} onIrA={setMainTab} encabezado={<EncabezadoNumeros actual="analisis" onIr={setMainTab} />} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} pegarNovedad={pegarNovedad} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "companias" && <TabCompanias allCasos={allCasos} />}
-          {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} abrir={herramientaAbrir} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onDescartarVarios={handleDescartarVarios} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
           </Suspense>

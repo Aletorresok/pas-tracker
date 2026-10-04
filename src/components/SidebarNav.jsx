@@ -78,7 +78,7 @@ function MenuUtilidades({ autobackupFecha, onBackup, onRestore, onCopiaCompleta,
       <button type="button" onClick={() => { onBackup(); onClose(); }} style={item}><Icono nombre="guardar" size={16} />Descargar backup</button>
       <label style={{ ...item, margin: 0 }}>
         <input type="file" accept=".json" onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestore(f); e.target.value = ""; onClose(); }} style={{ display: "none" }} />
-        <Icono nombre="recargar" size={16} />Restaurar backup
+        <Icono nombre="recargar" size={16} />Restaurar backup…
       </label>
       {autobackupFecha && <div style={{ fontSize: 12, color: T.muted, padding: "2px 12px 8px" }}>Último autoguardado: {new Date(autobackupFecha).toLocaleDateString("es-AR")}</div>}
       <div style={{ borderTop: `1px solid ${T.border}`, margin: "4px 0" }} />

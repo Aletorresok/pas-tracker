@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRutina } from "../../hooks/useRutina.js";
 import { tocaHoy, escuelaDelDia, bloquesDelDia, ahoraToca, hhmm } from "../../utils/rutina.js";
 import { rangoPeriodo } from "../../utils/objetivos.js";
@@ -12,7 +12,8 @@ const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", 
 const link = { background: "none", border: "none", padding: 0, font: "inherit", fontSize: 13, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer", whiteSpace: "nowrap" };
 
 // Mi día (abajo de Hoy): lo que falta de la rutina de hoy en orden de horario, con el bloque de ahora marcado;
-// lo tildado desaparece. Los ítems que se pueden medir (WhatsApp y mails a PAS, reclamos quietos, pedidos de respuesta,
+// lo tildado queda tachado unos segundos en su lugar (para destildarlo si fue sin querer) y después se va;
+// "Ver hechos" lo muestra todo, también lo que se tildó solo. Los ítems que se pueden medir (WhatsApp y mails a PAS, reclamos quietos, pedidos de respuesta,
 // próximas acciones) muestran cómo vienen y se tildan solos al cumplirse. Después, lo de la semana y el mes, y el objetivo del año.
 export default function MiDia({ conteo, allCasos, historial, derivadores = {}, descartados = {}, onIrA }) {
   const { datos, falta, hecho, tildar } = useRutina();
@@ -23,8 +24,8 @@ export default function MiDia({ conteo, allCasos, historial, derivadores = {}, d
     const { bloques } = bloquesDelDia(deHoy("diaria"), escuelaDelDia(datos.escuela));
     const { inicio } = rangoPeriodo("anio");
     const delAnio = datos.objetivos.filter(o => o.periodo === "anio" && o.inicio === inicio);
-    return { bloques, ahora: ahoraToca(bloques), periodicos: [...deHoy("semanal"), ...deHoy("mensual")].filter(it => !hecho(it)), anual: delAnio.find(o => o.metrica) || delAnio[0] || null };
-  }, [datos, hecho]);
+    return { bloques, ahora: ahoraToca(bloques), periodicos: [...deHoy("semanal"), ...deHoy("mensual")], anual: delAnio.find(o => o.metrica) || delAnio[0] || null };
+  }, [datos]);
 
   // Lo que se cumplió solo queda tildado (una vez por ítem y por carga)
   const intentados = useRef(new Set());
@@ -35,6 +36,19 @@ export default function MiDia({ conteo, allCasos, historial, derivadores = {}, d
       if (m?.cumple && !hecho(it) && !intentados.current.has(it.id)) { intentados.current.add(it.id); tildar(it, true); }
     });
   }, [dia, conteo, hecho, tildar]);
+
+  // Lo recién tildado no se mueve: la lista no se corre debajo del mouse mientras tildás varios seguidos
+  const [quietos, setQuietos] = useState(() => new Set());
+  const [verHechos, setVerHechos] = useState(false);
+  const timers = useRef({});
+  useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
+  const tildarAca = (it, valor) => {
+    tildar(it, valor);
+    clearTimeout(timers.current[it.id]);
+    setQuietos(prev => new Set(prev).add(it.id));
+    timers.current[it.id] = setTimeout(() => setQuietos(prev => { const n = new Set(prev); n.delete(it.id); return n; }), 5000);
+  };
+  const seVe = it => verHechos || !hecho(it) || quietos.has(it.id);
 
   const paraRecordar = useMemo(() => Object.entries(historial || {})
     .filter(([id, lista]) => !derivadores[id] && !descartados[id] && recordatorioPendiente(lista)).length, [historial, derivadores, descartados]);
@@ -51,18 +65,20 @@ export default function MiDia({ conteo, allCasos, historial, derivadores = {}, d
 
   const total = dia.bloques.reduce((s, b) => s + b.items.length, 0);
   const listos = dia.bloques.reduce((s, b) => s + b.items.filter(hecho).length, 0);
-  // Una sola lista: lo pendiente de hoy en orden de horario (lo tildado desaparece), y después lo de la semana y el mes
+  const hechosPeriodicos = dia.periodicos.filter(hecho).length;
+  // Una sola lista: lo pendiente de hoy en orden de horario, y después lo de la semana y el mes
   const pendientes = [
-    ...dia.bloques.flatMap(b => b.items.filter(it => !hecho(it)).map(it => ({ it, bloque: b }))),
-    ...dia.periodicos.map(it => ({ it, bloque: null })),
+    ...dia.bloques.flatMap(b => b.items.filter(seVe).map(it => ({ it, bloque: b }))),
+    ...dia.periodicos.filter(seVe).map(it => ({ it, bloque: null })),
   ];
+  const quedan = pendientes.some(({ it }) => !hecho(it));
   const fila = ({ it, bloque }) => {
     const m = estadoMedida(it, conteo);
     const actual = bloque && dia.ahora?.bloque === bloque;
     const cuando = bloque ? [bloque.bloque, hhmm(bloque.hora_inicio)].filter(Boolean).join(" · ") : it.frecuencia === "semanal" ? "Esta semana" : "Este mes";
     return (
       <div key={it.id} style={{ borderTop: "1px solid var(--border)", paddingLeft: 8, marginLeft: -8, borderLeft: actual ? "3px solid var(--accent)" : "3px solid transparent" }}>
-        <FilaItem item={it} hecho={false} onTildar={tildar} onIrA={onIrA}
+        <FilaItem item={it} hecho={hecho(it)} onTildar={tildarAca} onIrA={onIrA}
           extra={[actual ? (dia.ahora.enCurso ? "Ahora" : "Lo próximo") : null, cuando, m?.texto].filter(Boolean).join(" · ")} />
         {m?.progreso && <div style={{ padding: "0 0 8px 28px" }}><BarraMeta etiqueta="Hoy" hecho={m.progreso[0]} meta={m.progreso[1]} /></div>}
         {/^prospecci/i.test(bloque?.bloque || "") && /whats ?app/i.test(it.titulo) && paraRecordar > 0 && (
@@ -79,9 +95,12 @@ export default function MiDia({ conteo, allCasos, historial, derivadores = {}, d
     <section className="panel-vidrio" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "0 4px" }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Mi día <span className="num" style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>{listos} de {total}</span></h2>
-        <button type="button" onClick={() => onIrA?.("ajustes")} style={link}>Editar rutina →</button>
+        <span style={{ display: "flex", gap: 14 }}>
+          {listos + hechosPeriodicos > 0 && <button type="button" onClick={() => setVerHechos(v => !v)} style={link}>{verHechos ? "Ocultar hechos" : `Ver hechos (${listos + hechosPeriodicos})`}</button>}
+          <button type="button" onClick={() => onIrA?.("ajustes")} style={link}>Editar rutina →</button>
+        </span>
       </div>
-      {pendientes.length === 0
+      {!quedan && !verHechos && quietos.size === 0
         ? <div style={{ fontSize: 14, color: "var(--sub)", padding: "6px 4px" }}>Rutina de hoy completa.</div>
         : <div className="lista-scroll" style={{ maxHeight: 360, overflowY: "auto", padding: "0 4px" }}>{pendientes.map(fila)}</div>}
       {dia.anual && (

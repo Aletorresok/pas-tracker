@@ -1,12 +1,24 @@
 import { useMemo, useState } from "react";
-import { useDirectorio, faltantes } from "../utils/companias.js";
+import { useDirectorio, faltantes, textoParaEscrito } from "../utils/companias.js";
 import { abrirCompania } from "../utils/companiaAbierta.js";
 import { esActivo } from "../utils/metricas.js";
-import { itemsCompania } from "../utils/menus.js";
+import { itemsCompania, copiar } from "../utils/menus.js";
 import { propsMenu } from "./ui/MenuContextual.jsx";
 import { useEsCelular } from "../hooks/useEsCelular.js";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
+
+// Botón de copiar que confirma con un tilde un momento
+function Copiar({ texto, etiqueta, children, className = "solo-hover", estilo }) {
+  const [ok, setOk] = useState(false);
+  const click = e => { e.stopPropagation(); copiar(texto); setOk(true); setTimeout(() => setOk(false), 1500); };
+  return (
+    <button type="button" onClick={click} aria-label={etiqueta} title={etiqueta} className={className}
+      style={{ background: "none", border: "none", padding: 3, cursor: "pointer", color: ok ? "var(--ok)" : "var(--accent-ink)", display: "inline-flex", alignItems: "center", gap: 4, flex: "none", borderRadius: "var(--r-xs)", font: "inherit", fontSize: 12, fontWeight: 600, ...estilo }}>
+      <Icono nombre={ok ? "check" : "copiar"} size={14} />{children && (ok ? "Copiado" : children)}
+    </button>
+  );
+}
 
 // Directorio de compañías: una ficha por aseguradora con datos fiscales, domicilios, contactos y condiciones.
 // Lista las que ya tienen ficha y las que aparecen en algún caso aunque todavía no la tengan.
@@ -15,6 +27,7 @@ export default function TabCompanias({ allCasos = [] }) {
   const esCelular = useEsCelular();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("activas"); // abre en las que tienen casos en curso
+  const recortado = { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
 
   const lista = useMemo(() => {
     if (!dir) return [];
@@ -83,7 +96,7 @@ export default function TabCompanias({ allCasos = [] }) {
       </div>
 
       <div className="chips">
-        {FILTROS.map(f => (
+        {FILTROS.filter(f => f.k !== "incompletas" || incompletasActivas > 0 || filtro === f.k).map(f => (
           <button key={f.k} type="button" className="chip" aria-pressed={filtro === f.k} onClick={() => setFiltro(f.k)}>
             {f.l} <b className="num">{lista.filter(f.f).length}</b>
           </button>
@@ -97,30 +110,45 @@ export default function TabCompanias({ allCasos = [] }) {
         <div className="tarjeta" style={{ overflow: "hidden" }}>
           {!esCelular && (
             <div className="fila-cia" style={{ display: "grid", gap: 12, padding: "9px 16px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".03em", color: "var(--muted)" }}>
-              <span>Compañía</span><span>Razón social · CUIT</span><span style={{ textAlign: "right" }}>Casos</span><span className="col-contactos" style={{ textAlign: "right" }}>Contactos</span><span>Ficha</span>
+              <span>Compañía</span><span>Razón social</span><span>CUIT</span><span style={{ textAlign: "right" }}>En curso</span><span style={{ textAlign: "right" }}>Total</span><span>Ficha</span><span className="col-acciones" />
             </div>
           )}
-          {visibles.map((x, i) => (
-            <button key={x.nombre} type="button" className={esCelular ? "fila-caso" : "fila-caso fila-cia"} onClick={() => abrirCompania(x.nombre)}
+          {visibles.map((x, i) => esCelular ? (
+            <button key={x.nombre} type="button" className="fila-caso" onClick={() => abrirCompania(x.nombre)}
               {...propsMenu(() => itemsCompania(x.nombre, x.ficha || {}, x.contactos))}
-              style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : undefined, gap: esCelular ? "3px 10px" : 12, alignItems: "center",
+              style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "3px 10px", alignItems: "center",
                 padding: "12px 16px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit", fontSize: 14 }}>
-              <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.nombre}</span>
-              {esCelular
-                ? <span>{x.falta.length ? <span className="cia-falta">Falta {x.falta[0]}</span> : <span className="cia-ok">Completa</span>}</span>
-                : <span style={{ fontSize: 13, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {x.ficha?.razon_social || <span style={{ color: "var(--muted)" }}>—</span>}{x.ficha?.cuit ? <span className="num" style={{ color: "var(--muted)" }}> · {x.ficha.cuit}</span> : ""}
-                  </span>}
-              <span className="num" style={{ fontSize: 13, color: "var(--sub)", textAlign: esCelular ? "left" : "right" }}>
-                {x.activos ? <b style={{ color: "var(--text)" }}>{x.activos}</b> : "0"} / {x.casos}{esCelular ? " casos en curso · " + x.contactos.length + " contactos" : ""}
+              <span style={{ fontWeight: 600, ...recortado }}>{x.nombre}</span>
+              <span>{x.falta.length ? <span className="cia-falta">Falta {x.falta[0]}</span> : null}</span>
+              <span className="num" style={{ fontSize: 13, color: "var(--sub)" }}>
+                {x.activos ? <b style={{ color: "var(--text)" }}>{x.activos}</b> : "0"} en curso de {x.casos}{x.contactos.length ? ` · ${x.contactos.length} contactos` : ""}
               </span>
-              {!esCelular && <span className="num col-contactos" style={{ fontSize: 13, color: x.contactos.length ? "var(--text)" : "var(--muted)", textAlign: "right" }}>{x.contactos.length}</span>}
-              {!esCelular && <span>{x.falta.length ? <span className="cia-falta" title={`Falta: ${x.falta.join(", ")}`}>Falta {x.falta.length === 1 ? x.falta[0] : `${x.falta.length} datos`}</span> : <span className="cia-ok">Completa</span>}</span>}
             </button>
+          ) : (
+            // Tocar la fila abre la ficha (el nombre es el botón para el teclado); copiar no la abre
+            <div key={x.nombre} className="fila-cia fila-hover" onClick={() => abrirCompania(x.nombre)}
+              {...propsMenu(() => itemsCompania(x.nombre, x.ficha || {}, x.contactos))}
+              style={{ display: "grid", gap: 12, alignItems: "center", padding: "10px 16px", borderTop: i ? "1px solid var(--border)" : "none", cursor: "pointer", fontSize: 14 }}>
+              <button type="button" onClick={e => { e.stopPropagation(); abrirCompania(x.nombre); }}
+                style={{ background: "none", border: "none", padding: 0, font: "inherit", fontWeight: 600, color: "var(--text)", cursor: "pointer", textAlign: "left", minWidth: 0, ...recortado }}>{x.nombre}</button>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0, fontSize: 13, color: "var(--sub)" }}>
+                <span title={x.ficha?.razon_social || undefined} style={recortado}>{x.ficha?.razon_social || ""}</span>
+                {x.ficha?.razon_social && <Copiar texto={x.ficha.razon_social} etiqueta="Copiar razón social" />}
+              </span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
+                {x.ficha?.cuit && <><span style={{ fontFamily: "var(--mono)", fontSize: 13 }}>{x.ficha.cuit}</span><Copiar texto={x.ficha.cuit} etiqueta="Copiar CUIT" /></>}
+              </span>
+              <span className="num" style={{ textAlign: "right", fontWeight: x.activos ? 600 : 400, color: x.activos ? "var(--text)" : "var(--muted)" }}>{x.activos || ""}</span>
+              <span className="num" style={{ textAlign: "right", color: "var(--sub)" }}>{x.casos || ""}</span>
+              <span>{x.falta.length > 0 && <span className="cia-falta" title={`Falta: ${x.falta.join(", ")}`}>Falta {x.falta.length === 1 ? x.falta[0] : `${x.falta.length} datos`}</span>}</span>
+              <span className="col-acciones" style={{ textAlign: "right" }}>
+                {x.ficha?.razon_social && <Copiar texto={textoParaEscrito(x.ficha, x.nombre)} etiqueta="Copiar razón social, CUIT y domicilio para un escrito">Para escrito</Copiar>}
+              </span>
+            </div>
           ))}
         </div>
       )}
-      <div style={{ fontSize: 12, color: "var(--muted)" }}>Tocá una compañía para ver su ficha. Click derecho: copiar razón social o CUIT y mandar mails.</div>
+      <div style={{ fontSize: 12, color: "var(--muted)" }}>Tocá una compañía para ver su ficha. Al pasar el mouse: copiar razón social, CUIT o el bloque para un escrito. Click derecho: más opciones.</div>
     </div>
   );
 }
