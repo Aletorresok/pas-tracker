@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { supabase } from './supabase.js'
 
 // ── IMPORTS: CONTEXTO
@@ -54,7 +54,7 @@ function AppPrincipal() {
   const { darkMode, toggleDarkMode, T } = useTheme();
 
   const {
-    pas, setPas, agregarPas,
+    pas, agregarPas,
     totalContactos,
     historial, setHistorial,
     casos, setCasos,

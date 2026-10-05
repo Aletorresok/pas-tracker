@@ -77,7 +77,7 @@ export default function DialogoEtapa({ caso, nuevo, plazoCompania = null, onConf
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ fontSize: 13, color: "var(--sub)", lineHeight: 1.45 }}>Estaba en {estadoInfo(caso.estado).label}. Estos datos son de etapas posteriores; marcá los que hay que borrar:</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
-              {sobran.map((d, i) => (
+              {sobran.map(d => (
                 <label key={d.campo} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text)", cursor: "pointer" }}>
                   <input type="checkbox" checked={!!borrar[d.campo]}
                     onChange={e => setBorrar(b => ({ ...b, [d.campo]: e.target.checked }))}

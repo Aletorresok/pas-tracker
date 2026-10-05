@@ -132,6 +132,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-05 — Portal: errores de carga visibles y limpieza de variables sin uso
+*   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
+*   Limpieza: imports, props y variables que no se usaban (`App.jsx`, `CasoUnificado.jsx`, `GraficoCompanias`, `CompaniaSelector`, `EstadoSelector`, `DialogoEtapa`, `Toast`, `ModalesCliente`, `estadisticasPas.resumenDelMes`). Sin cambios visibles.
+
 ### 2026-10-04 — Auditoría UX, tandas 2 y 3: cambio de etapa, filtros, compañías, novedades y Ctrl+K
 *   **Casos al día sin recargar:** el canal de tiempo real de `pas_casos` en `App.jsx` ahora escucha altas, cambios y bajas (antes solo altas). Al volver a la pestaña después de 2 min o más se traen los casos de nuevo (`usePASData.refrescarCasos`), por si el tiempo real se cortó.
 *   **Cambio de etapa con sus datos (`caso/DialogoEtapa.jsx`, mismo diálogo en la ficha, la fila desplegada, el tablero y la tabla):** Esperando pago pide fecha de pago y monto acordado (la fecha ajusta `plazo_pago` para que firma + plazo dé esa fecha, que es lo que usa Hoy); Cobrado pide lo que cobró el asegurado y la fecha; Desistido pide el motivo (va en la bitácora: "Pasó de X a Desistido: motivo"). **Volver a una etapa anterior** muestra los datos de etapas posteriores para borrar (fechas tildadas; montos y plazo sin tildar). Lógica en `flujoEstados.js` (`datosQueSobran`, `esRetroceso`, `pideDialogoEtapa`).
