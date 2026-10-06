@@ -132,6 +132,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-06 — Número de factura con sus ceros; facturas 0063 a 0066
+*   `normalizarFactura` (`utils/formatters.js`): al salir del campo de número de factura (ficha del caso, Honorarios, y Finanzas → Facturación, también al apretar "Facturar") completa el formato ARCA: "64" → `0001-00000064`, "1-65" → `0001-00000065`, "0001-0000064" → `0001-00000064`. Lo que no sean solo números queda como está.
+*   Facturas 0063 (Villena), 0064 (Della Giustina), 0065 (Leiva) y 0066 (Guzmán Zulema) con `sql/datos_2026-10-06_carga_facturas_63_66.sql` (la 64 y la 65 estaban cargadas con dígitos de menos; corrido el 06/10).
+*   `sql/datos_2026-10-05_atala_aportes_caja.sql`: expediente MG-3846-2026, aportes a la Caja y escrito del 05/10.
+
 ### 2026-10-04 — Auditoría UX, tandas 2 y 3: cambio de etapa, filtros, compañías, novedades y Ctrl+K
 *   **Casos al día sin recargar:** el canal de tiempo real de `pas_casos` en `App.jsx` ahora escucha altas, cambios y bajas (antes solo altas). Al volver a la pestaña después de 2 min o más se traen los casos de nuevo (`usePASData.refrescarCasos`), por si el tiempo real se cortó.
 *   **Cambio de etapa con sus datos (`caso/DialogoEtapa.jsx`, mismo diálogo en la ficha, la fila desplegada, el tablero y la tabla):** Esperando pago pide fecha de pago y monto acordado (la fecha ajusta `plazo_pago` para que firma + plazo dé esa fecha, que es lo que usa Hoy); Cobrado pide lo que cobró el asegurado y la fecha; Desistido pide el motivo (va en la bitácora: "Pasó de X a Desistido: motivo"). **Volver a una etapa anterior** muestra los datos de etapas posteriores para borrar (fechas tildadas; montos y plazo sin tildar). Lógica en `flujoEstados.js` (`datosQueSobran`, `esRetroceso`, `pideDialogoEtapa`).
