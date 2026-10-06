@@ -1,4 +1,4 @@
-import { diasDesde } from "../../utils/formatters.js";
+import { diasDesde, normalizarFactura } from "../../utils/formatters.js";
 import { estadoHonorarios } from "../../utils/metricas.js";
 
 // Factura de tus honorarios. El monto es "Mis honorarios" (Montos) y el cobro se tilda en Pagos;
@@ -26,7 +26,9 @@ export default function SeccionHonorarios({ formData, onChange, Th }) {
         {"nro_factura" in formData
           ? <label>
               <span style={labelStyle}>Número de factura</span>
-              <input value={formData.nro_factura || ""} onChange={e => onChange("nro_factura", e.target.value)} placeholder="Ej: 0001-00000123" style={Th.input} />
+              <input value={formData.nro_factura || ""} onChange={e => onChange("nro_factura", e.target.value)}
+                onBlur={e => { const n = normalizarFactura(e.target.value); if (n !== e.target.value) onChange("nro_factura", n); }}
+                placeholder="Ej: 123 o 0001-00000123" style={Th.input} />
             </label>
           : <span style={{ fontSize: 12, color: Th.muted, alignSelf: "end" }}>Para cargar el número de factura falta correr el SQL 28.</span>}
       </div>

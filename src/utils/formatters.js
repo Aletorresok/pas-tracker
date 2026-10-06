@@ -96,6 +96,16 @@ export function sumarDias(iso, dias) {
   return d.toISOString().slice(0, 10);
 }
 
+// ── FACTURAS ──────────────────────────────────────────────────────────────────────
+// Número de factura de ARCA con sus ceros: "64" → "0001-00000064", "1-65" → "0001-00000065".
+// Si no son solo números (con o sin punto de venta), lo deja como está.
+export function normalizarFactura(str) {
+  const s = String(str || "").trim();
+  const m = s.match(/^(?:(\d{1,5})\s*[-/ ]\s*)?(\d{1,8})$/);
+  if (!m) return s;
+  return `${(m[1] || "1").padStart(4, "0")}-${m[2].padStart(8, "0")}`;
+}
+
 // ── ARCHIVOS ──────────────────────────────────────────────────────────────────────
 export function getExtension(nombre) {
   const parts = nombre.split(".");

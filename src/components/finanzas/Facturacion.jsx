@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fmtMoney, fmtDate, fechaLocalISO, diasDesde } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, fechaLocalISO, diasDesde, normalizarFactura } from "../../utils/formatters.js";
 import { facturacion, guardarFactura, gastosPorCaso } from "../../utils/finanzas.js";
 import Boton from "../ui/Boton.jsx";
 
@@ -19,7 +19,7 @@ export default function Facturacion({ allCasos, gastos, conNumero, onCasoLocal, 
   const cambiar = (c, k, v) => setBorradores(b => ({ ...b, [c.id]: { ...borrador(c), [k]: v } }));
 
   const facturar = async c => {
-    const b = borrador(c);
+    const b0 = borrador(c), b = { ...b0, nro_factura: normalizarFactura(b0.nro_factura) };
     if (!b.fecha_factura) return setToast({ msg: "Poné la fecha de la factura", type: "error" });
     setGuardando(c.id);
     const cambios = await guardarFactura(c, conNumero ? b : { fecha_factura: b.fecha_factura });
@@ -58,7 +58,7 @@ export default function Facturacion({ allCasos, gastos, conNumero, onCasoLocal, 
             <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
               <span style={{ flex: "1 1 180px", minWidth: 0 }}>{nombre(c)}</span>
               <b className="num" style={{ fontSize: 14 }}>{fmtMoney(num(c.monto_cobro_yo))}</b>
-              {conNumero && <input value={b.nro_factura} onChange={e => cambiar(c, "nro_factura", e.target.value)} placeholder="N° de factura" aria-label={`Número de factura de ${c.asegurado}`} style={{ ...campo, width: 140 }} />}
+              {conNumero && <input value={b.nro_factura} onChange={e => cambiar(c, "nro_factura", e.target.value)} onBlur={e => cambiar(c, "nro_factura", normalizarFactura(e.target.value))} placeholder="N° de factura" aria-label={`Número de factura de ${c.asegurado}`} style={{ ...campo, width: 140 }} />}
               <input type="date" value={b.fecha_factura} onChange={e => cambiar(c, "fecha_factura", e.target.value)} aria-label={`Fecha de factura de ${c.asegurado}`} style={{ ...campo, width: 140 }} />
               <Boton tamaño="sm" onClick={() => facturar(c)} disabled={guardando === c.id}>{guardando === c.id ? "Guardando…" : "Facturar"}</Boton>
             </div>
