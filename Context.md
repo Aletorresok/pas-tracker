@@ -135,7 +135,7 @@
 ### 2026-10-07 — Confirmaciones del usuario y video para PAS
 *   Confirmado en producción: mails de EmailJS, funciones `notificar` y `calendario` desplegadas, y lo pendiente de probar en uso real (PR #74, carpeta vinculada, derivación desde el portal).
 *   Video de presentación para PAS (49 s, vertical, sin voz): grabado sobre `/portal/demo` con el guion de 8 partes (gancho, propuesta, derivar, seguir, mensaje para el cliente, plazos por compañía, costo, cierre con `atglex.com.ar/portal/demo`). No está en el repo.
-*   Biblioteca: el relevamiento está en la rama `biblioteca-relevamiento` (`docs/biblioteca/`: 76 fallos, 19 doctrina, 20 normas, 13 a revisar; tema nuevo "suma asegurada"). Segunda tanda pedida a Cowork.
+*   Biblioteca: el relevamiento está en la rama `biblioteca-relevamiento` (`docs/biblioteca/`: 76 fallos, 19 doctrina, 20 normas, 13 a revisar; tema nuevo "suma asegurada"). Pedido de la segunda tanda armado para Cowork (07/10).
 
 ### 2026-10-07 — Ofertas: ¿conviene aceptar?
 *   **Ficha → Montos → Ofertas de la compañía** (`caso/ReferenciaOferta.jsx`): si el último ofrecimiento está sin responder o con contraoferta, debajo de la lista aparece una referencia que lo compara con lo que **esa compañía cerró** en los otros casos del estudio: lo cobrado por el asegurado o, si todavía no cobró, lo acordado, en % de la base del reclamo (mediana).
