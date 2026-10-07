@@ -86,8 +86,13 @@
 - Consumidor: Torres Gaveglio c/ BNA · Sanchez Guillermo c/ Telecom.
 - Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
 
+**Captación directa (07/10):**
+- [ ] Correr el SQL 47 (`sql/2026-10-07_47_consultas_web.sql`). Sin él, la página /reclamo muestra error al enviar y no muestra plazos.
+- [ ] Probar /reclamo en el celular con una consulta real y ver que llegue el mail y aparezca en Hoy.
+- Ideas que siguen (propuesta del 07/10): 2C link personal para que el cliente recomiende (`?ref=`), 2D pedido de reseña en Google al cobrar, 2E bandeja con historial de consultas.
+
 **Biblioteca (07/10):**
-- [ ] Correr en Supabase el SQL 46 (`sql/2026-10-07_46_biblioteca.sql`) y después, en orden, `datos_2026-10-07_biblioteca_1.sql`, `_2` y `_3` (99 fallos, 32 doctrina, 23 normas). Se pueden volver a correr sin duplicar.
+- [x] ✅ SQL 46 y las tres cargas corridos el 07/10 (99 fallos, 32 doctrina, 23 normas).
 - Pendientes del relevamiento (`docs/biblioteca/README.md`, "Huecos que siguen"): plenario Samudio, Vuoto y Méndez de origen, prescripción trienal del tercero como tema central, desvalorización a favor en la CNCiv.
 - Ideas que siguen (propuesta visual del 07/10): 1B "Fallos útiles" en la ficha del caso con "Citar" en el escrito; 1C pegar un link de SAIJ/JUBA y armar la ficha.
 
@@ -137,6 +142,14 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-07 — Captación directa: página pública /reclamo y consultas en Hoy (SQL 47)
+*   **`/reclamo`** (`publico/PaginaReclamo.jsx`, ruta en `main.jsx`, sin cuenta): "¿Chocaste y no fue tu culpa?", cómo funciona en 3 pasos, **"¿Cuánto tarda tu compañía?"** con medianas reales (función `plazos_publicos`: solo compañías con 3 casos o más, sin datos de casos puntuales), formulario corto (nombre, WhatsApp, patente, fecha, compañía del otro auto, lesionados, qué pasó), agradecimiento con "Mandar fotos por WhatsApp" y preguntas frecuentes para el cliente. Acepta `?ref=origen` (ej. `/reclamo?ref=instagram`) y lo guarda con la consulta.
+*   **SQL 47** (`sql/2026-10-07_47_consultas_web.sql`): tabla `consultas` (RLS solo administrador; entra en la copia de seguridad), `nueva_consulta()` para la página (valida nombre y teléfono; freno: 3 por día por teléfono y 40 por hora en total) y `plazos_publicos()`.
+*   **Aviso por mail** con la plantilla de derivaciones de EmailJS (`utils/consultas.js`).
+*   **Sin referencias a costos** (07/10, pedido del usuario: adaptarse al Código de Ética): se sacó "en la etapa administrativa no te cuesta nada" y la pregunta "¿Cuánto me cuesta?" de /reclamo, y "¿Cuánto le cuesta a mi cliente?" de la demo del portal. Regla en `CLAUDE.md`.
+*   **Hoy → "Consultas de la web"** (`dashboard/ConsultasWeb.jsx`): WhatsApp con mensaje armado (la marca como contactada), **Pasar a caso** (caso directo en el PAS "Sin Pas", en Documentación pendiente, con la nota de lo que contó; abre la ficha) y Descartar. Se recarga al volver a la pestaña.
+*   Probado: SQL 47 en Postgres 16 dos veces (medianas, umbral de 3 casos, desistidos afuera, validación y freno); la página y la tarjeta en Chromium con Supabase simulado (celular y compu, claro y oscuro, envío con error y con éxito, pasar a caso), sin errores ni desbordes.
 
 ### 2026-10-07 — Biblioteca: jurisprudencia, doctrina y normas (SQL 46)
 *   **Pestaña nueva Biblioteca** (menú lateral, entre Compañías y Herramientas; en celular, en "Más"). Ver `TabBiblioteca.jsx` en la estructura.
@@ -191,7 +204,7 @@
 *   **Restaurar backup** pide confirmación mostrando fecha, cuántos casos trae y cuántos hay hoy; avisa si el archivo no es un backup válido o es una copia completa.
 
 ### 2026-10-03 — Demo del portal: preguntas frecuentes; estadísticas solo de compañías con datos; mensajes sin comisión
-*   **Preguntas frecuentes** al final de `/portal/demo` (`portal/PreguntasDemo.jsx`, desplegables + "Quiero mi acceso"): qué casos toman (todo reclamo al tercero, lesiones incluidas, e incumplimientos de la propia compañía), cuánto le cuesta al cliente (administrativa nada; mediación, su costo; juicio, gastos y un % de la indemnización), qué hace el PAS, cuánto tarda, qué pasa si ofrecen poco, zona (CABA y Provincia de Buenos Aires) y cómo pedir el acceso. Sin mención a comisión.
+*   **Preguntas frecuentes** al final de `/portal/demo` (`portal/PreguntasDemo.jsx`, desplegables + "Quiero mi acceso"): qué casos toman (todo reclamo al tercero, lesiones incluidas, e incumplimientos de la propia compañía), qué hace el PAS, cuánto tarda, qué pasa si ofrecen poco, zona (CABA y Provincia de Buenos Aires) y cómo pedir el acceso. Sin mención a comisión.
 *   **Estadísticas por compañía**: solo aparecen las compañías con algún dato; un reclamo iniciado que todavía espera el ofrecimiento ya alcanza. Esos reclamos se muestran en "Días hasta ofrecimiento" ("Hay reclamos esperando hace N días"; si ninguno fue respondido, "+N días"). En el portal, la nota técnica se reemplaza por una para el PAS.
 *   **Mail de presentación y recordatorio a PAS** (`utils/mensajes.js`): sin la oferta de comisión y sin "sin llamarme" (el PAS sigue el caso desde el portal o escribe).
 *   **Portal (real y demo)**: la tarjeta del caso dice "Mensaje para tu cliente" (antes "Mensaje del estudio": es el texto que el PAS le reenvía al cliente); las pestañas Cobrados y Desistidos no aparecen si están vacías; "Próximos cobros" muestra lo que cobra el cliente (acordado o último ofrecimiento) y, si hay, la comisión debajo.

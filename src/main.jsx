@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { lazy, Suspense } from 'react'
 const Portal = lazy(() => import('./Portal.jsx'))
+const PaginaReclamo = lazy(() => import('./components/publico/PaginaReclamo.jsx')) // página pública para quien no es cliente
 import { MenuHost } from './components/ui/MenuContextual.jsx'
 import AtrapaErrores from './components/ui/AtrapaErrores.jsx'
 
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <Routes>
             <Route path="/portal/*" element={<Suspense fallback={null}><Portal /></Suspense>} />
+            <Route path="/reclamo" element={<Suspense fallback={null}><PaginaReclamo /></Suspense>} />
             <Route path="/*" element={<App />} />
           </Routes>
         </BrowserRouter>
