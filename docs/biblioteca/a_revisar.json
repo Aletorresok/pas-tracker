@@ -1,0 +1,68 @@
+[
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Samudio de Martínez, Ladislaa c/ Transportes Doscientos Setenta S.A. s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil, en pleno",
+    "fecha": "2009-04-20",
+    "temas": [
+      "intereses"
+    ],
+    "lo_que_sabemos": "Plenario que fijó la tasa activa del Banco Nación para los intereses moratorios; lo citan como vigente varios fallos de la lista (por ejemplo, Paz c/ Transporte Don Horacio y Egan c/ Forciniti). La fecha es la que se cita habitualmente.",
+    "motivo": "Segunda tanda: se buscó de nuevo en SAIJ, en la base de la Secretaría de Jurisprudencia de la CSJN (que incluye fallos de la CNCiv) y en la web, sin encontrar el texto del plenario en una fuente oficial. Lo citan como vigente muchos fallos verificados (Paz, Egan, entre otros)."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Rossi, Adhemar José c/ Vertedor, José Luis y otro - Pcia. de Buenos Aires s/ daños y perjuicios",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "fecha": "1992-08-13",
+    "temas": [
+      "desvalorización"
+    ],
+    "lo_que_sabemos": "Fallos 315:1619. Citado en Lomsicar c/ Transporte Larrazabal (CNCom D, 2020) para sostener que solo el propietario puede reclamar la desvalorización venal.",
+    "motivo": "La búsqueda por autos en la base de la CSJN no devolvió resultados (el fallo es de 1992 y puede no estar digitalizado con esa carátula). Solo se verificó la cita en Lomsicar (CNCom D, 2020)."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Vuoto, Dalmero Santos y otro c/ AEG Telefunken Argentina S.A.",
+    "tribunal": "Cámara Nacional de Apelaciones del Trabajo, Sala III (según se cita habitualmente)",
+    "fecha": "1978-06-16",
+    "temas": [
+      "incapacidad"
+    ],
+    "lo_que_sabemos": "Origen de la llamada fórmula \"Vuoto\" de cálculo de incapacidad (valor presente de una renta). Datos según la cita habitual; no se verificaron.",
+    "motivo": "Segunda tanda: no está en la base de la CSJN ni en SAIJ (solo aparecen sumarios de otros tribunales que lo citan). El PJN no publica fallos de la CNAT de 1978. Sigue sin fuente oficial."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Méndez, Alejandro Daniel c/ Mylba S.A. y otro s/ accidente",
+    "tribunal": "Cámara Nacional de Apelaciones del Trabajo, Sala III (según se cita habitualmente)",
+    "fecha": "2008-04-28",
+    "temas": [
+      "incapacidad"
+    ],
+    "lo_que_sabemos": "Origen de la fórmula \"Méndez\". En la base de la CSJN figura un recurso de queja en la misma causa (\"Mendez Alejandro Daniel c/ Milba S.A. y otro y otro s/ accidente\", M. 758. XLIV. RHE, 27/05/2009, idDocumento 6669121), lo que confirma la carátula, pero no el fallo de la Sala III.",
+    "motivo": "No se encontró la sentencia de la CNAT Sala III en una fuente oficial; en SAIJ solo hay sumarios de otros tribunales que la citan."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Fórmula \"Acuña\" (precedente de origen sin identificar)",
+    "tribunal": null,
+    "fecha": null,
+    "temas": [
+      "incapacidad"
+    ],
+    "lo_que_sabemos": "Se menciona en la práctica como otra fórmula de cálculo de incapacidad. En el relevamiento solo apareció la fórmula de Acciarri, que usa la CC0201 de La Plata (Zaglio c/ Godoy, 2025).",
+    "motivo": "No se pudo identificar el fallo de origen en fuentes públicas. Hay que confirmar a qué precedente se refiere el estudio con \"Acuña\" antes de cargarlo."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Almada, Marcela Patricia c/ Silvestre, Leandro Ariel y otro s/ daños y perjuicios",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Quilmes, Sala II (código JUBA CC0002 QL)",
+    "fecha": "2017-06-26",
+    "temas": [
+      "desvalorización"
+    ],
+    "lo_que_sabemos": "Sumario JUBA B2953232: no hace falta reparar el vehículo para reclamar la desvalorización, porque no se le puede exigir al damnificado que adelante el costo. Sería el único fallo reciente del lote claramente a favor en desvalorización.",
+    "motivo": "Segunda tanda: se volvió a buscar por carátula en JUBA y sigue sin texto completo (sin idFallo). Mientras tanto se sumaron otros cinco fallos a favor en desvalorización."
+  }
+]

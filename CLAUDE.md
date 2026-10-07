@@ -65,6 +65,7 @@ src/
 - `acciones` — Timeline de acciones por caso
 - `pas_companias` — Ficha única de cada compañía (clave = nombre corto de `compania_aseguradora`): razón social, CUIT, domicilio (`domicilio`, `cp`, `localidad`, `provincia`; es el legal y el de notificar; las columnas `legal_*` se borraron en el SQL 40), notas, mail/teléfono general, honorarios %, plazo de pago
 - `pas_compania_contactos` — Contactos por compañía (siniestros, estudio gestor, analista, mediación, facturación)
+- `biblioteca` — Jurisprudencia, doctrina y normas (SQL 46); el relevamiento verificado vive en `docs/biblioteca/` y se carga con `generar_sql.py`
 
 Los datos de una compañía se leen siempre del directorio (`utils/companias.js`: `useDirectorio`, `fichaDe`, `nombreLegal`, `domicilioDe`) y la ficha se abre desde cualquier lado con `abrirCompania(nombre)`.
 

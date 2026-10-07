@@ -14,6 +14,7 @@ const TABS = [
   { k: "clientes", l: "Clientes", icon: "clientes" },
   { k: "companias", l: "Compañías", icon: "edificio" },
   { k: "finanzas", l: "Números", icon: "grafico", tambien: ["analisis"] }, // Finanzas + Análisis
+  { k: "biblioteca", l: "Biblioteca", icon: "libro" },
   { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];
 

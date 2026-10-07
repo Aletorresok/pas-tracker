@@ -32,6 +32,7 @@ const TabAjustes = lazy(() => import('./components/TabAjustes.jsx'))
 const TabFinanzas = lazy(() => import('./components/TabFinanzas.jsx'))
 const TabHerramientas = lazy(() => import('./components/TabHerramientas.jsx'))
 const TabCompanias = lazy(() => import('./components/TabCompanias.jsx'))
+const TabBiblioteca = lazy(() => import('./components/TabBiblioteca.jsx'))
 const CompaniaHost = lazy(() => import('./components/companias/FichaCompania.jsx').then(m => ({ default: m.CompaniaHost })))
 const EscritosHost = lazy(() => import('./components/escritos/ModalEscritos.jsx').then(m => ({ default: m.EscritosHost })))
 import BuscadorGlobal from './components/BuscadorGlobal.jsx'
@@ -73,6 +74,7 @@ function AppPrincipal() {
   // Ctrl+K también lleva a herramientas y acciones (no solo a casos y PAS)
   const [herramientaAbrir, setHerramientaAbrir] = useState(null); // { k, t }
   const [pegarNovedad, setPegarNovedad] = useState(0);
+  const [cargarBiblioteca, setCargarBiblioteca] = useState(0);
   const accionesBuscador = useMemo(() => {
     const herramienta = k => () => { setHerramientaAbrir({ k, t: Date.now() }); setMainTab("herramientas"); };
     const ir = k => () => setMainTab(k);
@@ -83,6 +85,7 @@ function AppPrincipal() {
       { k: "h-pdf", l: "Editor de PDF", d: "Herramientas", icono: "escrito", palabras: "pdf juntar unir comprimir firmar sello rotar", run: herramienta("pdf") },
       { k: "h-escaner", l: "Escáner", d: "Herramientas", icono: "camara", palabras: "escanear foto hoja", run: herramienta("escaner") },
       { k: "a-novedad", l: "Pegar novedad judicial", d: "Expedientes", icono: "agregar", palabras: "novedad despacho cedula notificacion pjn mev", run: () => { setMainTab("expedientes"); setPegarNovedad(n => n + 1); } },
+      { k: "a-biblioteca", l: "Cargar fallo, doctrina o norma", d: "Biblioteca", icono: "agregar", palabras: "jurisprudencia fallo doctrina norma cita", run: () => { setMainTab("biblioteca"); setCargarBiblioteca(n => n + 1); } },
       { k: "a-compania", l: "Nueva compañía", d: "Compañías", icono: "agregar", palabras: "aseguradora agregar", run: () => abrirCompania(null) },
       { k: "a-oscuro", l: darkMode ? "Modo claro" : "Modo oscuro", d: "Apariencia", icono: darkMode ? "sol" : "luna", palabras: "tema oscuro claro noche", run: toggleDarkMode },
       { k: "i-hoy", l: "Hoy", d: "Ir a", icono: "inicio", run: ir("dashboard") },
@@ -93,6 +96,7 @@ function AppPrincipal() {
       { k: "i-cias", l: "Compañías", d: "Ir a", icono: "edificio", run: ir("companias") },
       { k: "i-finanzas", l: "Finanzas", d: "Ir a · Números", icono: "grafico", palabras: "numeros gastos facturacion caja honorarios", run: ir("finanzas") },
       { k: "i-analisis", l: "Análisis", d: "Ir a · Números", icono: "grafico", palabras: "numeros estadisticas cobros", run: ir("analisis") },
+      { k: "i-biblioteca", l: "Biblioteca", d: "Ir a", icono: "libro", palabras: "jurisprudencia fallos doctrina normas citas", run: ir("biblioteca") },
       { k: "i-herr", l: "Herramientas", d: "Ir a", icono: "herramientas", run: ir("herramientas") },
       { k: "i-ajustes", l: "Ajustes", d: "Ir a", icono: "rutina", palabras: "rutina modelos configuracion", run: ir("ajustes") },
     ];
@@ -451,6 +455,7 @@ function AppPrincipal() {
           {!appLoading && !loading && totalContactos > 0 && mainTab === "casos" && <TabCasos pas={pas} casos={casos} onEliminarCaso={handleEliminarCaso} onRestaurarCaso={handleRestaurarCaso} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "expedientes" && <TabExpedientes abrirId={expedienteAbrir} onAbierto={() => setExpedienteAbrir(null)} pegarNovedad={pegarNovedad} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "companias" && <TabCompanias allCasos={allCasos} />}
+          {!appLoading && !loading && totalContactos > 0 && mainTab === "biblioteca" && <TabBiblioteca cargarNuevo={cargarBiblioteca} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "herramientas" && <TabHerramientas casos={casos} todosLosPas={todosLosPas} abrir={herramientaAbrir} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "prospeccion" && <TabProspeccion pas={pas} historial={historial} derivadores={derivadores} descartados={descartados} darkMode={darkMode} onContactar={setModalPas} onToggleDerivador={handleToggleDerivador} onToggleDescartado={handleToggleDescartado} onDescartarVarios={handleDescartarVarios} onAgregarPas={agregarPas} onMailEnviado={handleMailEnviado} onRecordatorio={handleRecordatorio} mailsHoy={mailsHoy} />}
           {!appLoading && !loading && totalContactos > 0 && mainTab === "clientes" && <TabClientes foco={clienteFoco} pas={pas} casos={casos} derivadores={derivadores} onCasoLocal={handleCasoLocal} darkMode={darkMode} pasManuales={pasManuales} onAddPasManual={handleAddPasManual} />}
