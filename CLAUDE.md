@@ -96,6 +96,7 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 ## Convenciones
 
 - Archivos JSX en español (nombres de variables, funciones, comentarios)
+- Textos públicos (página /reclamo, vista del cliente, portal y demo del PAS, mensajes y videos): **sin referencias a costos, honorarios ni gratuidad** y adaptados al Código de Ética de la abogacía (sin prometer resultados).
 - Colores: tokens en `src/index.css`; temas por `data-theme` (claro/oscuro) y `data-accent` (dorado/marino/borgona/grafito) en `<html>`
 - Componentes base en `src/components/ui/` (Icono, Boton, EstadoPill, BarraAvance). Sin emojis en la interfaz.
 - Modo oscuro y acento en `ThemeContext` (sigue al sistema si el usuario no eligió)

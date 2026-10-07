@@ -18,7 +18,6 @@ const PASOS = [
 
 const PREGUNTAS = [
   ["¿Qué reclamos toman?", "El reclamo a la compañía del otro vehículo cuando no tuviste la culpa: los daños del auto o la moto y también las lesiones. Además, los incumplimientos de tu propia compañía de seguros."],
-  ["¿Cuánto me cuesta?", "En la etapa administrativa (el reclamo ante la compañía), nada. Si hay que ir a mediación, solo el costo de la mediación. Si hay juicio, los gastos judiciales y un porcentaje de la indemnización."],
   ["¿Qué necesito?", "Fotos de los daños, la denuncia del siniestro, tu DNI, la cédula del vehículo y, si los tenés, los datos del otro auto. Si te falta algo, te ayudamos a conseguirlo."],
   ["¿Cuánto tarda?", "Depende de la compañía. Más arriba ves cuántos días suele tardar cada una en ofrecer y en pagar, con los casos del estudio."],
   ["¿Qué pasa si ofrecen poco?", "Se negocia y, si no mejora, se va a mediación o a juicio. Nunca se acepta una oferta sin consultarte."],
@@ -97,7 +96,7 @@ export default function PaginaReclamo() {
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px 40px", display: "flex", flexDirection: "column", gap: 18 }}>
         <section style={{ display: "flex", flexDirection: "column", gap: 14, padding: "8px 4px" }}>
           <h1 style={{ margin: 0, fontSize: 34, lineHeight: 1.12, letterSpacing: -0.6 }}>¿Chocaste y no fue tu culpa?</h1>
-          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.5, color: "var(--sub)" }}>Le reclamamos a la compañía del otro vehículo: los daños y también las lesiones. <b style={{ color: "var(--text)" }}>En la etapa administrativa no te cuesta nada.</b></p>
+          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.5, color: "var(--sub)" }}>Le reclamamos a la compañía del otro vehículo los daños y también las lesiones, y te contamos cada paso del reclamo.</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Boton variante="primario" onClick={irAlFormulario}>Quiero que me llamen</Boton>
             <BotonWA />

@@ -6,8 +6,6 @@ import { TEXTO_ACCESO } from "./demoPortal.js";
 const PREGUNTAS = [
   ["¿Qué casos toman?",
     "Todo reclamo de tu cliente a la compañía del tercero: daños del vehículo y también lesiones. Además, los incumplimientos de la propia compañía de tu cliente."],
-  ["¿Cuánto le cuesta a mi cliente?",
-    "En la instancia administrativa, nada. Si hay que ir a mediación, solo el costo de la mediación. Si hay juicio, los gastos judiciales y un porcentaje de la indemnización."],
   ["¿Qué tengo que hacer yo?",
     "Derivar el caso desde el portal con el botón \"Derivar caso\". Del resto nos encargamos nosotros. Vos seguís cómo avanza desde acá o nos escribís cuando quieras."],
   ["¿Cuánto tarda?",
