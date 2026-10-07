@@ -103,7 +103,7 @@
   - [x] ✅ `notificar` y `calendario` desplegadas (07/10). El link del calendario se genera en **Ajustes → Calendario** (se mudó de Herramientas en el PR #88).
   - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
 - [x] ✅ Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (07/10, Ficha → Montos → Ofertas).
-- [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones; etapa 8 (migración y baja de Agenda Legal) pendiente.
+- [x] ✅ Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09. Etapa 8 **descartada el 07/10**: no se migra nada de Agenda Legal (el usuario ya tiene lo que necesita); queda fuera de uso.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
 **Para probar en uso real:** ✅ probado por el usuario el 07/10 (carpeta vinculada, derivación desde el portal y mail único).
@@ -131,6 +131,10 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-07 — Agenda Legal descartada
+*   No se migra nada de Agenda Legal (repo `Aletorresok/CalendarioLegal`, Supabase propio): el usuario ya tiene lo que necesita en ATG Lex. Queda sin uso; apagarla (cron de mail en Vercel, archivar el repo, pausar su proyecto de Supabase) lo hace el usuario cuando quiera.
+*   `README.md`: fuera las referencias a la sincronización con AgendaLegal (`sync.js` ya no existía).
 
 ### 2026-10-07 — Confirmaciones del usuario y video para PAS
 *   Confirmado en producción: mails de EmailJS, funciones `notificar` y `calendario` desplegadas, y lo pendiente de probar en uso real (PR #74, carpeta vinculada, derivación desde el portal).
