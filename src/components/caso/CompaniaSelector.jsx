@@ -36,7 +36,7 @@ export function useCompanias(casos) {
   return { companias: todas, agregarCompania: agregar };
 }
 
-export default function CompaniaSelector({ value, onChange, companias, onAgregar, darkMode }) {
+export default function CompaniaSelector({ value, onChange, companias, onAgregar }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);

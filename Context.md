@@ -132,6 +132,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-05 — Portal: errores de carga visibles y limpieza de variables sin uso
+*   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
+*   Limpieza: imports, props y variables que no se usaban (`App.jsx`, `CasoUnificado.jsx`, `GraficoCompanias`, `CompaniaSelector`, `EstadoSelector`, `DialogoEtapa`, `Toast`, `ModalesCliente`, `estadisticasPas.resumenDelMes`). Sin cambios visibles.
+
 ### 2026-10-05 — jsPDF 2.5.2 → 4.2.1 (seguridad)
 *   `npm audit` marcaba jsPDF como **crítico** (y DOMPurify, que viene con jsPDF, como moderado). Se actualizó a 4.2.1; con eso desaparecen los dos avisos.
 *   Probado generando con las dos versiones la carta documento, el escrito con membrete, el PDF del caso y `generarEscrito`: salen **idénticos** (sin contar la fecha de creación). También se generó en el navegador con el servidor de desarrollo.

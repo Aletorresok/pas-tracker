@@ -76,7 +76,7 @@ const COMO_VA = {
   esperando_pago: "hay acuerdo, esperamos el pago",
 };
 
-export function resumenDelMes(pas, casos, { anio, mes }, hoy = new Date()) {
+export function resumenDelMes(pas, casos, { anio, mes }) {
   const clave = `${anio}-${String(mes + 1).padStart(2, "0")}`;
   const enMes = v => aISO(v).startsWith(clave);
   const nombre = c => c.asegurado || "Sin nombre";
