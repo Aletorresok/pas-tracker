@@ -1,352 +1,108 @@
 [
   {
     "tipo": "jurisprudencia",
-    "caratula": "Obarrio, María Pía c/ Microómnibus Norte S.A. s/ daños y perjuicios y Gauna, Agustín c/ La Economía Comercial S.A. de Seguros Generales y otro s/ daños y perjuicios (plenario)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil (en pleno)",
-    "fecha_probable": "2006-12-13",
+    "caratula": "Samudio de Martínez, Ladislaa c/ Transportes Doscientos Setenta S.A. s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil, en pleno",
+    "fecha": "2009-04-20",
+    "temas": ["intereses"],
+    "lo_que_sabemos": "Plenario que fijó la tasa activa del Banco Nación para los intereses moratorios; lo citan como vigente varios fallos de la lista (por ejemplo, Paz c/ Transporte Don Horacio y Egan c/ Forciniti). La fecha es la que se cita habitualmente.",
+    "motivo": "No se encontró el texto del plenario en SAIJ ni en la base de la Secretaría de Jurisprudencia de la CSJN (que incluye fallos de la CNCiv). Falta un link oficial con carátula, tribunal y fecha."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Vera, Juan Carlos c/ Provincia de Buenos Aires s/ daños y perjuicios (C. 120.536)",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "fecha": "2018-04-18",
+    "temas": ["intereses"],
+    "lo_que_sabemos": "Citado en el sumario B259764 de JUBA (Rutigliano, CC0201 LP, 16/7/2026) junto con \"Nidera\" (C. 121.134, 3/5/2018) y \"Barrios\" (C. 124.096, 17/4/2024) como fuente de la tasa pura del 6% sobre montos a valores actuales.",
+    "motivo": "Solo se verificó la cita en un fallo posterior. Falta abrir el fallo de la SCBA en JUBA y confirmar carátula exacta y fecha. Lo mismo aplica a \"Nidera\" y \"Barrios\"."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Palamara (C. 108.063)",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "fecha": "2012-05-09",
+    "temas": ["concurrencia"],
+    "lo_que_sabemos": "Citado en el sumario B259723 de JUBA (Andrada c/ Romero, CC0201 LP, 12/3/2026) como doctrina de la SCBA sobre la prioridad absoluta de quien viene por la derecha.",
+    "motivo": "No se abrió el fallo original; falta la carátula completa y el link de JUBA."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Obarrio, María Pía c/ Microómnibus Norte S.A. y otros; Gauna, Agustín y su acumulado c/ La Economía Comercial S.A.",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "fecha": "2008-03-04",
     "temas": ["franquicia", "citación en garantía"],
-    "lo_que_se_sabe": "Plenario que declaró inoponible a la víctima la franquicia obligatoria del seguro del transporte público de pasajeros (Res. SSN 25.429/97). La fecha 13/12/2006 aparece en sentencias posteriores de la CNCiv publicadas en el CIJ.",
-    "motivo": "No se encontró un enlace oficial al texto del plenario donde se vean la carátula y la fecha. Una de las fuentes secundarias da otra fecha (24/10/2006).",
-    "url_candidata": null
+    "lo_que_sabemos": "La CSJN revocó el plenario \"Obarrio\" de la CNCiv que declaraba inoponible la franquicia en el transporte público. Lo citan como precedente los fallos Díaz c/ Evangelista (CSJN 2018), Sulca (CSJN 2020) y Volpini (CNCiv G 2013), todos verificados.",
+    "motivo": "No se buscaron los fallos originales en la base de la CSJN; falta el link oficial. Tampoco se verificó el plenario de la CNCiv que la Corte revocó."
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "Obarrio, María Pía c/ Microómnibus Norte S.A. y otro y Gauna, Agustín c/ La Economía Comercial S.A. de Seguros Generales y otro",
+    "caratula": "Rossi, Adhemar José c/ Vertedor, José Luis y otro - Pcia. de Buenos Aires s/ daños y perjuicios",
     "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha_probable": "2008-03-04",
-    "temas": ["franquicia"],
-    "lo_que_se_sabe": "La CSJN revocó el criterio del plenario y declaró oponible la franquicia del transporte público. El suplemento oficial CSJN de consumidores menciona 'Obarrio' y 'Gauna' en la línea de oponibilidad.",
-    "motivo": "Fecha y número de Fallos no confirmados en una fuente oficial.",
-    "url_candidata": "https://sj.csjn.gov.ar/homeSJ/suplementos/suplemento/74/documento"
+    "fecha": "1992-08-13",
+    "temas": ["desvalorización"],
+    "lo_que_sabemos": "Fallos 315:1619. Citado en Lomsicar c/ Transporte Larrazabal (CNCom D, 2020) para sostener que solo el propietario puede reclamar la desvalorización venal.",
+    "motivo": "Solo se verificó la cita; falta el link oficial al fallo de la CSJN."
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "Cuello, Patricia Dorotea c/ Lucena, Pedro Antonio s/ daños y perjuicios",
-    "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha_probable": "2007-08-07",
-    "temas": ["franquicia"],
-    "lo_que_se_sabe": "Primer precedente de la CSJN sobre oponibilidad de la franquicia del transporte público al tercero.",
-    "motivo": "La búsqueda no devolvió ninguna fuente oficial ni secundaria que confirme la carátula y la fecha.",
-    "url_candidata": null
+    "caratula": "Vuoto, Dalmero Santos y otro c/ AEG Telefunken Argentina S.A.",
+    "tribunal": "Cámara Nacional de Apelaciones del Trabajo, Sala III (según se cita habitualmente)",
+    "fecha": "1978-06-16",
+    "temas": ["incapacidad"],
+    "lo_que_sabemos": "Origen de la llamada fórmula \"Vuoto\" de cálculo de incapacidad (valor presente de una renta). Datos según la cita habitual; no se verificaron.",
+    "motivo": "No se encontró una fuente oficial pública con carátula, tribunal y fecha. Es del fuero laboral."
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "Buffoni, Osvaldo Omar c/ Castro, Ramiro Martín s/ daños y perjuicios",
-    "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha_probable": "2014-04-08",
-    "temas": ["citación en garantía", "franquicia"],
-    "lo_que_se_sabe": "Declaró oponible al tercero el límite de cobertura del seguro (causa B.915.XLVII, según fuentes secundarias).",
-    "motivo": "Solo se confirmó en fuentes secundarias (estudios jurídicos, abogados.com.ar). Falta el enlace oficial y el número de Fallos.",
-    "url_candidata": null
+    "caratula": "Méndez, Alejandro Daniel c/ Mylba S.A. y otro s/ accidente",
+    "tribunal": "Cámara Nacional de Apelaciones del Trabajo, Sala III (según se cita habitualmente)",
+    "fecha": "2008-04-28",
+    "temas": ["incapacidad"],
+    "lo_que_sabemos": "Origen de la fórmula \"Méndez\", que actualiza \"Vuoto\" (edad tope y tasa de descuento). Datos según la cita habitual; no se verificaron.",
+    "motivo": "No se encontró una fuente oficial pública con carátula, tribunal y fecha. Es del fuero laboral."
+  },
+  {
+    "tipo": "jurisprudencia",
+    "caratula": "Fórmula \"Acuña\" (precedente de origen sin identificar)",
+    "tribunal": null,
+    "fecha": null,
+    "temas": ["incapacidad"],
+    "lo_que_sabemos": "Se menciona en la práctica como otra fórmula de cálculo de incapacidad. En el relevamiento solo apareció la fórmula de Acciarri, que usa la CC0201 de La Plata (Zaglio c/ Godoy, 2025).",
+    "motivo": "No se pudo identificar el fallo de origen en fuentes públicas. Hay que confirmar a qué precedente se refiere el estudio con \"Acuña\" antes de cargarlo."
   },
   {
     "tipo": "jurisprudencia",
     "caratula": "Arostegui, Pablo Martín c/ Omega Aseguradora de Riesgos del Trabajo S.A. y Pametal Peluso y Compañía S.R.L.",
     "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha_probable": "2008-04-08",
+    "fecha": "2008-04-08",
     "temas": ["incapacidad"],
-    "lo_que_se_sabe": "Fallos 331:570. Precedente clásico: la incapacidad no se mide solo con fórmulas de renta (Vuoto) ni solo en lo laboral. La nota oficial CSJN 'El principio de no dañar a otro' cita Fallos 331:570.",
-    "motivo": "No se vio la carátula junto con la fecha en la fuente oficial. Es anterior al CCyC, aunque sigue siendo referencia.",
-    "url_candidata": "https://sj.csjn.gov.ar/homeSJ/notas/nota/135/documento"
+    "lo_que_sabemos": "Precedente de la CSJN que suele citarse contra el uso exclusivo de fórmulas de tipo \"Vuoto\" para cuantificar la incapacidad. Datos según la cita habitual.",
+    "motivo": "La búsqueda por autos \"Arostegui\" en la base de la CSJN devolvió 17 resultados y no se revisó la segunda página; no se confirmó carátula ni fecha."
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "Baeza, Silvia Ofelia c/ Provincia de Buenos Aires y otros s/ daños y perjuicios",
+    "caratula": "Ontiveros, Stella Maris c/ Prevención ART S.A. y otros s/ accidente - inc. y cas.",
     "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha_probable": "2011-04-12",
-    "temas": ["daño moral"],
-    "lo_que_se_sabe": "Fallos 334:376. El dinero da satisfacciones que compensan el daño moral (criterio de las 'satisfacciones sustitutivas'). Muchas sentencias de la CNCiv publicadas en el CIJ lo citan con la fecha 12/04/2011.",
-    "motivo": "No se vio la carátula junto con la fecha en una fuente oficial de la CSJN.",
-    "url_candidata": "https://sj.csjn.gov.ar/homeSJ/notas/nota/135/documento"
+    "fecha": "2017-08-10",
+    "temas": ["incapacidad", "daño moral"],
+    "lo_que_sabemos": "Fallos 340:1038. Aparece en la base de la CSJN (idDocumento 7391642). Se suele citar por el derecho a la reparación integral.",
+    "motivo": "Se verificó que existe, pero no se leyeron sus sumarios; es del fuero laboral y no se pudo confirmar que aporte algo específico a accidentes de tránsito. Revisar antes de cargarlo."
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "González, Maximiliano Ramiro c/ Acosta, Emir Dorval y otro s/ daños y perjuicios",
-    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
-    "fecha_probable": "2021-05-28",
-    "temas": ["franquicia", "citación en garantía"],
-    "lo_que_se_sabe": "Causa C. 122.588. Se discutió una cláusula limitativa (límite histórico de $30.000) en la póliza de una moto.",
-    "motivo": "Las fuentes se contradicen sobre el resultado: el dictamen de la Procuración sostiene que el límite es inoponible y un resumen de JUBA dice que la franquicia es oponible. Hay que leer el texto completo.",
-    "url_candidata": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=180714"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no extraída)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "I",
-    "fecha_probable": "2025-04-15",
-    "temas": ["privación de uso", "desvalorización"],
-    "lo_que_se_sabe": "Jueces Guisado, Rodríguez e Iturbide. Revocó el rechazo de la privación de uso y la fijó en $40.000 a la fecha de la sentencia de primera instancia, tomando como referencia el presupuesto de daños. Mantuvo el rechazo de la desvalorización por falta de apoyo en la pericia mecánica.",
-    "motivo": "El buscador no mostró la carátula.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-a70e30c1-b0b5-4112-81a6-64b377db73b5.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Arriaga, Juan Fernando y otro c/ Zheng, Wenjia y otros s/ daños y perjuicios",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "I",
-    "fecha_probable": "2024-11-05",
-    "temas": ["privación de uso", "desvalorización", "daño emergente"],
-    "lo_que_se_sabe": "Expte. 54.505/2017. En primera instancia se otorgó daño material ($1.500.000) y se rechazaron la privación de uso y la desvalorización.",
-    "motivo": "No se pudo confirmar qué resolvió la Cámara sobre esos rubros.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-238a9bd5-4d94-4aa3-95fa-e6bc31ed40b0.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Agüero Ramón Dalmiro c/ Moles Adriana Nora y otros s/ daños y perjuicios",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "A",
-    "fecha_probable": "2021-08-17",
-    "temas": ["daño emergente", "privación de uso", "desvalorización"],
-    "lo_que_se_sabe": "Expte. CIV 91.569/2015. Trata los rubros daño material, privación de uso y desvalorización.",
-    "motivo": "Resultado no confirmado.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-d0c33d50-39f9-457a-a2eb-054e3e635646.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no extraída)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "I",
-    "fecha_probable": "2021-02-23",
-    "temas": ["daño emergente", "daño moral", "incapacidad"],
-    "lo_que_se_sabe": "El demandado cuestionaba $15.000 de daño material porque el presupuesto no lo había ratificado quien lo emitió ni un perito. También trata la incapacidad ($250.000) y el daño moral ($150.000).",
-    "motivo": "Faltan la carátula y la solución sobre el presupuesto no ratificado.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-0066aa5d-d6e0-416e-ad5e-cb7d3337a52a.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Curras, Pablo Antonio c/ Morroni, Maila Tamara s/ daños y perjuicios",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "F",
-    "fecha_probable": "2024-03-25",
-    "temas": ["incapacidad"],
-    "lo_que_se_sabe": "Expte. 65.367/2021. Incapacidad física del 10% (esguince cervical) y psíquica del 15%. Dice que el porcentaje pericial es solo una aproximación económica.",
-    "motivo": "Resultado no confirmado.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-ab94c585-39bf-4240-ae54-bcc833e835d3.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no extraída)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "I",
-    "fecha_probable": "2020-10-29",
-    "temas": ["concurrencia"],
-    "lo_que_se_sabe": "Choque en una esquina: la moto llegó primero a la bocacalle y 'ganó el paso' aunque el otro vehículo venía por la derecha. La violación de la prioridad hace presumir la responsabilidad del infractor.",
-    "motivo": "Faltan la carátula y la confirmación de la fecha.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-e7860e6d-3c37-4dee-9825-77f8d3b6d444.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Tripodoro Cristina Viviana c/ Sánchez Granero María y otros s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "J",
-    "fecha_probable": "2020-11-06",
-    "temas": ["prescripción", "citación en garantía"],
-    "lo_que_se_sabe": "Apelación contra la resolución del 13/02/2020 que admitió la prescripción opuesta por un codemandado y por Seguros Bernardino Rivadavia.",
-    "motivo": "No se confirmó si la Sala revocó o confirmó.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-2d1a30ee-ebeb-4492-8ee3-429dc2d9151c.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "L. B., R. R. c/ TPC Cía. de Seguros y otros s/ daños y perjuicios - resp. prof. médicos y aux.",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "G",
-    "fecha_probable": "2021-09",
-    "temas": ["prescripción", "mediación"],
-    "lo_que_se_sabe": "Expte. 61.625/2018. Con mediación privada, la suspensión de la prescripción corre desde la notificación fehaciente de la primera audiencia, o 20 días después de que el acta de cierre queda a disposición de las partes.",
-    "motivo": "Faltan el día exacto y el resultado. No es un caso de tránsito.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-6a58cd0c-b285-4dcc-b0d3-efb55c88daab.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Del Valle, Constanza c/ El Jumillano S.A. s/ daños y perjuicios",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "J",
-    "fecha_probable": "2024-04-05",
-    "temas": ["incapacidad", "privación de uso", "daño moral"],
-    "lo_que_se_sabe": "Expte. 12.305/2021. Ambas partes apelaron incapacidad, daño moral, tratamientos, privación de uso y daño material.",
-    "motivo": "Los datos del índice son inconsistentes (menciona un accidente 'en el trabajo' de 2022 en un expediente de 2021). Hay que leer el texto.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-5f3e1602-2fa7-4d06-8a1b-e8d81d44a7ce.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Pereyra Marcos Diego c/ Castañeda Huanca Johan Danzadut s/ daños y perjuicios",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "H",
-    "fecha_probable": "2021-05",
-    "temas": ["incapacidad"],
-    "lo_que_se_sabe": "Expte. 48.424/2016. Accidente de tránsito; se discuten incapacidad y gastos.",
-    "motivo": "Faltan el día y el resultado.",
-    "url_candidata": "https://www.cij.gov.ar/d/sentencia-SGU-96060884-7046-42eb-af69-f17d1860b92d.pdf"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no identificada)",
-    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
-    "sala": "I",
-    "fecha_probable": "2024-04-10",
-    "temas": ["privación de uso"],
-    "lo_que_se_sabe": "El perjuicio por privación de uso se presume con la sola acreditación de la indisponibilidad del rodado durante un lapso.",
-    "motivo": "No se pudo asociar con certeza a un documento del CIJ.",
-    "url_candidata": null
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Loza Sebastián Leonardo c/ Espejo Rubén Osvaldo s/ daños y perj. autom.",
-    "tribunal": "Cámara II de Apelación en lo Civil y Comercial de La Plata",
-    "sala": "II",
-    "fecha_probable": "2022-06-21",
-    "temas": ["concurrencia"],
-    "lo_que_se_sabe": "Causa 131.900. Una moto por Av. 60 y una camioneta por calle 154 chocaron en la esquina; se analiza la prioridad de paso.",
-    "motivo": "Resultado no confirmado.",
-    "url_candidata": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=184823"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Mendoza Marta y ot. c/ Rendina Claudia Elsa y ot. s/ daños y perjuicios",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Mar del Plata",
-    "sala": "II",
-    "fecha_probable": "2022-03-15",
-    "temas": ["concurrencia"],
-    "lo_que_se_sabe": "Causa 172.400. La Cámara modificó la distribución de responsabilidad: 20% a un conductor (López) y 80% a la otra parte.",
-    "motivo": "No queda claro a qué parte favorece la distribución.",
-    "url_candidata": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=183949"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Scarafoni Walter Javier c/ Terrazzolo Nadia Soledad s/ daños y perj. autom. c/ les. o muerte (exc. Estado)",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Trenque Lauquen",
-    "fecha_probable": "2018-09-04",
-    "temas": ["prescripción", "mediación"],
-    "lo_que_se_sabe": "Expte. 90.796. Derecho transitorio: plazo de 2 años (art. 4037 CC) o de 3 años (art. 2561 CCyC), y efecto suspensivo de la mediación. En primera instancia la acción se declaró prescripta.",
-    "motivo": "No se confirmó si la Cámara revocó o confirmó.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaraciviltrenquelauquen/2018/10/08/fecha-de-acuerdo-04-09-2018-3/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Landriel Alejandra Ester c/ Segurometal Cooperativa de Seguros Ltda. y otro/a s/ daños y perj. autom. c/ les. o muerte (exc. Estado)",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Trenque Lauquen",
-    "fecha_probable": "2024-12-23",
-    "temas": ["citación en garantía"],
-    "lo_que_se_sabe": "Accidente del 18/02/2018, demanda del 05/03/2020 y aseguradora citada en garantía.",
-    "motivo": "No se identificó el tema decidido ni el resultado.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaraciviltrenquelauquen/2025/02/06/fecha-del-acuerdo-23122024-16/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Alanís Patricia Alejandra c/ Alemano Miguel Ángel y otro/a s/ daños y perj. autom.",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Trenque Lauquen",
-    "fecha_probable": "2018-03-07",
-    "temas": ["incapacidad"],
-    "lo_que_se_sabe": "Incapacidad parcial y permanente del 26%. Monto de $180.000 en la demanda, llevado a $443.000 a la fecha de la sentencia.",
-    "motivo": "No se confirmaron el criterio de cuantificación ni el resultado en la Cámara.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaraciviltrenquelauquen/2018/03/09/fecha-de-acuerdo-07-03-2018-4/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Montanaro, Bruno c/ Nuevas Rutas S.A. s/ daños y perj. uso de autom. - sin lesiones",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Trenque Lauquen",
-    "fecha_probable": "2021-03-17",
-    "temas": ["daño emergente"],
-    "lo_que_se_sabe": "Vehículo que cayó a una zanja en una ruta concesionada. Se discutieron el presupuesto de reparación, objetos electrónicos perdidos, daño psicológico y daño moral.",
-    "motivo": "Resultado no confirmado.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaraciviltrenquelauquen/2021/04/07/fecha-del-acuerdo-1732021-8/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Moreno, Haide Isabel c/ Empresa Pullman General Belgrano S.R.L. y otra s/ daños y perjuicios",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Trenque Lauquen",
-    "fecha_probable": "2015-07-17",
-    "temas": ["citación en garantía"],
-    "lo_que_se_sabe": "La Cámara revocó el rechazo y devolvió el caso para fijar la indemnización a cargo de la empresa de transporte y su aseguradora.",
-    "motivo": "No se confirmó si trata la franquicia del transporte público.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaraciviltrenquelauquen/2015/07/17/fecha-del-acuerdo-17-07-2015-6/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Lombardo, Héctor c/ Micro Ómnibus Quilmes S.A. y otro s/ daños y perjuicios (y acumulada Olivera, Andrea Francisca Elba c/ Micro Ómnibus Quilmes)",
-    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
-    "fecha_probable": "2020-08-11",
-    "temas": ["franquicia", "citación en garantía"],
-    "lo_que_se_sabe": "Causa C. 121.032. Accidente del 15/06/2007 con una empresa de transporte de pasajeros.",
-    "motivo": "Apareció en búsquedas sobre daño moral y franquicia, pero no se identificó qué se decidió.",
-    "url_candidata": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=176980"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Prinzio, Rosa Elizabeth c/ Manfredi, Oscar Alfredo y otros s/ daños y perjuicios. Resp. profesional (exc. Estado)",
-    "tribunal": "Cámara de Apelación en lo Civil y Comercial de San Nicolás",
-    "fecha_probable": "2023-12",
-    "temas": ["citación en garantía", "franquicia"],
-    "lo_que_se_sabe": "Límite del seguro frente a la inflación (seguro de responsabilidad civil por mala praxis). El blog de la Cámara lo publicó el 29/12/2023.",
-    "motivo": "Falta la fecha exacta de la sentencia. No es un caso de tránsito, pero el criterio es trasladable.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaracivilsannicolas/2023/12/29/prinzio-rosa-elizabeth-cmanfredi-oscar-alfredo-y-otros-sdanos-y-perjuicios-resp-profesional-exc-estado/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no extraída) causa 132.730",
-    "tribunal": "Cámara II de Apelación en lo Civil y Comercial de La Plata",
-    "sala": "I",
-    "fecha_probable": "2024-11-28",
-    "temas": ["mediación"],
-    "lo_que_se_sabe": "Por mayoría, incluyó los honorarios del mediador en el prorrateo del art. 730 CCyC, por considerarlo un auxiliar de la justicia.",
-    "motivo": "Falta la carátula.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaracivil2laplata/2024/11/28/honorarios-del-mediador-prorrateo/"
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "(carátula no extraída)",
-    "tribunal": "Cámara II de Apelación en lo Civil y Comercial de La Plata",
-    "sala": "I",
-    "fecha_probable": "2017-11",
-    "temas": ["mediación"],
-    "lo_que_se_sabe": "Redujo los honorarios del mediador por debajo de los mínimos, por desproporción con las tareas, aplicando el art. 1255 CCyC ($2.000 sobre un acuerdo de $25.000).",
-    "motivo": "Faltan la carátula y la fecha exacta.",
-    "url_candidata": "https://blogs.scba.gov.ar/camaracivil2laplata/2017/11/22/camara-segunda-civil-y-comercial-de-la-plata-sala-i-reduccion-honorarios-de-los-mediadores-interpretacion-coherente-con-art-1-255-ccc/"
+    "caratula": "Almada, Marcela Patricia c/ Silvestre, Leandro Ariel y otro s/ daños y perjuicios",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Quilmes, Sala II (código JUBA CC0002 QL)",
+    "fecha": "2017-06-26",
+    "temas": ["desvalorización"],
+    "lo_que_sabemos": "Sumario JUBA B2953232: no hace falta reparar el vehículo para reclamar la desvalorización, porque no se le puede exigir al damnificado que adelante el costo. Sería el único fallo reciente del lote claramente a favor en desvalorización.",
+    "motivo": "JUBA no ofrece texto completo de este fallo, así que no hay un link estable que muestre carátula, tribunal y fecha. Habría que pedirlo a la cámara o buscarlo en otra fuente pública."
   },
   {
     "tipo": "doctrina",
-    "autor": "(no identificado en el índice)",
-    "titulo": "Oponibilidad de la franquicia",
-    "publicacion": "Revista Pensamiento Civil (doctrina n.º 775)",
-    "temas": ["franquicia"],
-    "motivo": "Faltan el autor y el año.",
-    "url_candidata": "https://pensamientocivil.com.ar/doctrina/775-oponibilidad-franquicia"
-  },
-  {
-    "tipo": "doctrina",
-    "autor": "Marval O'Farrell Mairal (publicación del estudio)",
-    "titulo": "Oponibilidad de la franquicia: estado de la jurisprudencia de la Cámara Nacional de Apelaciones en lo Civil y de la Corte Suprema de Justicia de la Nación",
-    "publicacion": "Publicaciones Marval O'Farrell Mairal",
-    "temas": ["franquicia"],
-    "motivo": "Faltan el autor y el año, y es una publicación profesional, no académica.",
-    "url_candidata": "https://www.marval.com/Publicacion/oponibilidad-de-la-franquicia---estado-de-la-jurisprudencia-de-la-camara-nacional-de-apelaciones-en-lo-civil-y-de-la-corte-suprema-de-justicia-de-la-nacion-8751?lang=es"
-  },
-  {
-    "tipo": "doctrina",
-    "autor": "(posiblemente Cayo, Raúl Ernesto; no confirmado)",
-    "titulo": "El daño al automotor y el daño moral",
-    "publicacion": "Revista de la Universidad Católica de Córdoba (portal revistas.bibdigital.uccor.edu.ar)",
-    "temas": ["daño moral", "privación de uso"],
-    "motivo": "No se confirmaron el autor ni el año; se agotó el cupo de búsquedas.",
-    "url_candidata": "https://revistas.bibdigital.uccor.edu.ar/index.php/ADC/article/download/990/1061/2228"
-  },
-  {
-    "tipo": "doctrina",
-    "autor": "Abrevaya, Alejandro D.",
-    "titulo": "El daño y su cuantificación judicial",
-    "publicacion": "Abeledo-Perrot (libro)",
-    "temas": ["incapacidad", "daño moral", "daño emergente"],
-    "motivo": "Libro pago; no se confirmaron año ni edición. Las copias que circulan en repositorios extranjeros no se citan.",
-    "url_candidata": null
-  },
-  {
-    "tipo": "doctrina",
-    "autor": "Varios (sugeridos, no buscados)",
-    "titulo": "Obras clásicas de consulta: Zavala de González, 'Resarcimiento de daños. Daños a los automotores' (Hammurabi); Pizarro, 'Daño moral' (Hammurabi); Stiglitz, 'Derecho de seguros' (La Ley); Sobrino, 'Seguros y responsabilidad civil'; Acciarri, trabajos sobre fórmulas de cuantificación (La Ley); Highton y Álvarez, 'Mediación para resolver conflictos' (Ad-Hoc)",
-    "publicacion": "Editoriales jurídicas (acceso pago)",
-    "temas": ["daño emergente", "privación de uso", "desvalorización", "daño moral", "citación en garantía", "franquicia", "incapacidad", "mediación"],
-    "motivo": "Referencias de memoria. No se verificaron título exacto, edición ni año; se agotó el cupo de búsquedas.",
-    "url_candidata": null
+    "autor": "Hugo A. Acciarri",
+    "titulo": "Fórmula y planilla de cálculo de indemnización por incapacidad (art. 1746 CCyC)",
+    "lo_que_sabemos": "La CC0201 de La Plata la cita como la fórmula más conveniente y remite a un link de derechouns.com.ar (sumario JUBA B259578).",
+    "motivo": "No se abrió el sitio de la Universidad Nacional del Sur para confirmar autor, título exacto, año y acceso."
   }
 ]
