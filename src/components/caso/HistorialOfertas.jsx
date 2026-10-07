@@ -5,6 +5,7 @@ import { INSTANCIAS } from "../../constants.js";
 import { registrarAccion } from "../../utils/storage.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
+import ReferenciaOferta from "./ReferenciaOferta.jsx";
 
 const COLOR = { pendiente: "var(--muted)", rechazada: "var(--bad)", contraoferta: "var(--warn)", aceptada: "var(--ok)" };
 
@@ -134,6 +135,11 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
             );
           })}
         </div>
+      )}
+
+      {/* Hay que decidir sobre el último ofrecimiento: se compara con lo que la compañía cerró en otros casos */}
+      {["pendiente", "contraoferta"].includes(ofertas[ofertas.length - 1]?.respuesta) && (
+        <ReferenciaOferta caso={formData} monto={ofertas[ofertas.length - 1].monto} Th={Th} />
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: conInstancia ? "140px 1fr 140px 140px" : "140px 1fr 150px", gap: 8, alignItems: "end" }}>

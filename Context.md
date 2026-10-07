@@ -102,7 +102,7 @@
   - [x] ✅ SQL 34 a 45 confirmados corridos el 07/10 (consulta de control: los 10 en `true`, incluidos 39, 40, 41/41b, 42, 43, 44 y 45).
   - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
   - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
-- [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
+- [x] ✅ Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (07/10, Ficha → Montos → Ofertas).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones; etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
@@ -131,6 +131,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-07 — Ofertas: ¿conviene aceptar?
+*   **Ficha → Montos → Ofertas de la compañía** (`caso/ReferenciaOferta.jsx`): si el último ofrecimiento está sin responder o con contraoferta, debajo de la lista aparece una referencia que lo compara con lo que **esa compañía cerró** en los otros casos del estudio: lo cobrado por el asegurado o, si todavía no cobró, lo acordado, en % de la base del reclamo (mediana).
+*   Veredicto: **En línea** (la oferta llega a la mediana: aceptar es razonable), **Cerca** (hasta 10 puntos menos: pedir una mejora chica) o **Por debajo** (pedir reconsideración). Dice hasta cuánto suele llegar en pesos (la mediana aplicada a este reclamo) y, si hay casos con más de una oferta, cuánto suele subir la compañía entre la primera y la última.
+*   Con menos de 3 casos cerrados de la compañía no da veredicto (muestra lo que hay). Concurrencia: se mide sobre la parte del tercero; franquicia: avisa que se paga entera. Quedan afuera desistidos, el propio caso y cierres de más de 150% (error de carga).
+*   `utils/referenciaOferta.js`: `referenciaOferta` (cálculo puro, usa `baseReclamo` y `mediana` de `analisis.js` y `subaOfertas`) y `datosCompania` (casos de la compañía y sus ofertas desde Supabase, al abrir la ficha). Sin SQL nuevo.
 
 ### 2026-10-05 — Portal: errores de carga visibles y limpieza de variables sin uso
 *   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
