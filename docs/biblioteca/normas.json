@@ -138,5 +138,26 @@
     "tema": "mediación",
     "texto_breve": "Establece la mediación obligatoria previa a todo juicio en PBA, con las exclusiones del art. 4 (art. 2), y fija que el mediador percibe una suma fija reglamentaria, a cargo de las partes según el acuerdo, con previsiones para cobrarla si la mediación fracasa (art. 31).",
     "url_fuente": "https://normas.gba.gob.ar/ar-b/ley/2009/13951/2909"
+  },
+  {
+    "norma": "Resolución SSN 589/2025 (RESOL-2025-589-APN-SSN#MEC)",
+    "articulos": "4, 5, 8 y 11",
+    "tema": "suma asegurada",
+    "texto_breve": "Fija los límites vigentes para pólizas emitidas o renovadas desde el 1/1/2026: en el seguro obligatorio (SO-RC), $20.800.000 por muerte o incapacidad total y permanente por persona y $910.000 de gastos sanatoriales; en el seguro voluntario de RC, $208.000.000 por acontecimiento para autos, camionetas y motos.",
+    "url_fuente": "https://www.boletinoficial.gob.ar/detalleAviso/primera/333893/20251103"
+  },
+  {
+    "norma": "Resolución SSN 589/2025 (RESOL-2025-589-APN-SSN#MEC)",
+    "articulos": "1 y 3",
+    "tema": "franquicia",
+    "texto_breve": "Para el seguro de RC del transporte público de pasajeros fija un límite de $676.000.000 por acontecimiento y un descubierto obligatorio a cargo del asegurado de $3.380.000 por acontecimiento.",
+    "url_fuente": "https://www.boletinoficial.gob.ar/detalleAviso/primera/333893/20251103"
+  },
+  {
+    "norma": "Resolución SSN 551/2024 (RESOL-2024-551-APN-SSN#MEC)",
+    "articulos": "4, 5, 8 y 11",
+    "tema": "suma asegurada",
+    "texto_breve": "Límites anteriores, para pólizas emitidas o renovadas desde el 1/1/2025: $16.000.000 por muerte o incapacidad total en el seguro obligatorio y $160.000.000 por acontecimiento en el voluntario para autos y motos. Útil para siniestros con pólizas de 2025.",
+    "url_fuente": "https://www.boletinoficial.gob.ar/detalleAviso/primera/316482/20241101"
   }
 ]

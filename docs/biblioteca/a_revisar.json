@@ -8,41 +8,7 @@
       "intereses"
     ],
     "lo_que_sabemos": "Plenario que fijó la tasa activa del Banco Nación para los intereses moratorios; lo citan como vigente varios fallos de la lista (por ejemplo, Paz c/ Transporte Don Horacio y Egan c/ Forciniti). La fecha es la que se cita habitualmente.",
-    "motivo": "No se encontró el texto del plenario en SAIJ ni en la base de la Secretaría de Jurisprudencia de la CSJN (que incluye fallos de la CNCiv). Falta un link oficial con carátula, tribunal y fecha."
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Vera, Juan Carlos c/ Provincia de Buenos Aires s/ daños y perjuicios (C. 120.536)",
-    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
-    "fecha": "2018-04-18",
-    "temas": [
-      "intereses"
-    ],
-    "lo_que_sabemos": "Citado en el sumario B259764 de JUBA (Rutigliano, CC0201 LP, 16/7/2026) junto con \"Nidera\" (C. 121.134, 3/5/2018) y \"Barrios\" (C. 124.096, 17/4/2024) como fuente de la tasa pura del 6% sobre montos a valores actuales.",
-    "motivo": "Solo se verificó la cita en un fallo posterior. Falta abrir el fallo de la SCBA en JUBA y confirmar carátula exacta y fecha. Lo mismo aplica a \"Nidera\" y \"Barrios\"."
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Palamara (C. 108.063)",
-    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
-    "fecha": "2012-05-09",
-    "temas": [
-      "concurrencia"
-    ],
-    "lo_que_sabemos": "Citado en el sumario B259723 de JUBA (Andrada c/ Romero, CC0201 LP, 12/3/2026) como doctrina de la SCBA sobre la prioridad absoluta de quien viene por la derecha.",
-    "motivo": "No se abrió el fallo original; falta la carátula completa y el link de JUBA."
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Obarrio, María Pía c/ Microómnibus Norte S.A. y otros; Gauna, Agustín y su acumulado c/ La Economía Comercial S.A.",
-    "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha": "2008-03-04",
-    "temas": [
-      "franquicia",
-      "citación en garantía"
-    ],
-    "lo_que_sabemos": "La CSJN revocó el plenario \"Obarrio\" de la CNCiv que declaraba inoponible la franquicia en el transporte público. Lo citan como precedente los fallos Díaz c/ Evangelista (CSJN 2018), Sulca (CSJN 2020) y Volpini (CNCiv G 2013), todos verificados.",
-    "motivo": "No se buscaron los fallos originales en la base de la CSJN; falta el link oficial. Tampoco se verificó el plenario de la CNCiv que la Corte revocó."
+    "motivo": "Segunda tanda: se buscó de nuevo en SAIJ, en la base de la Secretaría de Jurisprudencia de la CSJN (que incluye fallos de la CNCiv) y en la web, sin encontrar el texto del plenario en una fuente oficial. Lo citan como vigente muchos fallos verificados (Paz, Egan, entre otros)."
   },
   {
     "tipo": "jurisprudencia",
@@ -53,7 +19,7 @@
       "desvalorización"
     ],
     "lo_que_sabemos": "Fallos 315:1619. Citado en Lomsicar c/ Transporte Larrazabal (CNCom D, 2020) para sostener que solo el propietario puede reclamar la desvalorización venal.",
-    "motivo": "Solo se verificó la cita; falta el link oficial al fallo de la CSJN."
+    "motivo": "La búsqueda por autos en la base de la CSJN no devolvió resultados (el fallo es de 1992 y puede no estar digitalizado con esa carátula). Solo se verificó la cita en Lomsicar (CNCom D, 2020)."
   },
   {
     "tipo": "jurisprudencia",
@@ -64,7 +30,7 @@
       "incapacidad"
     ],
     "lo_que_sabemos": "Origen de la llamada fórmula \"Vuoto\" de cálculo de incapacidad (valor presente de una renta). Datos según la cita habitual; no se verificaron.",
-    "motivo": "No se encontró una fuente oficial pública con carátula, tribunal y fecha. Es del fuero laboral."
+    "motivo": "Segunda tanda: no está en la base de la CSJN ni en SAIJ (solo aparecen sumarios de otros tribunales que lo citan). El PJN no publica fallos de la CNAT de 1978. Sigue sin fuente oficial."
   },
   {
     "tipo": "jurisprudencia",
@@ -74,8 +40,8 @@
     "temas": [
       "incapacidad"
     ],
-    "lo_que_sabemos": "Origen de la fórmula \"Méndez\", que actualiza \"Vuoto\" (edad tope y tasa de descuento). Datos según la cita habitual; no se verificaron.",
-    "motivo": "No se encontró una fuente oficial pública con carátula, tribunal y fecha. Es del fuero laboral."
+    "lo_que_sabemos": "Origen de la fórmula \"Méndez\". En la base de la CSJN figura un recurso de queja en la misma causa (\"Mendez Alejandro Daniel c/ Milba S.A. y otro y otro s/ accidente\", M. 758. XLIV. RHE, 27/05/2009, idDocumento 6669121), lo que confirma la carátula, pero no el fallo de la Sala III.",
+    "motivo": "No se encontró la sentencia de la CNAT Sala III en una fuente oficial; en SAIJ solo hay sumarios de otros tribunales que la citan."
   },
   {
     "tipo": "jurisprudencia",
@@ -90,29 +56,6 @@
   },
   {
     "tipo": "jurisprudencia",
-    "caratula": "Arostegui, Pablo Martín c/ Omega Aseguradora de Riesgos del Trabajo S.A. y Pametal Peluso y Compañía S.R.L.",
-    "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha": "2008-04-08",
-    "temas": [
-      "incapacidad"
-    ],
-    "lo_que_sabemos": "Precedente de la CSJN que suele citarse contra el uso exclusivo de fórmulas de tipo \"Vuoto\" para cuantificar la incapacidad. Datos según la cita habitual.",
-    "motivo": "La búsqueda por autos \"Arostegui\" en la base de la CSJN devolvió 17 resultados y no se revisó la segunda página; no se confirmó carátula ni fecha."
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Ontiveros, Stella Maris c/ Prevención ART S.A. y otros s/ accidente - inc. y cas.",
-    "tribunal": "Corte Suprema de Justicia de la Nación",
-    "fecha": "2017-08-10",
-    "temas": [
-      "incapacidad",
-      "daño moral"
-    ],
-    "lo_que_sabemos": "Fallos 340:1038. Aparece en la base de la CSJN (idDocumento 7391642). Se suele citar por el derecho a la reparación integral.",
-    "motivo": "Se verificó que existe, pero no se leyeron sus sumarios; es del fuero laboral y no se pudo confirmar que aporte algo específico a accidentes de tránsito. Revisar antes de cargarlo."
-  },
-  {
-    "tipo": "jurisprudencia",
     "caratula": "Almada, Marcela Patricia c/ Silvestre, Leandro Ariel y otro s/ daños y perjuicios",
     "tribunal": "Cámara de Apelación en lo Civil y Comercial de Quilmes, Sala II (código JUBA CC0002 QL)",
     "fecha": "2017-06-26",
@@ -120,25 +63,6 @@
       "desvalorización"
     ],
     "lo_que_sabemos": "Sumario JUBA B2953232: no hace falta reparar el vehículo para reclamar la desvalorización, porque no se le puede exigir al damnificado que adelante el costo. Sería el único fallo reciente del lote claramente a favor en desvalorización.",
-    "motivo": "JUBA no ofrece texto completo de este fallo, así que no hay un link estable que muestre carátula, tribunal y fecha. Habría que pedirlo a la cámara o buscarlo en otra fuente pública."
-  },
-  {
-    "tipo": "doctrina",
-    "autor": "Hugo A. Acciarri",
-    "titulo": "Fórmula y planilla de cálculo de indemnización por incapacidad (art. 1746 CCyC)",
-    "lo_que_sabemos": "La CC0201 de La Plata la cita como la fórmula más conveniente y remite a un link de derechouns.com.ar (sumario JUBA B259578).",
-    "motivo": "No se abrió el sitio de la Universidad Nacional del Sur para confirmar autor, título exacto, año y acceso."
-  },
-  {
-    "tipo": "jurisprudencia",
-    "caratula": "Martínez, Emir c/ Boito, Alfredo Alberto s/ Daños (C. 119.088)",
-    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
-    "fecha": "2018-02-21",
-    "temas": [
-      "suma asegurada",
-      "citación en garantía"
-    ],
-    "lo_que_sabemos": "Precedente de la SCBA (por mayoría) que admite aplicar el límite de cobertura vigente al momento del pago y no el nominal de la póliza. Lo citan los fallos verificados Arguello (CC0201 LP, 2026), Bartoli (CC0102 MP, 2021) y Cruz (CC0002 AZ, 2019).",
-    "motivo": "No apareció con texto completo en JUBA; solo se verificaron las citas en fallos posteriores. Falta un link oficial con carátula, tribunal y fecha."
+    "motivo": "Segunda tanda: se volvió a buscar por carátula en JUBA y sigue sin texto completo (sin idFallo). Mientras tanto se sumaron otros cinco fallos a favor en desvalorización."
   }
 ]

@@ -1069,10 +1069,11 @@
     "fuero": "Civil",
     "temas": [
       "suma asegurada",
-      "citación en garantía"
+      "citación en garantía",
+      "franquicia"
     ],
     "resultado": "a favor",
-    "sumario": "El límite de cobertura es oponible a la víctima, pero se actualiza a las normas de la SSN vigentes al pago, y la aseguradora en mora carga con capital, intereses y costas. Combina la doctrina de la CSJN sobre oponibilidad con la actualización del tope.",
+    "sumario": "El límite de cobertura es oponible a la víctima, pero se actualiza a las normas de la SSN vigentes al pago, y la aseguradora en mora carga con capital, intereses y costas. Combina la doctrina de la CSJN sobre oponibilidad con la actualización del tope. Además, declara inoponible a la víctima la franquicia del seguro de un colectivo, por aplicación del plenario vigente en la Cámara Civil.",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-diaz-paniagua-ladislaa-constituyentes-sat-otro-danos-perjuicios-acc-tran-les-muerte-fa26020099-2026-03-05/123456789-990-0206-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
@@ -1260,6 +1261,382 @@
     "sumario": "Rechaza dejar de lado el límite de cobertura por la mora de la aseguradora: la mora solo revela el incumplimiento, y la obligación del asegurador nace del contrato, no del daño, por lo que su tope no es la medida del perjuicio. Postura contraria a anticipar.",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-bernst-tomas-ariel-escudo-seguros-sa-ordinario-fa23130880-2023-08-10/123456789-088-0313-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Pereira Finazzi, Carlos Clodomiro Juan c/ Latitude SRL s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "A",
+    "fecha": "2026-02-26",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "desvalorización"
+    ],
+    "resultado": "a favor",
+    "sumario": "Admite la desvalorización de un auto chocado por un empleado de una playa de estacionamiento. Como el modelo estaba discontinuado, manda que el perito informe el precio actual de un vehículo similar y fija el rubro como un porcentaje de ese valor. Sirve como pauta de cuantificación.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-pereira-finazzi-carlos-clodomiro-juan-latitude-srl-ordinario-fa26130116-2026-02-26/123456789-611-0316-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Burgos, Carlos Martín c/ Caja de Seguros SA y otro s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "E",
+    "fecha": "2024-04-25",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "desvalorización"
+    ],
+    "resultado": "a favor",
+    "sumario": "Rechaza que la aseguradora esté eximida de cubrir la desvalorización del vehículo: es daño patrimonial comprendido en el art. 61 de la Ley de Seguros. La prueba de la pérdida de valor queda a cargo del asegurado. Útil en reclamos contra la propia compañía.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-burgos-carlos-martin-caja-seguros-sa-otro-ordinario-fa24130439-2024-04-25/123456789-934-0314-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Ramírez, Sara del Valle c/ Ford Argentina SCA s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "C",
+    "fecha": "2024-04-16",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "desvalorización"
+    ],
+    "resultado": "a favor",
+    "sumario": "Concede la pérdida de valor venal porque el cambio de motor de una unidad con 8.000 km afecta sus condiciones originales y queda registrado en el legajo. Caso de consumo, pero aporta el criterio de que el reemplazo de piezas fundamentales deprecia el vehículo.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-ramirez-sara-valle-ford-argentina-sca-ordinario-fa24130296-2024-04-16/123456789-692-0314-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Riestra, Sergio y otro c/ FCA Importadora SRL s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "B",
+    "fecha": "2020-06-16",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "desvalorización"
+    ],
+    "resultado": "a favor",
+    "sumario": "Aun cuando las reparaciones dejen el rodado en óptimas condiciones, un experto las advierte y eso, en el mercado de reventa, implica pérdida de valor venal. Argumento directo contra la exigencia de secuelas estructurales.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-riestra-sergio-otro-fca-importadora-srl-ordinario-fa20137298-2020-06-16/123456789-892-7310-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Ogando, Alberto Ricardo y otra c/ Peugeot Citroen Argentina SA y otra s/ Daños y Perjuicios",
+    "tribunal": "Cámara Segunda de Apelación en lo Civil y Comercial de La Plata",
+    "sala": "II",
+    "fecha": "2017-04-11",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "desvalorización"
+    ],
+    "resultado": "a favor",
+    "sumario": "Que el automotor haya sido reparado satisfactoriamente no impide reconocer la desvalorización: sigue siendo un vehículo que fue arreglado y eso incide en su valor. Precedente de PBA contra el rechazo automático del rubro tras una buena reparación.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=142453",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Vera, Juan Carlos contra Provincia de Buenos Aires. Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2018-04-18",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "intereses"
+    ],
+    "resultado": "mixto",
+    "sumario": "C. 120.536. Precedente de la SCBA: cuando el capital se fija a valores actuales, los intereses desde la mora hasta la cuantificación se calculan a una tasa pura del 6% anual y, desde allí, a la tasa bancaria que fije la doctrina de la Corte. Admite valores actuales, pero baja la tasa del tramo anterior.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=160546",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Nidera S.A. contra Provincia de Buenos Aires. Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2018-05-03",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "intereses"
+    ],
+    "resultado": "mixto",
+    "sumario": "C. 121.134. Reitera a pocas semanas de \"Vera\" la doctrina de la tasa pura del 6% para créditos estimados a valores actuales, hasta el momento de la evaluación de la deuda. Los fallos posteriores lo citan junto con \"Vera\" como base de esa doctrina.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=160606",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Barrios, Héctor Francisco y otra contra Lascano, Sandra Beatriz y otra. Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2024-04-17",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "intereses"
+    ],
+    "resultado": "mixto",
+    "sumario": "C. 124.096. Revisa la doctrina de la tasa pasiva única (\"Cabrera\") y fija como pauta que la tasa no puede licuar ni sobreestimar el crédito; mantiene la tasa pura para montos a valores actuales. Las cámaras de PBA la aplican hoy junto con la reglamentación del BCRA (art. 768 inc. c CCyC). JUBA no publica sumarios propios de este fallo.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=197992",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Martínez, Emir contra Boito, Alfredo Alberto. Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2018-02-21",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "C. 119.088 (por mayoría). El seguro obligatorio protege a las víctimas con fundamento de orden público; aplicar literalmente el tope de la póliza puede frustrar su finalidad. Por eso admite una revisión equitativa e incluye en la medida del seguro la garantía mínima vigente al valuarse el daño. Doctrina de la SCBA sobre actualización del límite.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=159525",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Gomez, María Magdalena y otro/a c/ Legidos, Jonatan Federico s/ Daños y Perj. Autom. c/ Les. o Muerte (Exc. Estado)",
+    "tribunal": "Cámara Segunda de Apelación en lo Civil y Comercial de La Plata",
+    "sala": "III",
+    "fecha": "2019-07-02",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "prescripción",
+      "mediación"
+    ],
+    "resultado": "a favor",
+    "sumario": "Rechaza la prescripción porque la mediación obligatoria se pidió el día siguiente al vencimiento, dentro del plazo de gracia del art. 124 CPCC, y eso suspendió el plazo por un año. Útil cuando se inicia la mediación al límite.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=172931",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Céspedes, Zulma Beatriz c/ Sidi, Silvia Patricia y otros s/ Daños y Perjuicios Autom. s/ Lesiones (Exc. Estado)",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de San Martín",
+    "sala": "II",
+    "fecha": "2022-10-18",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "prescripción",
+      "mediación"
+    ],
+    "resultado": "mixto",
+    "sumario": "Interlocutoria. Repasa el régimen de suspensión de la prescripción por mediación: art. 18 de la Ley 26.589 (hasta 20 días después del acta de cierre), plazo para iniciar el juicio y art. 2542 CCyC. Guía para calcular el plazo en accidentes anteriores y posteriores al CCyC.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=194850",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Doval, Romina Gisela c/ La Nueva Metropol S.A.T.A.C.I. s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "H",
+    "fecha": "2025-04-08",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "prescripción"
+    ],
+    "resultado": "mixto",
+    "sumario": "Recuerda que el plenario \"Sáez González\" aplicaba al pasajero transportado el plazo de tres años del art. 50 de la LDC, pero que desde la reforma de la Ley 26.994 ese artículo ya no fija plazo para las acciones judiciales, que pasan a regirse por las normas generales del CCyC. Clave para reclamos de pasajeros de colectivos.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-doval-romina-gisela-nueva-metropol-sataci-danos-perjuicios-acc-tran-les-muerte-fa25020072-2025-04-08/123456789-270-0205-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Provincia Aseguradora de Riesgos del Trabajo S.A. c/ Civil resp hecho ocurrido el 28/08/2023 s/ interrupción de prescripción",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "de turno (feria)",
+    "fecha": "2026-07-27",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "prescripción"
+    ],
+    "resultado": "a favor",
+    "sumario": "Habilita la feria judicial en forma excepcional cuando el receso puede frustrar un derecho por el vencimiento inminente de la prescripción, limitada al efecto de interrumpirla. Útil para demandas que vencen en enero o julio.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-provincia-aseguradora-riesgos-trabajo-sa-civil-resp-hecho-ocurrido-28-08-2023-interrupcion-prescripcion-fa26020420-2026-07-27/123456789-024-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "A., M. E. c/ F. A. S.C.A. y otros s/ cumplimiento de contrato",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "G",
+    "fecha": "2025-03-19",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "prescripción",
+      "mediación"
+    ],
+    "resultado": "a favor",
+    "sumario": "Ratifica que la mediación prejudicial obligatoria es causal de suspensión de la prescripción liberatoria (art. 2542 CCyC y art. 18 de la Ley 26.589). Caso contractual, pero el criterio es general.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires--sca-otros-cumplimiento-contrato-fa25020238-2025-03-19/123456789-832-0205-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Riep, Rodrigo Sebastián c/ Seguros Sura SA s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "D",
+    "fecha": "2022-02-22",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "prescripción",
+      "mediación"
+    ],
+    "resultado": "en contra",
+    "sumario": "Si la caducidad de la instancia borra la interrupción de la prescripción por la demanda, con más razón la caducidad de la instancia de mediación borra la suspensión. Advierte que hay que iniciar el juicio dentro del plazo posterior al cierre de la mediación.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-riep-rodrigo-sebastian-seguros-sura-sa-ordinario-fa22130304-2022-02-22/123456789-403-0312-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Arostegui, Pablo Martín c/ Omega Aseguradora de Riesgos del Trabajo S.A. y Pametal Peluso y Compañía S.R.L. y otro s/ inconst. art. 39 LRT",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "sala": null,
+    "fecha": "2008-04-08",
+    "jurisdiccion": "CSJN",
+    "fuero": "Laboral",
+    "temas": [
+      "incapacidad"
+    ],
+    "resultado": "a favor",
+    "sumario": "Fallos 331:570. Deja sin efecto por arbitraria la sentencia que cuantificó con \"valores constantes\" de rentas sin explicarlos, y afirma que la vida e integridad no se miden solo con criterios materiales: la incapacidad se repara también en la vida de relación. Caso laboral, aplicable por analogía al cuestionar fórmulas puramente rentísticas.",
+    "sumario_oficial": false,
+    "url_fuente": "https://sjconsulta.csjn.gov.ar/sjconsulta/documentos/verDocumentoByIdLinksJSP.html?idDocumento=6414601",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Ontiveros, Stella Maris c/ Prevención ART S.A. y otros s/ accidente - inc. y cas.",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "sala": null,
+    "fecha": "2017-08-10",
+    "jurisdiccion": "CSJN",
+    "fuero": "Laboral",
+    "temas": [
+      "incapacidad",
+      "daño moral"
+    ],
+    "resultado": "a favor",
+    "sumario": "Fallos 340:1038. La reparación integral y el derecho a la integridad física tienen jerarquía constitucional y convencional; el resarcimiento no se logra si los valores fijados por el juez resultan insignificantes frente al daño. Base constitucional para pedir montos adecuados.",
+    "sumario_oficial": false,
+    "url_fuente": "https://sjconsulta.csjn.gov.ar/sjconsulta/documentos/verDocumentoByIdLinksJSP.html?idDocumento=7391642",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Berterreche, Mauro Matías y otros c/ Empresa Línea San Martín Tren Operadora Ferroviaria S.E. y otros s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "M",
+    "fecha": "2026-02-23",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "franquicia"
+    ],
+    "resultado": "a favor",
+    "sumario": "La franquicia alta del seguro de un servicio ferroviario es inoponible a las víctimas cuando es desproporcionada y ninguna norma la impone, porque las deja sin cobertura efectiva y desvirtúa el seguro. Amplía la línea de inoponibilidad a otros transportes públicos.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-berterreche-mauro-matias-otros-empresa-linea-san-martin-tren-operadora-ferroviaria-se-otros-danos-perjuicios-fa26020078-2026-02-23/123456789-870-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Obarrio, María Pía c/ Microómnibus Norte S.A. y otros s/ daños y perjuicios",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "sala": null,
+    "fecha": "2008-03-04",
+    "jurisdiccion": "CSJN",
+    "fuero": "Civil",
+    "temas": [
+      "franquicia",
+      "citación en garantía"
+    ],
+    "resultado": "en contra",
+    "sumario": "La CSJN revocó la sentencia dictada con base en el plenario \"Obarrio\" de la Cámara Civil, que declaraba inoponible la franquicia del transporte público a la víctima. Es el antecedente que la Corte reitera desde entonces (\"Díaz c/ Evangelista\", \"Sulca\"). La base no publica sumarios propios.",
+    "sumario_oficial": false,
+    "url_fuente": "https://sjconsulta.csjn.gov.ar/sjconsulta/documentos/verDocumentoByIdLinksJSP.html?idDocumento=6400111",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Gauna, Agustín y su acumulado c/ La Economía Comercial SA de Seguros Generales y otro s/ daños y perjuicios",
+    "tribunal": "Corte Suprema de Justicia de la Nación",
+    "sala": null,
+    "fecha": "2008-03-04",
+    "jurisdiccion": "CSJN",
+    "fuero": "Civil",
+    "temas": [
+      "franquicia",
+      "citación en garantía"
+    ],
+    "resultado": "en contra",
+    "sumario": "Dictado el mismo día que \"Obarrio\" y con el mismo resultado (revoca). La Corte lo cita junto con \"Obarrio\" como fuente de la oponibilidad de la franquicia al tercero (\"Díaz c/ Evangelista\", \"Sulca\"). La base no publica sumarios propios.",
+    "sumario_oficial": false,
+    "url_fuente": "https://sjconsulta.csjn.gov.ar/sjconsulta/documentos/verDocumentoByIdLinksJSP.html?idDocumento=6402521",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Orellana, Roberto Gastón c/ Portuguez, Dionisio Martín y otro s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "G",
+    "fecha": "2026-05-21",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "daño emergente"
+    ],
+    "resultado": "a favor",
+    "sumario": "La mera disconformidad con el monto de los daños al vehículo no alcanza para reducirlo si la demandada no aporta prueba contra el presupuesto reconocido ni demuestra un costo menor. Respalda reclamar la reparación según presupuesto.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-orellana-roberto-gaston-portuguez-dionisio-martin-otro-danos-perjuicios-fa26020186-2026-05-21/123456789-681-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Sapia, Martín Francisco y otro c/ Peugeot Citroen Argentina SA y otro s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": null,
+    "fecha": "2026-03-17",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "daño emergente"
+    ],
+    "resultado": "a favor",
+    "sumario": "Condena a la fabricante que no entregó el repuesto necesario para reparar un vehículo siniestrado a resarcir los gastos y la demora (art. 12 LDC). Útil cuando la reparación se demora por falta de repuestos. La fuente no informa la sala.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-sapia-martin-francisco-otro-peugeot-citroen-argentina-sa-otro-ordinario-fa26130317-2026-03-17/123456789-713-0316-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Palamara, Cosme y otro c/ Ferreria, Marcelo s/ Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2012-05-09",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "concurrencia"
+    ],
+    "resultado": "mixto",
+    "sumario": "C. 108.063. Quien llega a la bocacalle por la izquierda debe reducir la velocidad y ceder el paso al que viene por la derecha, sin importar quién llegó primero; la regla es en principio absoluta, pero se valora junto con el resto de las normas de tránsito. Doctrina citada por las cámaras de PBA.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=85297",
     "verificado_el": "2026-10-07"
   }
 ]
