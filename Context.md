@@ -136,6 +136,10 @@
 *   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
 *   Limpieza: imports, props y variables que no se usaban (`App.jsx`, `CasoUnificado.jsx`, `GraficoCompanias`, `CompaniaSelector`, `EstadoSelector`, `DialogoEtapa`, `Toast`, `ModalesCliente`, `estadisticasPas.resumenDelMes`). Sin cambios visibles.
 
+### 2026-10-05 — jsPDF 2.5.2 → 4.2.1 (seguridad)
+*   `npm audit` marcaba jsPDF como **crítico** (y DOMPurify, que viene con jsPDF, como moderado). Se actualizó a 4.2.1; con eso desaparecen los dos avisos.
+*   Probado generando con las dos versiones la carta documento, el escrito con membrete, el PDF del caso y `generarEscrito`: salen **idénticos** (sin contar la fecha de creación). También se generó en el navegador con el servidor de desarrollo.
+
 ### 2026-10-04 — Auditoría UX, tandas 2 y 3: cambio de etapa, filtros, compañías, novedades y Ctrl+K
 *   **Casos al día sin recargar:** el canal de tiempo real de `pas_casos` en `App.jsx` ahora escucha altas, cambios y bajas (antes solo altas). Al volver a la pestaña después de 2 min o más se traen los casos de nuevo (`usePASData.refrescarCasos`), por si el tiempo real se cortó.
 *   **Cambio de etapa con sus datos (`caso/DialogoEtapa.jsx`, mismo diálogo en la ficha, la fila desplegada, el tablero y la tabla):** Esperando pago pide fecha de pago y monto acordado (la fecha ajusta `plazo_pago` para que firma + plazo dé esa fecha, que es lo que usa Hoy); Cobrado pide lo que cobró el asegurado y la fecha; Desistido pide el motivo (va en la bitácora: "Pasó de X a Desistido: motivo"). **Volver a una etapa anterior** muestra los datos de etapas posteriores para borrar (fechas tildadas; montos y plazo sin tildar). Lógica en `flujoEstados.js` (`datosQueSobran`, `esRetroceso`, `pideDialogoEtapa`).
@@ -195,6 +199,11 @@
 *   **Cuerpo en un solo bloque justificado**, como preimpresos: cada punto y aparte se escribe en el mismo renglón con tres espacios. La justificación reparte el sobrante entre todos los espacios. Opción **"Respetar párrafos"** para cortar renglón en cada párrafo.
 *   **Nombre en dos renglones con criterio:** si entra, va entero en el primero; si no, se corta antes de "Compañía", "Cooperativa", "Sociedad", "Mutual", "Seguros", "S.A.", etc. ("PROVIDENCIA / COMPAÑÍA ARGENTINA DE SEGUROS"). Con **`|`** se elige el corte a mano (no aparece en la firma ni en el nombre del archivo).
 *   **Letra fija** (10 / 8 en localidad y provincia, como preimpresos): ya no se achica; si un dato no entra en su casillero, la pantalla avisa cuál. El corrimiento general en mm queda como estaba.
+
+### 2026-10-02 — Para hacer: lo marcado como hecho ya no queda vencido
+*   **Problema:** "Hecho" resolvía solo la próxima acción; si el caso tenía además un aviso automático vencido ("Reclamo quieto", "Pedir respuesta", "A la firma", "Fecha de pago"), la tarjeta seguía en rojo. Con "Hecho, sin nueva acción" el reclamo quieto volvía al instante.
+*   **Ahora:** esos cuatro avisos se callan mientras el caso tenga una próxima acción con plazo de hoy en adelante (antes solo el reclamo quieto). La **prescripción** aparece siempre. `metricas.tareasPendientes` marca esa acción con `callaAviso`.
+*   En una tarjeta con avisos, "Hecho" pide la próxima acción **con fecha** (no se ofrece "Hecho, sin nueva acción" y no deja guardar sin fecha o con fecha pasada) (`dashboard/TarjetaCaso.jsx`).
 
 ### 2026-10-01 — Demostración del portal de productores (/portal/demo)
 *   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
