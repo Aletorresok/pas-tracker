@@ -95,3 +95,20 @@ export function itemsCompania(nombre, ficha = {}, contactos = []) {
     ficha.telefono && { label: "Copiar teléfono general", onClick: () => copiar(ficha.telefono) },
   ];
 }
+
+// ── Biblioteca (fallo, doctrina o norma) ───────────────────────
+// acciones: { abrir, editar, favorito, eliminar }
+export function itemsBiblioteca(x, { abrir, editar, favorito, eliminar, cita } = {}) {
+  return [
+    abrir && { label: "Abrir", onClick: () => abrir(x) },
+    x.url && { label: "Abrir la fuente", onClick: () => abrirLink(x.url) },
+    favorito && { label: x.favorito ? "Quitar de favoritos" : "Marcar como favorito", onClick: () => favorito(x) },
+    editar && { label: "Editar", onClick: () => editar(x) },
+    { separador: true },
+    cita && { label: "Copiar cita", onClick: () => copiar(cita(x)) },
+    x.sumario && { label: x.tipo === "fallo" ? "Copiar sumario" : "Copiar resumen", onClick: () => copiar(x.sumario) },
+    x.url && { label: "Copiar link", onClick: () => copiar(x.url) },
+    eliminar && { separador: true },
+    eliminar && { label: "Eliminar", peligro: true, onClick: () => eliminar(x) },
+  ];
+}

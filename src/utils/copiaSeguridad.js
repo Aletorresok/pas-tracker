@@ -16,6 +16,7 @@ export const TABLAS_COPIA = [
   "tipos_plazo", // SQL 33
   "liquidaciones", // SQL 36
   "novedades_judiciales", // SQL 37
+  "biblioteca", // SQL 46
 ];
 // Tabla que no existe (falta correr su SQL): no se copia, pero no corta la copia
 const noExiste = error => ["42P01", "PGRST205"].includes(error?.code) || /does not exist|Could not find the table/i.test(error?.message || "");
