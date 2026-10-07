@@ -33,7 +33,7 @@ src/
 ├── App.jsx                 # App principal: PIN gate, 5 tabs, backup
 ├── Portal.jsx              # Portal PAS: auth + rutas
 ├── CasoUnificado.jsx       # Modal detalle de caso
-├── supabase.js             # Clientes Supabase (principal + agendalegal)
+├── supabase.js             # Cliente Supabase
 ├── constants.js            # Estados, resultados, tipos de doc
 │
 ├── components/
@@ -54,7 +54,6 @@ src/
 │
 └── utils/
     ├── storage.js          # CRUD contra Supabase (upsert/insert/delete)
-    ├── sync.js             # Sync casos → AgendaLegal (DB separada)
     ├── formatters.js       # Formato: fechas, montos ($), teléfonos
     ├── generarEscrito.js   # Genera PDF escrito con datos del caso
     ├── carpeta.js          # Operaciones con carpeta local de archivos
@@ -103,12 +102,6 @@ Ruta separada `/portal`. Login con email/password (Supabase Auth). Cada PAS ve s
 ### 5. Generación de escritos (generarEscrito.js)
 
 Genera PDF con jsPDF pre-rellenado con datos del caso. Se guarda en la carpeta vinculada al caso.
-
-### 6. Sync con AgendaLegal (sync.js)
-
-Exporta casos a una segunda base de datos Supabase (AgendaLegal) con mapeo de estados:
-- `esperando_pago` → "Sentenciado"
-- `cobrado` → "Finalizado"
 
 ## Base de datos (Supabase)
 
