@@ -132,6 +132,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-05 — jsPDF 2.5.2 → 4.2.1 (seguridad)
+*   `npm audit` marcaba jsPDF como **crítico** (y DOMPurify, que viene con jsPDF, como moderado). Se actualizó a 4.2.1; con eso desaparecen los dos avisos.
+*   Probado generando con las dos versiones la carta documento, el escrito con membrete, el PDF del caso y `generarEscrito`: salen **idénticos** (sin contar la fecha de creación). También se generó en el navegador con el servidor de desarrollo.
+
 ### 2026-10-04 — Auditoría UX, tandas 2 y 3: cambio de etapa, filtros, compañías, novedades y Ctrl+K
 *   **Casos al día sin recargar:** el canal de tiempo real de `pas_casos` en `App.jsx` ahora escucha altas, cambios y bajas (antes solo altas). Al volver a la pestaña después de 2 min o más se traen los casos de nuevo (`usePASData.refrescarCasos`), por si el tiempo real se cortó.
 *   **Cambio de etapa con sus datos (`caso/DialogoEtapa.jsx`, mismo diálogo en la ficha, la fila desplegada, el tablero y la tabla):** Esperando pago pide fecha de pago y monto acordado (la fecha ajusta `plazo_pago` para que firma + plazo dé esa fecha, que es lo que usa Hoy); Cobrado pide lo que cobró el asegurado y la fecha; Desistido pide el motivo (va en la bitácora: "Pasó de X a Desistido: motivo"). **Volver a una etapa anterior** muestra los datos de etapas posteriores para borrar (fechas tildadas; montos y plazo sin tildar). Lógica en `flujoEstados.js` (`datosQueSobran`, `esRetroceso`, `pideDialogoEtapa`).
