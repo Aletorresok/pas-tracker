@@ -90,8 +90,8 @@
 - [ ] **Video de presentación de 1 minuto como máximo** (muchos no van a entrar al sitio): pensar guion y tomas.
 
 **Próximos pasos acordados (29/09):**
-- [ ] **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
-- [ ] Confirmar qué pasaba con los mails de EmailJS (cupo / variables en Vercel) y que el deploy de producción muestre las 5 herramientas.
+- [x] ✅ (07/10, probado por el usuario) **Probar en uso real lo del PR #74** (todo se probó con Supabase simulado): derivar desde el portal con fotos en el celular y "Documentación que mandaste"; Adjuntos del PAS en la ficha; "Presentarme al cliente" con el link; Olvidé mi contraseña con un usuario de prueba; Finanzas (gasto fijo, facturar con número); Rutina y objetivos; recordatorio a interesados.
+- [x] ✅ Mails de EmailJS: llegan (confirmado el 07/10).
 - [ ] Cargar los 10-15 expedientes reales y revisar si a la ficha de expediente le falta algo (partes, audiencias, honorarios regulados).
 - [x] ✅ Objetivos medibles en Análisis → Resumen (01/10).
 - [ ] Vista del cliente (patente + DNI): pensarla para que sea más cómoda que escribir por WhatsApp (el usuario todavía la usó poco).
@@ -100,13 +100,13 @@
 - Misma regla para las Edge Functions: cada archivo **menos de 100 líneas** (el deploy desde el panel falló el 29/09 con "Expected '}', got '<eof>'" en la línea 100). `notificar` = `index.ts` + `base.ts` + `avisos.ts` + `resumen.ts`; `calendario` = `index.ts` + `ical.ts`. En el panel: un archivo por pestaña, mismos nombres.
 - [x] ✅ **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`) **cerrado el 29/09**: fases 0 a 6 y 7a hechas y publicadas en `main` (SQL 31 a 37). La 7b (búsqueda dentro de los documentos, SQL 38) **se descartó**. Quedan del lado del usuario:
   - [x] ✅ SQL 34 a 45 confirmados corridos el 07/10 (consulta de control: los 10 en `true`, incluidos 39, 40, 41/41b, 42, 43, 44 y 45).
-  - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
+  - [x] ✅ `notificar` y `calendario` desplegadas (07/10). El link del calendario se genera en **Ajustes → Calendario** (se mudó de Herramientas en el PR #88).
   - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
 - [x] ✅ Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (07/10, Ficha → Montos → Ofertas).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones; etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
-**Para probar en uso real:** guardado en la carpeta vinculada de lo que manda el cliente (no se pudo probar en el entorno de prueba); derivación desde el portal en vivo; mail único por sesión.
+**Para probar en uso real:** ✅ probado por el usuario el 07/10 (carpeta vinculada, derivación desde el portal y mail único).
 
 **Funcionalidades (ideas):**
 - [x] ✅ Logo definitivo (monograma ATG macizo, elegido entre las propuestas de Gemini y redibujado en vector).
@@ -114,7 +114,7 @@
 - [ ] Notificaciones push: SQL 17 y función `notificar` ✅ (responde la clave, 24/09). Los webhooks del panel fallaron ("schema supabase_functions does not exist"), así que los avisos y el cron van por `sql/2026-09-24_18_avisos_y_cron.sql` (pg_net + pg_cron, con la URL del proyecto). ✅ Prueba recibida en el celular (24/09). SQL 18 corrido con la URL real del proyecto.
 - [x] ✅ Que el cliente vea como "✓ Ya lo tenemos" lo que tildaste en el checklist (24/09, requiere SQL 13).
 - [x] ✅ Margen de "reclamo quieto" ajustable por compañía (Análisis; 14 días general; SQL 14).
-- [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Falta probar que llegue el mail.
+- [x] ✅ Plantilla de EmailJS aparte para la documentación del cliente: `template_beake0i` (en el código; `VITE_EMAILJS_TEMPLATE_CLIENTE_ID` la reemplaza si se carga). Mail probado (07/10).
 - [x] ✅ Mostrar al PAS (portal) y al cliente la próxima mediación/audiencia agendada (24/09, requiere SQL 13).
 - [ ] F10 · carga del caso desde la denuncia con IA: descartada por ahora (costo).
 
@@ -131,6 +131,11 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-07 — Confirmaciones del usuario y video para PAS
+*   Confirmado en producción: mails de EmailJS, funciones `notificar` y `calendario` desplegadas, y lo pendiente de probar en uso real (PR #74, carpeta vinculada, derivación desde el portal).
+*   Video de presentación para PAS (49 s, vertical, sin voz): grabado sobre `/portal/demo` con el guion de 8 partes (gancho, propuesta, derivar, seguir, mensaje para el cliente, plazos por compañía, costo, cierre con `atglex.com.ar/portal/demo`). No está en el repo.
+*   Biblioteca: el relevamiento está en la rama `biblioteca-relevamiento` (`docs/biblioteca/`: 76 fallos, 19 doctrina, 20 normas, 13 a revisar; tema nuevo "suma asegurada"). Segunda tanda pedida a Cowork.
 
 ### 2026-10-07 — Ofertas: ¿conviene aceptar?
 *   **Ficha → Montos → Ofertas de la compañía** (`caso/ReferenciaOferta.jsx`): si el último ofrecimiento está sin responder o con contraoferta, debajo de la lista aparece una referencia que lo compara con lo que **esa compañía cerró** en los otros casos del estudio: lo cobrado por el asegurado o, si todavía no cobró, lo acordado, en % de la base del reclamo (mediana).
