@@ -82,17 +82,19 @@ export function eventosDemo() {
 
 // "Plazos por compañía" del portal: días hasta el ofrecimiento, hasta el cobro y % cobrado sobre lo reclamado
 export function plazosDemo() {
+  // Números inventados y moderados: ~1 mes hasta el ofrecimiento, ~2 meses hasta el cobro, ~90% de lo reclamado
   const filas = [];
-  [["Sancor", [35, 42, 50]], ["Federación Patronal", [28, 33, 40]], ["La Segunda", [45, 52, 60]], ["Rivadavia", [55, 62]], ["Mercantil Andina", [38, 47]]]
+  [["Sancor", [25, 30, 34]], ["Federación Patronal", [20, 24, 28]], ["La Segunda", [30, 35, 40]], ["Rivadavia", [32, 38]], ["Mercantil Andina", [26, 31]]]
     .forEach(([cia, dias]) => dias.forEach((d, i) => filas.push({
       compania_aseguradora: cia, estado: "cobrado",
-      fecha_inicio_reclamo: fechaEnDias(-d - 70), fecha_ofrecimiento: fechaEnDias(-70), fecha_cobro: fechaEnDias(-20 - i * 5),
-      monto_reclamado: 2000000, monto_ofrecimiento: 1400000 + i * 150000, monto_cobro_asegurado: 1500000 + i * 150000,
-      // Ejemplos de instancia y pagos: el tercer caso se arregló en mediación; Rivadavia pagó tarde
+      fecha_inicio_reclamo: fechaEnDias(-d - 40), fecha_ofrecimiento: fechaEnDias(-40),
+      monto_reclamado: 2000000, monto_ofrecimiento: 1700000 + i * 100000, monto_cobro_asegurado: 1750000 + i * 100000,
+      // Ejemplos de instancia y pagos: el tercer caso se arregló en mediación; Rivadavia pagó una vez 3 días tarde
       instancia_ofrecimiento: i === 2 ? "mediacion" : "administrativa",
-      fecha_aceptacion: fechaEnDias(-60), plazo_pago: cia === "Rivadavia" ? 30 : 45,
+      fecha_aceptacion: fechaEnDias(-35), plazo_pago: 30,
+      fecha_cobro: fechaEnDias(cia === "Rivadavia" && i === 0 ? -2 : -10),
     })));
   // Un reclamo que todavía espera el ofrecimiento (cuenta en "Días hasta ofrecimiento")
-  filas.push({ compania_aseguradora: "Sancor", estado: "reclamado", fecha_inicio_reclamo: fechaEnDias(-60), monto_reclamado: 1800000 });
+  filas.push({ compania_aseguradora: "Sancor", estado: "reclamado", fecha_inicio_reclamo: fechaEnDias(-18), monto_reclamado: 1800000 });
   return filas;
 }

@@ -78,7 +78,7 @@
 *   **Cliente:** entra con patente + DNI, ve su avance y sube documentación → un mail por sesión → Hoy "Documentación recibida" → se guarda en la carpeta del caso y se borra de la nube.
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
-## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+## 🧹 Pendientes de mejora (actualizado 2026-10-07)
 **Expedientes para cargar (borrador del Drive, carpeta "Causas", 01/10)** — confirmar cuáles siguen en trámite y pasar número, juzgado y jurisdicción:
 - Civil: Dorta Vargas Sucesión · Sucesión Lescano / Perez · Bustos Joaquín c/ Sancor Salud · Gaveglio Quiebra · Salomone (ejecución de honorarios) · Vogel Valeria Sucesión · Venier Sucesión.
 - Familia: Cafardo Mariana · Godoy Lourdes · Alegre Irene Soledad c/ Rodas Jorge Gabriel s/ Alimentos · Cisternas Eyeralde Ramiro · Atala Micaela s/ Divorcio · Bogado Daiana Soledad.
@@ -99,10 +99,10 @@
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
 - Misma regla para las Edge Functions: cada archivo **menos de 100 líneas** (el deploy desde el panel falló el 29/09 con "Expected '}', got '<eof>'" en la línea 100). `notificar` = `index.ts` + `base.ts` + `avisos.ts` + `resumen.ts`; `calendario` = `index.ts` + `ical.ts`. En el panel: un archivo por pestaña, mismos nombres.
 - [x] ✅ **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`) **cerrado el 29/09**: fases 0 a 6 y 7a hechas y publicadas en `main` (SQL 31 a 37). La 7b (búsqueda dentro de los documentos, SQL 38) **se descartó**. Quedan del lado del usuario:
-  - [ ] Confirmar que corrió los SQL 34, 35 y 36 (consulta de control en el Registro de Cambios del 29/09, "Cierre de la semana").
+  - [x] ✅ SQL 34 a 45 confirmados corridos el 07/10 (consulta de control: los 10 en `true`, incluidos 39, 40, 41/41b, 42, 43, 44 y 45).
   - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
   - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
-- [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
+- [x] ✅ Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (07/10, Ficha → Montos → Ofertas).
 - [ ] Plan ATG Lex: etapa 7 (vista del cliente para expedientes) ✅ 29/09 con la fase 5 del plan de funciones; etapa 8 (migración y baja de Agenda Legal) pendiente.
 - [x] ✅ SQL 26 (papelera) y SQL 27 (herramientas): confirmados corridos el 29/09 (consulta `to_regclass`: true y true).
 
@@ -132,10 +132,24 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-07 — Ofertas: ¿conviene aceptar?
+*   **Ficha → Montos → Ofertas de la compañía** (`caso/ReferenciaOferta.jsx`): si el último ofrecimiento está sin responder o con contraoferta, debajo de la lista aparece una referencia que lo compara con lo que **esa compañía cerró** en los otros casos del estudio: lo cobrado por el asegurado o, si todavía no cobró, lo acordado, en % de la base del reclamo (mediana).
+*   Veredicto: **En línea** (la oferta llega a la mediana: aceptar es razonable), **Cerca** (hasta 10 puntos menos: pedir una mejora chica) o **Por debajo** (pedir reconsideración). Dice hasta cuánto suele llegar en pesos (la mediana aplicada a este reclamo) y, si hay casos con más de una oferta, cuánto suele subir la compañía entre la primera y la última.
+*   Con menos de 3 casos cerrados de la compañía no da veredicto (muestra lo que hay). Concurrencia: se mide sobre la parte del tercero; franquicia: avisa que se paga entera. Quedan afuera desistidos, el propio caso y cierres de más de 150% (error de carga).
+*   `utils/referenciaOferta.js`: `referenciaOferta` (cálculo puro, usa `baseReclamo` y `mediana` de `analisis.js` y `subaOfertas`) y `datosCompania` (casos de la compañía y sus ofertas desde Supabase, al abrir la ficha). Sin SQL nuevo.
+
 ### 2026-10-06 — Número de factura con sus ceros; facturas 0063 a 0066
 *   `normalizarFactura` (`utils/formatters.js`): al salir del campo de número de factura (ficha del caso, Honorarios, y Finanzas → Facturación, también al apretar "Facturar") completa el formato ARCA: "64" → `0001-00000064`, "1-65" → `0001-00000065`, "0001-0000064" → `0001-00000064`. Lo que no sean solo números queda como está.
 *   Facturas 0063 (Villena), 0064 (Della Giustina), 0065 (Leiva) y 0066 (Guzmán Zulema) con `sql/datos_2026-10-06_carga_facturas_63_66.sql` (la 64 y la 65 estaban cargadas con dígitos de menos; corrido el 06/10).
 *   `sql/datos_2026-10-05_atala_aportes_caja.sql`: expediente MG-3846-2026, aportes a la Caja y escrito del 05/10.
+
+### 2026-10-05 — Portal: errores de carga visibles y limpieza de variables sin uso
+*   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
+*   Limpieza: imports, props y variables que no se usaban (`App.jsx`, `CasoUnificado.jsx`, `GraficoCompanias`, `CompaniaSelector`, `EstadoSelector`, `DialogoEtapa`, `Toast`, `ModalesCliente`, `estadisticasPas.resumenDelMes`). Sin cambios visibles.
+
+### 2026-10-05 — jsPDF 2.5.2 → 4.2.1 (seguridad)
+*   `npm audit` marcaba jsPDF como **crítico** (y DOMPurify, que viene con jsPDF, como moderado). Se actualizó a 4.2.1; con eso desaparecen los dos avisos.
+*   Probado generando con las dos versiones la carta documento, el escrito con membrete, el PDF del caso y `generarEscrito`: salen **idénticos** (sin contar la fecha de creación). También se generó en el navegador con el servidor de desarrollo.
 
 ### 2026-10-04 — Auditoría UX, tandas 2 y 3: cambio de etapa, filtros, compañías, novedades y Ctrl+K
 *   **Casos al día sin recargar:** el canal de tiempo real de `pas_casos` en `App.jsx` ahora escucha altas, cambios y bajas (antes solo altas). Al volver a la pestaña después de 2 min o más se traen los casos de nuevo (`usePASData.refrescarCasos`), por si el tiempo real se cortó.
@@ -197,8 +211,13 @@
 *   **Nombre en dos renglones con criterio:** si entra, va entero en el primero; si no, se corta antes de "Compañía", "Cooperativa", "Sociedad", "Mutual", "Seguros", "S.A.", etc. ("PROVIDENCIA / COMPAÑÍA ARGENTINA DE SEGUROS"). Con **`|`** se elige el corte a mano (no aparece en la firma ni en el nombre del archivo).
 *   **Letra fija** (10 / 8 en localidad y provincia, como preimpresos): ya no se achica; si un dato no entra en su casillero, la pantalla avisa cuál. El corrimiento general en mm queda como estaba.
 
+### 2026-10-02 — Para hacer: lo marcado como hecho ya no queda vencido
+*   **Problema:** "Hecho" resolvía solo la próxima acción; si el caso tenía además un aviso automático vencido ("Reclamo quieto", "Pedir respuesta", "A la firma", "Fecha de pago"), la tarjeta seguía en rojo. Con "Hecho, sin nueva acción" el reclamo quieto volvía al instante.
+*   **Ahora:** esos cuatro avisos se callan mientras el caso tenga una próxima acción con plazo de hoy en adelante (antes solo el reclamo quieto). La **prescripción** aparece siempre. `metricas.tareasPendientes` marca esa acción con `callaAviso`.
+*   En una tarjeta con avisos, "Hecho" pide la próxima acción **con fecha** (no se ofrece "Hecho, sin nueva acción" y no deja guardar sin fecha o con fecha pasada) (`dashboard/TarjetaCaso.jsx`).
+
 ### 2026-10-01 — Demostración del portal de productores (/portal/demo)
-*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
+*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`). Las estadísticas por compañía del demo son inventadas y moderadas (~1 mes al ofrecimiento, ~2 meses al cobro, ~90% cobrado) y lo aclaran al pie (prop `aclaracion` de `GraficoCompanias`).
 *   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.
 *   Reemplaza a las cuentas de prueba del portal (se borran a mano en Supabase → Authentication).
 *   Probado en Chromium (celular): sin pedidos a Supabase, ninguna mención a comisión, derivar avisa sin guardar.

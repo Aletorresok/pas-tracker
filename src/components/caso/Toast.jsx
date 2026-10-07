@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { alpha } from "../../utils/theme.js";
 
 export default function Toast({ msg, type, onDismiss }) {
   useEffect(() => {

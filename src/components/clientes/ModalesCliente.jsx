@@ -108,7 +108,7 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
   );
 }
 
-export function NuevoPASModal({ pasEdit, darkMode, onClose, onSave }) {
+export function NuevoPASModal({ pasEdit, onClose, onSave }) {
   const [nombre, setNombre] = useState(pasEdit?.nombre || "");
   const [mail, setMail] = useState(pasEdit?.mail || "");
   const iStyle = {

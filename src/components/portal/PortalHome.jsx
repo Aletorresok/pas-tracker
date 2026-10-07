@@ -10,7 +10,6 @@ import CambiarPasswordModal from "./CambiarPasswordModal.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
 import PreguntasDemo from "./PreguntasDemo.jsx";
-import { alpha } from "../../utils/theme.js";
 import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
@@ -51,7 +50,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   const [pasInfo, setPasInfo] = useState(demo ? PAS_DEMO : null);
   const [casos,   setCasos]   = useState(() => (demo ? casosDemo() : []));
   const [loading, setLoading] = useState(!demo);
-  const [error,   setError]   = useState("");
+  const [error,   setError]   = useState(null); // null | "sin_vinculo" | "carga"
+  const [intento, setIntento] = useState(0); // "Reintentar" vuelve a cargar
   const [cambPwd, setCambPwd] = useState(false);
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false);
   
@@ -79,9 +79,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   useEffect(() => {
     if (demo) return; // la demostración arranca con sus datos (estado inicial)
     const loadData = async () => {
-      setLoading(true);
-      const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).single();
-      if (linkErr || !link) { setError("Tu usuario no está vinculado a ningún PAS."); setLoading(false); return; }
+      setLoading(true); setError(null);
+      const { data: link, error: linkErr } = await supabase.from("pas_portal_users").select("pas_id").eq("user_id", session.user.id).maybeSingle();
+      if (linkErr) throw linkErr;
+      if (!link) { setError("sin_vinculo"); setLoading(false); return; }
       setPasId(link.pas_id);
       
       const { data: pas } = await supabase.from("pas_lista").select("nombre, mail, telefonos").eq("pas_id", link.pas_id).single();
@@ -95,7 +96,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
       } else {
         queryCasos = queryCasos.order("created_at", { ascending: false }); 
       }
-      const { data: casosData } = await queryCasos;
+      const { data: casosData, error: casosErr } = await queryCasos;
+      if (casosErr) throw casosErr;
 
       if (casosData?.length) {
         const casoIds = casosData.map(c => c.id);
@@ -120,13 +122,18 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
       }
       setLoading(false);
     };
-    loadData();
+    // Si falla la conexión no se muestra "sin casos" (ni el caso de ejemplo): se avisa y se puede reintentar
+    loadData().catch(err => {
+      console.error("[PortalHome] carga:", err);
+      setError("carga");
+      setLoading(false);
+    });
 
     // Datos de todas las compañías sin nombres ni patentes (función plazos_companias en Supabase)
     supabase.rpc("plazos_companias").then(({ data }) => {
       if (Array.isArray(data)) setTodosLosCasos(data);
     });
-  }, [session, demo]);
+  }, [session, demo, intento]);
 
   const handleRealtimeUpdate = useCallback((casoActualizado, evento) => {
     if (!casoActualizado?.id) return;
@@ -175,6 +182,18 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   const esDemo = casos[0]?._demo;
 
   if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos…</div>;
+  if (error) return (
+    <div role="alert" style={{ minHeight: "100vh", background: T.bg, color: T.text, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, textAlign: "center" }}>
+      <Logo alto={30} />
+      <div style={{ fontSize: 15, maxWidth: 360, lineHeight: 1.5 }}>{error === "sin_vinculo" ? "Tu usuario todavía no está vinculado a un productor. Escribinos y lo activamos." : "No pudimos cargar tus casos. Revisá la conexión y probá de nuevo."}</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+        {error === "sin_vinculo"
+          ? <a href={linkWhatsApp(TELEFONO_ESTUDIO, "Hola, entré al portal de productores y mi usuario no está vinculado.")} target="_blank" rel="noreferrer" className="btn-wa-grande" style={{ padding: "8px 14px", fontSize: 14 }}><Icono nombre="mensaje" size={15} /> Escribir al estudio</a>
+          : <Boton variante="primario" onClick={() => setIntento(n => n + 1)}>Reintentar</Boton>}
+        <Boton variante="fantasma" onClick={onLogout}>Salir</Boton>
+      </div>
+    </div>
+  );
 
   const pestanaBtn = (k, l, n) => {
     const activa = pestana === k;
@@ -316,7 +335,8 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
 
           {Object.keys(plazos).length >= 3 && (
             <GraficoBoundary>
-              <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false} />
+              <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false}
+                aclaracion={demo ? "Datos inventados para la demostración. En tu portal vas a ver los promedios reales de los casos del estudio." : null} />
             </GraficoBoundary>
           )}
 
