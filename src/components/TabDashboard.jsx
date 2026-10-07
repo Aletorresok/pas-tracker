@@ -3,6 +3,7 @@ import { aplanarCasos, tareasPendientes, cobrosPendientes } from "../utils/metri
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import ParaHacer from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
+import ConsultasWeb from "./dashboard/ConsultasWeb.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import MiDia from "./dashboard/MiDia.jsx";
@@ -87,6 +88,7 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
       <NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
+      <ConsultasWeb todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} onAbrir={(c, pasId) => setAbierto({ caso: c, pasId })} />
 
       {/* Lo que hay que hacer y, al lado, la plata que falta entrar y la agenda */}
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>

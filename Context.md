@@ -86,8 +86,13 @@
 - Consumidor: Torres Gaveglio c/ BNA · Sanchez Guillermo c/ Telecom.
 - Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
 
+**Captación directa (07/10):**
+- [ ] Correr el SQL 47 (`sql/2026-10-07_47_consultas_web.sql`). Sin él, la página /reclamo muestra error al enviar y no muestra plazos.
+- [ ] Probar /reclamo en el celular con una consulta real y ver que llegue el mail y aparezca en Hoy.
+- Ideas que siguen (propuesta del 07/10): 2C link personal para que el cliente recomiende (`?ref=`), 2D pedido de reseña en Google al cobrar, 2E bandeja con historial de consultas.
+
 **Biblioteca (07/10):**
-- [ ] Correr en Supabase el SQL 46 (`sql/2026-10-07_46_biblioteca.sql`) y después, en orden, `datos_2026-10-07_biblioteca_1.sql`, `_2` y `_3` (99 fallos, 32 doctrina, 23 normas). Se pueden volver a correr sin duplicar.
+- [x] ✅ SQL 46 y las tres cargas corridos el 07/10 (99 fallos, 32 doctrina, 23 normas).
 - Pendientes del relevamiento (`docs/biblioteca/README.md`, "Huecos que siguen"): plenario Samudio, Vuoto y Méndez de origen, prescripción trienal del tercero como tema central, desvalorización a favor en la CNCiv.
 - Ideas que siguen (propuesta visual del 07/10): 1B "Fallos útiles" en la ficha del caso con "Citar" en el escrito; 1C pegar un link de SAIJ/JUBA y armar la ficha.
 
@@ -137,6 +142,13 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-07 — Captación directa: página pública /reclamo y consultas en Hoy (SQL 47)
+*   **`/reclamo`** (`publico/PaginaReclamo.jsx`, ruta en `main.jsx`, sin cuenta): "¿Chocaste y no fue tu culpa?", cómo funciona en 3 pasos, **"¿Cuánto tarda tu compañía?"** con medianas reales (función `plazos_publicos`: solo compañías con 3 casos o más, sin datos de casos puntuales), formulario corto (nombre, WhatsApp, patente, fecha, compañía del otro auto, lesionados, qué pasó), agradecimiento con "Mandar fotos por WhatsApp" y preguntas frecuentes para el cliente. Acepta `?ref=origen` (ej. `/reclamo?ref=instagram`) y lo guarda con la consulta.
+*   **SQL 47** (`sql/2026-10-07_47_consultas_web.sql`): tabla `consultas` (RLS solo administrador; entra en la copia de seguridad), `nueva_consulta()` para la página (valida nombre y teléfono; freno: 3 por día por teléfono y 40 por hora en total) y `plazos_publicos()`.
+*   **Aviso por mail** con la plantilla de derivaciones de EmailJS (`utils/consultas.js`).
+*   **Hoy → "Consultas de la web"** (`dashboard/ConsultasWeb.jsx`): WhatsApp con mensaje armado (la marca como contactada), **Pasar a caso** (caso directo en el PAS "Sin Pas", en Documentación pendiente, con la nota de lo que contó; abre la ficha) y Descartar. Se recarga al volver a la pestaña.
+*   Probado: SQL 47 en Postgres 16 dos veces (medianas, umbral de 3 casos, desistidos afuera, validación y freno); la página y la tarjeta en Chromium con Supabase simulado (celular y compu, claro y oscuro, envío con error y con éxito, pasar a caso), sin errores ni desbordes.
 
 ### 2026-10-07 — Biblioteca: jurisprudencia, doctrina y normas (SQL 46)
 *   **Pestaña nueva Biblioteca** (menú lateral, entre Compañías y Herramientas; en celular, en "Más"). Ver `TabBiblioteca.jsx` en la estructura.
