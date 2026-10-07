@@ -6,9 +6,12 @@
     "fecha": "2026-04-14",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso",
+      "suma asegurada"
+    ],
     "resultado": "a favor",
-    "sumario": "La sola indisponibilidad del vehículo tras el choque es daño resarcible: el damnificado no tiene que probar para qué usaba el auto ni que haya tenido gastos de reemplazo. La carga de demostrar lo contrario pasa al responsable. Sirve para reclamar privación de uso sin comprobantes de remises o alquiler.",
+    "sumario": "La sola indisponibilidad del vehículo tras el choque es daño resarcible: el damnificado no tiene que probar para qué usaba el auto ni que haya tenido gastos de reemplazo. La carga de demostrar lo contrario pasa al responsable. Sirve para reclamar privación de uso sin comprobantes de remises o alquiler. Además, ordena ajustar el límite de cobertura a la normativa de la SSN vigente al momento del pago.",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-avido-facundo-lucas-agustin-steinhorst-jonathan-martin-danos-perjuicios-fa26020152-2026-04-14/123456789-251-0206-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
@@ -20,7 +23,11 @@
     "fecha": "2026-06-30",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso", "incapacidad", "daño moral"],
+    "temas": [
+      "privación de uso",
+      "incapacidad",
+      "daño moral"
+    ],
     "resultado": "mixto",
     "sumario": "Admite la privación de uso por la sola indisponibilidad del rodado, aunque no se haya reparado, y el daño moral in re ipsa cuando hay lesiones, aun transitorias. En cambio, rechaza la incapacidad sobreviniente por falta de nexo causal entre las secuelas periciales y el hecho. Útil para privación de uso y daño moral; advierte sobre la prueba de la causalidad médica.",
     "sumario_oficial": false,
@@ -34,7 +41,9 @@
     "fecha": "2026-02-13",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "a favor",
     "sumario": "La privación de uso compensa la falta del vehículo durante la reparación y se presume con solo acreditar la indisponibilidad por un lapso determinado, porque quien tiene un auto lo usa normalmente. Refuerza que no hace falta prueba del gasto concreto.",
     "sumario_oficial": false,
@@ -48,7 +57,9 @@
     "fecha": "2026-02-13",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "a favor",
     "sumario": "Califica la privación de uso como perjuicio autónomo que se indemniza por la sola imposibilidad objetiva de usar el auto, sin acreditar gastos de transporte alternativo ni la reparación efectiva. Muy útil cuando el cliente no arregló el vehículo o no guardó comprobantes.",
     "sumario_oficial": false,
@@ -62,7 +73,9 @@
     "fecha": "2025-12-30",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "a favor",
     "sumario": "Confirma el monto por privación de uso a favor de un conductor embestido por un colectivo mientras estaba detenido, tratándolo como daño in re ipsa: se presume que quien usa el auto lo hace para cubrir una necesidad. Sirve contra empresas de transporte y sus aseguradoras.",
     "sumario_oficial": false,
@@ -76,7 +89,11 @@
     "fecha": "2026-02-26",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso", "daño emergente", "concurrencia"],
+    "temas": [
+      "privación de uso",
+      "daño emergente",
+      "concurrencia"
+    ],
     "resultado": "mixto",
     "sumario": "La privación de uso absorbe los gastos de traslado para reemplazar el vehículo, por lo que no se indemnizan por separado. Sobre la mecánica, la prioridad de la derecha opera cuando ambos llegan casi a la vez, no si el otro ya había cruzado gran parte de la bocacalle. Ojo al pedir rubros superpuestos.",
     "sumario_oficial": false,
@@ -90,9 +107,15 @@
     "fecha": "2026-06-12",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["privación de uso", "concurrencia", "incapacidad", "daño moral"],
+    "temas": [
+      "privación de uso",
+      "concurrencia",
+      "incapacidad",
+      "daño moral",
+      "suma asegurada"
+    ],
     "resultado": "mixto",
-    "sumario": "Limita la presunción de privación de uso para un vehículo recreativo de circulación restringida si no se prueba una necesidad concreta. Dice que quien viene por la derecha pierde la prioridad al girar hacia otra vía. A favor: el daño psíquico permanente puede integrar la incapacidad sin impedir el daño moral por separado. (La fuente no informa la sala.)",
+    "sumario": "Limita la presunción de privación de uso para un vehículo recreativo de circulación restringida si no se prueba una necesidad concreta. Dice que quien viene por la derecha pierde la prioridad al girar hacia otra vía. A favor: el daño psíquico permanente puede integrar la incapacidad sin impedir el daño moral por separado. (La fuente no informa la sala.) Sobre el límite de cobertura, admite adecuarlo al importe vigente para la categoría de riesgo al cuantificar la indemnización, sin sumar una actualización por índice que duplique la recomposición.",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-garcia-esteban-alfredo-alvarez-tomas-otro-danos-perjuicios-fa26020327-2026-06-12/123456789-723-0206-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
@@ -104,7 +127,9 @@
     "fecha": "2026-05-28",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["desvalorización"],
+    "temas": [
+      "desvalorización"
+    ],
     "resultado": "en contra",
     "sumario": "Rechaza la desvalorización porque no se probó que, pese a una buena reparación, quedaran secuelas perceptibles que bajen el valor de reventa; el choque por sí solo no la hace presumir. Indica que hay que producir pericia mecánica específica.",
     "sumario_oficial": false,
@@ -118,7 +143,9 @@
     "fecha": "2026-05-14",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["desvalorización"],
+    "temas": [
+      "desvalorización"
+    ],
     "resultado": "en contra",
     "sumario": "Para la desvalorización no basta el daño al vehículo: en principio hace falta inspección pericial sobre la calidad del arreglo y defectos remanentes. Si el perito dice que quedó sin secuelas, se rechaza. Marca la prueba mínima a ofrecer.",
     "sumario_oficial": false,
@@ -132,7 +159,9 @@
     "fecha": "2020-03-05",
     "jurisdiccion": "Nacional",
     "fuero": "Comercial",
-    "temas": ["desvalorización"],
+    "temas": [
+      "desvalorización"
+    ],
     "resultado": "en contra",
     "sumario": "Solo el propietario puede reclamar la pérdida de valor venal del vehículo, porque es su patrimonio el que disminuye; cita el precedente de la CSJN \"Rossi\". Útil para chequear legitimación antes de incluir el rubro (usuario o tenedor no titular).",
     "sumario_oficial": false,
@@ -146,7 +175,11 @@
     "fecha": "2026-06-19",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["incapacidad", "franquicia", "intereses"],
+    "temas": [
+      "incapacidad",
+      "franquicia",
+      "intereses"
+    ],
     "resultado": "mixto",
     "sumario": "Declara inoponible a la víctima la franquicia elevada pactada por una empresa de transporte con su aseguradora, porque equivale a un no seguro. Trata las fórmulas de incapacidad como pauta orientativa, no obligatoria. En contra: aplica tasa pura del 8% hasta la sentencia y luego tasa activa.",
     "sumario_oficial": false,
@@ -160,9 +193,12 @@
     "fecha": "2026-06-26",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["incapacidad"],
+    "temas": [
+      "incapacidad",
+      "suma asegurada"
+    ],
     "resultado": "mixto",
-    "sumario": "El porcentaje de incapacidad de la pericia médica es indicativo y no fija matemáticamente el monto; el juez debe ponderar las limitaciones concretas laborales y sociales de la víctima. Sirve para pedir que se valoren las circunstancias personales más allá del porcentaje.",
+    "sumario": "El porcentaje de incapacidad de la pericia médica es indicativo y no fija matemáticamente el monto; el juez debe ponderar las limitaciones concretas laborales y sociales de la víctima. Sirve para pedir que se valoren las circunstancias personales más allá del porcentaje. Además, el límite de cobertura no se opone en su valor histórico: se ajusta a los montos vigentes al pago para que la mora de la aseguradora no traslade a la víctima la depreciación.",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-silvia-patricia-bermejo-lorena-fernanda-maggio-escobar-lidia-maria-otro-danos-perjuicios-acctran-les-muerte-fa26020310-2026-06-26/123456789-013-0206-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
@@ -174,7 +210,9 @@
     "fecha": "2026-05-28",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["daño moral"],
+    "temas": [
+      "daño moral"
+    ],
     "resultado": "a favor",
     "sumario": "El daño moral surge de la sola concurrencia del hecho ilícito y lesiones incapacitantes, sin prueba específica, y su monto no tiene que guardar relación con el daño material. Base para reclamar el rubro de forma autónoma.",
     "sumario_oficial": false,
@@ -188,7 +226,9 @@
     "fecha": "2026-06-05",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["daño moral"],
+    "temas": [
+      "daño moral"
+    ],
     "resultado": "a favor",
     "sumario": "El daño moral se cuantifica por las satisfacciones sustitutivas que permitan mitigar el padecimiento (criterio del art. 1741 CCyC), sin reducirlo a una proporción aritmética de la incapacidad. Útil para fundar montos con referencias concretas de consumo o esparcimiento.",
     "sumario_oficial": false,
@@ -202,7 +242,9 @@
     "fecha": "2026-05-21",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["daño moral"],
+    "temas": [
+      "daño moral"
+    ],
     "resultado": "a favor",
     "sumario": "Eleva el daño moral porque el monto de grado no reflejaba la zozobra, la alteración de la vida y las secuelas físicas del accidente, aunque no se probó daño psíquico. Sirve para apelar montos bajos sin necesidad de pericia psicológica.",
     "sumario_oficial": false,
@@ -216,7 +258,9 @@
     "fecha": "2025-12-09",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["concurrencia"],
+    "temas": [
+      "concurrencia"
+    ],
     "resultado": "mixto",
     "sumario": "Para esta sala la prioridad de la derecha no es absoluta: si quien la tiene llega con velocidad excesiva y el otro no se detiene, la responsabilidad se reparte por mitades. Sirve para defender o atacar una concurrencia según de qué lado venía el cliente.",
     "sumario_oficial": false,
@@ -230,7 +274,9 @@
     "fecha": "2025-04-04",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["concurrencia"],
+    "temas": [
+      "concurrencia"
+    ],
     "resultado": "en contra",
     "sumario": "Responsabiliza a quien avanza en la encrucijada sin respetar la prioridad del que viene por la derecha; en el caso, eso se atribuyó a la propia víctima y rompió el nexo causal, aun con el demandado rebelde. Muestra el riesgo de reclamar si el cliente venía por la izquierda.",
     "sumario_oficial": false,
@@ -244,7 +290,9 @@
     "fecha": "2008-04-22",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["concurrencia"],
+    "temas": [
+      "concurrencia"
+    ],
     "resultado": "a favor",
     "sumario": "Si no se prueba fehacientemente la culpa exclusiva de la víctima o de un tercero, el transportista no se libera por el riesgo de la cosa; a lo sumo puede haber concurrencia si se acredita. Referencia de la CSJN para resistir eximentes totales.",
     "sumario_oficial": false,
@@ -258,7 +306,9 @@
     "fecha": "2025-12-02",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["citación en garantía"],
+    "temas": [
+      "citación en garantía"
+    ],
     "resultado": "mixto",
     "sumario": "Explica que la citación del art. 118 de la Ley de Seguros busca condenar al asegurador a mantener indemne al asegurado frente al damnificado, en la medida y hasta el límite de la cobertura (arts. 109 y 118). Útil para redactar la citación y prever el tope de la póliza.",
     "sumario_oficial": false,
@@ -272,7 +322,11 @@
     "fecha": "2010-04-26",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["prescripción", "mediación", "citación en garantía"],
+    "temas": [
+      "prescripción",
+      "mediación",
+      "citación en garantía"
+    ],
     "resultado": "a favor",
     "sumario": "La suspensión de la prescripción por la mediación contra el asegurado se extiende a la aseguradora aunque no haya sido citada a la mediación, porque la acción del art. 118 depende de la dirigida contra el asegurado. Útil cuando la aseguradora opone prescripción. Es anterior al CCyC (Ley 24.573). La fuente no informa la sala.",
     "sumario_oficial": false,
@@ -286,7 +340,9 @@
     "fecha": "2025-02-07",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["intereses"],
+    "temas": [
+      "intereses"
+    ],
     "resultado": "a favor",
     "sumario": "Aplica la tasa activa del Banco Nación desde la fecha del hecho hasta el pago, conforme al plenario \"Samudio\", y entiende que no hay doble cómputo aunque los montos estén a valores actuales. Argumento central contra la tasa pura.",
     "sumario_oficial": false,
@@ -300,7 +356,9 @@
     "fecha": "2022-11-30",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["intereses"],
+    "temas": [
+      "intereses"
+    ],
     "resultado": "a favor",
     "sumario": "Aplica tasa activa desde el hecho hasta la vigencia del CCyC y, desde allí, doble tasa activa hasta el pago (arts. 768 inc. c y 770 CCyC), dentro del marco del plenario \"Samudio\". Precedente para pedir una tasa más alta que la activa simple.",
     "sumario_oficial": false,
@@ -314,7 +372,9 @@
     "fecha": "2026-05-14",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["intereses"],
+    "temas": [
+      "intereses"
+    ],
     "resultado": "en contra",
     "sumario": "Si la indemnización se fija a valores actuales (deuda de valor), aplica tasa pura del 8% anual hasta la sentencia y tasa activa después, para no compensar dos veces la inflación. Es la línea contraria a la que debe anticiparse en apelación.",
     "sumario_oficial": false,
@@ -328,9 +388,12 @@
     "fecha": "2026-05-07",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["intereses"],
-    "resultado": "en contra",
-    "sumario": "En obligaciones de valor por responsabilidad civil, tasa pura hasta que la deuda se cuantifica en dinero y tasa activa recién desde entonces, porque la depreciación solo afecta a las deudas dinerarias. Otra sala con el criterio de la tasa pura.",
+    "temas": [
+      "intereses",
+      "suma asegurada"
+    ],
+    "resultado": "mixto",
+    "sumario": "En obligaciones de valor por responsabilidad civil, tasa pura hasta que la deuda se cuantifica en dinero y tasa activa recién desde entonces, porque la depreciación solo afecta a las deudas dinerarias. Otra sala con el criterio de la tasa pura. En cambio, a favor: el límite de cobertura se adecua a los mínimos vigentes al pago, porque la aseguradora subió la prima por inflación sin ampliar la prestación (actos propios).",
     "sumario_oficial": false,
     "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-cantavenera-esteban-gabriel-otro-cahill-federico-pablo-otro-danos-perjuicios-fa26020205-2026-05-07/123456789-502-0206-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
@@ -342,7 +405,9 @@
     "fecha": "2026-05-21",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["mediación"],
+    "temas": [
+      "mediación"
+    ],
     "resultado": "mixto",
     "sumario": "Los honorarios de la mediadora fijados en unidades de honorarios de mediación no se actualizan al momento del pago si la regulación está firme, porque el Decreto 1467/2011 no lo prevé. Relevante para calcular los costos de la mediación en Nación.",
     "sumario_oficial": false,
@@ -356,7 +421,10 @@
     "fecha": "2026-05-07",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["prescripción", "mediación"],
+    "temas": [
+      "prescripción",
+      "mediación"
+    ],
     "resultado": "a favor",
     "sumario": "Para interrumpir la prescripción no se exige rigor en los recaudos de la demanda, y no corresponde fijar un plazo perentorio para subsanar defectos bajo apercibimiento de desistimiento mientras la mediación obligatoria está pendiente. Útil para demandas presentadas al límite del plazo.",
     "sumario_oficial": false,
@@ -370,7 +438,10 @@
     "fecha": "2013-04-17",
     "jurisdiccion": "Nacional",
     "fuero": "Civil",
-    "temas": ["franquicia", "citación en garantía"],
+    "temas": [
+      "franquicia",
+      "citación en garantía"
+    ],
     "resultado": "en contra",
     "sumario": "Revoca la inoponibilidad de la franquicia a la víctima en un transporte público, porque el plenario \"Obarrio\" fue dejado sin efecto por la CSJN por arbitrariedad normativa; la aseguradora responde en la medida del seguro. Antecedente de la línea de oponibilidad.",
     "sumario_oficial": false,
@@ -384,7 +455,10 @@
     "fecha": "2018-06-12",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["franquicia", "citación en garantía"],
+    "temas": [
+      "franquicia",
+      "citación en garantía"
+    ],
     "resultado": "en contra",
     "sumario": "Reitera que la franquicia del contrato de seguro es oponible al tercero damnificado y que la condena solo se ejecuta contra la aseguradora dentro de los límites contratados, con cita de \"Obarrio\" y \"Gauna\". Es el criterio que la aseguradora va a invocar.",
     "sumario_oficial": false,
@@ -398,7 +472,9 @@
     "fecha": "2020-07-02",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["franquicia"],
+    "temas": [
+      "franquicia"
+    ],
     "resultado": "en contra",
     "sumario": "Rechaza que la reforma de la Ley 26.361 a la Ley de Defensa del Consumidor cambie el criterio de oponibilidad de la franquicia en el transporte público (\"Nieto\", \"Villarreal\", \"Cuello\", \"Obarrio\", \"Gauna\"). Anticipa la respuesta de la Corte al argumento consumeril.",
     "sumario_oficial": false,
@@ -412,7 +488,9 @@
     "fecha": "2026-03-17",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["franquicia"],
+    "temas": [
+      "franquicia"
+    ],
     "resultado": "en contra",
     "sumario": "Es arbitraria la sentencia que declaró inoponible la franquicia cuando los actores no lo habían planteado en sus agravios (caso de mala praxis). Lección procesal: la inoponibilidad debe pedirse expresamente y a tiempo.",
     "sumario_oficial": false,
@@ -426,7 +504,9 @@
     "fecha": "2021-09-02",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["incapacidad"],
+    "temas": [
+      "incapacidad"
+    ],
     "resultado": "a favor",
     "sumario": "Fallos 344:2256. Revoca por arbitraria la sentencia que redujo las indemnizaciones por incapacidad y valor vida en un accidente de tránsito: los montos eran irrisorios frente a los mínimos del régimen de riesgos del trabajo y su fundamentación era dogmática. Referencia de la CSJN sobre reparación plena y cuantificación de la incapacidad.",
     "sumario_oficial": false,
@@ -440,7 +520,11 @@
     "fecha": "2014-04-08",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["citación en garantía", "franquicia"],
+    "temas": [
+      "citación en garantía",
+      "franquicia",
+      "suma asegurada"
+    ],
     "resultado": "en contra",
     "sumario": "Fallos 337:329. La función social del seguro y la reparación integral no permiten condenar a la aseguradora más allá de lo pactado: las cláusulas del contrato, incluido el límite de cobertura, son oponibles a la víctima, y la LDC no modifica la Ley de Seguros. Precedente base de la oponibilidad.",
     "sumario_oficial": false,
@@ -454,7 +538,11 @@
     "fecha": "2017-06-06",
     "jurisdiccion": "CSJN",
     "fuero": "Civil",
-    "temas": ["citación en garantía", "franquicia"],
+    "temas": [
+      "citación en garantía",
+      "franquicia",
+      "suma asegurada"
+    ],
     "resultado": "en contra",
     "sumario": "Fallos 340:765. Reitera que el límite de cobertura del seguro de responsabilidad civil automotor es oponible al damnificado, sin que lo impidan la función social del seguro ni la Ley 26.361 (disidencia de Rosatti y Maqueda por inadmisibilidad). Clave para medir hasta dónde responde la aseguradora.",
     "sumario_oficial": false,
@@ -468,7 +556,9 @@
     "fecha": "2025-07-03",
     "jurisdiccion": "Nacional",
     "fuero": "Comercial",
-    "temas": ["prescripción"],
+    "temas": [
+      "prescripción"
+    ],
     "resultado": "en contra",
     "sumario": "En una demanda por cumplimiento de una póliza automotor, aplica la prescripción anual del art. 58 de la Ley de Seguros por sobre el régimen de consumo. Aplica a reclamos del asegurado contra su propia aseguradora, no a los del tercero damnificado.",
     "sumario_oficial": false,
@@ -482,7 +572,9 @@
     "fecha": "2024-03-26",
     "jurisdiccion": "Nacional",
     "fuero": "Comercial",
-    "temas": ["prescripción"],
+    "temas": [
+      "prescripción"
+    ],
     "resultado": "en contra",
     "sumario": "Admite la prescripción opuesta por la aseguradora: la causa de la obligación demandada es el contrato de seguro, por lo que rige el plazo de la ley especial. Confirma que en el fuero comercial predomina el art. 58 para acciones contra la propia aseguradora.",
     "sumario_oficial": false,
@@ -496,7 +588,12 @@
     "fecha": "2021-02-04",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["daño emergente", "privación de uso", "desvalorización", "intereses"],
+    "temas": [
+      "daño emergente",
+      "privación de uso",
+      "desvalorización",
+      "intereses"
+    ],
     "resultado": "mixto",
     "sumario": "Revoca el rechazo de los gastos de reparación y la privación de uso de una moto y los fija (art. 1744 CCyC); confirma el rechazo de la desvalorización por falta de agravio. En intereses, rechaza la tasa activa y aplica tasa pura sobre montos a valores actuales.",
     "sumario_oficial": false,
@@ -510,7 +607,9 @@
     "fecha": "2013-03-11",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["daño emergente"],
+    "temas": [
+      "daño emergente"
+    ],
     "resultado": "a favor",
     "sumario": "No se pueden rechazar los gastos de reparación solo porque el perito no se expidió sobre el valor de los repuestos, si los daños están probados y los precios del presupuesto son prudentes. Anterior al CCyC, pero útil para defender presupuestos sin pericia de costos.",
     "sumario_oficial": false,
@@ -524,7 +623,9 @@
     "fecha": "2026-07-14",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["desvalorización"],
+    "temas": [
+      "desvalorización"
+    ],
     "resultado": "en contra",
     "sumario": "La desvalorización no sigue automáticamente a todo choque: exige minusvalía apreciable tras un buen arreglo, típica de daños estructurales, y su prueba es del actor. Si el perito dice que no hay pérdida de valor y no se aporta tasación, se rechaza. Indica qué prueba ofrecer.",
     "sumario_oficial": false,
@@ -538,7 +639,10 @@
     "fecha": "2018-08-14",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["desvalorización", "privación de uso"],
+    "temas": [
+      "desvalorización",
+      "privación de uso"
+    ],
     "resultado": "mixto",
     "sumario": "Presume el daño por privación de uso (gastos de traslado), pero exige prueba acabada de las ganancias perdidas. Define la desvalorización como rubro autónomo y residual que requiere secuelas tras la reparación, en general probadas por pericia, aunque no siempre exige afectación de partes vitales.",
     "sumario_oficial": false,
@@ -552,7 +656,9 @@
     "fecha": "2019-05-15",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "a favor",
     "sumario": "Basta acreditar la indisponibilidad del vehículo para indemnizar la privación de uso: la paralización, aun futura, genera una presunción sobre los gastos de traslado sustitutivo, y es el demandado quien debe probar lo contrario. Precedente PBA a favor de la presunción.",
     "sumario_oficial": false,
@@ -566,7 +672,9 @@
     "fecha": "2019-04-23",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "en contra",
     "sumario": "Para esta sala la privación de uso no es daño in re ipsa: quien la reclama debe probar que efectivamente le causó un perjuicio. Criterio reiterado en La Plata que obliga a aportar prueba de gastos (remises, alquiler, testigos).",
     "sumario_oficial": false,
@@ -580,7 +688,9 @@
     "fecha": "2022-08-08",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["privación de uso"],
+    "temas": [
+      "privación de uso"
+    ],
     "resultado": "en contra",
     "sumario": "Rechaza fijar la privación de uso por mera presunción: deben probarse la existencia y la extensión del perjuicio. En el caso no se acreditaron gastos ni el plazo de indisponibilidad. Muestra la prueba mínima que exigen algunas salas de PBA.",
     "sumario_oficial": false,
@@ -594,7 +704,10 @@
     "fecha": "2018-05-22",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["privación de uso", "daño emergente"],
+    "temas": [
+      "privación de uso",
+      "daño emergente"
+    ],
     "resultado": "a favor",
     "sumario": "La privación de uso genera siempre un daño emergente presumido (gastos de transporte) y un lucro cesante a probar; si el vehículo es utilitario, también el lucro cesante se presume y el juez puede fijarlo (art. 165 CPCC). Útil para taxis, fletes y vehículos de trabajo.",
     "sumario_oficial": false,
@@ -608,7 +721,10 @@
     "fecha": "2019-10-31",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["privación de uso", "daño emergente"],
+    "temas": [
+      "privación de uso",
+      "daño emergente"
+    ],
     "resultado": "mixto",
     "sumario": "Al cuantificar la privación de uso se descuentan los gastos que el actor se ahorró (combustible, seguro y mantenimiento mínimo), pero sin prueba específica de la demandada no se deducen gastos irregulares como estacionamiento. Ayuda a anticipar el descuento que pedirá la aseguradora.",
     "sumario_oficial": false,
@@ -622,7 +738,10 @@
     "fecha": "2025-08-19",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["incapacidad", "concurrencia"],
+    "temas": [
+      "incapacidad",
+      "concurrencia"
+    ],
     "resultado": "mixto",
     "sumario": "Para la incapacidad del art. 1746 la sala usa la fórmula matemática de Acciarri, que contempla progreso de ingresos, jubilación, tasa de descuento y vida útil. En la mecánica, aclara que en cruces con semáforo no rige la prioridad de la derecha (art. 44 inc. c, Ley 24.449, Ley 13.927).",
     "sumario_oficial": false,
@@ -636,7 +755,9 @@
     "fecha": "2022-02-24",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["incapacidad"],
+    "temas": [
+      "incapacidad"
+    ],
     "resultado": "a favor",
     "sumario": "Critica oponer la \"prudencia judicial\" al uso de las matemáticas: el art. 1746 CCyC manda calcular un capital, de modo que el uso de fórmulas es exigencia legal. Argumento para pedir cuantificación con fórmula y no a valores discrecionales.",
     "sumario_oficial": false,
@@ -650,7 +771,9 @@
     "fecha": "2021-06-03",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["incapacidad"],
+    "temas": [
+      "incapacidad"
+    ],
     "resultado": "mixto",
     "sumario": "Postura opuesta: aplica un criterio elástico con las pautas del art. 1746, sin atarse a una fórmula financiera que prescinda de las circunstancias de la víctima, y exige que las lesiones sean permanentes. Conviene conocerla según la sala que toque.",
     "sumario_oficial": false,
@@ -664,7 +787,10 @@
     "fecha": "2026-07-16",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["incapacidad", "intereses"],
+    "temas": [
+      "incapacidad",
+      "intereses"
+    ],
     "resultado": "mixto",
     "sumario": "La incapacidad del art. 1746 abarca proyecciones no laborales con contenido económico (tareas domésticas, actividades cotidianas), aunque hay que probarlas. En intereses, aplica la doctrina SCBA de tasa pura del 6% sobre montos a valores actuales (\"Vera\", \"Nidera\", \"Barrios\") y descarta el 12% del juez de grado.",
     "sumario_oficial": false,
@@ -678,7 +804,9 @@
     "fecha": "2026-07-14",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["concurrencia"],
+    "temas": [
+      "concurrencia"
+    ],
     "resultado": "mixto",
     "sumario": "La prioridad de la derecha del art. 41 de la Ley 24.449 es absoluta y solo se pierde en los supuestos que enumera; el exceso de velocidad no está entre ellos y, a lo sumo, incide en la causalidad. Ser embistente no pesa si el embestido se interpuso en la línea de marcha. Muy útil cuando el cliente venía por la derecha.",
     "sumario_oficial": false,
@@ -692,7 +820,10 @@
     "fecha": "2026-03-12",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["concurrencia", "intereses"],
+    "temas": [
+      "concurrencia",
+      "intereses"
+    ],
     "resultado": "mixto",
     "sumario": "La prioridad de quien viene por la derecha no se pierde porque no se pueda probar la mecánica, y no importa quién entró primero a la intersección (con cita de SCBA \"Palamara\"). En intereses, aplica tasa pura sobre montos a valores actuales desde el hecho.",
     "sumario_oficial": false,
@@ -706,7 +837,9 @@
     "fecha": "2021-02-18",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["concurrencia"],
+    "temas": [
+      "concurrencia"
+    ],
     "resultado": "mixto",
     "sumario": "C. 123.002. La SCBA reitera que quien llega a la bocacalle debe ceder el paso al que viene por la derecha, sin importar quién llegó primero: la prioridad es absoluta y no depende de un arribo simultáneo. Doctrina legal de la Corte provincial; favorece a quien venía por la derecha.",
     "sumario_oficial": false,
@@ -720,7 +853,9 @@
     "fecha": "2026-03-06",
     "jurisdiccion": "PBA",
     "fuero": "Contencioso administrativo",
-    "temas": ["intereses"],
+    "temas": [
+      "intereses"
+    ],
     "resultado": "en contra",
     "sumario": "A. 77.911. Para créditos fijados a valores actuales, la SCBA aplica una tasa pura del 6% anual desde el daño hasta la cuantificación y, desde allí, la tasa pasiva más alta del Banco Provincia. Es la doctrina vigente en PBA, menos favorable que la tasa activa de Nación.",
     "sumario_oficial": false,
@@ -734,7 +869,10 @@
     "fecha": "2011-08-17",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["franquicia", "citación en garantía"],
+    "temas": [
+      "franquicia",
+      "citación en garantía"
+    ],
     "resultado": "en contra",
     "sumario": "C. 102.992. La SCBA admite que la franquicia del contrato de seguro es oponible al tercero damnificado y que la condena contra la aseguradora solo se ejecuta dentro de lo contratado. Antecedente provincial alineado con la CSJN; anterior al CCyC.",
     "sumario_oficial": false,
@@ -748,7 +886,9 @@
     "fecha": "2021-05-28",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["citación en garantía"],
+    "temas": [
+      "citación en garantía"
+    ],
     "resultado": "a favor",
     "sumario": "C. 122.557. Si al contestar la citación en garantía la aseguradora no planteó concretamente un límite derivado de la póliza, no puede introducirlo después al oponerse a los embargos: es extemporáneo y afecta la defensa. Útil contra planteos tardíos de límites de cobertura.",
     "sumario_oficial": false,
@@ -762,7 +902,10 @@
     "fecha": "2025-09-30",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["citación en garantía", "prescripción"],
+    "temas": [
+      "citación en garantía",
+      "prescripción"
+    ],
     "resultado": "mixto",
     "sumario": "Interlocutoria. Precisa la regla del art. 118 de que el asegurador no puede oponer defensas nacidas después del siniestro: distingue las internas del contrato (denuncia tardía, falta de pago de prima) de las externas a la relación asegurativa, como la prescripción de la acción. Sirve para contestar excepciones de la citada.",
     "sumario_oficial": false,
@@ -776,7 +919,9 @@
     "fecha": "2023-07-17",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["prescripción"],
+    "temas": [
+      "prescripción"
+    ],
     "resultado": "a favor",
     "sumario": "En una relación de consumo con la aseguradora aplica el plazo genérico de cinco años del art. 2560 CCyC y desplaza el anual del art. 58 de la Ley de Seguros, con apoyo en el art. 1094 CCyC. Útil para reclamos del asegurado contra su compañía en PBA.",
     "sumario_oficial": false,
@@ -790,7 +935,9 @@
     "fecha": "2023-05-24",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["prescripción"],
+    "temas": [
+      "prescripción"
+    ],
     "resultado": "en contra",
     "sumario": "Aplica el art. 58 de la Ley de Seguros y rechaza el plazo de cinco años del CCyC, porque las normas generales de prescripción ceden ante la disposición específica (art. 2532 CCyC). Muestra que en PBA el criterio está dividido entre cámaras.",
     "sumario_oficial": false,
@@ -804,7 +951,9 @@
     "fecha": "2026-07-01",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["mediación"],
+    "temas": [
+      "mediación"
+    ],
     "resultado": "mixto",
     "sumario": "Explica que el mediador cobra una suma fija reglamentaria (art. 31, Ley 13.951) y el régimen del Decreto 600/2021 cuando, fracasada la mediación, el requirente no inicia el juicio en 90 días corridos. Clave para presupuestar el costo de la mediación en PBA.",
     "sumario_oficial": false,
@@ -818,7 +967,9 @@
     "fecha": "2025-02-20",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["mediación"],
+    "temas": [
+      "mediación"
+    ],
     "resultado": "mixto",
     "sumario": "El acuerdo alcanzado en la mediación prejudicial de PBA requiere homologación judicial para perfeccionarse; sin ella no produce efectos (arts. 19 a 22, Ley 13.951). Importante al cerrar acuerdos con aseguradoras en mediación.",
     "sumario_oficial": false,
@@ -832,11 +983,283 @@
     "fecha": "2022-11-01",
     "jurisdiccion": "PBA",
     "fuero": "Civil y Comercial",
-    "temas": ["mediación"],
+    "temas": [
+      "mediación"
+    ],
     "resultado": "mixto",
     "sumario": "Interlocutoria. Si el acta de cierre de la mediación no sirve como título para cobrar honorarios, se fijan los de la mediadora en forma provisoria y a cuenta de lo que resulte de la sentencia o la transacción (art. 31, Ley 13.951; Decreto 2530/10). Sirve para prever ese costo en el juicio.",
     "sumario_oficial": false,
     "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=186133",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Cala, Roberto Rubén y otro c/ Herrera, Luis Salvador s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "K",
+    "fecha": "2026-04-30",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Las resoluciones de la SSN sobre límites de cobertura buscan acompañar la inflación para que las sumas cubran los daños; por eso el monto de la póliza se ajusta al que fije la SSN vigente al momento del pago. Argumento base para pedir la actualización frente al tercero.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-cala-roberto-ruben-otro-herrera-luis-salvador-danos-perjuicios-fa26020153-2026-04-30/123456789-351-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Larrosa, Mariel c/ Sueldo, Julieta Lorena y otro s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "J",
+    "fecha": "2026-03-31",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "El límite de cobertura que puede oponer la aseguradora se determina según la normativa de la SSN vigente al momento del efectivo pago de la condena. Criterio breve y directo para citar en la demanda o en la liquidación.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-larrosa-mariel-sueldo-julieta-lorena-otro-danos-perjuicios-acc-tran-les-muerte-fa26020134-2026-03-31/123456789-431-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Ontiveros, Damián Emiliano y otro c/ Huachuhuillca Ñahuen, Víctor y otro s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Juzgado Nacional de Primera Instancia en lo Civil N° 34",
+    "sala": null,
+    "fecha": "2026-03-27",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Si la condena se fija a valores actuales, el límite de cobertura también debe llevarse a los parámetros vigentes al pago, para no comparar un tope histórico con una deuda actualizada. Útil cuando la aseguradora pretende aplicar el límite nominal de la póliza.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/juzgado-nacional-civil-nro-34-nacional-ciudad-autonoma-buenos-aires-ontiveros-damian-emiliano-otro-huachuhuillca-nahuen-victor-otro-danos-perjuicios-acc-tran-les-muerte-fa26020126-2026-03-27/123456789-621-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "García Guerreño, Verónica Beatriz c/ CPC SA Contreras Hermanos SAICIFAG y M UTE s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "E",
+    "fecha": "2026-03-20",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "En el seguro voluntario de responsabilidad civil, el límite pactado se adecua a la realidad económica al momento del pago cuando la inflación desnaturaliza el contrato y enriquece a la aseguradora; como parámetro toma la variación de los límites de la SSN. Sirve cuando la póliza no es la del seguro obligatorio.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-garcia-guerreno-veronica-beatriz-cpc-sa-contreras-hermanos-saicifag-ute-danos-perjuicios-acc-tran-les-muerte-fa26020100-2026-03-20/123456789-001-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Díaz Paniagua, Ladislaa c/ Los Constituyentes S.A.T. y otro s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "J",
+    "fecha": "2026-03-05",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "El límite de cobertura es oponible a la víctima, pero se actualiza a las normas de la SSN vigentes al pago, y la aseguradora en mora carga con capital, intereses y costas. Combina la doctrina de la CSJN sobre oponibilidad con la actualización del tope.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-diaz-paniagua-ladislaa-constituyentes-sat-otro-danos-perjuicios-acc-tran-les-muerte-fa26020099-2026-03-05/123456789-990-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Solonja, Jorge c/ Baido, Néstor Omar y otro s/ daños y perjuicios (acc. tran. c/ les. o muerte)",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "H",
+    "fecha": "2026-02-02",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía",
+      "intereses"
+    ],
+    "resultado": "a favor",
+    "sumario": "El límite de cobertura se aplica solo al capital de condena: las costas, los gastos de defensa y los intereses de ese capital quedan a cargo del asegurador aunque superen el tope, por el principio de indemnidad. Clave al liquidar contra la aseguradora.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-solonja-jorge-baido-nestor-omar-otro-danos-perjuicios-acc-tran-les-muerte-fa26020042-2026-02-02/123456789-240-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Vidal, Santiago Isaías y otro c/ Osorio, Pablo Daniel s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "A",
+    "fecha": "2025-05-14",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Parte de que el límite es oponible y de que la deuda del asegurador es dineraria, pero declara inconstitucional el art. 7 de la Ley 23.928 para el caso y amplía el tope, porque la inflación desde el hecho licuó la cobertura. Vía para pedir la actualización cuando no hay resolución de la SSN aplicable.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-vidal-santiago-isaias-otro-osorio-pablo-daniel-danos-perjuicios-fa25020693-2025-05-14/123456789-396-0205-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Silva, Tamara Yanil c/ Lago, Santiago Martín y otros s/ daños y perjuicios",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Civil",
+    "sala": "H",
+    "fecha": "2026-06-05",
+    "jurisdiccion": "Nacional",
+    "fuero": "Civil",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "El límite de cobertura es inoponible a la víctima cuando asegurado y aseguradora, con intereses contrapuestos, tienen el mismo abogado: esa unificación indebida solo beneficia a la compañía. Conviene revisar quién patrocina a cada demandado.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-civil-nacional-ciudad-autonoma-buenos-aires-silva-tamara-yanil-lago-santiago-martin-otros-danos-perjuicios-fa26020283-2026-06-05/123456789-382-0206-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "González, Maximiliano Ramiro c/ Acosta, Emir Dorval y otro s/ Daños y perjuicios",
+    "tribunal": "Suprema Corte de Justicia de la Provincia de Buenos Aires",
+    "sala": null,
+    "fecha": "2021-05-28",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "C. 122.588. Oponer literalmente el límite de cobertura al asegurado y a la víctima viola la reparación integral y las resoluciones de la SSN cuando desnaturaliza el contrato, genera infraseguro y beneficia indebidamente a la aseguradora. Doctrina de la SCBA para PBA.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=180714",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Arguello, Gustavo Sergio c/ Cooperación Mutual Patronal Seguros y otros s/ Daños y Perj. Autom. s/ Lesiones (Exc. Estado)",
+    "tribunal": "Cámara Segunda de Apelación en lo Civil y Comercial de La Plata",
+    "sala": "I",
+    "fecha": "2026-09-01",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Con la reparación a valores actuales y una aseguradora que rechazó el siniestro y demoró más de cinco años, no se puede limitar la condena a la suma asegurada nominal de 2020: eso premiaría la mora y desnaturalizaría el contrato. Sigue a la SCBA en \"Martínez c/ Boito\" (C. 119.088).",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=198483",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Azcune, Agustín Patricio y otros c/ Malanchuk, Nelson Daniel s/ Daños y Perj. Autom. c/ Les. o Muerte (Exc. Estado)",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Junín",
+    "sala": null,
+    "fecha": "2024-05-14",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Condena a la aseguradora a calcular la cobertura básica al momento de la evaluación judicial del daño, en consonancia con los montos de la sentencia y no según la cifra nominal de la póliza, lo que vuelve inoponible el límite histórico al asegurado y a la víctima.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=192091",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Bartoli, Cecilia Beatriz c/ La Nueva Cooperativa de Seguros Limitada y otro s/ daños y perjuicios",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Mar del Plata",
+    "sala": "II",
+    "fecha": "2021-12-01",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Siguiendo a la SCBA en \"Martínez c/ Boito\" (C. 119.088, 21/2/2018), aplica el límite que fije la SSN para el tipo de seguro (obligatorio o voluntario) vigente a la fecha del pago, comprensivo de capital e intereses. Precedente claro para liquidar en PBA.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=182908",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Cruz, María Elizabeth c/ Marilú Hipólito S. y otros s/ Daños y Perj.",
+    "tribunal": "Cámara de Apelación en lo Civil y Comercial de Azul",
+    "sala": "II",
+    "fecha": "2019-03-27",
+    "jurisdiccion": "PBA",
+    "fuero": "Civil y Comercial",
+    "temas": [
+      "suma asegurada",
+      "citación en garantía"
+    ],
+    "resultado": "a favor",
+    "sumario": "Como los daños por muerte se fijan a valores actuales, aplica la resolución de la SSN que elevó el límite por muerte o incapacidad total y condena a la aseguradora por la cobertura básica vigente, no por la pactada originalmente. Ejemplo concreto de aplicación de una resolución posterior al hecho.",
+    "sumario_oficial": false,
+    "url_fuente": "https://juba.scba.gov.ar/VerTextoCompleto.aspx?idFallo=168733",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Centenari Valentino, Gastón José c/ La Nueva Cooperativa de Seguros SA s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "E",
+    "fecha": "2025-06-06",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "suma asegurada"
+    ],
+    "resultado": "a favor",
+    "sumario": "Reclamo del asegurado contra su propia compañía: por la mora, la suma asegurada histórica pierde virtualidad y se toma el valor con que la aseguradora asegura hoy un vehículo igual con la misma antigüedad. Útil cuando el cliente reclama la destrucción total a su seguro.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-centenari-valentino-gaston-jose-nueva-cooperativa-seguros-sa-ordinario-fa25131114-2025-06-06/123456789-411-1315-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Aldinio, Santiago Manuel c/ TPC Compañía de Seguros SA s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "C",
+    "fecha": "2025-04-21",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "suma asegurada"
+    ],
+    "resultado": "a favor",
+    "sumario": "Mismo criterio para una moto: con la aseguradora en mora no se aplica la suma asegurada histórica sino la que la compañía usa hoy para asegurar una moto igual con la misma antigüedad. Refuerza el criterio en otra sala del fuero comercial.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-aldinio-santiago-manuel-tpc-compania-seguros-sa-ordinario-fa25130820-2025-04-21/123456789-028-0315-2ots-eupmocsollaf",
+    "verificado_el": "2026-10-07"
+  },
+  {
+    "caratula": "Bernst, Tomás Ariel c/ Escudo Seguros SA s/ ordinario",
+    "tribunal": "Cámara Nacional de Apelaciones en lo Comercial",
+    "sala": "D",
+    "fecha": "2023-08-10",
+    "jurisdiccion": "Nacional",
+    "fuero": "Comercial",
+    "temas": [
+      "suma asegurada"
+    ],
+    "resultado": "en contra",
+    "sumario": "Rechaza dejar de lado el límite de cobertura por la mora de la aseguradora: la mora solo revela el incumplimiento, y la obligación del asegurador nace del contrato, no del daño, por lo que su tope no es la medida del perjuicio. Postura contraria a anticipar.",
+    "sumario_oficial": false,
+    "url_fuente": "https://www.saij.gob.ar/camara-nacional-apelaciones-comercial-nacional-ciudad-autonoma-buenos-aires-bernst-tomas-ariel-escudo-seguros-sa-ordinario-fa23130880-2023-08-10/123456789-088-0313-2ots-eupmocsollaf",
     "verificado_el": "2026-10-07"
   }
 ]
