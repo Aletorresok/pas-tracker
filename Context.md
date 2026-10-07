@@ -78,7 +78,7 @@
 *   **Cliente:** entra con patente + DNI, ve su avance y sube documentación → un mail por sesión → Hoy "Documentación recibida" → se guarda en la carpeta del caso y se borra de la nube.
 *   **Prospección:** contactos del Excel → registrar contacto → deriva / descartado → clientes, con estadísticas y resumen mensual.
 
-## 🧹 Pendientes de mejora (actualizado 2026-09-29)
+## 🧹 Pendientes de mejora (actualizado 2026-10-07)
 **Expedientes para cargar (borrador del Drive, carpeta "Causas", 01/10)** — confirmar cuáles siguen en trámite y pasar número, juzgado y jurisdicción:
 - Civil: Dorta Vargas Sucesión · Sucesión Lescano / Perez · Bustos Joaquín c/ Sancor Salud · Gaveglio Quiebra · Salomone (ejecución de honorarios) · Vogel Valeria Sucesión · Venier Sucesión.
 - Familia: Cafardo Mariana · Godoy Lourdes · Alegre Irene Soledad c/ Rodas Jorge Gabriel s/ Alimentos · Cisternas Eyeralde Ramiro · Atala Micaela s/ Divorcio · Bogado Daiana Soledad.
@@ -99,7 +99,7 @@
 - Regla para los SQL: **menos de 100 líneas por archivo** (si hace falta, partes b, c…); al copiar desde el celular se cortó en la línea 100.
 - Misma regla para las Edge Functions: cada archivo **menos de 100 líneas** (el deploy desde el panel falló el 29/09 con "Expected '}', got '<eof>'" en la línea 100). `notificar` = `index.ts` + `base.ts` + `avisos.ts` + `resumen.ts`; `calendario` = `index.ts` + `ical.ts`. En el panel: un archivo por pestaña, mismos nombres.
 - [x] ✅ **Plan de funciones nuevas** (`docs/plan-funciones/PLAN.md`) **cerrado el 29/09**: fases 0 a 6 y 7a hechas y publicadas en `main` (SQL 31 a 37). La 7b (búsqueda dentro de los documentos, SQL 38) **se descartó**. Quedan del lado del usuario:
-  - [ ] Confirmar que corrió los SQL 34, 35 y 36 (consulta de control en el Registro de Cambios del 29/09, "Cierre de la semana").
+  - [x] ✅ SQL 34 a 45 confirmados corridos el 07/10 (consulta de control: los 10 en `true`, incluidos 39, 40, 41/41b, 42, 43, 44 y 45).
   - [ ] Redesplegar `notificar` (avisos de plazos fatales) y desplegar `calendario` con "Verify JWT" apagado; después, en Herramientas → Calendario en el celular, generar el link y suscribirlo en Google Calendar.
   - [ ] Revisar en Herramientas → Calculadora de plazos → Catálogo los plazos que dicen "Revisar norma" y confirmarlos.
 - [ ] Sugerir si conviene aceptar un ofrecimiento comparando con lo que pagó esa compañía (nice to have).
