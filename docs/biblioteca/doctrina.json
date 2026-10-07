@@ -1,0 +1,95 @@
+[
+  {
+    "autor": "Pita, Enrique Máximo; Depetris, Carlos Emilio",
+    "titulo": "La cuantificación de los daños por incapacidad y extrapatrimoniales en el Código Civil y Comercial de la Nación (a propósito de los cinco años de su vigencia)",
+    "publicacion": "Revista de la Facultad de Ciencias Jurídicas y Sociales, Nueva Época (Universidad Nacional del Litoral)",
+    "anio": 2020,
+    "temas": [
+      "incapacidad",
+      "daño moral"
+    ],
+    "resumen": "Repasa los problemas de interpretación que dejaron los arts. 1741 y 1746 del CCyC en sus primeros cinco años. Analiza el uso de fórmulas matemáticas para la incapacidad sobreviniente y los criterios para cuantificar el daño extrapatrimonial.",
+    "url": "https://bibliotecavirtual.unl.edu.ar/publicaciones/index.php/NuevaEpoca/article/view/9593",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Díaz Gamba, Ignacio María (dir. María Fabiana Compiani)",
+    "titulo": "Límite de cobertura en el seguro obligatorio automotor. Actualidad en el fuero nacional en lo civil",
+    "publicacion": "Trabajo Final Integrador, Maestría en Derecho Civil Patrimonial, Facultad de Derecho, Pontificia Universidad Católica Argentina (Repositorio UCA)",
+    "anio": 2025,
+    "temas": [
+      "citación en garantía",
+      "franquicia"
+    ],
+    "resumen": "Estudia cómo trata hoy la Cámara Nacional Civil la inoponibilidad del límite de cobertura del seguro obligatorio automotor frente a la doctrina de la CSJN. Analiza sus fundamentos y sus consecuencias prácticas para la víctima.",
+    "url": "https://repositorio.uca.edu.ar/handle/123456789/22301",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Díaz, Juan Francisco",
+    "titulo": "Novedades jurisprudenciales de la Suprema Corte de Justicia Bonaerense y la Corte Suprema de Justicia de Nación",
+    "publicacion": "Revista ReDeA (portal de revistas de la Universidad Nacional de La Plata)",
+    "anio": null,
+    "temas": [
+      "citación en garantía",
+      "franquicia"
+    ],
+    "resumen": "Reseña de fallos recientes de la SCBA y la CSJN. Incluye un apartado sobre 'Flores c/ Giménez' (2017): el límite de cobertura del seguro obligatorio automotor es válido y oponible a terceros.",
+    "url": "https://revistas.unlp.edu.ar/ReDeA/article/view/3923/3773",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Corte Suprema de Justicia de la Nación, Secretaría de Jurisprudencia",
+    "titulo": "El principio de no dañar a otro (nota de jurisprudencia)",
+    "publicacion": "Notas de Jurisprudencia CSJN",
+    "anio": 2024,
+    "temas": [
+      "incapacidad",
+      "daño moral"
+    ],
+    "resumen": "Compilación oficial de precedentes de la Corte sobre el alterum non laedere y la reparación integral. Cita 'Ontiveros' (Fallos 340:1038), 'Grippo' (Fallos 344:2256) y los fallos de Fallos 331:570 y 334:376, entre otros.",
+    "url": "https://sj.csjn.gov.ar/homeSJ/notas/nota/135/documento",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Corte Suprema de Justicia de la Nación, Secretaría de Jurisprudencia",
+    "titulo": "Derecho de los consumidores y usuarios (suplemento de jurisprudencia)",
+    "publicacion": "Suplementos de Jurisprudencia CSJN",
+    "anio": 2023,
+    "temas": [
+      "citación en garantía",
+      "franquicia"
+    ],
+    "resumen": "Suplemento oficial que reúne la doctrina de la Corte sobre consumo e incluye la línea sobre seguros. Reúne 'Flores', 'Nieto', 'Villarreal', 'Obarrio', 'Gauna' y 'De Marco' sobre la oponibilidad de franquicias y límites de cobertura al damnificado.",
+    "url": "https://sj.csjn.gov.ar/homeSJ/suplementos/suplemento/74/documento",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Cámara de Apelación en lo Civil y Comercial de San Isidro, Sala I",
+    "titulo": "Indemnización valores actuales. Intereses. Evolución de la doctrina legal de la SCBA",
+    "publicacion": "Blog institucional de la Sala I (blogs.scba.gov.ar)",
+    "anio": 2020,
+    "temas": [
+      "intereses"
+    ],
+    "resumen": "Nota institucional que ordena la evolución de la doctrina de la SCBA sobre intereses: tasa pasiva más alta ('Cabrera') y tasa pura del 6% sobre valores actuales ('Vera' y 'Nidera'). Sirve como mapa para plantear intereses en PBA.",
+    "url": "https://blogs.scba.gov.ar/camaracivilsanisidrosala1/2020/09/09/indemnizacion-valores-actuales-intereses-evolucion-de-la-doctrina-legal-de-la-scba/",
+    "acceso": "abierto"
+  },
+  {
+    "autor": "Herrera, Marisa; Caramelo, Gustavo; Picasso, Sebastián (directores)",
+    "titulo": "Código Civil y Comercial de la Nación Comentado",
+    "publicacion": "Infojus (Ministerio de Justicia y Derechos Humanos de la Nación), varios tomos",
+    "anio": 2015,
+    "temas": [
+      "daño emergente",
+      "incapacidad",
+      "daño moral",
+      "intereses",
+      "prescripción"
+    ],
+    "resumen": "Comentario artículo por artículo del CCyC, de distribución libre por SAIJ. Sirve como fuente de cita para los arts. 1737-1748 (daño resarcible), 768-772 (intereses) y 2532 y siguientes (prescripción).",
+    "url": null,
+    "acceso": "abierto"
+  }
+]
