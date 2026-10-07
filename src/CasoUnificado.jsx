@@ -82,7 +82,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const [caso, setCaso] = useState(casoProp);
   const [previewArchivo, setPreviewArchivo] = useState(null);
   const [toast, setToast] = useState(null);
-  const [guardando, setGuardando] = useState(false);
   const [acciones, setAcciones] = useState([]);
   const [loadingAcciones, setLoadingAcciones] = useState(false);
   const [modalEscrito, setModalEscrito] = useState(false);
@@ -208,7 +207,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   };
 
   const guardarCaso = useCallback(async () => {
-    setGuardando(true);
     setEstadoGuardado("guardando");
     const enviado = JSON.stringify(formData);
     try {
@@ -234,7 +232,6 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
         setToast({ msg: sinPermiso ? "No se pudo guardar: la sesión no es de administrador. Cerrá sesión (Apariencia y backup) y entrá de nuevo con tu cuenta." : "No se pudo guardar: " + (error.message || "error desconocido"), type: "error" });
       }
     } catch (e) { setEstadoGuardado("error"); setToast({ msg: "No se pudo guardar: " + e.message, type: "error" }); }
-    setGuardando(false);
   }, [caso, formData, onUpdate, pasId]);
 
   useEffect(() => { guardarCasoRef.current = guardarCaso; }, [guardarCaso]);

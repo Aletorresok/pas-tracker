@@ -1,7 +1,7 @@
 import { ESTADOS_CASO } from "../../constants.js";
 import { alpha } from "../../utils/theme.js";
 
-export default function EstadoSelector({ value, onChange, darkMode }) {
+export default function EstadoSelector({ value, onChange }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 5 }}>
       {ESTADOS_CASO.map(e => {

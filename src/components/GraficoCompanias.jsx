@@ -4,7 +4,7 @@ import { INSTANCIAS } from "../constants.js";
 
 // Cuadro de una compañía: plazos, % cobrado, incumplimientos de pago y % ofrecido en cada instancia.
 // Lo usan Análisis → Compañías y el portal del PAS. `ofertas` (historial, solo admin) afina el % por instancia.
-export default function GraficoCompanias({ allCasos, ofertas, darkMode, cardBg, cardBorder, textColor, subColor, mostrarCasos = true, aclaracion }) {
+export default function GraficoCompanias({ allCasos, ofertas, cardBg, cardBorder, textColor, subColor, mostrarCasos = true, aclaracion }) {
   const [selectedComp, setSelectedComp] = useState("");
 
   const companias = useMemo(() => {
