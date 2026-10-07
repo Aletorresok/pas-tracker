@@ -138,6 +138,11 @@
 *   Con menos de 3 casos cerrados de la compañía no da veredicto (muestra lo que hay). Concurrencia: se mide sobre la parte del tercero; franquicia: avisa que se paga entera. Quedan afuera desistidos, el propio caso y cierres de más de 150% (error de carga).
 *   `utils/referenciaOferta.js`: `referenciaOferta` (cálculo puro, usa `baseReclamo` y `mediana` de `analisis.js` y `subaOfertas`) y `datosCompania` (casos de la compañía y sus ofertas desde Supabase, al abrir la ficha). Sin SQL nuevo.
 
+### 2026-10-06 — Número de factura con sus ceros; facturas 0063 a 0066
+*   `normalizarFactura` (`utils/formatters.js`): al salir del campo de número de factura (ficha del caso, Honorarios, y Finanzas → Facturación, también al apretar "Facturar") completa el formato ARCA: "64" → `0001-00000064`, "1-65" → `0001-00000065`, "0001-0000064" → `0001-00000064`. Lo que no sean solo números queda como está.
+*   Facturas 0063 (Villena), 0064 (Della Giustina), 0065 (Leiva) y 0066 (Guzmán Zulema) con `sql/datos_2026-10-06_carga_facturas_63_66.sql` (la 64 y la 65 estaban cargadas con dígitos de menos; corrido el 06/10).
+*   `sql/datos_2026-10-05_atala_aportes_caja.sql`: expediente MG-3846-2026, aportes a la Caja y escrito del 05/10.
+
 ### 2026-10-05 — Portal: errores de carga visibles y limpieza de variables sin uso
 *   **Portal del PAS (`portal/PortalHome.jsx`):** si el usuario no está vinculado a un productor, ahora se ve un aviso con "Escribir al estudio" (WhatsApp) y "Salir"; antes quedaba un portal vacío sin explicación. Si falla la carga de casos (conexión, permisos), aviso con **Reintentar** en vez de mostrar el caso de ejemplo como si no tuviera casos.
 *   Limpieza: imports, props y variables que no se usaban (`App.jsx`, `CasoUnificado.jsx`, `GraficoCompanias`, `CompaniaSelector`, `EstadoSelector`, `DialogoEtapa`, `Toast`, `ModalesCliente`, `estadisticasPas.resumenDelMes`). Sin cambios visibles.
