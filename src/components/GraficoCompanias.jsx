@@ -4,7 +4,7 @@ import { INSTANCIAS } from "../constants.js";
 
 // Cuadro de una compañía: plazos, % cobrado, incumplimientos de pago y % ofrecido en cada instancia.
 // Lo usan Análisis → Compañías y el portal del PAS. `ofertas` (historial, solo admin) afina el % por instancia.
-export default function GraficoCompanias({ allCasos, ofertas, cardBg, cardBorder, textColor, subColor, mostrarCasos = true }) {
+export default function GraficoCompanias({ allCasos, ofertas, cardBg, cardBorder, textColor, subColor, mostrarCasos = true, aclaracion }) {
   const [selectedComp, setSelectedComp] = useState("");
 
   const companias = useMemo(() => {
@@ -106,9 +106,9 @@ export default function GraficoCompanias({ allCasos, ofertas, cardBg, cardBorder
         </div>
       ))}
       <div style={{ fontSize: 11, color: subColor, marginTop: 12, lineHeight: 1.4 }}>
-        {mostrarCasos
+        {aclaracion || (mostrarCasos
           ? "Promedios. Las concurrencias se miden sobre la parte de culpa del tercero; las franquicias no entran en los %, porque se pagan enteras. Solo aparecen las compañías con algún dato."
-          : "Promedios con los casos del estudio: te sirven para decirle a tu cliente cuánto suele tardar cada compañía."}
+          : "Promedios con los casos del estudio: te sirven para decirle a tu cliente cuánto suele tardar cada compañía.")}
       </div>
     </div>
   );

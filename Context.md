@@ -206,7 +206,7 @@
 *   En una tarjeta con avisos, "Hecho" pide la próxima acción **con fecha** (no se ofrece "Hecho, sin nueva acción" y no deja guardar sin fecha o con fecha pasada) (`dashboard/TarjetaCaso.jsx`).
 
 ### 2026-10-01 — Demostración del portal de productores (/portal/demo)
-*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`).
+*   **`/portal/demo`**: el portal del PAS con 6 casos inventados (doc. pendiente, reclamado con bitácora, con ofrecimiento y mensaje, en mediación con fecha, esperando pago con fecha estimada, cobrado), sin cuenta y **sin tocar la base**. Sin comisión. Las fechas son relativas a hoy (`portal/demoPortal.js`). Las estadísticas por compañía del demo son inventadas y moderadas (~1 mes al ofrecimiento, ~2 meses al cobro, ~90% cobrado) y lo aclaran al pie (prop `aclaracion` de `GraficoCompanias`).
 *   Arriba, aviso "Demostración" con **"Quiero mi acceso"** (WhatsApp al estudio). En la demo, "Derivar caso" no guarda (avisa), no se sube documentación, "Consultar al estudio" pide el acceso y "Salir" vuelve al login. `PortalHome`/`PortalCasoCard`/`NuevoCasoModal` reciben `demo`; `Portal.jsx` detecta la ruta.
 *   Reemplaza a las cuentas de prueba del portal (se borran a mano en Supabase → Authentication).
 *   Probado en Chromium (celular): sin pedidos a Supabase, ninguna mención a comisión, derivar avisa sin guardar.
