@@ -3,7 +3,7 @@ import { DOCS_CLIENTE, subirDocumentoCliente, extrasCliente, etiquetaDoc } from 
 import { notificarSubidaCliente } from "../../utils/portalStorageUtils.js";
 import { supabase } from "../../supabase.js";
 import { fmtDate, fmtMoney } from "./portalTheme.js";
-import { primerNombre, diaDeAccion } from "../../utils/formatters.js";
+import { primerNombre, diaDeAccion, fechaLocalISO } from "../../utils/formatters.js";
 import { estadoInfo } from "../../constants.js";
 import { PASOS_SIMPLES } from "../ui/BarraAvance.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
@@ -12,7 +12,8 @@ import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import Logo from "../ui/Logo.jsx";
-import { textoEtapaCliente, fechaPagoEstimada } from "../../utils/vistaCliente.js";
+import { textoEtapaCliente, fechaPagoEstimada, queHacerCliente, referenciaPlazo } from "../../utils/vistaCliente.js";
+import { cargarPlazosPublicos } from "../../utils/consultas.js";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { novedadesDelCaso } from "../../utils/novedadesCliente.js";
 
@@ -58,8 +59,8 @@ function BotonWhatsApp({ patente, texto = "Escribinos por WhatsApp" }) {
   );
 }
 
-// Si no hay mensaje del estudio, el texto de la etapa va en la tarjeta de mensaje y acá queda la descripción corta
-function LineaDeTiempo({ caso, textoEnMensaje = false }) {
+// Lo que pasa ahora se cuenta en "Qué sigue": acá cada paso lleva su descripción corta
+function LineaDeTiempo({ caso }) {
   const paso = pasoDe(caso.estado);
   const color = paso === 5 ? "var(--ok)" : "var(--accent)";
   return (
@@ -88,7 +89,7 @@ function LineaDeTiempo({ caso, textoEnMensaje = false }) {
                 {fecha && (hecho || actual) && <span className="num" style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}{i === 3 && !hecho ? " (estimada)" : ""}</span>}
               </div>
               {actual
-                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: "var(--r-sm)", padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{textoEnMensaje ? PASOS_TEXTO[i] : ahora(caso)}</div>
+                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: "var(--r-sm)", padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{PASOS_TEXTO[i]}</div>
                 : <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{PASOS_TEXTO[i]}</div>}
             </div>
           </li>
@@ -141,7 +142,7 @@ function useAvisoDeSesion() {
   return { agregar, enviar, cantidad, avisados, eligiendo: (v = true) => { eligiendo.current = v; } };
 }
 
-function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, onRecargar }) {
+function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, onRecargar, abrirSenal = 0 }) {
   // La lista de lo que falta solo se muestra mientras se junta la documentación
   const enDocumentacion = ["doc_pendiente", "iniciado"].includes(caso.estado);
   const [abierto, setAbierto] = useState(false);
@@ -149,6 +150,8 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   const [aviso, setAviso] = useState(null); // { tipo, ok, texto }
   const inputRef = useRef(null);
   const tipoRef = useRef(null);
+  // "Mandar documentación" en Qué sigue la abre y la trae a la vista
+  useEffect(() => { if (abrirSenal) setAbierto(true); }, [abrirSenal]);
 
   if (!extras) return null; // la función todavía no existe o falló: no mostramos nada
   const { enviados, tenemos } = extras;
@@ -181,7 +184,7 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   };
 
   return (
-    <section style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18 }}>
+    <section id={`doc-${caso.id}`} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18, scrollMarginTop: 12 }}>
       <button type="button" onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
         style={{ width: "100%", display: "flex", gap: 12, alignItems: "center", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
         <Ilustracion nombre="foto" size={48} />
@@ -233,6 +236,54 @@ function SubirDocumentacion({ caso, patente, dni, aviso: avisoSesion, extras, on
   );
 }
 
+// Documentación obligatoria que el cliente todavía no mandó (y que el estudio no marcó como recibida)
+const docsFaltantes = extras => {
+  if (!extras) return [];
+  const enviados = new Set((extras.enviados || []).map(e => e.tipo));
+  return DOCS_CLIENTE.filter(d => d.requerido && !enviados.has(d.tipo) && !extras.tenemos?.[d.tipo]).map(d => d.l.replace(/ \(.*\)/, "").replace(/^./, c => c.toLowerCase()));
+};
+
+// Plazos de referencia por compañía (los mismos de la página pública): se piden una sola vez
+let plazosCache = null;
+const plazosPublicos = () => (plazosCache ||= cargarPlazosPublicos());
+
+// Arriba de todo: qué pasa ahora, qué tiene que hacer el cliente y, mientras espera, una referencia de plazos
+function QueSigue({ caso, extras, onDocumentacion }) {
+  const [plazos, setPlazos] = useState([]);
+  useEffect(() => { if (caso.estado === "reclamado") plazosPublicos().then(setPlazos); }, [caso.estado]);
+  const faltan = ["doc_pendiente", "iniciado"].includes(caso.estado) ? docsFaltantes(extras) : [];
+  const hacer = queHacerCliente(caso, { faltan, hayEvento: !!extras?.proximoEvento });
+  const referencia = referenciaPlazo(caso, plazos, fechaLocalISO());
+  const oferta = caso.estado === "con_ofrecimiento" && Number(caso.monto_ofrecimiento) > 0 ? Number(caso.monto_ofrecimiento) : 0;
+  return (
+    <section aria-labelledby={`sigue-${caso.id}`} style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div>
+        <div id={`sigue-${caso.id}`} style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--accent-ink)", marginBottom: 4 }}>Qué sigue</div>
+        <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, fontWeight: 600 }}>{ahora(caso)}</p>
+      </div>
+      {oferta > 0 && (
+        <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 14px" }}>
+          <div style={{ fontSize: 13, color: "var(--sub)" }}>Oferta de {caso.compania_aseguradora || "la compañía"}</div>
+          <div className="num" style={{ fontSize: 24, fontWeight: 700 }}>{fmtMoney(oferta)}</div>
+        </div>
+      )}
+      {hacer && (
+        <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 10, alignItems: "start" }}>
+          <span aria-hidden="true" style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", background: faltan.length ? "color-mix(in srgb, var(--warn) 16%, var(--card))" : "color-mix(in srgb, var(--ok) 14%, var(--card))", color: faltan.length ? "var(--warn)" : "var(--ok)" }}>
+            <Icono nombre={faltan.length ? "adjuntar" : "check"} size={15} />
+          </span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>Qué tenés que hacer vos</div>
+            <div style={{ fontSize: 15, lineHeight: 1.5 }}>{hacer}</div>
+            {faltan.length > 0 && <div style={{ marginTop: 8 }}><Boton variante="primario" tamaño="sm" icono="adjuntar" onClick={onDocumentacion}>Mandar documentación</Boton></div>}
+          </div>
+        </div>
+      )}
+      {referencia && <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--sub)", borderTop: "1px solid var(--border)", paddingTop: 10 }}>{referencia}</div>}
+    </section>
+  );
+}
+
 // Historia del reclamo contada por el estudio: lo que marcó "Lo ve el cliente" en la bitácora
 export function Novedades({ lista, caja, titulo = "Novedades de tu reclamo" }) {
   const [todas, setTodas] = useState(false);
@@ -269,16 +320,27 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
   const [novedades, setNovedades] = useState(null);
   useEffect(() => { novedadesDelCaso({ patente, dni, casoId: caso.id }).then(setNovedades); }, [patente, dni, caso.id]);
   const evento = extras?.proximoEvento;
-  const ofrecido = Number(caso.monto_ofrecimiento) || 0;
+  const [abrirDoc, setAbrirDoc] = useState(0);
+  const irADocumentacion = () => { setAbrirDoc(n => n + 1); setTimeout(() => document.getElementById(`doc-${caso.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); };
   const cobras = Number(caso.monto_cobro_asegurado) || 0;
   const caja = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 18 };
-  // Sin mensaje escrito por el estudio, se muestra el texto de la etapa (así la tarjeta nunca queda vacía)
-  const mensajeAuto = !caso.mensaje_cliente && caso.estado !== "desistido";
-  const mensaje = caso.mensaje_cliente || (mensajeAuto ? ahora(caso) : "");
+  // El texto de la etapa va en "Qué sigue"; el mensaje aparece solo si el estudio lo escribió
+  const mensaje = caso.mensaje_cliente || "";
 
   return (
     <article className="caso-cliente">
       <div>
+      {caso.estado !== "desistido" && <QueSigue caso={caso} extras={extras} onDocumentacion={irADocumentacion} />}
+      {mensaje && (
+        <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>Mensaje del estudio</span>
+            {caso.mensaje_cliente && caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
+          </div>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{mensaje}</p>
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
+        </section>
+      )}
       <section style={caja}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 16 }}>
           <div style={{ minWidth: 0 }}>
@@ -290,7 +352,7 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
 
         {caso.estado === "desistido"
           ? <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
-          : <LineaDeTiempo caso={caso} textoEnMensaje={mensajeAuto} />}
+          : <LineaDeTiempo caso={caso} />}
 
         {evento && (
           <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
@@ -313,29 +375,13 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
       </div>
       <div>
 
-      {mensaje && (
-        <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
-            <span style={{ fontSize: 14, fontWeight: 700 }}>Mensaje del estudio</span>
-            {caso.mensaje_cliente && caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
-          </div>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{mensaje}</p>
-          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
-        </section>
-      )}
 
       {novedades?.length > 0 && <Novedades lista={novedades} caja={caja} />}
 
-      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} extras={extras} onRecargar={cargarExtras} />}
+      {!cerrado && <SubirDocumentacion caso={caso} patente={patente} dni={dni} aviso={aviso} extras={extras} onRecargar={cargarExtras} abrirSenal={abrirDoc} />}
 
-      {(cobras > 0 || (ofrecido > 0 && !cerrado)) && (
+      {cobras > 0 && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
-          {ofrecido > 0 && !cerrado && (
-            <div>
-              <div style={{ fontSize: 13, color: "var(--sub)" }}>Ofrecimiento de la compañía</div>
-              <div className="num" style={{ fontSize: 22, fontWeight: 700 }}>{fmtMoney(ofrecido)}</div>
-            </div>
-          )}
           {cobras > 0 && (
             <div>
               <div style={{ fontSize: 13, color: "var(--sub)" }}>{caso.estado === "cobrado" ? "Cobraste" : "Vas a cobrar"}</div>

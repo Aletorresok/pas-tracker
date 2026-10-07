@@ -143,6 +143,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-07 — Vista del cliente más clara: "Qué sigue"
+*   **Tarjeta "Qué sigue"** arriba de todo (`portal/PortalCliente.jsx` → `QueSigue`): qué pasa ahora (`textoEtapaCliente`), la oferta actual cuando hay (una sola vez; antes aparecía en tres lugares), **"Qué tenés que hacer vos"** (`vistaCliente.queHacerCliente`: qué documentación obligatoria falta, con botón "Mandar documentación" que abre la lista y baja hasta ella; o "Por ahora, nada…") y, mientras espera la respuesta, cuántos días lleva el reclamo y una **referencia** de cuánto suele tardar esa compañía (`vistaCliente.referenciaPlazo` con `plazos_publicos` del SQL 47; siempre con "Cada caso es distinto").
+*   **Mensaje del estudio** solo si el estudio lo escribió, y justo debajo de Qué sigue. La línea de tiempo muestra la descripción corta de cada paso (lo que pasa ahora ya está arriba). Sin textos de costos.
+*   Probado en Chromium con Supabase simulado: documentación pendiente, reclamo presentado y con oferta + mensaje; celular y compu, claro y oscuro; sin errores ni desbordes.
+
 ### 2026-10-07 — Captación directa: página pública /reclamo y consultas en Hoy (SQL 47)
 *   **`/reclamo`** (`publico/PaginaReclamo.jsx`, ruta en `main.jsx`, sin cuenta): "¿Chocaste y no fue tu culpa?", cómo funciona en 3 pasos, **"¿Cuánto tarda tu compañía?"** con medianas reales (función `plazos_publicos`: solo compañías con 3 casos o más, sin datos de casos puntuales), formulario corto (nombre, WhatsApp, patente, fecha, compañía del otro auto, lesionados, qué pasó), agradecimiento con "Mandar fotos por WhatsApp" y preguntas frecuentes para el cliente. Acepta `?ref=origen` (ej. `/reclamo?ref=instagram`) y lo guarda con la consulta.
 *   **SQL 47** (`sql/2026-10-07_47_consultas_web.sql`): tabla `consultas` (RLS solo administrador; entra en la copia de seguridad), `nueva_consulta()` para la página (valida nombre y teléfono; freno: 3 por día por teléfono y 40 por hora en total) y `plazos_publicos()`.
