@@ -86,8 +86,11 @@
 - Consumidor: Torres Gaveglio c/ BNA · Sanchez Guillermo c/ Telecom.
 - Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
 
+**Demo del portal (08/10):**
+- [x] ✅ SQL 48 corrido (08/10): la demo muestra las estadísticas reales.
+
 **Captación directa (07/10):**
-- [ ] Correr el SQL 47 (`sql/2026-10-07_47_consultas_web.sql`). Sin él, la página /reclamo muestra error al enviar y no muestra plazos.
+- [x] ✅ SQL 47 corrido (08/10).
 - [ ] Probar /reclamo en el celular con una consulta real y ver que llegue el mail y aparezca en Hoy.
 - Ideas que siguen (propuesta del 07/10): 2C link personal para que el cliente recomiende (`?ref=`), 2D pedido de reseña en Google al cobrar, 2E bandeja con historial de consultas.
 
@@ -142,6 +145,16 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-08 — Demo del portal con las estadísticas reales del estudio (SQL 48)
+*   **SQL 48** (`sql/2026-10-08_48_plazos_publicos_porcentajes.sql`): `plazos_publicos()` suma `pct_cobrado`, `pct_ofrecido_adm` y `pct_ofrecido_med` (medianas sobre la base del reclamo: concurrencia = parte del tercero, franquicias afuera, más de 150% = error de carga). Cada dato solo con 3 casos o más.
+*   **`/portal/demo`**: con el SQL 48 corrido, "Estadísticas por compañía" muestra los promedios reales (`demoPortal.filasDesdePlazos` arma 3 filas iguales por compañía que dan esos mismos números en `GraficoCompanias`), con la aclaración "Promedios reales de los casos del estudio…". Sin el SQL 48, siguen los inventados de antes. El usuario los veía demasiado altos (93% cobrado, 95% ofrecido en mediación).
+*   Probado: SQL 48 en Postgres 16 dos veces (medianas, concurrencia, franquicia y error de carga afuera, umbral de 3); la demo en Chromium con y sin SQL 48.
+
+### 2026-10-07 — Vista del cliente más clara: "Qué sigue"
+*   **Tarjeta "Qué sigue"** arriba de todo (`portal/PortalCliente.jsx` → `QueSigue`): qué pasa ahora (`textoEtapaCliente`), la oferta actual cuando hay (una sola vez; antes aparecía en tres lugares), **"Qué tenés que hacer vos"** (`vistaCliente.queHacerCliente`: qué documentación obligatoria falta, con botón "Mandar documentación" que abre la lista y baja hasta ella; o "Por ahora, nada…") y, mientras espera la respuesta, cuántos días lleva el reclamo y una **referencia** de cuánto suele tardar esa compañía (`vistaCliente.referenciaPlazo` con `plazos_publicos` del SQL 47; siempre con "Cada caso es distinto").
+*   **Mensaje del estudio** solo si el estudio lo escribió, y justo debajo de Qué sigue. La línea de tiempo muestra la descripción corta de cada paso (lo que pasa ahora ya está arriba). Sin textos de costos.
+*   Probado en Chromium con Supabase simulado: documentación pendiente, reclamo presentado y con oferta + mensaje; celular y compu, claro y oscuro; sin errores ni desbordes.
 
 ### 2026-10-07 — Captación directa: página pública /reclamo y consultas en Hoy (SQL 47)
 *   **`/reclamo`** (`publico/PaginaReclamo.jsx`, ruta en `main.jsx`, sin cuenta): "¿Chocaste y no fue tu culpa?", cómo funciona en 3 pasos, **"¿Cuánto tarda tu compañía?"** con medianas reales (función `plazos_publicos`: solo compañías con 3 casos o más, sin datos de casos puntuales), formulario corto (nombre, WhatsApp, patente, fecha, compañía del otro auto, lesionados, qué pasó), agradecimiento con "Mandar fotos por WhatsApp" y preguntas frecuentes para el cliente. Acepta `?ref=origen` (ej. `/reclamo?ref=instagram`) y lo guarda con la consulta.

@@ -57,3 +57,30 @@ export function estadoSugerido(caso) {
   const [, estado, motivo] = pistas.reduce((a, b) => (ORDEN[b[1]] > ORDEN[a[1]] ? b : a));
   return { estado, motivo, label: estadoInfo(estado).label, actualLabel: estadoInfo(caso.estado).label };
 }
+
+// "Qué tenés que hacer vos" en la tarjeta Qué sigue de la vista del cliente.
+// faltan: etiquetas de la documentación obligatoria que todavía no mandó. hayEvento: mediación o audiencia agendada.
+export function queHacerCliente(caso, { faltan = [], hayEvento = false } = {}) {
+  switch (caso.estado) {
+    case "doc_pendiente":
+    case "iniciado":
+      return faltan.length ? `Mandanos ${faltan.join(", ").replace(/, ([^,]*)$/, " y $1")}. Lo podés subir acá abajo o mandarlo por WhatsApp.`
+        : "Ya tenemos lo principal. Si necesitamos algo más, te avisamos por WhatsApp.";
+    case "reclamado": return "Por ahora, nada. Te avisamos por WhatsApp cuando la compañía responda.";
+    case "con_ofrecimiento": return "Por ahora, nada. No aceptamos ninguna oferta sin consultarte.";
+    case "en_mediacion": return hayEvento ? "Tené presente la fecha de la mediación. Te confirmamos por WhatsApp si tenés que participar." : "Por ahora, nada. Te avisamos la fecha de la mediación.";
+    case "en_juicio": return "Por ahora, nada. Si necesitamos algo, te escribimos.";
+    case "esperando_pago": return "Avisanos por WhatsApp cuando recibas el pago.";
+    default: return "";
+  }
+}
+
+// Referencia de plazos con los casos del estudio (plazos_publicos), solo mientras se espera la respuesta de la compañía.
+// Es información, no una promesa: siempre aclara que cada caso es distinto.
+export function referenciaPlazo(caso, plazos = [], hoyISO) {
+  if (caso.estado !== "reclamado" || !caso.fecha_inicio_reclamo) return "";
+  const dato = plazos.find(p => p.compania === caso.compania_aseguradora && p.dias_oferta);
+  const lleva = Math.max(0, Math.round((new Date(`${hoyISO}T12:00:00`) - new Date(`${String(caso.fecha_inicio_reclamo).slice(0, 10)}T12:00:00`)) / 864e5));
+  const llevaTxt = `Tu reclamo lleva ${lleva} ${lleva === 1 ? "día" : "días"} presentado.`;
+  return dato ? `${llevaTxt} Como referencia, en los casos del estudio ${caso.compania_aseguradora} suele responder en unos ${dato.dias_oferta} días. Cada caso es distinto.` : llevaTxt;
+}

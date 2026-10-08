@@ -98,3 +98,29 @@ export function plazosDemo() {
   filas.push({ compania_aseguradora: "Sancor", estado: "reclamado", fecha_inicio_reclamo: fechaEnDias(-18), monto_reclamado: 1800000 });
   return filas;
 }
+
+// Estadísticas reales del estudio para la demo (plazos_publicos, SQL 47/48: medianas por compañía con 3 casos o más).
+// El cuadro de compañías trabaja con casos, así que cada compañía se arma con 3 filas iguales que dan esos mismos
+// números (días hasta la oferta y el cobro, % cobrado y % ofrecido por instancia). Sin datos, devuelve [].
+export function filasDesdePlazos(plazos = []) {
+  const filas = [];
+  const base = 1000000;
+  const desde = -400; // fecha de inicio del reclamo de referencia (días desde hoy)
+  plazos.forEach(p => {
+    const dias = p.dias_oferta != null || p.dias_cobro != null;
+    for (let i = 0; i < 3; i++) {
+      if (dias || p.pct_cobrado != null || p.pct_ofrecido_adm != null) filas.push({
+        compania_aseguradora: p.compania, estado: "cobrado", monto_reclamado: base,
+        ...(dias ? { fecha_inicio_reclamo: fechaEnDias(desde) } : {}),
+        ...(p.dias_oferta != null ? { fecha_ofrecimiento: fechaEnDias(desde + Number(p.dias_oferta)) } : {}),
+        ...(p.dias_cobro != null ? { fecha_cobro: fechaEnDias(desde + Number(p.dias_cobro)) } : {}),
+        ...(p.pct_cobrado != null ? { monto_cobro_asegurado: base * Number(p.pct_cobrado) / 100 } : {}),
+        ...(p.pct_ofrecido_adm != null ? { monto_ofrecimiento: base * Number(p.pct_ofrecido_adm) / 100, instancia_ofrecimiento: "administrativa" } : {}),
+      });
+      // Lo ofrecido en mediación va en filas aparte, para no mezclarlo con lo de la instancia administrativa
+      if (p.pct_ofrecido_med != null) filas.push({ compania_aseguradora: p.compania, estado: "cobrado", monto_reclamado: base,
+        monto_ofrecimiento: base * Number(p.pct_ofrecido_med) / 100, instancia_ofrecimiento: "mediacion" });
+    }
+  });
+  return filas;
+}
