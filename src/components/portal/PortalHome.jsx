@@ -16,7 +16,8 @@ import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/m
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
 import { diaDeAccion, fechaLocalISO, fechaEnDias } from "../../utils/formatters.js";
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
-import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo } from "./demoPortal.js";
+import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
+import { cargarPlazosPublicos } from "../../utils/consultas.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -57,6 +58,12 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState(() => (demo ? plazosDemo() : []));
+  // Demo: si están las estadísticas reales del estudio (SQL 48), reemplazan a las inventadas
+  const [estadisticasReales, setEstadisticasReales] = useState(false);
+  useEffect(() => {
+    if (!demo) return;
+    cargarPlazosPublicos().then(l => { const filas = filasDesdePlazos(l); if (filas.length) { setTodosLosCasos(filas); setEstadisticasReales(true); } });
+  }, [demo]);
   const [pestana, setPestana] = useState("curso"); // curso | cobrados | desistidos | todos
   const [estadoSel, setEstadoSel] = useState(null); // estado puntual dentro de la pestaña
   const [busqueda, setBusqueda] = useState("");
@@ -333,10 +340,10 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             lista.map(c => <PortalCasoCard key={c.id} demo={demo} caso={c} pasNombre={pasInfo?.nombre} proximoEvento={eventos[c.id]} plazoCia={plazos[c.compania_aseguradora]?.promedio} />)
           )}
 
-          {Object.keys(plazos).length >= 3 && (
+          {(estadisticasReales ? todosLosCasos.length > 0 : Object.keys(plazos).length >= 3) && (
             <GraficoBoundary>
               <GraficoCompanias allCasos={todosLosCasos} darkMode={dark} cardBg={T.card} cardBorder={T.border} textColor={T.text} subColor={T.sub} mostrarCasos={false}
-                aclaracion={demo ? "Datos inventados para la demostración. En tu portal vas a ver los promedios reales de los casos del estudio." : null} />
+                aclaracion={demo ? (estadisticasReales ? "Promedios reales de los casos del estudio, solo de compañías con 3 casos o más. Los casos de arriba son de ejemplo." : "Datos inventados para la demostración. En tu portal vas a ver los promedios reales de los casos del estudio.") : null} />
             </GraficoBoundary>
           )}
 
