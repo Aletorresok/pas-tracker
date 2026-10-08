@@ -87,10 +87,10 @@
 - Laboral: Zapata Bruno c/ Coop. Nueva Generación Ltda. · Laco Juan Pablo · CEV.
 
 **Demo del portal (08/10):**
-- [ ] Correr el SQL 48 (`sql/2026-10-08_48_plazos_publicos_porcentajes.sql`, requiere el 47): la demo pasa a mostrar las estadísticas reales.
+- [x] ✅ SQL 48 corrido (08/10): la demo muestra las estadísticas reales.
 
 **Captación directa (07/10):**
-- [ ] Correr el SQL 47 (`sql/2026-10-07_47_consultas_web.sql`). Sin él, la página /reclamo muestra error al enviar y no muestra plazos.
+- [x] ✅ SQL 47 corrido (08/10).
 - [ ] Probar /reclamo en el celular con una consulta real y ver que llegue el mail y aparezca en Hoy.
 - Ideas que siguen (propuesta del 07/10): 2C link personal para que el cliente recomiende (`?ref=`), 2D pedido de reseña en Google al cobrar, 2E bandeja con historial de consultas.
 
