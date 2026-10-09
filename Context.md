@@ -949,3 +949,5 @@
     *   Acceso del cliente: **patente + últimos 3 dígitos del DNI** (`dni_asegurado`). Para que sea seguro de verdad hace falta una función en Supabase (RPC `security definer`) + RLS; se hace junto con la tarea de RLS.
     *   "Plazos por compañía" **se mantiene en el portal PAS** (sirve cuando el PAS no tuvo casos con esa compañía), pero sin mostrar cantidad de casos ni datos personales: solo promedios.
     *   Modo oscuro: sin preferencia → **por defecto sigue el tema del sistema**; el botón manual se mantiene y su elección queda guardada.
+
+- Flujo de caja: los KPIs de 30/60/90 días ahora son por tramo (0-30, 31-60, 61-90), sin acumular, igual que el gráfico "Honorarios por cobrar".
