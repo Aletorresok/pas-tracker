@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { aplanarCasos, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
+import { aplanarCasos, tareasPendientes, cobrosPendientes, netoYo } from "../utils/metricas.js";
+import { fechaLocalISO } from "../utils/formatters.js";
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
-import ParaHacer from "./dashboard/ParaHacer.jsx";
+import ParaHacer, { agruparPorCaso } from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import ConsultasWeb from "./dashboard/ConsultasWeb.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import MiDia from "./dashboard/MiDia.jsx";
+import ResumenHoy from "./dashboard/ResumenHoy.jsx";
 import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto } from "../utils/expedientes.js";
 import { useCalendarioJudicial } from "../hooks/useCalendarioJudicial.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
@@ -57,6 +59,13 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     .sort((a, b) => String(b.created_at || b.fecha_derivacion || "").localeCompare(String(a.created_at || a.fecha_derivacion || ""))), [allCasos]);
 
   const [abierto, setAbierto] = useState(null); // { caso, pasId }
+  const [foco, setFoco] = useState(null); // null | "atras" | "hoy": filtra Para hacer desde los números de arriba
+  const hoyISO = fechaLocalISO();
+  const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
+  const atrasadas = grupos.filter(g => g.vence && g.vence < hoyISO).length;
+  const paraHoy = grupos.filter(g => g.vence === hoyISO).length;
+  const totalNeto = useMemo(() => cobros.reduce((a, c) => a + (c.faltaHonorarios ? netoYo(c) : 0), 0), [cobros]);
+  const irA = id => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const fechaHoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
   const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
@@ -85,16 +94,18 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
       </header>
 
+      <ResumenHoy atrasadas={atrasadas} hoy={paraHoy} nuevos={nuevos.length} cobrar={totalNeto} foco={foco} onFoco={setFoco} onIrA={irA} />
+
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
-      <NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
+      <div id="hoy-nuevos"><NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} /></div>
       <ConsultasWeb todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} onAbrir={(c, pasId) => setAbierto({ caso: c, pasId })} />
 
       {/* Lo que hay que hacer y, al lado, la plata que falta entrar y la agenda */}
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-        <ParaHacer tareas={tareas} cal={cal} onAbrir={abrirTarea} onHecho={alHecho} onPosponer={alPosponer} onReiterar={alReiterar} />
+        <ParaHacer tareas={tareas} cal={cal} foco={foco} onQuitarFoco={() => setFoco(null)} onAbrir={abrirTarea} onHecho={alHecho} onPosponer={alPosponer} onReiterar={alReiterar} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} />
+          <div id="hoy-cobros"><CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} /></div>
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
         </div>
       </div>
@@ -102,12 +113,7 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
       <MiDia conteo={conteo} allCasos={allCasos} historial={historial} derivadores={derivadores} descartados={descartados} onIrA={onIrA} />
 
       {abierto && (
-        <CasoOverlay
-          caso={abierto.caso} pasId={abierto.pasId} pestanaInicial={abierto.pestana} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setAbierto(a => ({ ...a, caso: { ...updated, _pasId: a.pasId } }))}
-          onClose={() => setAbierto(null)}
-        />
+        <CasoOverlay ficha={abierto} setFicha={setAbierto} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode} />
       )}
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>

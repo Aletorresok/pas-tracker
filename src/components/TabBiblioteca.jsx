@@ -10,6 +10,7 @@ import { useEsCelular } from "../hooks/useEsCelular.js";
 import FormularioBiblioteca from "./biblioteca/FormularioBiblioteca.jsx";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 const CLAVE_FILTROS = "biblioteca_filtros";
 const leerFiltros = () => { try { return JSON.parse(sessionStorage.getItem(CLAVE_FILTROS)) || {}; } catch { return {}; } };
@@ -147,7 +148,7 @@ export default function TabBiblioteca({ cargarNuevo = 0 }) {
       </div>
 
       {lista === undefined && <div style={{ padding: 24, color: "var(--muted)", fontSize: 14 }}>Cargando la Biblioteca…</div>}
-      {lista && !visibles.length && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>{lista.length ? "Nada coincide con la búsqueda." : "Todavía no hay nada cargado."}</div>}
+      {lista && !visibles.length && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}><Ilustracion nombre={lista.length ? "lupa" : "libros"} size={72} style={{ margin: "0 auto 8px" }} />{lista.length ? "Nada coincide con la búsqueda." : "Todavía no hay nada cargado."}</div>}
 
       {visibles.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>

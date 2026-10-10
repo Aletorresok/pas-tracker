@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FRECUENCIAS, PRIORIDADES, ACCESOS, DIAS_SEMANA, prioridad, hhmm, guardarItem, borrarItem, cargarSugerida, guardarEscuela, borrarEscuela } from "../../utils/rutina.js";
 import { fmtDate, fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import BotoneraForm from "../ui/BotoneraForm.jsx";
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
 const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
@@ -134,7 +135,7 @@ export default function EditorRutina({ items, escuela, onCambio, setToast }) {
 
       {form && (
         <div role="dialog" aria-modal="true" aria-label={form.id ? "Editar tarea" : "Nueva tarea"} onClick={e => e.target === e.currentTarget && setForm(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16, overflowY: "auto" }}>
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16, overflowY: "auto" }}>
           <div style={{ ...tarjeta, width: "100%", maxWidth: 460, padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, boxShadow: "var(--shadow)" }}>
             <div style={{ fontSize: 16, fontWeight: 700, gridColumn: "1 / -1" }}>{form.id ? "Editar tarea" : "Nueva tarea"}</div>
             <label style={{ gridColumn: "1 / -1" }}><span style={etiqueta}>Tarea</span>
@@ -181,13 +182,7 @@ export default function EditorRutina({ items, escuela, onCambio, setToast }) {
                 {ACCESOS.map(a => <option key={a.k} value={a.k}>{a.l}</option>)}
               </select>
             </label>
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", gridColumn: "1 / -1", marginTop: 4 }}>
-              {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
-              <span style={{ display: "flex", gap: 8 }}>
-                <Boton variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
-                <Boton variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              </span>
-            </div>
+            <BotoneraForm onBorrar={form.id && borrar} onCancelar={() => setForm(null)} onGuardar={guardar} guardando={guardando} style={{ gridColumn: "1 / -1" }} />
           </div>
         </div>
       )}

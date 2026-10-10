@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { formatoFecha } from "./utils/formatters.js";
+import { fmtDate, fechaLocalISO } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
@@ -13,7 +13,6 @@ import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import ResultadoCaso from "./components/caso/ResultadoCaso.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
-import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import { abrirEscritos } from "./utils/escritoAbierto.js";
 import { hayNovedadesCliente, avisoNovedad } from "./utils/novedadesCliente.js";
@@ -26,7 +25,6 @@ import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_A
 import DialogoEtapa from "./components/caso/DialogoEtapa.jsx";
 import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "./utils/ofertas.js";
-import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import { estadoHonorarios } from "./utils/metricas.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
@@ -87,6 +85,13 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const [modalEscrito, setModalEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
   const [pestana, setPestana] = useState(pestanaInicial || "resumen");
+  const [ampliada, setAmpliada] = useState(() => { try { return localStorage.getItem("ficha_ancho") === "amplia"; } catch { return false; } });
+  const alternarAncho = () => setAmpliada(v => { try { localStorage.setItem("ficha_ancho", v ? "normal" : "amplia"); } catch { /* sin storage */ } return !v; });
+  // La ficha es un panel al costado: la pantalla de atrás se corre (CSS, html[data-ficha]) y la lista sigue a la vista
+  useEffect(() => {
+    document.documentElement.dataset.ficha = ampliada ? "amplia" : "normal";
+    return () => { delete document.documentElement.dataset.ficha; };
+  }, [ampliada]);
   const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
   const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
   const [editarAccionId, setEditarAccionId] = useState(null); // movimiento tocado en Resumen: se edita en Bitácora
@@ -321,8 +326,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     const tecla = e => {
       if (e.key !== "Escape" || e.defaultPrevented || hayVentanaRef.current) return;
       if (document.querySelector(".menu-ctx")) return;
-      const dialogos = document.querySelectorAll('[aria-modal="true"]');
-      if (dialogos[dialogos.length - 1] !== dialogoRef.current) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
       const t = e.target;
       if (t instanceof HTMLElement && (t.matches("input, textarea, select") || t.isContentEditable)) { t.blur(); return; }
       cerrarRef.current();
@@ -357,13 +361,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
-      <div ref={dialogoRef} className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
-        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
+      <div ref={dialogoRef} className="ficha-lateral" role="dialog" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}>
+        <div style={{ background: Th.bg, minHeight: "100%" }}>
 
           {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
-          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "var(--r-lg) var(--r-lg) 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
+          <div className="modal-sticky" style={{ position: "sticky", top: 0, background: Th.card, borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
             <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
               <Icono nombre="cerrar" size={16} />
             </button>
@@ -374,7 +376,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                   {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
                   {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
                   {pasNombre && <span>PAS {pasNombre}</span>}
-                  {caso.fecha_derivacion && <span>derivado {formatoFecha(caso.fecha_derivacion)}</span>}
+                  {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -383,6 +385,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                     ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
                     : TEXTO_GUARDADO[estadoGuardado]}
                 </span>
+                <Boton tamaño="sm" variante="fantasma" onClick={alternarAncho} aria-pressed={ampliada} title="Cambiar el ancho de la ficha">{ampliada ? "Achicar" : "Ampliar"}</Boton>
                 {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
                 <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({
@@ -460,7 +463,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentos</span>
               </div>
-              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)}
+                onLeer={archivos => { setPestana("datos"); setTimeout(() => window.dispatchEvent(new CustomEvent("atg:leer-pdfs", { detail: { archivos } })), 60); }} />
               <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>

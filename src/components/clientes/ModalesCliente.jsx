@@ -52,7 +52,7 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-lg)", width: "100%", maxWidth: 520, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, color: "var(--text)" }}>Nuevo caso</div>
         <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 24 }}>{pasNombre}</div>
@@ -125,7 +125,7 @@ export function NuevoPASModal({ pasEdit, onClose, onSave }) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: `1px solid ${"var(--border)"}`, borderRadius: "var(--r-lg)", width: "100%", maxWidth: 420, padding: "32px 28px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 24, color: "var(--text)" }}>
           {pasEdit ? "Editar PAS" : "Nuevo PAS manual"}

@@ -73,7 +73,7 @@ export default function RecorteEscaner({ pagina, onGuardar, onCerrar }) {
   const radio = foto ? Math.max(foto.ancho, foto.alto) / 45 : 0;
 
   return createPortal(
-    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.7)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 10 }}>
+    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: 10 }}>
       <div role="dialog" aria-modal="true" aria-label="Ajustar página" onClick={e => e.stopPropagation()}
         style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", width: "100%", maxWidth: 1000, maxHeight: "96vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>

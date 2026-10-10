@@ -9,7 +9,6 @@ export const RESPUESTAS = [
   { k: "contraoferta", l: "Contraoferta" },
   { k: "aceptada", l: "Aceptada" },
 ];
-export const respuestaLabel = k => RESPUESTAS.find(r => r.k === k)?.l || k;
 
 const ordenar = lista => [...lista].sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)) || String(a.creado || "").localeCompare(String(b.creado || "")));
 

@@ -11,7 +11,7 @@
 
 - React 18 + Vite 5 + React Router 6 (JavaScript, sin TypeScript)
 - Supabase (PostgreSQL + Auth + Realtime)
-- jsPDF (generación de escritos), XLSX (import Excel), @dnd-kit (drag-and-drop)
+- jsPDF (generación de escritos), XLSX (import Excel)
 - Inline styles + tokens de color como variables CSS en `src/index.css` (sin Tailwind). No usar hex en componentes: `T.*`, `COLORES.*`, `var(--x)` y `alpha()` de `utils/theme.js`.
 
 ## Arquitectura
@@ -84,14 +84,14 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 
 ## Filosofía de interfaz (aplicar en todo lo nuevo)
 
-**Aspecto**: redondo, con aire, que responde al tacto. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (nunca números); elevación `--sh-1` (reposo) / `--sh-2` (hover) / `--sh-3` (levantado o ventana); movimiento `--ease` y `--spring`. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista).
+**Aspecto**: limpio, con aire, claro antes que vistoso. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (6·10·14·18·20 px, nunca números); superficies lisas con borde de 1 px (sin vidrio ni blur); elevación `--sh-1` (reposo, casi plana) / `--sh-2` (hover) / `--sh-3` (menús y ventanas); movimiento corto (140 ms) con `--ease`, sin rebote. Nada importante aparece solo al pasar el mouse: las acciones y los montos se ven siempre. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista).
 
-**Interacción** — las mismas tres reglas en todas las pantallas:
+**Interacción** — las mismas reglas en todas las pantallas:
 1. **Tocar** un ítem lo abre (ficha o detalle).
 2. **Click derecho** (mantener apretado en Android, tecla Menú / Shift+F10) abre sus acciones. Menú único (`MenuHost` en `main.jsx`); se engancha con `{...propsMenu(() => items)}`. Los ítems de cada entidad salen de `utils/menus.js` (`itemsCaso`, `itemsExpediente`, `itemsPAS`): no armar menús a mano en cada pantalla.
-3. **Arrastrar** solo donde mover significa algo: reordenar listas personales (`ui/ListaOrdenable`, Hoy) o cambiar de etapa (`ui/TableroEtapas`, Casos y Expedientes). Todo tablero ofrece también "Mover a" en el menú (alternativa sin arrastre).
+3. **Sin arrastre**: no hay tableros ni listas que se reordenen arrastrando (se sacaron: no se usaban). Cambiar de etapa se hace desde la ficha, la etiqueta de estado o "Mover a" del menú. El arrastre queda solo en herramientas puntuales (editor de PDF).
 
-**Carga**: cada pestaña se importa con `lazy()` en `App.jsx`; librerías pesadas (xlsx, jsPDF, pdf.js, pdf-lib) con `await import()` en el momento de usarlas. React, Supabase y dnd-kit van en archivos aparte (`vite.config.js`).
+**Carga**: cada pestaña se importa con `lazy()` en `App.jsx`; librerías pesadas (xlsx, jsPDF, pdf.js, pdf-lib) con `await import()` en el momento de usarlas. React y Supabase van en archivos aparte (`vite.config.js`).
 
 ## Convenciones
 

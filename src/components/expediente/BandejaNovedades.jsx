@@ -8,6 +8,7 @@ import {
   TIPOS_NOVEDAD, expedienteDelTexto, pegarNovedad, asignarNovedad, descartarNovedad, integrarNovedad, linkPortal, nombrePortal,
 } from "../../utils/novedadesJudiciales.js";
 import Boton from "../ui/Boton.jsx";
+import Ilustracion from "../ui/Ilustracion.jsx";
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
 const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
@@ -203,7 +204,7 @@ export default function BandejaNovedades({ novedades, setNovedades, expedientes,
         )}
       </div>
 
-      {novedades.length === 0 && !form && <div style={{ textAlign: "center", padding: "28px 16px", color: "var(--sub)", fontSize: 14 }}>No hay novedades para revisar.</div>}
+      {novedades.length === 0 && !form && <div style={{ textAlign: "center", padding: "28px 16px", color: "var(--sub)", fontSize: 14 }}><Ilustracion nombre="listo" size={72} style={{ margin: "0 auto 8px" }} />No hay novedades para revisar.</div>}
 
       {novedades.map(n => {
         const exp = n.expediente_id ? porId.get(n.expediente_id) : null;

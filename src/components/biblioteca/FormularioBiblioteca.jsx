@@ -28,7 +28,7 @@ export default function FormularioBiblioteca({ inicial, tipoInicial = "fallo", o
 
   const fallo = x.tipo === "fallo", doctrina = x.tipo === "doctrina", norma = x.tipo === "norma";
   return createPortal(
-    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+    <div onClick={onCerrar} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div role="dialog" aria-modal="true" aria-label={inicial ? "Editar" : "Cargar en la Biblioteca"} onClick={e => e.stopPropagation()}
         onKeyDown={e => { if (e.key === "Escape") onCerrar(); }}
         style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", width: "100%", maxWidth: 640, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>

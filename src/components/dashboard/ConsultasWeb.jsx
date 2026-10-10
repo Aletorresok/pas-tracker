@@ -1,20 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { cargarConsultasAbiertas, marcarConsulta, pasarConsultaACaso } from "../../utils/consultas.js";
 import { linkWhatsApp } from "../../utils/mensajes.js";
-import { primerNombre, fmtDate } from "../../utils/formatters.js";
+import { primerNombre, fmtDate, haceCuanto } from "../../utils/formatters.js";
 import { propsMenu } from "../ui/MenuContextual.jsx";
 import { copiar } from "../../utils/menus.js";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
-
-function hace(iso) {
-  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (min < 60) return `hace ${Math.max(min, 1)} min`;
-  const h = Math.round(min / 60);
-  if (h < 24) return `hace ${h} h`;
-  const d = Math.round(h / 24);
-  return d === 1 ? "ayer" : `hace ${d} días`;
-}
 
 const mensaje = c => `Hola ${primerNombre(c.nombre)}, soy Alexis de ATG Lex. Recibimos tu consulta por el choque${c.patente ? ` (patente ${c.patente})` : ""}. Para arrancar, ¿me mandás fotos de los daños, la denuncia del siniestro y tu DNI?`;
 const esSinPas = p => /^sin\s*pas$/i.test(String(p?.nombre || "").trim());
@@ -78,7 +69,7 @@ export default function ConsultasWeb({ todosLosPas = [], onCasoLocal, onAbrir })
                   <b style={{ fontSize: 14 }}>{c.nombre}</b>
                   {c.estado === "contactada" && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ok)" }}>Contactada</span>}
                   {c.lesiones && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--warn)" }}>Con lesiones</span>}
-                  <span style={{ fontSize: 12, color: "var(--muted)" }}>{hace(c.created_at)}{c.ref ? ` · llegó por ${c.ref}` : ""}</span>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>{haceCuanto(c.created_at)}{c.ref ? ` · llegó por ${c.ref}` : ""}</span>
                 </span>
                 <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>{datos}</span>
                 {c.relato && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>“{c.relato}”</span>}

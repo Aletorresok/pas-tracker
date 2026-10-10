@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { formatoFecha, fechaLocalISO, diaDeAccion } from "../../utils/formatters.js";
+import { fmtDate, fechaLocalISO, diaDeAccion } from "../../utils/formatters.js";
 import CambiosDatos from "./CambiosDatos.jsx";
 
 // cambios (opcional): { tabla, filaId, version, puedeRestaurar, valorActual, onRestaurar } → suma la vista "Cambios de datos"
@@ -124,7 +124,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
             </div>
             <div style={{ flex: 1, paddingBottom: 6 }}>
               <div style={{ fontSize: 11, color: i === 0 ? "var(--accent)" : Th.muted, fontWeight: i === 0 ? 700 : 500, marginBottom: 2 }}>
-                {formatoFecha(diaDeAccion(a.fecha))}{i === 0 ? " · más reciente" : ""}
+                {fmtDate(diaDeAccion(a.fecha))}{i === 0 ? " · más reciente" : ""}
               </div>
               <div role="button" tabIndex={0} title="Tocá para editar el texto o la fecha" onClick={() => abrirEditar(a)} onKeyDown={e => { if (e.key === "Enter") abrirEditar(a); }}
                 style={{ fontSize: 13, color: Th.sub, lineHeight: 1.5, marginBottom: 8, cursor: "text", overflowWrap: "anywhere" }}>{a.descripcion}</div>
@@ -149,7 +149,7 @@ export default function SeccionTimeline({ acciones, loading, onCrear, onActualiz
 
       {modalOpen && createPortal(
         <>
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 9998 }} onClick={cerrar} />
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.8)", zIndex: 9998 }} onClick={cerrar} />
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 9999 }}>
             <div style={{ background: Th.card, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "28px 24px", maxWidth: 440, width: "100%" }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: Th.text, marginBottom: 18 }}>

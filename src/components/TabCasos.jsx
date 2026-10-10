@@ -8,14 +8,13 @@ import EstadoPill from "./ui/EstadoPill.jsx";
 import Icono from "./ui/Icono.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import FilaExpandida from "./casos/FilaExpandida.jsx";
-import TableroCasos from "./casos/TableroCasos.jsx";
 import { QUIEN, quienTiene } from "../utils/pelota.js";
 import { propsMenu, abrirMenu } from "./ui/MenuContextual.jsx";
 import { itemsCaso } from "../utils/menus.js";
 import { useMoverCaso } from "./casos/useMoverCaso.jsx";
+import CabeceraOrdenable from "./ui/CabeceraOrdenable.jsx";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
-const VISTA_GUARDADA = "pas_casos_vista";
-const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
 // Los filtros se recuerdan mientras la pestaña del navegador esté abierta (ir a otra sección y volver no los borra)
 const FILTROS_GUARDADOS = "pas_casos_filtros";
 const ORDEN_INICIAL = { k: "mov", desc: true };
@@ -50,7 +49,7 @@ function Movimiento({ caso }) {
   );
 }
 
-// Búsqueda por asegurado, PAS, compañía, siniestro o patente (tabla y tablero)
+// Búsqueda por asegurado, PAS, compañía, siniestro o patente
 function coincide(c, texto) {
   const q = texto.trim().toLowerCase();
   if (!q) return true;
@@ -91,8 +90,6 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
   }, [busqueda, alcance, etapa, quien, faltan, orden]);
   const [abiertoId, setAbiertoId] = useState(null);
   const [ficha, setFicha] = useState(null); // { caso, pasId }
-  const [vista, setVista] = useState(leerVista); // tabla | tablero
-  const elegirVista = v => { setVista(v); try { localStorage.setItem(VISTA_GUARDADA, v); } catch { /* sin almacenamiento */ } };
 
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
@@ -151,7 +148,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
   const accionesCaso = { abrir: c => setFicha({ caso: c, pasId: c._pasId }), eliminar: handleDelete };
   const menuCaso = c => propsMenu(() => itemsCaso(c, {
     ...accionesCaso,
-    resumen: vista === "tabla" && { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
+    resumen: { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
     mover: { estados: ESTADOS_CASO, onMover: moverDesdeTabla },
   }));
 
@@ -196,17 +193,11 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Casos PAS</h1>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {vista === "tabla" && <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {base.n} {base.l}</span>}
+          <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {base.n} {base.l}</span>
           <button type="button" onClick={() => setPapelera(true)} title="Casos eliminados en los últimos 30 días"
             style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "inherit", fontSize: 13, padding: "5px 10px", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", background: "var(--card)", color: "var(--sub)", cursor: "pointer" }}>
             <Icono nombre="papelera" size={15} />Papelera
           </button>
-          <span role="group" aria-label="Vista" className="segmentado">
-            {[["tabla", "Tabla"], ["tablero", "Tablero"]].map(([k, l]) => (
-              <button key={k} type="button" aria-pressed={vista === k} onClick={() => elegirVista(k)}
->{l}</button>
-            ))}
-          </span>
         </span>
       </header>
 
@@ -224,16 +215,6 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
         )}
       </div>
 
-      {vista === "tablero" && (
-        <TableroCasos
-          casos={allCasos.filter(c => esActivo(c) && coincide(c, busqueda))}
-          todosLosPas={todosLosPas}
-          onAbrir={c => setFicha({ caso: c, pasId: c._pasId })}
-          acciones={accionesCaso}
-          onCasoLocal={c => casoEditado(c._pasId)(c)} />
-      )}
-
-      {vista === "tabla" && <>
       <div className="chips" style={{ alignItems: "center" }}>
         {chip("activos", "Activos", conteos.activos, !etapa && alcance === "activos", () => { setAlcance("activos"); setEtapa(""); })}
         {chip("todos", "Todos", conteos.todos, !etapa && alcance === "todos", () => { setAlcance("todos"); setEtapa(""); })}
@@ -261,6 +242,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
 
       {filtrados.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--sub)", fontSize: 14 }}>
+          <Ilustracion nombre="lupa" size={72} style={{ margin: "0 auto 8px" }} />
           Ningún caso coincide.{" "}
           <button type="button" onClick={() => { limpiarFiltros(); setBusqueda(""); }} style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer", fontSize: 14 }}>Ver todos</button>
         </div>
@@ -292,23 +274,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       {!esCelular && filtrados.length > 0 && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
-            <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
-            <thead>
-              <tr>
-                {COLUMNAS.map(col => {
-                  const activa = orden.k === col.k;
-                  return (
-                    <th key={col.k} scope="col" aria-sort={activa ? (orden.desc ? "descending" : "ascending") : "none"}
-                      style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)", textAlign: col.derecha ? "right" : "left" }}>
-                      <button type="button" onClick={() => ordenarPor(col.k)} title={col.ayuda} className="th-orden"
-                        style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", font: "inherit", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: activa ? "var(--text)" : "var(--muted)", textAlign: col.derecha ? "right" : "left" }}>
-                        {col.l}<span aria-hidden="true" className={activa ? undefined : "th-flecha"} style={{ marginLeft: 4 }}>{activa ? (orden.desc ? "↓" : "↑") : "↕"}</span>
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
+            <CabeceraOrdenable columnas={COLUMNAS} orden={orden} ordenarPor={ordenarPor} pista />
             <tbody>
               {filtrados.map(c => {
                 const abierto = abiertoId === c.id;
@@ -349,16 +315,10 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
         </div>
       )}
 
-      </>}
 
       {ficha && (
-        <CasoOverlay
-          caso={ficha.caso} pasId={ficha.pasId} pestanaInicial={ficha.pestana} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))}
-          onEliminarCaso={onEliminarCaso}
-          onClose={() => { setFicha(null); setAbiertoId(null); }}
-        />
+        <CasoOverlay ficha={ficha} setFicha={setFicha} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode}
+          onEliminarCaso={onEliminarCaso} onClose={() => { setFicha(null); setAbiertoId(null); }} />
       )}
       {uiMover}
       {papelera && <Papelera todosLosPas={todosLosPas} onRestaurar={onRestaurarCaso} onClose={() => setPapelera(false)} />}

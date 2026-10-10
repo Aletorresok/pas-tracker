@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PERIODOS, METRICAS, metrica, rangoPeriodo, nombrePeriodo, avanceObjetivo, formatoValor, guardarObjetivo, borrarObjetivo } from "../../utils/objetivos.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import BotoneraForm from "../ui/BotoneraForm.jsx";
 import Icono from "../ui/Icono.jsx";
 import AnilloObjetivo, { COLOR_NIVEL } from "./AnilloObjetivo.jsx";
 
@@ -95,7 +96,7 @@ export default function ObjetivosPanel({ objetivos, datos, onCambio, setToast })
 
       {form && (
         <div role="dialog" aria-modal="true" aria-label={form.id ? "Editar objetivo" : "Nuevo objetivo"} onClick={e => e.target === e.currentTarget && setForm(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}>
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}>
           <div style={{ ...tarjeta, width: "100%", maxWidth: 440, padding: 20, display: "flex", flexDirection: "column", gap: 12, boxShadow: "var(--shadow)" }}>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{form.id ? "Editar objetivo" : `Nuevo objetivo · ${nombrePeriodo(form.periodo, form.inicio)}`}</div>
             <label><span style={etiqueta}>Cómo se mide</span>
@@ -112,13 +113,7 @@ export default function ObjetivosPanel({ objetivos, datos, onCambio, setToast })
                 <input type="number" inputMode="decimal" min="0" value={form.meta} onChange={e => setForm(f => ({ ...f, meta: e.target.value }))} style={campo} />
               </label>
             )}
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", marginTop: 4 }}>
-              {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
-              <span style={{ display: "flex", gap: 8 }}>
-                <Boton variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
-                <Boton variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              </span>
-            </div>
+            <BotoneraForm onBorrar={form.id && borrar} onCancelar={() => setForm(null)} onGuardar={guardar} guardando={guardando} />
           </div>
         </div>
       )}

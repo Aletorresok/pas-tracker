@@ -1,5 +1,6 @@
 import { Component } from "react";
 import Boton from "./Boton.jsx";
+import Ilustracion from "./Ilustracion.jsx";
 
 // Archivo de una versión anterior que ya no está publicada (después de un deploy con la app abierta)
 const esArchivoViejo = e => /dynamically imported module|Importing a module script failed|error loading dynamically|MIME type|Unable to preload/i.test(String(e?.message || e));
@@ -43,6 +44,7 @@ export default class AtrapaErrores extends Component {
     const viejo = esArchivoViejo(error);
     return (
       <div role="alert" className="tarjeta" style={{ maxWidth: 520, margin: "48px auto", padding: 24, display: "flex", flexDirection: "column", gap: 12, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-2)", color: "var(--text)" }}>
+        <Ilustracion nombre="actualizar" size={64} style={{ marginLeft: -6 }} />
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{viejo ? "Hay una versión nueva de la app" : "Algo falló en esta pantalla"}</h2>
         <div style={{ fontSize: 14, color: "var(--sub)", lineHeight: 1.5 }}>
           {viejo ? "Recargá para traer la última versión. No se pierde nada de lo guardado." : "El resto de la app sigue funcionando. Probá de nuevo; si se repite, recargá."}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import TablaAnalisis, { card, Barrita, Nota } from "./TablaAnalisis.jsx";
+import TablaAnalisis, { Barrita, Nota, Kpis } from "./TablaAnalisis.jsx";
 import Icono from "../ui/Icono.jsx";
 import { statsPasAnalisis, pct } from "../../utils/analisis.js";
 import { fmtMoney } from "../../utils/formatters.js";
@@ -50,15 +50,7 @@ export default function AnalisisPas({ allCasos }) {
 
   return (
     <>
-      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-        {kpis.map(x => (
-          <div key={x.l} style={{ padding: "12px 16px" }}>
-            <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
-            <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2 }}>{x.v}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{x.s}</div>
-          </div>
-        ))}
-      </section>
+      <Kpis items={kpis} />
 
       <section>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>

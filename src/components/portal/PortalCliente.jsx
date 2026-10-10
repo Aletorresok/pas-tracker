@@ -11,7 +11,7 @@ import { alpha } from "../../utils/theme.js";
 import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
-import Logo from "../ui/Logo.jsx";
+import EncabezadoCliente from "./EncabezadoCliente.jsx";
 import { textoEtapaCliente, fechaPagoEstimada, queHacerCliente, referenciaPlazo } from "../../utils/vistaCliente.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
 import Ilustracion from "../ui/Ilustracion.jsx";
@@ -383,10 +383,13 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
       {cobras > 0 && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
           {cobras > 0 && (
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {caso.estado === "cobrado" && <Ilustracion nombre="cobro" size={64} />}
+              <div>
               <div style={{ fontSize: 13, color: "var(--sub)" }}>{caso.estado === "cobrado" ? "Cobraste" : "Vas a cobrar"}</div>
               <div className="num" style={{ fontSize: 22, fontWeight: 700, color: "var(--ok)" }}>{fmtMoney(cobras)}</div>
               {caso.estado === "cobrado" && caso.fecha_cobro && <div className="num" style={{ fontSize: 12, color: "var(--muted)" }}>el {fmtDate(caso.fecha_cobro)}</div>}
+              </div>
             </div>
           )}
         </section>
@@ -450,24 +453,12 @@ export default function PortalCliente() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", flexDirection: "column" }}>
-      <header style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <Logo alto={26} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}>ATG Lex Solutions</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Seguimiento de tu reclamo</div>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {casos && <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={salir}>Salir</Boton>}
-          <Boton variante="fantasma" tamaño="sm" icono={darkMode ? "sol" : "luna"} onClick={toggleDarkMode} aria-label={darkMode ? "Modo claro" : "Modo oscuro"} />
-        </div>
-      </header>
+      <EncabezadoCliente subtitulo="Seguimiento de tu reclamo" onSalir={casos && salir} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
       <main style={{ flex: 1, width: "100%", maxWidth: casos ? 1000 : 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
         {!casos ? (
           <>
-            <Ilustracion nombre="auto" size={96} style={{ margin: "0 0 4px -8px" }} />
+            <Ilustracion nombre="camino" size={96} style={{ margin: "0 0 4px -4px" }} />
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
 

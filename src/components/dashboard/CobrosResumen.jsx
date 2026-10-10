@@ -2,7 +2,7 @@ import { fmtMoney } from "../../utils/formatters.js";
 import { netoYo, textoFalta } from "../../utils/metricas.js";
 import TarjetaTarea from "../ui/TarjetaTarea.jsx";
 import { itemsCaso } from "../../utils/menus.js";
-import ListaOrdenable from "../ui/ListaOrdenable.jsx";
+import ListaTarjetas from "../ui/ListaTarjetas.jsx";
 
 
 // Versión compacta de "Cobros pendientes" para la pantalla Hoy. El detalle completo está en Análisis.
@@ -18,8 +18,8 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{cobros.length} · mi neto <b className="num" style={{ color: "var(--text)" }}>{fmtMoney(totalNeto)}</b></span>
       </div>
       <div className="lista-scroll" style={{ maxHeight: 340, overflowY: "auto", margin: "0 -10px", padding: "6px 10px 10px" }}>
-        <ListaOrdenable items={cobros} storageKey="cobros" render={(c, { dragging, dragProps }) => (
-          <TarjetaTarea dragging={dragging} dragProps={dragProps} vence={c.fechaEstimada} titulo={c.asegurado}
+        <ListaTarjetas items={cobros} render={c => (
+          <TarjetaTarea vence={c.fechaEstimada} titulo={c.asegurado}
             detalle={[c.compania_aseguradora || "Sin compañía", !(c.faltaIndemnizacion && c.faltaHonorarios) && textoFalta(c)].filter(Boolean).join(" · ")} onClick={() => onAbrir(c)}
             menu={() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ver cobros en Análisis", onClick: onVerTodos }] })}
             derecha={netoPendiente(c) ? fmtMoney(netoPendiente(c)) : "—"} />

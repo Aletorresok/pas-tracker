@@ -11,7 +11,6 @@ import {
 import { registrarAccion } from "../utils/storage.js";
 import { itemsExpediente } from "../utils/menus.js";
 import { propsMenu } from "./ui/MenuContextual.jsx";
-import TableroEtapas from "./ui/TableroEtapas.jsx";
 import Boton from "./ui/Boton.jsx";
 import Icono from "./ui/Icono.jsx";
 import ChipPendiente from "./expediente/ChipPendiente.jsx";
@@ -19,6 +18,7 @@ import FichaExpediente from "./expediente/FichaExpediente.jsx";
 import BandejaNovedades from "./expediente/BandejaNovedades.jsx";
 import { Toast } from "./casoDetalleComponents.jsx";
 import { hayNovedadesJudiciales, cargarNovedades } from "../utils/novedadesJudiciales.js";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 function PillEstado({ estado }) {
   const e = estadoExpediente(estado);
@@ -30,8 +30,6 @@ function PillEstado({ estado }) {
 }
 
 const COLUMNAS = ESTADOS_EXPEDIENTE.map(e => ({ key: e.k, label: e.l, cabecera: <PillEstado estado={e.k} /> }));
-const VISTA_GUARDADA = "expedientes_vista";
-const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
 
 const juzgadoDe = e => [e.fuero, e.juzgado && `Juzg. ${e.juzgado}`, e.numero && `Expte. ${e.numero}`].filter(Boolean).join(" · ");
 
@@ -45,14 +43,12 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("abiertos");
   const [ficha, setFicha] = useState(null); // { id } o { nuevo: true }
-  const [vista, setVista] = useState(leerVista); // tabla | tablero
   const [errorMover, setErrorMover] = useState("");
   const [novedades, setNovedades] = useState(null); // null = falta el SQL 37 (el chip no aparece)
   const [pegarAhora, setPegarAhora] = useState(0); // "Pegar novedad" de arriba: abre la bandeja ya con lo copiado
   useEffect(() => { if (pegarNovedad) { setFiltro("novedades"); setPegarAhora(n => n + 1); } }, [pegarNovedad]);
   const [toast, setToast] = useState(null);
   const cerrarToast = useCallback(() => setToast(null), []);
-  const elegirVista = v => { setVista(v); try { localStorage.setItem(VISTA_GUARDADA, v); } catch { /* sin storage */ } };
 
   useEffect(() => {
     Promise.all([cargarExpedientes(), cargarPlazosExpedientes()]).then(([exps, pls]) => {
@@ -106,7 +102,7 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
     setPlazos(ps => (p._borrado ? ps.filter(x => x.id !== p.id) : ps.some(x => x.id === p.id) ? ps.map(x => (x.id === p.id ? p : x)) : [...ps, p]));
   }, []);
 
-  // Cambio de estado desde el tablero o el menú: mismo registro en la bitácora que la ficha
+  // Cambio de estado desde el menú: mismo registro en la bitácora que la ficha
   const mover = async (e, estado) => {
     setErrorMover("");
     const anterior = e;
@@ -151,11 +147,6 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
           <div style={{ fontSize: 13, color: "var(--muted)" }}>Casos judiciales y generales, fuera de seguros</div>
         </div>
         <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <span role="group" aria-label="Vista" className="segmentado">
-            {[["tabla", "Tabla"], ["tablero", "Tablero"]].map(([k, l]) => (
-              <button key={k} type="button" aria-pressed={vista === k} onClick={() => elegirVista(k)}>{l}</button>
-            ))}
-          </span>
           <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
         </span>
       </header>
@@ -192,6 +183,7 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
 
       {expedientes && expedientes.length === 0 && !error && (
         <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" }}>
+          <Ilustracion nombre="carpeta" size={80} style={{ margin: "0 auto 8px" }} />
           <div style={{ fontWeight: 600, fontSize: 16 }}>Cargá tu primer expediente</div>
           <div style={{ color: "var(--sub)", fontSize: 14, margin: "6px 0 14px" }}>Los casos que no son de seguros, con sus plazos procesales y escritos.</div>
           <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>
@@ -205,18 +197,7 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
         </div>
       )}
 
-      {filtro !== "novedades" && lista.length > 0 && vista === "tablero" && (
-        <TableroEtapas columnas={COLUMNAS} items={lista} etapaDe={e => e.estado} onMover={mover} onAbrir={e => setFicha({ id: e.id })} menu={menuExp} anchoColumna={220}
-          render={e => (
-            <>
-              <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.caratula}</span>
-              <span style={{ fontSize: 12, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.cliente_nombre || juzgadoDe(e) || "—"}</span>
-              {proximo.get(e.id) ? <ChipPendiente pendiente={proximo.get(e.id)} cal={cal} jurisdiccion={e.jurisdiccion} /> : <span style={{ fontSize: 12, color: "var(--muted)" }}>Sin plazos</span>}
-            </>
-          )} />
-      )}
-
-      {filtro !== "novedades" && lista.length > 0 && vista === "tabla" && (
+      {filtro !== "novedades" && lista.length > 0 && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {!esCelular && (
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px 170px 120px", gap: 12, padding: "9px 14px", background: "var(--card2)", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--muted)" }}>
