@@ -45,7 +45,7 @@ function Ficha({ x, onEditar, onFavorito, onEliminar, onCerrar }) {
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{x.temas.map(t => <span key={t} style={{ fontSize: 12, background: "var(--card2)", borderRadius: "var(--r-pill)", padding: "3px 10px" }}>{t}</span>)}</div>
       )}
       {x.notas && <div style={{ fontSize: 13, background: "color-mix(in srgb, var(--accent) 8%, var(--card))", borderRadius: "var(--r-sm)", padding: "10px 12px", whiteSpace: "pre-line" }}><b>Notas:</b> {x.notas}</div>}
-      <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 12px", fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.5, color: "var(--sub)", wordBreak: "break-word" }}>{citaBiblioteca(x)}</div>
+      <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 12px", fontFamily: "var(--serif)", fontSize: 14, lineHeight: 1.55, color: "var(--text)", wordBreak: "break-word" }}>{citaBiblioteca(x)}</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Boton variante="primario" tamaño="sm" icono={copiado === "cita" ? "check" : "copiar"} onClick={() => copiarCon(citaBiblioteca(x), "cita")}>{copiado === "cita" ? "Copiada" : "Copiar cita"}</Boton>
         {x.sumario && <Boton tamaño="sm" icono={copiado === "sumario" ? "check" : "copiar"} onClick={() => copiarCon(x.sumario, "sumario")}>{copiado === "sumario" ? "Copiado" : x.tipo === "fallo" ? "Copiar sumario" : "Copiar resumen"}</Boton>}

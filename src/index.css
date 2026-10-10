@@ -31,6 +31,7 @@
   --spring: cubic-bezier(.2, .8, .2, 1); /* sin rebote */
   --font: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --serif: Georgia, "Times New Roman", serif; /* citas jurídicas (Biblioteca) */
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -115,6 +116,7 @@ input:focus, select:focus, textarea:focus {
 .fila-caso:hover td { background: var(--card2); }
 .app-main { margin-left: 256px; flex: 1; min-height: 100vh; min-width: 0; }
 .app-content { max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px; }
+.app-content.ancha { max-width: 1440px; } /* pestañas con tablas: aprovechan monitores de 1920 px */
 .sidebar { display: flex; }
 .bottom-nav { display: none; }
 .aviso-deshacer { bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }

@@ -24,14 +24,14 @@ export function Barrita({ valor, max, color = tono(70) }) {
   );
 }
 
-// Fila de indicadores: items = [{ l, v, s, alerta, colorS }]; columnas = cuántos por fila o una plantilla de grid
+// Fila de indicadores: items = [{ l, v, s, alerta, colorV, colorS }]; columnas = cuántos por fila o una plantilla de grid
 export function Kpis({ items, columnas = 4 }) {
   return (
     <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: typeof columnas === "number" ? `repeat(${columnas}, minmax(0, 1fr))` : columnas }}>
       {items.map(x => (
         <div key={x.l} style={{ padding: "12px 16px", minWidth: 0 }}>
           <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
-          <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2, color: x.alerta ? "var(--bad)" : undefined }}>{x.v}</div>
+          <div className="num" style={{ fontSize: "clamp(18px, 4.6vw, 22px)", fontWeight: 700, marginTop: 2, overflowWrap: "anywhere", color: x.colorV || (x.alerta ? "var(--bad)" : undefined) }}>{x.v}</div>
           {x.s && <div style={{ fontSize: 12, color: x.colorS || "var(--muted)" }}>{x.s}</div>}
         </div>
       ))}

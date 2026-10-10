@@ -15,12 +15,6 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
   const faltan = diasHasta(vence);
   const plazo = describirPlazo(vence);
 
-  const chip = (activo) => ({
-    padding: "5px 11px", borderRadius: "var(--r-xl)", fontSize: 12, fontWeight: 600, cursor: "pointer",
-    border: `1px solid ${activo ? "var(--text)" : Th.border}`,
-    background: activo ? "var(--text)" : Th.card,
-    color: activo ? "var(--bg)" : Th.sub,
-  });
 
   return (
     <div style={{
@@ -46,7 +40,7 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
         <span style={{ fontSize: 12, color: Th.sub, marginRight: 2 }}>Plazo:</span>
         {PLAZOS.map(p => (
           <button key={p.dias} type="button" onClick={() => onChange("proxima_accion_vence", fechaEnDias(p.dias))}
-            aria-pressed={faltan === p.dias} style={chip(faltan === p.dias)}>
+            aria-pressed={faltan === p.dias} className="chip" style={{ padding: "5px 11px", fontSize: 12 }}>
             {p.label}
           </button>
         ))}

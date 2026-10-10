@@ -22,6 +22,8 @@ import LoginGate from "./components/LoginGate.jsx";
 import SidebarNav from "./components/SidebarNav.jsx";
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
+// Pestañas con tablas o lista + detalle: usan el ancho mayor (.app-content.ancha)
+const PESTANAS_ANCHAS = new Set(["casos", "clientes", "analisis", "finanzas", "expedientes", "prospeccion", "companias", "biblioteca"])
 const TabAnalisis = lazy(() => import('./components/TabAnalisis.jsx'))
 const TabClientes = lazy(() => import('./components/TabClientes.jsx'))
 const TabProspeccion = lazy(() => import('./components/TabProspeccion.jsx'))
@@ -405,16 +407,13 @@ function AppPrincipal() {
         onContactar={(p, remoto) => { if (remoto) agregarPas(p); setModalPas(p); }} />
 
       {casoBuscado && (
-        <CasoOverlay caso={casoBuscado.caso} pasId={casoBuscado.pasId} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={handleCasoLocal} darkMode={darkMode}
-          onCambio={updated => setCasoBuscado(b => ({ ...b, caso: { ...updated, _pasId: b.pasId } }))}
-          onEliminarCaso={handleEliminarCaso}
-          onClose={() => setCasoBuscado(null)} />
+        <CasoOverlay ficha={casoBuscado} setFicha={setCasoBuscado} casos={casos} todosLosPas={todosLosPas}
+          onCasoLocal={handleCasoLocal} darkMode={darkMode} onEliminarCaso={handleEliminarCaso} />
       )}
 
       {/* CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO PARA EL SIDEBAR Y ANCHO MÁXIMO AMPLIADO */}
       <main className="app-main">
-        <div className="app-content">
+        <div className={PESTANAS_ANCHAS.has(mainTab) ? "app-content ancha" : "app-content"}>
           {!loading && totalContactos === 0 && !appLoading && (
             <label style={{ display: "flex", flexDirection: "column", alignItems: "center", border: `2px dashed ${T.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)", padding: "48px 20px", cursor: "pointer", gap: 10, marginBottom: 20, background: T.card, transition: "border-color .2s" }}>
                             <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Cargar listado_productores.xlsx</div>
