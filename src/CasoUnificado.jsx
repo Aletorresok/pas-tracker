@@ -465,7 +465,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentos</span>
               </div>
-              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)}
+                onLeer={archivos => { setPestana("datos"); setTimeout(() => window.dispatchEvent(new CustomEvent("atg:leer-pdfs", { detail: { archivos } })), 60); }} />
               <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
               <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
             </div>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Boton from "../ui/Boton.jsx";
 import { alpha } from "../../utils/theme.js";
 import { COLUMNAS_SQL44 } from "../../utils/datosSiniestro.js";
@@ -24,6 +24,15 @@ export default function LeerDocumentos({ formData, onChange, Th, sql44 }) {
     setPropuestas(todas);
     setLeyendo(false);
   };
+
+  // "Guardar todo y leer la denuncia" (Documentos) manda los PDF acá
+  const leerRef = useRef(null);
+  leerRef.current = leer;
+  useEffect(() => {
+    const alRecibir = e => leerRef.current?.(e.detail?.archivos || []);
+    window.addEventListener("atg:leer-pdfs", alRecibir);
+    return () => window.removeEventListener("atg:leer-pdfs", alRecibir);
+  }, []);
 
   const completar = () => {
     const elegidas = propuestas.filter(p => p.marcado);
