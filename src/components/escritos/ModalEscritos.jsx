@@ -162,7 +162,7 @@ export default function ModalEscritos({ caso = null, expediente = null, dirHandl
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 455 }} onClick={onClose} />
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 455 }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label="Generar escrito"
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 456, width: "100%", maxWidth: 1080, maxHeight: "94vh", overflow: "auto", padding: 12, boxSizing: "border-box" }}>
         <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)" }}>

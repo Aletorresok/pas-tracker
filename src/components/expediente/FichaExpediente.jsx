@@ -173,7 +173,7 @@ export default function FichaExpediente({ expediente, plazos, cal, onGuardado, o
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 400 }} onClick={cerrar} />
       <div className="modal-panel" role="dialog" aria-modal="true" aria-label={esNuevo ? "Nuevo expediente" : `Expediente ${datos.caratula}`}
         style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
         <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>

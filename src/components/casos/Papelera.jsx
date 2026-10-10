@@ -32,7 +32,7 @@ export default function Papelera({ todosLosPas, onRestaurar, onClose }) {
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div role="dialog" aria-modal="true" aria-label="Papelera" onClick={e => e.stopPropagation()}
         style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", width: "100%", maxWidth: 620, maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>

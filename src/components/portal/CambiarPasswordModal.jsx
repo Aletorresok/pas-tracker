@@ -23,7 +23,7 @@ export default function CambiarPasswordModal({ onClose, dark, recuperacion = fal
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-lg)", padding: "28px 24px", width: "100%", maxWidth: 360, boxShadow: "var(--shadow)" }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: T.text, marginBottom: recuperacion ? 6 : 20 }}>{recuperacion ? "Elegí una contraseña nueva" : "Cambiar contraseña"}</div>
         {recuperacion && <div style={{ fontSize: 13, color: T.sub, marginBottom: 16, lineHeight: 1.45 }}>Entraste con el link del mail. Elegí la contraseña que vas a usar de ahora en más.</div>}

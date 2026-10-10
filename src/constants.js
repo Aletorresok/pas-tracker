@@ -1,20 +1,20 @@
 // ── ESTADOS DE CASO ───────────────────────────────────────────────────────────────
 // Fuente única para la app, el portal PAS y la vista del cliente.
 // Colores en orden de avance: fríos (arranque) → cálidos (negociación) → verde (cobrado).
-// Tonos medios elegidos para leerse bien en modo claro y oscuro.
+// Son tokens (--e-<estado> en index.css, con variante clara y oscura). En el código se usan con var() o alpha(); no se concatenan con hex.
 export const ESTADOS_CASO = [
-  { key: "doc_pendiente",    label: "Doc. pendiente",    color: "#8E82BF", emoji: "", etapa: 1 },
-  { key: "iniciado",         label: "Iniciado",          color: "#7A879C", emoji: "", etapa: 2 },
-  { key: "reclamado",        label: "Reclamado",         color: "#4F84B8", emoji: "", etapa: 3 },
-  { key: "con_ofrecimiento", label: "Con ofrecimiento",  color: "#C77B3A", emoji: "", etapa: 4 },
-  { key: "en_mediacion",     label: "En mediación",      color: "#B8952A", emoji: "", etapa: 5 },
-  { key: "en_juicio",        label: "En juicio",         color: "#B9503F", emoji: "", etapa: 5 },
-  { key: "esperando_pago",   label: "Esperando pago",    color: "#3A8E94", emoji: "", etapa: 6 },
-  { key: "cobrado",          label: "Cobrado",           color: "#3A9163", emoji: "", etapa: 7 },
-  { key: "desistido",        label: "Desistido",         color: "#8F8E89", emoji: "", etapa: 0 },
+  { key: "doc_pendiente",    label: "Doc. pendiente",    color: "var(--e-doc_pendiente)", emoji: "", etapa: 1 },
+  { key: "iniciado",         label: "Iniciado",          color: "var(--e-iniciado)", emoji: "", etapa: 2 },
+  { key: "reclamado",        label: "Reclamado",         color: "var(--e-reclamado)", emoji: "", etapa: 3 },
+  { key: "con_ofrecimiento", label: "Con ofrecimiento",  color: "var(--e-con_ofrecimiento)", emoji: "", etapa: 4 },
+  { key: "en_mediacion",     label: "En mediación",      color: "var(--e-en_mediacion)", emoji: "", etapa: 5 },
+  { key: "en_juicio",        label: "En juicio",         color: "var(--e-en_juicio)", emoji: "", etapa: 5 },
+  { key: "esperando_pago",   label: "Esperando pago",    color: "var(--e-esperando_pago)", emoji: "", etapa: 6 },
+  { key: "cobrado",          label: "Cobrado",           color: "var(--e-cobrado)", emoji: "", etapa: 7 },
+  { key: "desistido",        label: "Desistido",         color: "var(--e-desistido)", emoji: "", etapa: 0 },
 ];
 
-export const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { key, label: key || "—", color: "#7A879C", emoji: "", etapa: 0 };
+export const estadoInfo = key => ESTADOS_CASO.find(e => e.key === key) || { key, label: key || "—", color: "var(--muted)", emoji: "", etapa: 0 };
 
 // ── TIPOS DE DOCUMENTOS ───────────────────────────────────────────────────────────
 // Checklist de la ficha y categorías de la carpeta local (DNI_1.jpg, FOTOS_2.jpg…). El orden es el que se muestra.

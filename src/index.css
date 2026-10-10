@@ -17,6 +17,9 @@
   --bad: #A63C2E;
   --info: #3B6E9E;
   --shadow: 0 1px 2px #1a1d2410;
+  /* Colores de las etapas del caso (siempre se muestran con el nombre al lado) */
+  --e-doc_pendiente: #6F62A8; --e-iniciado: #5E6C84; --e-reclamado: #3A6FA3; --e-con_ofrecimiento: #A85F22; --e-en_mediacion: #8E6E0F;
+  --e-en_juicio: #A04435; --e-esperando_pago: #2A7A80; --e-cobrado: #2B7F52; --e-desistido: #77766F;
   /* Filosofía visual: redondo, con aire, que responde al tacto.
      Radios (r-xs chips y barras, r-sm controles, r-md tarjetas, r-lg paneles, r-xl contenedores)
      y elevación en 3 pasos: reposo, hover, levantado. Todo el color sale de --text, así que sirve en claro y oscuro. */
@@ -47,6 +50,8 @@
   --bad: #D0685A;
   --info: #6E9FCC;
   --shadow: 0 1px 2px #0006;
+  --e-doc_pendiente: #A396D6; --e-iniciado: #93A1B8; --e-reclamado: #7DAAD6; --e-con_ofrecimiento: #E0954F; --e-en_mediacion: #D4AF37;
+  --e-en_juicio: #D9786A; --e-esperando_pago: #5FB8BE; --e-cobrado: #55B081; --e-desistido: #A3A29B;
   color-scheme: dark;
 }
 :root[data-accent="marino"] { --accent: #2D4A7A; --accent-ink: #24406B; --on-accent: #FFFFFF; }

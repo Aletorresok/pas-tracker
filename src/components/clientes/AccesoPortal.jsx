@@ -85,7 +85,7 @@ function ModalAcceso({ pas, onClose, onCreado }) {
   const campo = { width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontFamily: "inherit" };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.78)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", width: "100%", maxWidth: 420, padding: "28px 24px", boxShadow: "0 20px 60px #0004" }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>Dar acceso al portal</div>
         <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20 }}>{pas.nombre}</div>
