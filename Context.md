@@ -146,6 +146,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-10 — Rediseño, tanda B: Hoy ordenado por urgencia
+*   Arriba de Hoy, cuatro números (`dashboard/ResumenHoy.jsx`): **Atrasadas** y **Para hoy** filtran la lista de Para hacer (tocar de nuevo o "Ver todo" saca el filtro); **Nuevos** (casos del portal sin abrir) y **Por cobrar** (mi neto pendiente) llevan al bloque correspondiente. "Para hacer" muestra los casos en dos grupos con título, **Atrasadas** y **Hoy** (`.grupo-h`), y plegado abajo lo de próximos días y sin plazo, igual que antes. Las acciones (Hecho, Posponer) ya estaban visibles en cada tarjeta. No cambia ninguna lógica de guardado.
+
 ### 2026-10-10 — Rediseño, tanda A: tokens v2 (claridad antes que efectos)
 *   Solo CSS global (`src/index.css`), sin tocar la lógica. **Contraste:** `--muted` #7D8392 → #646B7D (≈4,9:1 sobre el fondo; en oscuro #8A91A1) y `--accent` dorado #A6821F → #8F6F14 (texto blanco sobre botones ≈4,7:1; antes ≈3,6:1). **Radios:** 6 · 10 · 14 · 18 · 20 px (antes 8 · 12 · 18 · 24 · 28). **Superficies lisas:** sin vidrio ni `backdrop-filter` en paneles, menú lateral, barra inferior y menú contextual; sin degradados de fondo. **Elevación:** reposo = borde de 1 px (`--sh-1` apenas una línea), `--sh-2` solo al pasar el mouse, `--sh-3` para menús y ventanas. **Movimiento:** 140 ms con `--ease`; `--spring` ya no rebota; las tarjetas, chips y el menú lateral no se desplazan al hover (solo cambian de fondo o borde). **Nada escondido:** el botón de acción de las tarjetas de Hoy y el monto se ven siempre; las acciones de fila (`.solo-hover`) quedan visibles al 60 %.
 

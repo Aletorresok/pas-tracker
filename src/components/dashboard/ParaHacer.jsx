@@ -29,15 +29,18 @@ const ALTO_LISTA = 470;
 const leer = () => { try { return localStorage.getItem("paraHacer:proximos") === "1"; } catch { return false; } };
 const guardar = v => { try { localStorage.setItem("paraHacer:proximos", v ? "1" : "0"); } catch { /* sin storage */ } };
 
-// Para hacer: arriba lo vencido y lo de hoy; abajo, plegado, lo de los próximos días y lo que no tiene plazo.
+// Para hacer: Atrasadas y Hoy a la vista, cada una con su título; abajo, plegado, lo de los próximos días y lo que no tiene plazo.
+// foco ("atras" | "hoy") deja solo ese grupo (lo eligen los números de arriba de Hoy).
 // Tocar abre el caso o el expediente; las acciones rápidas (Hecho, Posponer) están en cada tarjeta.
-export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, onReiterar }) {
+export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [verProximos, setVerProximos] = useState(leer);
   const hoy = fechaLocalISO();
   const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
   const deHoy = grupos.filter(g => g.vence && g.vence <= hoy);
   const proximos = grupos.filter(g => !g.vence || g.vence > hoy);
-  const vencidos = deHoy.filter(g => g.vence < hoy).length;
+  const atrasadas = deHoy.filter(g => g.vence < hoy);
+  const paraHoy = deHoy.filter(g => g.vence === hoy);
+  const vencidos = atrasadas.length;
 
   const abrir = g => onAbrir(g.tareas[0]);
   const tarjeta = g => {
@@ -66,12 +69,20 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
         </div>
       )}
       {deHoy.length > 0 && (
-        <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "0 -10px", padding: "6px 10px 10px" }}>
-          <ListaTarjetas items={deHoy} render={tarjeta} />
+        <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "0 -10px", padding: "0 10px 10px" }}>
+          {[["Atrasadas", atrasadas, "var(--bad)", "atras"], ["Hoy", paraHoy, "var(--warn)", "hoy"]]
+            .filter(([, lista, , k]) => lista.length && (!foco || foco === k))
+            .map(([titulo, lista, color]) => (
+              <div key={titulo}>
+                <div className="grupo-h"><span style={{ color }}>{titulo}</span><span className="num">{lista.length}</span></div>
+                <ListaTarjetas items={lista} render={tarjeta} />
+              </div>
+            ))}
+          {foco && onQuitarFoco && <button type="button" className="link-sutil" onClick={onQuitarFoco}>Ver todo</button>}
         </div>
       )}
 
-      {proximos.length > 0 && (
+      {!foco && proximos.length > 0 && (
         <div style={{ marginTop: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
           <button type="button" onClick={() => { setVerProximos(v => { guardar(!v); return !v; }); }} aria-expanded={verProximos}
             style={{ background: "none", border: "none", padding: "4px", font: "inherit", fontSize: 14, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
