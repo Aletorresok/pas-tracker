@@ -127,6 +127,10 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   useEffect(() => { formDataRef.current = formData; }, [formData]);
   const autoSaveTimerRef = useRef(null);
   const guardarCasoRef = useRef(null);
+  // Al desmontarse (por ejemplo, al tocar otro caso con la ficha abierta) guarda lo que quedó sin guardar
+  useEffect(() => () => {
+    if (JSON.stringify(formDataRef.current) !== guardadoRef.current) guardarCasoRef.current?.();
+  }, []);
 
   useEffect(() => {
     const current = JSON.stringify(formData);

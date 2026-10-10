@@ -146,6 +146,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-10 — Arreglo: con la ficha lateral abierta, tocar otro caso lo muestra
+*   La ficha (`CasoUnificado`) toma el caso solo al abrirse; con el panel lateral la lista sigue a la vista y tocar otra tarjeta no cambiaba el caso. `CasoOverlay` le pone `key={caso.id}`: al cambiar de caso, la ficha se arma de nuevo.
+*   Lo que quedó sin guardar del caso anterior (antes de los 2,5 s del autoguardado) se guarda al cambiar (`CasoUnificado`, efecto al desmontarse que compara con `guardadoRef`).
+*   Ese guardado tardío no vuelve a poner el caso anterior en el panel: el `onCambio` por defecto de `CasoOverlay` solo actualiza si el caso abierto es el mismo.
+
 ### 2026-10-10 — Ajustes visuales: ancho en monitores grandes, "Vencido" lleno, chips de plazo, Finanzas, cita en serif y portada de /reclamo
 *   **Ancho**: las pestañas con tablas o lista + detalle (Casos, Clientes, Análisis, Finanzas, Expedientes, Contactos, Compañías, Biblioteca) usan hasta 1440 px (`.app-content.ancha`, lista `PESTANAS_ANCHAS` en `App.jsx`); Hoy, Herramientas y Ajustes siguen en 1200. Pensado para el monitor del usuario (24", 1920×1080).
 *   **"Vencido hace N d"** (`ui/PlazoChip.jsx`): fondo lleno en `--bad` con texto en `--bg` (5,9:1 claro, 5,1:1 oscuro) para distinguirse de "Vence hoy / pronto", que siguen con fondo suave.

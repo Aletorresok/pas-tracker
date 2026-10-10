@@ -8,7 +8,7 @@ import { marcarRevisado } from "../../utils/storage.js";
 // Con onEliminarCaso (App.handleEliminarCaso: manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
 // Con `ficha` ({ caso, pasId, pestana }) y `setFicha`, el estado de quien la abre se actualiza solo.
 export default function CasoOverlay({ ficha, setFicha, caso = ficha?.caso, pasId = ficha?.pasId, pestanaInicial = ficha?.pestana,
-  onCambio = setFicha && (updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))), onClose = () => setFicha(null),
+  onCambio = setFicha && (updated => setFicha(f => (f?.caso?.id === updated.id ? { ...f, caso: { ...updated, _pasId: f.pasId } } : f))), onClose = () => setFicha(null),
   casos, todosLosPas, onCasoLocal, onEliminarCaso, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 
@@ -31,7 +31,7 @@ export default function CasoOverlay({ ficha, setFicha, caso = ficha?.caso, pasId
 
   return (
     <>
-      <CasoDetalle
+      <CasoDetalle key={caso.id || "nuevo"}
         pestanaInicial={pestanaInicial} caso={caso} pasId={pasId} pasNombre={pasNombre} pasTelefono={(pas?.telefonos || [])[0] || ""} darkMode={darkMode}
         companias={companias} onAgregarCompania={agregarCompania}
         onUpdate={updated => {
