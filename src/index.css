@@ -344,3 +344,38 @@ input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled),
 .grupo-h { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px 8px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .link-sutil { background: none; border: none; padding: 8px 4px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent-ink); cursor: pointer; }
 @media (max-width: 900px) { .resumen-hoy { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ── MENÚ EN GRUPOS Y FICHA AL COSTADO ───────────────────────────────────── */
+.nav-grupo { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 12px 10px 4px; }
+.nav-grupo:first-child { padding-top: 0; }
+
+/* La ficha del caso es un panel al costado; la pantalla de atrás sigue a la vista y se puede usar */
+html { --ficha-w: 520px; }
+html[data-ficha="amplia"] { --ficha-w: 760px; }
+.ficha-lateral {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 401; width: min(var(--ficha-w), 100%);
+  overflow: auto; background: var(--bg); border-left: 1px solid var(--border2); box-shadow: var(--sh-3);
+  container-type: inline-size; container-name: ficha; animation: fichaIn .18s var(--ease);
+}
+@keyframes fichaIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.ficha-lateral .modal-sticky { border-radius: 0 !important; }
+@media (prefers-reduced-motion: reduce) { .ficha-lateral { animation: none; } }
+/* Con la ficha abierta en pantalla ancha: la lista se corre y el menú se achica a íconos */
+@media (min-width: 1201px) {
+  html[data-ficha] .app-main { margin-right: var(--ficha-w); }
+  html[data-ficha] .app-content { padding-left: 20px; padding-right: 20px; }
+  html[data-ficha] .app-main { margin-left: 92px; }
+  html[data-ficha] .sidebar { width: 68px !important; padding-left: 8px !important; padding-right: 8px !important; }
+  html[data-ficha] .sidebar .nav-lbl, html[data-ficha] .sidebar .nav-grupo { display: none; }
+  html[data-ficha] .sidebar .nav-item { justify-content: center; padding-left: 0 !important; padding-right: 0 !important; }
+}
+/* Dentro del panel, las grillas se acomodan por el ancho del panel (no por el de la ventana) */
+@container ficha (max-width: 700px) {
+  .resumen-caso[style] { grid-template-columns: minmax(0, 1fr) !important; }
+  .grilla-siniestro[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grilla-siniestro > [style] { grid-column: 1 / -1 !important; }
+  .grilla-siniestro > [data-corto][style] { grid-column: span 1 !important; }
+  [style*="grid-template-columns: 140px 1fr"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  [style*="grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)"] { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 900px) { .ficha-lateral { width: 100%; border-left: none; } }

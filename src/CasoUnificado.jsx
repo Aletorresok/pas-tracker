@@ -87,6 +87,13 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
   const [modalEscrito, setModalEscrito] = useState(false);
   const [exportandoPDF, setExportandoPDF] = useState(false);
   const [pestana, setPestana] = useState(pestanaInicial || "resumen");
+  const [ampliada, setAmpliada] = useState(() => { try { return localStorage.getItem("ficha_ancho") === "amplia"; } catch { return false; } });
+  const alternarAncho = () => setAmpliada(v => { try { localStorage.setItem("ficha_ancho", v ? "normal" : "amplia"); } catch { /* sin storage */ } return !v; });
+  // La ficha es un panel al costado: la pantalla de atrás se corre (CSS, html[data-ficha]) y la lista sigue a la vista
+  useEffect(() => {
+    document.documentElement.dataset.ficha = ampliada ? "amplia" : "normal";
+    return () => { delete document.documentElement.dataset.ficha; };
+  }, [ampliada]);
   const [estadoGuardado, setEstadoGuardado] = useState("guardado"); // guardado | pendiente | guardando | error
   const [deshacer, setDeshacer] = useState(null); // { anterior, nuevo }
   const [editarAccionId, setEditarAccionId] = useState(null); // movimiento tocado en Resumen: se edita en Bitácora
@@ -321,8 +328,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     const tecla = e => {
       if (e.key !== "Escape" || e.defaultPrevented || hayVentanaRef.current) return;
       if (document.querySelector(".menu-ctx")) return;
-      const dialogos = document.querySelectorAll('[aria-modal="true"]');
-      if (dialogos[dialogos.length - 1] !== dialogoRef.current) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
       const t = e.target;
       if (t instanceof HTMLElement && (t.matches("input, textarea, select") || t.isContentEditable)) { t.blur(); return; }
       cerrarRef.current();
@@ -357,13 +363,11 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
-      <div ref={dialogoRef} className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
-        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
+      <div ref={dialogoRef} className="ficha-lateral" role="dialog" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}>
+        <div style={{ background: Th.bg, minHeight: "100%" }}>
 
           {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
-          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "var(--r-lg) var(--r-lg) 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
+          <div className="modal-sticky" style={{ position: "sticky", top: 0, background: Th.card, borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
             <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
               <Icono nombre="cerrar" size={16} />
             </button>
@@ -383,6 +387,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                     ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
                     : TEXTO_GUARDADO[estadoGuardado]}
                 </span>
+                <Boton tamaño="sm" variante="fantasma" onClick={alternarAncho} aria-pressed={ampliada} title="Cambiar el ancho de la ficha">{ampliada ? "Achicar" : "Ampliar"}</Boton>
                 {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
                 <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
                 <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({

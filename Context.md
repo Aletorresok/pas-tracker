@@ -146,6 +146,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-10 — Rediseño, tanda C: la ficha del caso es un panel al costado
+*   `CasoUnificado.jsx` ya no es una ventana centrada con telón: es un panel a la derecha (`.ficha-lateral`, 520 px; botón **Ampliar/Achicar** lo lleva a 760 px y se recuerda en `localStorage.ficha_ancho`). Sin telón ni blur: la lista de atrás sigue a la vista y se puede usar. En pantallas de 1200 px o más, `html[data-ficha]` corre el contenido (`.app-main`) y achica el menú lateral a íconos; en pantallas menores el panel se superpone, y en celular ocupa todo el ancho. Escape la cierra (si no hay otra ventana modal encima). Las grillas internas se acomodan por el ancho del panel con `@container ficha`. `CasoOverlay` ya no pone un fondo que tapa la pantalla.
+*   Menú lateral en tres grupos (Trabajo · Gente · Estudio); el menú del celular no cambia.
+
 ### 2026-10-10 — Rediseño, tanda B: Hoy ordenado por urgencia
 *   Arriba de Hoy, cuatro números (`dashboard/ResumenHoy.jsx`): **Atrasadas** y **Para hoy** filtran la lista de Para hacer (tocar de nuevo o "Ver todo" saca el filtro); **Nuevos** (casos del portal sin abrir) y **Por cobrar** (mi neto pendiente) llevan al bloque correspondiente. "Para hacer" muestra los casos en dos grupos con título, **Atrasadas** y **Hoy** (`.grupo-h`), y plegado abajo lo de próximos días y sin plazo, igual que antes. Las acciones (Hecho, Posponer) ya estaban visibles en cada tarjeta. No cambia ninguna lógica de guardado.
 

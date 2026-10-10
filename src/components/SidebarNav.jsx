@@ -18,6 +18,13 @@ const TABS = [
   { k: "herramientas", l: "Herramientas", icon: "herramientas" },
 ];
 
+// Menú de escritorio en tres grupos: lo del día a día, las personas y lo del estudio
+const GRUPOS = [
+  { t: "Trabajo", ks: ["dashboard", "casos", "expedientes"] },
+  { t: "Gente", ks: ["prospeccion", "clientes", "companias"] },
+  { t: "Estudio", ks: ["finanzas", "biblioteca", "herramientas"] },
+];
+
 // Pestaña activa (Números también está activa en Análisis)
 const esActiva = (t, mainTab) => mainTab === t.k || (t.tambien || []).includes(mainTab);
 
@@ -111,25 +118,29 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24, paddingLeft: 8 }}>
             <Logo alto={24} />
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>ATG Lex</div>
-              {pasCount > 0 && <div style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
+              <div className="nav-lbl" style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>ATG Lex</div>
+              {pasCount > 0 && <div className="nav-lbl" style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
             </div>
           </div>
 
           <button type="button" onClick={onBuscar}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 12, borderRadius: "var(--r-sm)", border: `1px solid ${T.border}`, background: T.bg, color: T.muted, fontSize: 14, cursor: "pointer", textAlign: "left", font: "inherit" }}>
-            <Icono nombre="buscar" size={16} /><span style={{ flex: 1 }}>Buscar</span>
-            <span style={{ fontSize: 11, border: `1px solid ${T.border2 || T.border}`, borderRadius: "var(--r-xs)", padding: "0 5px" }}>Ctrl K</span>
+            <Icono nombre="buscar" size={16} /><span className="nav-lbl" style={{ flex: 1 }}>Buscar</span>
+            <span className="nav-lbl" style={{ fontSize: 11, border: `1px solid ${T.border2 || T.border}`, borderRadius: "var(--r-xs)", padding: "0 5px" }}>Ctrl K</span>
           </button>
 
           <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {TABS.map(t => {
+            {GRUPOS.map(g => (
+              <div key={g.t} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <div className="nav-grupo">{g.t}</div>
+            {g.ks.map(k => TABS.find(t => t.k === k)).map(t => {
               const active = esActiva(t, mainTab);
               return (
                 <button
                   key={t.k}
                   type="button"
                   className="nav-item"
+                  title={t.l}
                   onClick={() => setMainTab(t.k)}
                   aria-current={active ? "page" : undefined}
                   style={{
@@ -139,18 +150,20 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
                     cursor: "pointer", textAlign: "left",
                   }}
                 >
-                  <span style={{ color: active ? T.accent : "inherit", display: "flex" }}><Icono nombre={t.icon} /></span>
-                  {t.l}
+                  <span style={{ color: active ? T.accentInk : "inherit", display: "flex" }}><Icono nombre={t.icon} /></span>
+                  <span className="nav-lbl">{t.l}</span>
                 </button>
               );
             })}
+              </div>
+            ))}
           </nav>
         </div>
 
         <div style={{ position: "relative", borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
-          <button type="button" className="nav-item" onClick={() => setMainTab("ajustes")} aria-current={mainTab === "ajustes" ? "page" : undefined}
+          <button type="button" className="nav-item" title="Ajustes" onClick={() => setMainTab("ajustes")} aria-current={mainTab === "ajustes" ? "page" : undefined}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: mainTab === "ajustes" ? T.card2 : "transparent", border: "none", borderRadius: "var(--r-sm)", color: mainTab === "ajustes" ? T.text : T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: mainTab === "ajustes" ? 600 : 500 }}>
-            <span style={{ color: mainTab === "ajustes" ? T.accent : "inherit", display: "flex" }}><Icono nombre="rutina" /></span> Ajustes
+            <span style={{ color: mainTab === "ajustes" ? T.accent : "inherit", display: "flex" }}><Icono nombre="rutina" /></span> <span className="nav-lbl">Ajustes</span>
           </button>
           <button
             type="button"
@@ -158,7 +171,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
             aria-expanded={showMenu}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", borderRadius: "var(--r-sm)", color: T.sub, padding: "9px 10px", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
           >
-            <Icono nombre="paleta" /> Apariencia y backup
+            <Icono nombre="paleta" /> <span className="nav-lbl">Apariencia y backup</span>
           </button>
           {showMenu && (
             <>
