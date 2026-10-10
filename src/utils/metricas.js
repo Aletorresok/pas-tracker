@@ -261,7 +261,7 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
   return tareas.sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31"));
 }
 
-// Etapas agrupadas para el tablero (orden de avance). Desistidos van aparte.
+// Etapas agrupadas en tramos (orden de avance), para Análisis. Desistidos van aparte.
 export const TRAMOS = [
   { key: "arranque", label: "Arranque", estados: ["doc_pendiente", "iniciado"] },
   { key: "reclamado", label: "Reclamado", estados: ["reclamado"] },

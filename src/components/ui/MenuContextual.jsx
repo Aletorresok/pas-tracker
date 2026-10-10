@@ -8,13 +8,10 @@ import { createPortal } from "react-dom";
 // Los menús de cada entidad (caso, expediente, PAS...) están en utils/menus.js para que sean iguales en todas las pantallas.
 
 let estado = null;
-let arrastrando = false;
 const oyentes = new Set();
 const emitir = () => oyentes.forEach(f => f());
 const suscribir = f => { oyentes.add(f); return () => oyentes.delete(f); };
 
-// Mientras se arrastra una tarjeta no se abre el menú (en el celular el mismo gesto dispara los dos)
-export const marcarArrastre = v => { arrastrando = v; if (v && estado) cerrarMenu(); };
 export const cerrarMenu = () => { estado = null; emitir(); };
 
 // Limpia separadores al principio, al final y repetidos
@@ -23,7 +20,6 @@ const limpiar = items => items.filter(Boolean).filter((it, i, xs) => !it.separad
 export function abrirMenu(e, items) {
   e.preventDefault();
   e.stopPropagation();
-  if (arrastrando) return;
   const lista = limpiar(items);
   if (!lista.length) return;
   let { clientX: x, clientY: y } = e;

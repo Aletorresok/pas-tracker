@@ -1,5 +1,5 @@
 // Menús de acciones (click derecho) de cada entidad. Una sola definición por entidad:
-// un caso muestra las mismas opciones en Hoy, Casos, Clientes y el Tablero.
+// un caso muestra las mismas opciones en Hoy, Casos y Clientes.
 // Cada pantalla pasa solo las acciones que puede resolver; las que faltan no aparecen.
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar } from "./mensajes.js";
 import { primerNombre } from "./formatters.js";
@@ -14,7 +14,7 @@ const abrirLink = url => url && window.open(url, "_blank", "noopener");
 const whatsapp = (tel, nombre, label = "WhatsApp") =>
   tel && linkWhatsApp(tel, "") && { label, onClick: () => abrirLink(linkWhatsApp(tel, `Hola ${primerNombre(nombre)}, `)) };
 
-// "Mover a": alternativa al arrastre en los tableros (sirve con teclado y en el celular)
+// "Mover a": cambiar de etapa desde cualquier lista (sirve con teclado y en el celular)
 const moverA = (actual, estados, mover) => mover ? [
   { separador: true }, { titulo: "Mover a" },
   ...estados.filter(e => e.key !== actual).map(e => ({ label: e.label, onClick: () => mover(e.key) })),

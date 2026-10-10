@@ -6,7 +6,7 @@
 *   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
 *   **Backend:** Supabase (PostgreSQL con RLS en todas las tablas, Auth, Realtime, Storage). Credenciales por variables de entorno `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
-*   **Librerías:** framer-motion + @dnd-kit (animaciones y drag-and-drop en Hoy), jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
+*   **Librerías:** framer-motion (animaciones), jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
 *   **Tres "apps" en el mismo sitio:** app del estudio (`/`), portal de productores (`/portal`) y vista del cliente (`/?vista=cliente`).
 *   **App instalable (PWA):** cada una se instala por separado en PC y Android (Chrome/Edge) con su manifiesto (`public/manifest*.webmanifest`, elegido en `index.html` según la ruta). `public/sw.js` no guarda la app en caché (siempre la última versión); solo muestra `public/offline.html` sin conexión. Íconos en `public/icons/`: monograma ATG dorado sobre azul noche (`icono.svg` es la fuente; los PNG se generan desde ahí).
 
@@ -145,6 +145,9 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-10 — Rediseño, paso 1: se saca el tablero y el arrastre
+*   Decisión del usuario: el **tablero** (Casos y Expedientes) y **arrastrar** (reordenar listas de Hoy) no se usaban. Se eliminaron `casos/TableroCasos.jsx`, `ui/TableroEtapas.jsx`, `ui/ListaOrdenable.jsx` (reemplazado por `ui/ListaTarjetas.jsx`, lista simple en el orden de vencimiento), el selector Tabla/Tablero de Casos y Expedientes, el asa de las tarjetas, el botón "Restablecer orden" y las dependencias `@dnd-kit/*`. Cambiar de etapa sigue con la ficha, la etiqueta de estado y "Mover a" (`casos/useMoverCaso.jsx`). `localStorage.pas_casos_vista` / `expedientes_vista` / `orden:*` quedan sin uso. Las entradas anteriores de este registro que hablan de tableros y arrastre son historia.
 
 ### 2026-10-08 — Demo del portal con las estadísticas reales del estudio (SQL 48)
 *   **SQL 48** (`sql/2026-10-08_48_plazos_publicos_porcentajes.sql`): `plazos_publicos()` suma `pct_cobrado`, `pct_ofrecido_adm` y `pct_ofrecido_med` (medianas sobre la base del reclamo: concurrencia = parte del tercero, franquicias afuera, más de 150% = error de carga). Cada dato solo con 3 casos o más.

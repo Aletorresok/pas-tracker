@@ -8,7 +8,7 @@ const NIVEL = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)"
 const AVISOS = new Set(["quieto", "pedir_respuesta", "firma", "cobro"]);
 const PLAZOS = [["Mañana", 1], ["3 d", 3], ["7 d", 7], ["14 d", 14]];
 const campo = { boxSizing: "border-box", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
-// Lo de adentro (botones, campos) no abre la tarjeta ni empieza a arrastrarla
+// Lo de adentro (botones, campos) no abre la tarjeta
 const aislar = { onClick: e => e.stopPropagation(), onPointerDown: e => e.stopPropagation(), onKeyDown: e => e.stopPropagation() };
 
 function ChipsPlazo({ valor, onElegir }) {
@@ -26,7 +26,7 @@ function ChipsPlazo({ valor, onElegir }) {
 
 // Un caso (o expediente) con todos sus pendientes. Con caso: "Hecho" (la acción va a la bitácora y se carga la próxima)
 // y "Posponer" (corre el plazo de la próxima acción). Tocar la tarjeta abre la ficha; click derecho, el menú del caso.
-export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho, onPosponer, onReiterar, dragging, dragProps }) {
+export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [modo, setModo] = useState(null); // null | "hecho" | "posponer"
   const [nueva, setNueva] = useState("");
   const [vence, setVence] = useState(sumarDias(fechaLocalISO(), 7));
@@ -44,16 +44,11 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const guardarHecho = sinNueva => correr(() => onHecho(caso, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }));
 
   return (
-    <div className="tc" data-dragging={dragging} style={{ "--nivel": p ? NIVEL[p.nivel] : "var(--muted)", alignItems: "start" }}
-      onClick={() => !modo && onAbrir(grupo)} {...dragProps} {...(menu ? propsMenu(menu) : {})}
-      onKeyDown={e => { if (e.key === "Enter" && e.target === e.currentTarget) onAbrir(grupo); dragProps?.onKeyDown?.(e); }}>
-      <span className="tc-asa" aria-hidden="true" style={{ marginTop: 4 }}>
-        <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
-          {[2, 8, 14].flatMap(y => [2, 8].map(x => <circle key={`${x}${y}`} cx={x} cy={y} r="1.4" />))}
-        </svg>
-      </span>
+    <div className="tc" style={{ "--nivel": p ? NIVEL[p.nivel] : "var(--muted)", alignItems: "start" }}
+      onClick={() => !modo && onAbrir(grupo)} {...(menu ? propsMenu(menu) : {})}
+      onKeyDown={e => { if (e.key === "Enter" && e.target === e.currentTarget) onAbrir(grupo); }}>
 
-      <div style={{ minWidth: 0, gridColumn: "2 / -1" }}>
+      <div style={{ minWidth: 0, gridColumn: "1 / -1" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           {chip || <span className="tc-chip num">{p ? p.texto : "Sin plazo"}</span>}
           {monto ? <span className="num" style={{ marginLeft: "auto", fontSize: 14, fontWeight: 700 }}>{fmtMoney(monto)}</span> : null}

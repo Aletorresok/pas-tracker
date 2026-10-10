@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { fechaLocalISO } from "../../utils/formatters.js";
-import ListaOrdenable from "../ui/ListaOrdenable.jsx";
+import ListaTarjetas from "../ui/ListaTarjetas.jsx";
 import { itemsCaso } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
@@ -30,7 +30,7 @@ const leer = () => { try { return localStorage.getItem("paraHacer:proximos") ===
 const guardar = v => { try { localStorage.setItem("paraHacer:proximos", v ? "1" : "0"); } catch { /* sin storage */ } };
 
 // Para hacer: arriba lo vencido y lo de hoy; abajo, plegado, lo de los próximos días y lo que no tiene plazo.
-// Cada lista se reordena arrastrando (el orden se recuerda). Tocar abre el caso o el expediente.
+// Tocar abre el caso o el expediente; las acciones rápidas (Hecho, Posponer) están en cada tarjeta.
 export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [verProximos, setVerProximos] = useState(leer);
   const hoy = fechaLocalISO();
@@ -40,10 +40,10 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
   const vencidos = deHoy.filter(g => g.vence < hoy).length;
 
   const abrir = g => onAbrir(g.tareas[0]);
-  const tarjeta = (g, { dragging, dragProps }) => {
+  const tarjeta = g => {
     const plazo = g.tareas.find(t => t.plazo && t.vence);
     return (
-      <TarjetaCaso grupo={g} tipos={TIPO} dragging={dragging} dragProps={dragProps} onAbrir={abrir}
+      <TarjetaCaso grupo={g} tipos={TIPO} onAbrir={abrir}
         chip={plazo ? <ChipPendiente pendiente={plazo.plazo} cal={cal} jurisdiccion={plazo.jurisdiccion} /> : undefined}
         menu={() => g.caso ? itemsCaso(g.caso, { abrir: () => abrir(g) }) : [{ label: "Abrir", onClick: () => abrir(g) }]}
         onHecho={onHecho} onPosponer={onPosponer} onReiterar={onReiterar} />
@@ -67,7 +67,7 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
       )}
       {deHoy.length > 0 && (
         <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "0 -10px", padding: "6px 10px 10px" }}>
-          <ListaOrdenable items={deHoy} storageKey="paraHacer-hoy" render={tarjeta} />
+          <ListaTarjetas items={deHoy} render={tarjeta} />
         </div>
       )}
 
@@ -79,7 +79,7 @@ export default function ParaHacer({ tareas, cal, onAbrir, onHecho, onPosponer, o
           </button>
           {verProximos && (
             <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "6px -10px 0", padding: "6px 10px 10px" }}>
-              <ListaOrdenable items={proximos} storageKey="paraHacer-proximos" render={tarjeta} />
+              <ListaTarjetas items={proximos} render={tarjeta} />
             </div>
           )}
         </div>

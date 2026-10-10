@@ -6,7 +6,6 @@ import react from '@vitejs/plugin-react'
 const VENDOR = [
   ['react', /node_modules\/(react|react-dom|react-router|react-router-dom|scheduler|@remix-run)\//],
   ['supabase', /node_modules\/@supabase\//],
-  ['dnd', /node_modules\/@dnd-kit\//],
 ]
 
 export default defineConfig({
