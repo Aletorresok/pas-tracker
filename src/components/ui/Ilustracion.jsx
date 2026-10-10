@@ -32,6 +32,53 @@ const DIBUJOS = {
     </>,
     acento: <path d="M86 20l6-6M88 30h8M82 12V4" />,
   },
+  // Celular con un globo de mensaje (consulta recibida, te escribimos)
+  mensaje: {
+    linea: <>
+      <path d="M68 28V22a8 8 0 0 0-8-8H32a8 8 0 0 0-8 8v72a8 8 0 0 0 8 8h28a8 8 0 0 0 8-8V66" />
+      <path d="M40 20h12M32 78h18M32 86h12" />
+      <path d="M78 40h.01M86 40h.01M94 40h.01" strokeWidth="5" />
+    </>,
+    acento: <path d="M82.2 56.7A22 17 0 1 0 71.9 53L64 66z" />,
+  },
+  // Sobre abierto con un billete (caso cobrado)
+  cobro: {
+    linea: <>
+      <path d="M34 54H22a4 4 0 0 0-4 4v40a4 4 0 0 0 4 4h76a4 4 0 0 0 4-4V58a4 4 0 0 0-4-4H86" />
+      <path d="M19 56l41 26 41-26" />
+      <path d="M34 66V28a4 4 0 0 1 4-4h44a4 4 0 0 1 4 4v38" />
+      <circle cx="60" cy="46" r="7" />
+      <path d="M42 32h8M70 32h8" />
+    </>,
+    acento: <path d="M92 15l5 5 10-11" />,
+  },
+  // Lupa sobre una hoja en blanco (sin resultados)
+  lupa: {
+    linea: <>
+      <path d="M80 44V22a4 4 0 0 0-4-4H36L24 30v70a4 4 0 0 0 4 4h48a4 4 0 0 0 4-4V80" />
+      <path d="M24 30h8a4 4 0 0 0 4-4v-8" />
+      <circle cx="72" cy="62" r="18" />
+      <path d="M85.5 75.5L100 90" strokeWidth="6" />
+    </>,
+    acento: <path d="M63 55a11 11 0 0 1 8-5" />,
+  },
+  // Libro abierto con señalador (Biblioteca)
+  libros: {
+    linea: <>
+      <path d="M60 34Q78 24 98 30v58q-20-6-38 4q-18-10-38-4V30q20-6 38 4zM60 34v58" />
+      <path d="M18 36v58h34q4 0 8 4q4-4 8-4h34V36" />
+    </>,
+    acento: <path d="M74 30v18l4-4 4 4V28" />,
+  },
+  // Flechas de actualizar y una llave (algo falló / versión nueva)
+  actualizar: {
+    linea: <>
+      <path d="M76.5 69A26 26 0 0 1 31.5 69M39 71.7L31.5 69l-1.4 7.9" />
+      <path d="M84.6 74.6A10 10 0 1 1 78.6 80.6L85.5 81.5z" />
+      <path d="M95.1 91.1L106 102" strokeWidth="5" />
+    </>,
+    acento: <path d="M31.5 43A26 26 0 0 1 78.5 43M71 40.3l7.5 2.7 1.4-7.9" />,
+  },
   // Camino con vueltas y tres etapas; el auto llega a la bandera (el reclamo avanza hasta el cobro)
   camino: {
     ancho: 160,

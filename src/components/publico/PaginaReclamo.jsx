@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import Logo from "../ui/Logo.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
+import Ilustracion from "../ui/Ilustracion.jsx";
 
 const HORARIO = "de lunes a viernes de 9 a 18";
 const ABOGADO = "Dr. Alexis Torres Gaveglio";
@@ -120,6 +121,7 @@ export default function PaginaReclamo() {
         <section ref={formRef} style={{ ...seccion, scrollMarginTop: 16 }} aria-labelledby="t-form">
           {listo ? (
             <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <Ilustracion nombre="mensaje" size={88} style={{ marginLeft: -6 }} />
               <h2 id="t-form" style={{ margin: 0, fontSize: 22 }}>¡Listo{nombre ? `, ${nombre}` : ""}!</h2>
               <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5 }}>Recibimos tu consulta. Te escribimos por WhatsApp {HORARIO}.</p>
               <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: "var(--sub)" }}>Si ya tenés fotos del choque o la denuncia, mandalas ahora y ganamos tiempo.</p>

@@ -13,6 +13,7 @@ import { QUIEN, quienTiene } from "../utils/pelota.js";
 import { propsMenu, abrirMenu } from "./ui/MenuContextual.jsx";
 import { itemsCaso } from "../utils/menus.js";
 import { useMoverCaso } from "./casos/useMoverCaso.jsx";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 const VISTA_GUARDADA = "pas_casos_vista";
 const leerVista = () => { try { return localStorage.getItem(VISTA_GUARDADA) === "tablero" ? "tablero" : "tabla"; } catch { return "tabla"; } };
@@ -261,6 +262,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
 
       {filtrados.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--sub)", fontSize: 14 }}>
+          <Ilustracion nombre="lupa" size={72} style={{ margin: "0 auto 8px" }} />
           Ningún caso coincide.{" "}
           <button type="button" onClick={() => { limpiarFiltros(); setBusqueda(""); }} style={{ background: "none", border: "none", color: "var(--accent-ink)", fontWeight: 600, cursor: "pointer", fontSize: 14 }}>Ver todos</button>
         </div>

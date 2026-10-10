@@ -146,11 +146,11 @@
 
 ## 📝 Registro de Cambios
 
-### 2026-10-10 — Ilustración "camino" en el ingreso del cliente
+### 2026-10-10 — Ilustraciones nuevas: camino, mensaje, cobro, lupa, libros y actualizar
 *   `ui/Ilustracion.jsx`: sale `auto` (auto con escudo; al usuario no le gustaba: el escudo no se entendía y quedaba de juguete) y entra `camino`: un camino con vueltas y tres etapas, el auto llegando a la bandera (dorada). Idea elegida entre variantes de Gemini y redibujada en vector. Es la primera ilustración apaisada: `ancho: 160` (las demás son 120×120; `size` es el alto).
 *   Se usa en el ingreso de la vista del cliente (`?vista=cliente`). Pensada también para la portada de `/reclamo` (pendiente de decidir: ilustración o foto real).
-*   Plan de ilustraciones pendientes (ideas a pedir a Gemini y redibujar): `/reclamo` "¡Listo!" (celular con mensaje), cliente con caso cobrado (sobre o billete con tilde), "sin resultados" (lupa, para Casos, Clientes, Contactos, Biblioteca), Biblioteca vacía (libros), "Algo falló / versión nueva" (llave o actualizar). Reusar `carpeta` en Expedientes vacío y `listo` en Novedades vacía y en "caso enviado" del portal PAS.
-*   Probado: build y capturas de `?vista=cliente` en claro (PC) y oscuro (celular).
+*   Cinco dibujos más (variantes de Gemini elegidas y redibujadas en vector, un solo detalle en dorado): `mensaje` en `/reclamo` al recibir la consulta; `cobro` en la vista del cliente con el caso cobrado ("Cobraste"); `lupa` en las búsquedas sin resultados (Casos, Clientes, Contactos, Biblioteca); `libros` en la Biblioteca vacía; `actualizar` en "Algo falló" / "Hay una versión nueva" (`AtrapaErrores`). Se reusan `carpeta` en Expedientes vacío y `listo` en la bandeja de Novedades vacía. La confirmación "caso enviado" del portal PAS queda con su tilde.
+*   Probado: build, ESLint y capturas de los dibujos a 64, 96 y 170 px en claro y oscuro; `?vista=cliente` en la app.
 
 ### 2026-10-08 — Demo del portal con las estadísticas reales del estudio (SQL 48)
 *   **SQL 48** (`sql/2026-10-08_48_plazos_publicos_porcentajes.sql`): `plazos_publicos()` suma `pct_cobrado`, `pct_ofrecido_adm` y `pct_ofrecido_med` (medianas sobre la base del reclamo: concurrencia = parte del tercero, franquicias afuera, más de 150% = error de carga). Cada dato solo con 3 casos o más.

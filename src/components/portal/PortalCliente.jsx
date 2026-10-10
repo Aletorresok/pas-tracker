@@ -383,10 +383,13 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
       {cobras > 0 && (
         <section style={{ ...caja, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
           {cobras > 0 && (
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {caso.estado === "cobrado" && <Ilustracion nombre="cobro" size={64} />}
+              <div>
               <div style={{ fontSize: 13, color: "var(--sub)" }}>{caso.estado === "cobrado" ? "Cobraste" : "Vas a cobrar"}</div>
               <div className="num" style={{ fontSize: 22, fontWeight: 700, color: "var(--ok)" }}>{fmtMoney(cobras)}</div>
               {caso.estado === "cobrado" && caso.fecha_cobro && <div className="num" style={{ fontSize: 12, color: "var(--muted)" }}>el {fmtDate(caso.fecha_cobro)}</div>}
+              </div>
             </div>
           )}
         </section>
