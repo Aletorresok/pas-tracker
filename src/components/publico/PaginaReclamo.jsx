@@ -96,6 +96,7 @@ export default function PaginaReclamo() {
 
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px 40px", display: "flex", flexDirection: "column", gap: 18 }}>
         <section style={{ display: "flex", flexDirection: "column", gap: 14, padding: "8px 4px" }}>
+          <Ilustracion nombre="camino" size={104} style={{ marginLeft: -4 }} />
           <h1 style={{ margin: 0, fontSize: 34, lineHeight: 1.12, letterSpacing: -0.6 }}>¿Chocaste y no fue tu culpa?</h1>
           <p style={{ margin: 0, fontSize: 17, lineHeight: 1.5, color: "var(--sub)" }}>Le reclamamos a la compañía del otro vehículo los daños y también las lesiones, y te contamos cada paso del reclamo.</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

@@ -146,6 +146,16 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-10 — Ajustes visuales: ancho en monitores grandes, "Vencido" lleno, chips de plazo, Finanzas, cita en serif y portada de /reclamo
+*   **Ancho**: las pestañas con tablas o lista + detalle (Casos, Clientes, Análisis, Finanzas, Expedientes, Contactos, Compañías, Biblioteca) usan hasta 1440 px (`.app-content.ancha`, lista `PESTANAS_ANCHAS` en `App.jsx`); Hoy, Herramientas y Ajustes siguen en 1200. Pensado para el monitor del usuario (24", 1920×1080).
+*   **"Vencido hace N d"** (`ui/PlazoChip.jsx`): fondo lleno en `--bad` con texto en `--bg` (5,9:1 claro, 5,1:1 oscuro) para distinguirse de "Vence hoy / pronto", que siguen con fondo suave.
+*   **Chips de plazo** de la próxima acción (Hoy / 1 / 3 / 7 / 15 / 30 d) usan la clase `.chip` (mismo hover y estado activo que los filtros), en tamaño compacto.
+*   **Finanzas → Resumen del mes** usa `Kpis` (`analisis/TablaAnalisis.jsx`), que suma `colorV` (color del número) y el tamaño adaptable al celular.
+*   **Biblioteca**: la cita va en letra serif (`--serif`: Georgia) y en color de texto, en vez de monoespaciada.
+*   **/reclamo**: la ilustración `camino` encabeza la portada (por ahora sin foto real).
+*   El buscador global (`App.jsx`) abre la ficha con `CasoOverlay ficha/setFicha`.
+*   Probado: build, ESLint, contraste medido y captura de /reclamo. Las pantallas con login (Finanzas, ficha, Biblioteca, ancho) no se capturaron.
+
 ### 2026-10-10 — Ilustraciones nuevas: camino, mensaje, cobro, lupa, libros y actualizar
 *   `ui/Ilustracion.jsx`: sale `auto` (auto con escudo; al usuario no le gustaba: el escudo no se entendía y quedaba de juguete) y entra `camino`: un camino con vueltas y tres etapas, el auto llegando a la bandera (dorada). Idea elegida entre variantes de Gemini y redibujada en vector. Es la primera ilustración apaisada: `ancho: 160` (las demás son 120×120; `size` es el alto).
 *   Se usa en el ingreso de la vista del cliente (`?vista=cliente`). Pensada también para la portada de `/reclamo` (pendiente de decidir: ilustración o foto real).

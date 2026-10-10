@@ -1,6 +1,7 @@
 import { fmtMoney } from "../../utils/formatters.js";
 import { resultadoDelMes, ultimosMeses } from "../../utils/finanzas.js";
 import { MESES_LARGOS } from "../../utils/estadisticasPas.js";
+import { Kpis } from "../analisis/TablaAnalisis.jsx";
 
 const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
 const MESES_CORTOS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -12,21 +13,14 @@ export default function ResumenMes({ allCasos, gastos, mes }) {
   const r = resultadoDelMes(allCasos, gastos, mes);
   const meses = ultimosMeses(6, new Date(`${mes}-15T12:00:00`));
   const filas = meses.map(m => ({ mes: m, ...resultadoDelMes(allCasos, gastos, m) }));
-  const kpi = (l, v, pie, color) => (
-    <div style={{ padding: "12px 16px", minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: "var(--sub)" }}>{l}</div>
-      <div className="num" style={{ fontSize: "clamp(18px, 4.6vw, 22px)", fontWeight: 700, color: color || "var(--text)", marginTop: 2, overflowWrap: "anywhere" }}>{v}</div>
-      {pie && <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{pie}</div>}
-    </div>
-  );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <section className="kpis" style={{ ...tarjeta, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-        {kpi("Honorarios cobrados", fmtMoney(r.honorarios), `${r.casosCobrados} ${r.casosCobrados === 1 ? "caso" : "casos"}`)}
-        {kpi("Comisiones a PAS", fmtMoney(r.comisiones), "pagadas en el mes")}
-        {kpi("Gastos", fmtMoney(r.gastos), r.porCategoria[0] ? `más: ${r.porCategoria[0].l.toLowerCase()}` : "sin gastos cargados")}
-        {kpi("Resultado", `${r.resultado < 0 ? "− " : ""}${fmtMoney(Math.abs(r.resultado))}`, "lo que te quedó", r.resultado < 0 ? "var(--bad)" : "var(--accent-ink)")}
-      </section>
+      <Kpis items={[
+        { l: "Honorarios cobrados", v: fmtMoney(r.honorarios), s: `${r.casosCobrados} ${r.casosCobrados === 1 ? "caso" : "casos"}` },
+        { l: "Comisiones a PAS", v: fmtMoney(r.comisiones), s: "pagadas en el mes" },
+        { l: "Gastos", v: fmtMoney(r.gastos), s: r.porCategoria[0] ? `más: ${r.porCategoria[0].l.toLowerCase()}` : "sin gastos cargados" },
+        { l: "Resultado", v: `${r.resultado < 0 ? "− " : ""}${fmtMoney(Math.abs(r.resultado))}`, s: "lo que te quedó", colorV: r.resultado < 0 ? "var(--bad)" : "var(--accent-ink)" },
+      ]} />
 
       <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
         <section style={{ ...tarjeta, padding: "12px 16px" }}>
