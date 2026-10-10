@@ -300,7 +300,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
           Todavía no tenés PAS clientes. Marcá uno como "Deriva casos" en Contactos o agregalo con "PAS manual".
         </div>
       )}
-      {pasClientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>{busqueda.trim() ? "Ningún PAS coincide con la búsqueda." : "No hay PAS en este grupo."}</div>}
+      {pasClientes.length > 0 && filtrados.length === 0 && <div style={{ textAlign: "center", padding: 32, color: "var(--sub)", fontSize: 14 }}>{busqueda.trim() && <Ilustracion nombre="lupa" size={72} style={{ margin: "0 auto 8px" }} />}{busqueda.trim() ? "Ningún PAS coincide con la búsqueda." : "No hay PAS en este grupo."}</div>}
 
       {/* Celular: filas de dos líneas */}
       {esCelular && filtrados.length > 0 && (

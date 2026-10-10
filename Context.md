@@ -51,7 +51,7 @@
 *   `LoginScreen.jsx`, `CambiarPasswordModal.jsx`, `PortalHome.jsx` (resumen, pestañas En curso / Cobrados / Desistidos / Todos + chips por estado, plazos por compañía), `PortalCasoCard.jsx` (avance, mensaje del estudio, adjuntar, "Generar escrito" con el mismo modal de la ficha, `caso/ModalGenerarEscrito.jsx`), `NuevoCasoModal.jsx` (derivar caso + archivos + mail).
 *   `PortalCliente.jsx` — vista del cliente: patente + 3 del DNI, línea de tiempo de 5 pasos, mensaje del estudio (o texto automático de la etapa, `utils/vistaCliente.js`), montos, "Mandanos tu documentación" (un mail por sesión), mediación con link, WhatsApp.
 
-**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `MenuContextual` (hook `useMenuContextual`: menú de click derecho en portal), `AvisoDeshacer` (aviso abajo con "Deshacer" que se va solo), `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, foto, auto: línea en `--sub` + detalle en `--accent`), `VentanaFicha` (armazón de la ficha del expediente), `CabeceraOrdenable` (encabezado de tabla ordenable), `BotoneraForm` (Borrar / Cancelar / Guardar).
+**UI compartida** (`components/ui/`): `Boton`, `Icono`, `EstadoPill`, `PlazoChip`, `CampoMonto`, `BarraAvance`, `MenuContextual` (hook `useMenuContextual`: menú de click derecho en portal), `AvisoDeshacer` (aviso abajo con "Deshacer" que se va solo), `Logo` (monograma ATG en vector, color del acento), `Ilustracion` (carpeta, listo, mensaje, cobro, lupa, libros, actualizar, foto, camino (apaisado): línea en `--sub` + detalle en `--accent`), `VentanaFicha` (armazón de la ficha del expediente), `CabeceraOrdenable` (encabezado de tabla ordenable), `BotoneraForm` (Borrar / Cancelar / Guardar).
 
 **Hooks y contexto:** `hooks/usePASData.js` (carga inicial, paginada de a 1000; contactos por id), `hooks/useRealtimeSync.js`, `hooks/useEsCelular.js` (corte 900 px), `hooks/useInstalarApp.js` (botón "Instalar app": menú Apariencia y backup, cabecera del portal, vista del cliente), `context/ThemeContext.jsx` (tema y acento).
 
@@ -145,6 +145,12 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-10-10 — Ilustraciones nuevas: camino, mensaje, cobro, lupa, libros y actualizar
+*   `ui/Ilustracion.jsx`: sale `auto` (auto con escudo; al usuario no le gustaba: el escudo no se entendía y quedaba de juguete) y entra `camino`: un camino con vueltas y tres etapas, el auto llegando a la bandera (dorada). Idea elegida entre variantes de Gemini y redibujada en vector. Es la primera ilustración apaisada: `ancho: 160` (las demás son 120×120; `size` es el alto).
+*   Se usa en el ingreso de la vista del cliente (`?vista=cliente`). Pensada también para la portada de `/reclamo` (pendiente de decidir: ilustración o foto real).
+*   Cinco dibujos más (variantes de Gemini elegidas y redibujadas en vector, un solo detalle en dorado): `mensaje` en `/reclamo` al recibir la consulta; `cobro` en la vista del cliente con el caso cobrado ("Cobraste"); `lupa` en las búsquedas sin resultados (Casos, Clientes, Contactos, Biblioteca); `libros` en la Biblioteca vacía; `actualizar` en "Algo falló" / "Hay una versión nueva" (`AtrapaErrores`). Se reusan `carpeta` en Expedientes vacío y `listo` en la bandeja de Novedades vacía. La confirmación "caso enviado" del portal PAS queda con su tilde.
+*   Probado: build, ESLint y capturas de los dibujos a 64, 96 y 170 px en claro y oscuro; `?vista=cliente` en la app.
 
 ### 2026-10-10 — Limpieza de código: muerto, duplicado y Rutina sincronizada
 *   **Rutina sincronizada**: `useRutina` avisa a las otras vistas abiertas (Hoy, Ajustes → Rutina/Objetivos, Análisis) cuando se tilda o se edita algo, y esas recargan; la que avisó no recarga, así el tilde no parpadea. Antes el evento se escuchaba pero nadie lo mandaba. `TabAjustes` usa `cambio` (recarga + aviso) en vez de `recargar`.

@@ -18,6 +18,7 @@ import FichaExpediente from "./expediente/FichaExpediente.jsx";
 import BandejaNovedades from "./expediente/BandejaNovedades.jsx";
 import { Toast } from "./casoDetalleComponents.jsx";
 import { hayNovedadesJudiciales, cargarNovedades } from "../utils/novedadesJudiciales.js";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 function PillEstado({ estado }) {
   const e = estadoExpediente(estado);
@@ -182,6 +183,7 @@ export default function TabExpedientes({ abrirId, onAbierto, pegarNovedad = 0 })
 
       {expedientes && expedientes.length === 0 && !error && (
         <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)" }}>
+          <Ilustracion nombre="carpeta" size={80} style={{ margin: "0 auto 8px" }} />
           <div style={{ fontWeight: 600, fontSize: 16 }}>Cargá tu primer expediente</div>
           <div style={{ color: "var(--sub)", fontSize: 14, margin: "6px 0 14px" }}>Los casos que no son de seguros, con sus plazos procesales y escritos.</div>
           <Boton variante="primario" icono="agregar" onClick={() => setFicha({ nuevo: true })}>Nuevo expediente</Boton>

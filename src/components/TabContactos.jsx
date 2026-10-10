@@ -6,6 +6,7 @@ import PASCard from "./PASCard.jsx";
 import Boton from "./ui/Boton.jsx";
 import { alpha } from "../utils/theme.js";
 import { MAILS_POR_DIA } from "../utils/mensajes.js";
+import Ilustracion from "./ui/Ilustracion.jsx";
 
 const POR_TANDA = 40;
 const COLUMNA_ORDEN = { nombre: "nombre", telefono: "telefonos", mail: "mail" };
@@ -218,6 +219,7 @@ export default function TabContactos({
 
       {!cargando && !error && visibles.length === 0 && (
         <div style={{ textAlign: "center", padding: 48, color: "var(--sub)", fontSize: 14 }}>
+          {busquedaActiva.trim() && <Ilustracion nombre="lupa" size={72} style={{ margin: "0 auto 8px" }} />}
           {busquedaActiva.trim() ? "Ningún contacto sin contactar coincide con la búsqueda." : "No hay contactos pendientes en esta vista."}
         </div>
       )}
