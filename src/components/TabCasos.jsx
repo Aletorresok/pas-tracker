@@ -12,6 +12,7 @@ import { QUIEN, quienTiene } from "../utils/pelota.js";
 import { propsMenu, abrirMenu } from "./ui/MenuContextual.jsx";
 import { itemsCaso } from "../utils/menus.js";
 import { useMoverCaso } from "./casos/useMoverCaso.jsx";
+import CabeceraOrdenable from "./ui/CabeceraOrdenable.jsx";
 
 // Los filtros se recuerdan mientras la pestaña del navegador esté abierta (ir a otra sección y volver no los borra)
 const FILTROS_GUARDADOS = "pas_casos_filtros";
@@ -271,23 +272,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       {!esCelular && filtrados.length > 0 && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
-            <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
-            <thead>
-              <tr>
-                {COLUMNAS.map(col => {
-                  const activa = orden.k === col.k;
-                  return (
-                    <th key={col.k} scope="col" aria-sort={activa ? (orden.desc ? "descending" : "ascending") : "none"}
-                      style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)", textAlign: col.derecha ? "right" : "left" }}>
-                      <button type="button" onClick={() => ordenarPor(col.k)} title={col.ayuda} className="th-orden"
-                        style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", font: "inherit", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: activa ? "var(--text)" : "var(--muted)", textAlign: col.derecha ? "right" : "left" }}>
-                        {col.l}<span aria-hidden="true" className={activa ? undefined : "th-flecha"} style={{ marginLeft: 4 }}>{activa ? (orden.desc ? "↓" : "↑") : "↕"}</span>
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
+            <CabeceraOrdenable columnas={COLUMNAS} orden={orden} ordenarPor={ordenarPor} pista />
             <tbody>
               {filtrados.map(c => {
                 const abierto = abiertoId === c.id;
@@ -330,13 +315,8 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
 
 
       {ficha && (
-        <CasoOverlay
-          caso={ficha.caso} pasId={ficha.pasId} pestanaInicial={ficha.pestana} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))}
-          onEliminarCaso={onEliminarCaso}
-          onClose={() => { setFicha(null); setAbiertoId(null); }}
-        />
+        <CasoOverlay ficha={ficha} setFicha={setFicha} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode}
+          onEliminarCaso={onEliminarCaso} onClose={() => { setFicha(null); setAbiertoId(null); }} />
       )}
       {uiMover}
       {papelera && <Papelera todosLosPas={todosLosPas} onRestaurar={onRestaurarCaso} onClose={() => setPapelera(false)} />}

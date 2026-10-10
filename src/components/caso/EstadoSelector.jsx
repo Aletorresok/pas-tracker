@@ -16,7 +16,6 @@ export default function EstadoSelector({ value, onChange }) {
             textAlign: "center",
             transition: "all .15s",
           }}>
-            <div style={{ fontSize: 18, marginBottom: 2 }}>{e.emoji}</div>
             <div style={{ fontSize: 11, fontWeight: 700, color: active ? e.color : "var(--sub)", lineHeight: 1.2 }}>{e.label}</div>
           </button>
         );

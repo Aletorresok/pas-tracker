@@ -6,7 +6,7 @@ import { useTheme } from "./context/ThemeContext.jsx";
 import { abrirCompania } from "./utils/companiaAbierta.js";
 
 // ── IMPORTS: UTILIDADES
-import { parsePAS, fechaLocalISO } from "./utils/formatters.js";
+import { parsePAS, fechaLocalISO, bajarArchivo } from "./utils/formatters.js";
 import { RESULTADO_MAIL, RESULTADO_RECORDATORIO, esMailEnviado } from "./utils/mensajes.js";
 import { copiaPendiente, descargarCopiaCompleta, ultimaCopia } from "./utils/copiaSeguridad.js";
 import { saveStorage, upsertPasManual, insertHistorialEntry, deleteCaso, restaurarCaso } from "./utils/storage.js";
@@ -20,7 +20,6 @@ import { usePASData } from "./hooks/usePASData.js";
 // ── IMPORTS: COMPONENTES
 import LoginGate from "./components/LoginGate.jsx";
 import SidebarNav from "./components/SidebarNav.jsx";
-import CasoDetalle from './CasoUnificado.jsx'
 import ContactModal from './components/ContactModal.jsx'
 import TabDashboard from './components/TabDashboard.jsx'
 const TabAnalisis = lazy(() => import('./components/TabAnalisis.jsx'))
@@ -360,11 +359,7 @@ function AppPrincipal() {
 
   const handleBackup = useCallback(() => {
     const backup = { version: 1, fecha: new Date().toISOString(), historial, casos, derivadores, descartados };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `pastracker_backup_${fechaLocalISO()}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    bajarArchivo(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }), `pastracker_backup_${fechaLocalISO()}.json`);
   }, [historial, casos, derivadores, descartados]);
 
   // Restaurar pisa los casos actuales con los del archivo: siempre muestra qué trae y pide confirmación

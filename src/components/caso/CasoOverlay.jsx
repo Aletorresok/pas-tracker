@@ -6,7 +6,10 @@ import { marcarRevisado } from "../../utils/storage.js";
 // Abre la ficha de un caso como panel al costado de cualquier pantalla (la lista de atrás sigue a la vista). La ficha ya guarda su caso en Supabase;
 // acá solo se refleja el cambio en memoria (sin volver a guardar todos los casos).
 // Con onEliminarCaso (App.handleEliminarCaso: manda a la papelera y ofrece "Deshacer") muestra "Eliminar".
-export default function CasoOverlay({ pestanaInicial, caso, pasId, casos, todosLosPas, onCasoLocal, onCambio, onClose, onEliminarCaso, darkMode }) {
+// Con `ficha` ({ caso, pasId, pestana }) y `setFicha`, el estado de quien la abre se actualiza solo.
+export default function CasoOverlay({ ficha, setFicha, caso = ficha?.caso, pasId = ficha?.pasId, pestanaInicial = ficha?.pestana,
+  onCambio = setFicha && (updated => setFicha(f => ({ ...f, caso: { ...updated, _pasId: f.pasId } }))), onClose = () => setFicha(null),
+  casos, todosLosPas, onCasoLocal, onEliminarCaso, darkMode }) {
   const { companias, agregarCompania } = useCompanias(casos);
 
   // Abrir un caso nuevo del portal lo saca de la bandeja "Nuevos del portal"

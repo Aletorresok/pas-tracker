@@ -23,7 +23,7 @@ export default function TabAjustes({ pas = [], casos = {}, pasManuales = [], his
   const todosLosPas = useMemo(() => [...pas, ...pasManuales], [pas, pasManuales]);
   const allCasos = useMemo(() => aplanarCasos(casos, todosLosPas), [casos, todosLosPas]);
   const [vista, setVista] = useState(VISTAS_AJUSTES.some(v => v.k === vistaInicial) ? vistaInicial : "rutina");
-  const { datos, falta, recargar } = useRutina();
+  const { datos, falta, cambio } = useRutina();
   const [toast, setToast] = useState(null);
   const v = VISTAS_AJUSTES.find(x => x.k === vista);
 
@@ -41,9 +41,9 @@ export default function TabAjustes({ pas = [], casos = {}, pasManuales = [], his
       {(vista === "rutina" || vista === "objetivos") && falta && (
         <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--r-sm)", color: "var(--bad)", fontSize: 14 }}>No se pudo cargar la rutina. ¿Está corrido el SQL 25?</div>
       )}
-      {vista === "rutina" && datos && <EditorRutina items={datos.items} escuela={datos.escuela} onCambio={recargar} setToast={setToast} />}
+      {vista === "rutina" && datos && <EditorRutina items={datos.items} escuela={datos.escuela} onCambio={cambio} setToast={setToast} />}
       {vista === "objetivos" && datos && (
-        <ObjetivosPanel objetivos={datos.objetivos} datos={{ allCasos, historial, rutina: { items: datos.items, registro: datos.registro } }} onCambio={recargar} setToast={setToast} />
+        <ObjetivosPanel objetivos={datos.objetivos} datos={{ allCasos, historial, rutina: { items: datos.items, registro: datos.registro } }} onCambio={cambio} setToast={setToast} />
       )}
       <Suspense fallback={<div style={{ fontSize: 14, color: "var(--muted)" }}>Cargando…</div>}>
         {vista === "misdatos" && <MisDatos allCasos={allCasos} />}

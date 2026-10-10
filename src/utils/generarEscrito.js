@@ -1,12 +1,7 @@
 import { jsPDF } from "jspdf";
 import { dibujarPie } from "./pdfMembrete.js";
 import { cargarEstudio } from "./estudio.js";
-
-function formatoFecha(iso) {
-  if (!iso) return "—";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${String(y).slice(-2)}`;
-}
+import { fmtDate } from "./formatters.js";
 
 const DOCUMENTAL_FIJA = [
   "Denuncia administrativa",
@@ -38,7 +33,7 @@ export async function generarEscrito({
   }
 
   try {
-    const fechaSiniestro = formatoFecha(caso.fecha_siniestro || caso.fecha_derivacion);
+    const fechaSiniestro = fmtDate(caso.fecha_siniestro || caso.fecha_derivacion);
     const nombreCompleto = (caso.asegurado || "NOMBRE NO DISPONIBLE").toUpperCase();
     const compania = (ficha?.razon_social || caso.compania_aseguradora || "RAZON SOCIAL ASEGURADORA").toUpperCase();
     const domLegal = ficha?.domicilio

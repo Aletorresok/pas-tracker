@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { formatoFecha } from "./utils/formatters.js";
+import { fmtDate, fechaLocalISO } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
@@ -13,7 +13,6 @@ import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import ResultadoCaso from "./components/caso/ResultadoCaso.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
-import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import { abrirEscritos } from "./utils/escritoAbierto.js";
 import { hayNovedadesCliente, avisoNovedad } from "./utils/novedadesCliente.js";
@@ -26,7 +25,6 @@ import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_A
 import DialogoEtapa from "./components/caso/DialogoEtapa.jsx";
 import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "./utils/ofertas.js";
-import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import { estadoHonorarios } from "./utils/metricas.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
@@ -378,7 +376,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
                   {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
                   {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
                   {pasNombre && <span>PAS {pasNombre}</span>}
-                  {caso.fecha_derivacion && <span>derivado {formatoFecha(caso.fecha_derivacion)}</span>}
+                  {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

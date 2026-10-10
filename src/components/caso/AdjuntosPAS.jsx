@@ -1,18 +1,11 @@
 import { useEffect, useState } from "react";
 import { adjuntosDelCaso, descargarAdjunto, borrarAdjuntos, yaBajado, marcarBajado, esImagen, tipoSugerido, siguienteNombre } from "../../utils/adjuntosPas.js";
-import { verificarPermiso } from "../../utils/formatters.js";
+import { verificarPermiso, bajarArchivo } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
 
 const fecha = s => s ? new Date(s).toLocaleString("es-AR", { day: "numeric", month: "numeric", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
 const peso = b => !b ? "" : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
 const extension = n => (String(n).match(/\.[a-z0-9]{2,5}$/i) || [".pdf"])[0].toLowerCase();
-
-function bajarAlNavegador(blob, nombre) {
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement("a"), { href: url, download: nombre });
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
 
 // Nombre libre en la carpeta: si ya existe "DNI.jpg", queda "DNI (2).jpg"
 async function nombreLibre(dir, nombre) {
@@ -53,7 +46,7 @@ export default function AdjuntosPAS({ pasId, casoId, dirHandleRef, onGuardado, o
       await w.write(blob);
       await w.close();
     } else {
-      bajarAlNavegador(blob, a.nombre);
+      bajarArchivo(blob, a.nombre);
     }
     marcarBajado(a.ruta);
     return { blob, nombre };

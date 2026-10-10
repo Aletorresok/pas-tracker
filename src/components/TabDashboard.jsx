@@ -113,12 +113,7 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
       <MiDia conteo={conteo} allCasos={allCasos} historial={historial} derivadores={derivadores} descartados={descartados} onIrA={onIrA} />
 
       {abierto && (
-        <CasoOverlay
-          caso={abierto.caso} pasId={abierto.pasId} pestanaInicial={abierto.pestana} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setAbierto(a => ({ ...a, caso: { ...updated, _pasId: a.pasId } }))}
-          onClose={() => setAbierto(null)}
-        />
+        <CasoOverlay ficha={abierto} setFicha={setAbierto} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode} />
       )}
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>

@@ -86,12 +86,7 @@ export default function TabFinanzas({ pas, casos, pasManuales = [], darkMode, on
       {vista === "caja" && <AnalisisCaja allCasos={allCasos} onAbrirCaso={c => abrirCaso(c)} companias={companias} comisiones={comisiones} />}
 
       {abierto && (
-        <CasoOverlay
-          caso={abierto.caso} pasId={abierto.pasId} pestanaInicial={abierto.pestana} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setAbierto(a => ({ ...a, caso: { ...updated, _pasId: a.pasId } }))}
-          onClose={() => setAbierto(null)}
-        />
+        <CasoOverlay ficha={abierto} setFicha={setAbierto} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode} />
       )}
       {toast && <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>

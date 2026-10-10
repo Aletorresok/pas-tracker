@@ -10,15 +10,15 @@ export function fmtMoney(n) {
   return "$" + Number(n).toLocaleString("es-AR");
 }
 
-// Alias unificado para evitar duplicación de lógica con fmtDate
-export function formatoFecha(iso) {
-  return fmtDate(iso);
-}
-
-export function formatoFechaCarpeta(iso) {
-  if (!iso) return "00-00-0000";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}-${m}-${y}`;
+// "hace 5 min", "hace 3 h", "ayer", "hace 4 días" (acepta ISO o Date)
+export function haceCuanto(fecha) {
+  if (!fecha) return "";
+  const min = Math.round((Date.now() - new Date(fecha).getTime()) / 60000);
+  if (min < 60) return `hace ${Math.max(min, 1)} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "ayer" : `hace ${d} días`;
 }
 
 // ── TELÉFONOS ─────────────────────────────────────────────────────────────────────
@@ -113,8 +113,12 @@ export function getExtension(nombre) {
   return "." + parts[parts.length - 1].toLowerCase();
 }
 
-export function sanitizarNombre(str) {
-  return String(str || "").replace(/[/\\:*?"<>|]/g, "").trim();
+// Descarga un Blob con el navegador. Sin tildes: con tildes Chrome a veces ignora el nombre y baja "download"
+export function bajarArchivo(blob, nombre) {
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement("a"), { href: url, download: nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "") });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 // ── PERMISO FILESYSTEM ────────────────────────────────────────────────────────────

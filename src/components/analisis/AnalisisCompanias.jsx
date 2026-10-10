@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
-import TablaAnalisis, { card, ConMuestra, Barrita, Nota } from "./TablaAnalisis.jsx";
+import TablaAnalisis, { ConMuestra, Barrita, Nota, Kpis } from "./TablaAnalisis.jsx";
 import { statsCompanias, pct, incumplimientos, comparativaMediacion } from "../../utils/analisis.js";
 import CondicionesCompanias from "./CondicionesCompanias.jsx";
-import { fmtMoney } from "../../utils/formatters.js";
-import { fmtDate } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate } from "../../utils/formatters.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
 import { INSTANCIAS } from "../../constants.js";
 
@@ -74,15 +73,7 @@ export default function AnalisisCompanias({ allCasos, ofertas = {}, onAbrirCaso,
     <>
       <GraficoCompanias allCasos={allCasos} ofertas={ofertas} cardBg="var(--card)" cardBorder="var(--border)" textColor="var(--text)" subColor="var(--sub)" />
 
-      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
-        {kpis.map(x => (
-          <div key={x.l} style={{ padding: "12px 16px" }}>
-            <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
-            <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2 }}>{x.v}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>mediana · {x.s}</div>
-          </div>
-        ))}
-      </section>
+      <Kpis items={kpis.map(x => ({ ...x, s: `mediana · ${x.s}` }))} columnas={6} />
 
       <section>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
