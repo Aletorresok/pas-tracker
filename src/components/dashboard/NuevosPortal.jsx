@@ -3,6 +3,9 @@ import { marcarRevisado } from "../../utils/storage.js";
 import { PLANTILLAS_CLIENTE, textoCliente, linkWhatsApp } from "../../utils/mensajes.js";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
+import { propsMenu } from "../ui/MenuContextual.jsx";
+import { itemsCaso } from "../../utils/menus.js";
+import { haceCuanto } from "../../utils/formatters.js";
 
 // created_at viene sin zona horaria (es UTC)
 const aFecha = c => {
@@ -10,21 +13,9 @@ const aFecha = c => {
   return c.fecha_derivacion ? new Date(c.fecha_derivacion + "T12:00:00") : null;
 };
 
-function hace(fecha) {
-  if (!fecha) return "";
-  const min = Math.round((Date.now() - fecha.getTime()) / 60000);
-  if (min < 60) return `hace ${Math.max(min, 1)} min`;
-  const h = Math.round(min / 60);
-  if (h < 24) return `hace ${h} h`;
-  const d = Math.round(h / 24);
-  return d === 1 ? "ayer" : `hace ${d} días`;
-}
-
 const PRIMER_CONTACTO = PLANTILLAS_CLIENTE.find(p => p.k === "primer_contacto");
 
 // Casos que derivaron los PAS desde el portal y todavía no abriste. Se ocultan si no hay ninguno.
-import { propsMenu } from "../ui/MenuContextual.jsx";
-import { itemsCaso } from "../../utils/menus.js";
 
 export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
   const [marcando, setMarcando] = useState(null);
@@ -57,7 +48,7 @@ export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
                   {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
                 </span>
                 <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>
-                  {c._pasNombre} · {c.compania_aseguradora || "compañía sin cargar"} · derivado {hace(aFecha(c))}
+                  {c._pasNombre} · {c.compania_aseguradora || "compañía sin cargar"} · derivado {haceCuanto(aFecha(c))}
                 </span>
               </button>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>

@@ -17,6 +17,7 @@ import Icono from "./ui/Icono.jsx";
 import Ilustracion from "./ui/Ilustracion.jsx";
 import AccesoPortal, { usePortalUsers, urlPortal } from "./clientes/AccesoPortal.jsx";
 import { cargarComisiones, guardarComision } from "../utils/ofertas.js";
+import CabeceraOrdenable from "./ui/CabeceraOrdenable.jsx";
 
 // % de comisión del PAS sobre tus honorarios. Vacío = no cobra comisión. Se guarda al salir del campo.
 function ComisionPas({ pas, pct, onGuardado }) {
@@ -323,23 +324,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
       {!esCelular && filtrados.length > 0 && (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 14 }}>
-            <colgroup>{COLUMNAS.map(c => <col key={c.k} style={{ width: c.ancho }} />)}</colgroup>
-            <thead>
-              <tr>
-                {COLUMNAS.map(col => {
-                  const activa = orden.k === col.k;
-                  return (
-                    <th key={col.k} scope="col" aria-sort={activa ? (orden.desc ? "descending" : "ascending") : "none"}
-                      style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)", textAlign: col.derecha ? "right" : "left" }}>
-                      <button type="button" onClick={() => ordenarPor(col.k)}
-                        style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", font: "inherit", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, color: activa ? "var(--text)" : "var(--muted)", textAlign: col.derecha ? "right" : "left" }}>
-                        {col.l}{activa ? (orden.desc ? " ↓" : " ↑") : ""}
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
+            <CabeceraOrdenable columnas={COLUMNAS} orden={orden} ordenarPor={ordenarPor} />
             <tbody>
               {filtrados.map(p => {
                 const abierto = abiertoId === p.id;
@@ -384,10 +369,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
       )}
 
       {ficha && (
-        <CasoOverlay caso={ficha.caso} pasId={ficha.pasId} casos={casos} todosLosPas={todosLosPas}
-          onCasoLocal={onCasoLocal} darkMode={darkMode}
-          onCambio={updated => setFicha(f => ({ ...f, caso: updated }))}
-          onClose={() => setFicha(null)} />
+        <CasoOverlay ficha={ficha} setFicha={setFicha} casos={casos} todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} darkMode={darkMode} />
       )}
     </div>
   );

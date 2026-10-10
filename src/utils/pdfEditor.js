@@ -2,6 +2,7 @@
 // distintos PDFs o de imágenes, cada una con su rotación e imágenes estampadas (firma, sello).
 // Todo corre en el navegador: los archivos no salen de la compu.
 import { abrirPdf, dibujarPagina, canvasABlob } from "./pdfjs.js";
+import { bajarArchivo } from "./formatters.js";
 
 const A4 = [595.28, 841.89];
 const MARGEN = 28;
@@ -72,23 +73,11 @@ export async function elegirDestino(nombre, carpeta, tipo = "pdf") {
 }
 
 export async function escribirEn(destino, bytes, nombre) {
-  if (destino === "descargar") { descargar(bytes, nombre); return nombre; }
+  if (destino === "descargar") { bajarArchivo(new Blob([bytes], { type: tipoMime(nombre) }), nombre); return nombre; }
   const w = await destino.createWritable();
   await w.write(bytes);
   await w.close();
   return destino.name;
-}
-
-export function descargar(bytes, nombre) {
-  const url = URL.createObjectURL(new Blob([bytes], { type: tipoMime(nombre) }));
-  const a = document.createElement("a");
-  a.href = url;
-  // Con tildes, Chrome a veces ignora el nombre y descarga como "download"
-  a.download = nombre.normalize("NFD").replace(/[̀-ͯ]/g, "");
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 async function embeberImagen(pdfDoc, blob) {

@@ -3,6 +3,7 @@ import { fmtMoney, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
 import { CATEGORIAS_GASTO, categoria, gastosDelMes, guardarGasto, borrarGasto, hayRecuperables, RECUPERAR_DE, recuperarDe } from "../../utils/finanzas.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
+import BotoneraForm from "../ui/BotoneraForm.jsx";
 import { nombreMes } from "./ResumenMes.jsx";
 
 const tarjeta = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)" };
@@ -146,13 +147,8 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
                 </label>
               )}
             </>}
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", gridColumn: "1 / -1", marginTop: 4 }}>
-              {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
-              <span style={{ display: "flex", gap: 8 }}>
-                <Boton variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
-                <Boton variante="primario" onClick={guardar} disabled={guardando || (form.casoTexto && !form.caso_id)}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              </span>
-            </div>
+            <BotoneraForm onBorrar={form.id && borrar} onCancelar={() => setForm(null)} onGuardar={guardar} guardando={guardando} deshabilitado={form.casoTexto && !form.caso_id}
+              style={{ gridColumn: "1 / -1" }} />
           </div>
         </div>
       )}

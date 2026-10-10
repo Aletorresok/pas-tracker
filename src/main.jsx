@@ -1,9 +1,8 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import { lazy, Suspense } from 'react'
 const Portal = lazy(() => import('./Portal.jsx'))
 const PaginaReclamo = lazy(() => import('./components/publico/PaginaReclamo.jsx')) // página pública para quien no es cliente
 import { MenuHost } from './components/ui/MenuContextual.jsx'

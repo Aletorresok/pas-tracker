@@ -2,7 +2,7 @@
 // Se hace sola una vez por semana (la primera vez que abrís la app) y también a mano desde "Apariencia y backup".
 // No incluye configuración con claves (pas_config), administradores, suscripciones de notificaciones ni intentos de ingreso.
 import { supabase } from "../supabase.js";
-import { fechaLocalISO } from "./formatters.js";
+import { fechaLocalISO, bajarArchivo } from "./formatters.js";
 
 export const TABLAS_COPIA = [
   "pas_casos", "acciones", "pas_eventos", "pas_subidas_cliente", "pas_margen_companias",
@@ -66,13 +66,7 @@ export async function descargarCopiaCompleta() {
     }
     const hoy = fechaLocalISO();
     const copia = { version: 2, tipo: "copia_completa", fecha: new Date().toISOString(), tablas, ...(faltan.length ? { tablas_sin_crear: faltan } : {}) };
-    const blob = new Blob([JSON.stringify(copia)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `pastracker_copia_completa_${hoy}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    bajarArchivo(new Blob([JSON.stringify(copia)], { type: "application/json" }), `pastracker_copia_completa_${hoy}.json`);
     try { localStorage.setItem(CLAVE_ULTIMA, hoy); } catch { /* sin almacenamiento: se volverá a intentar */ }
     return { ok: true, filas };
   } catch (e) {

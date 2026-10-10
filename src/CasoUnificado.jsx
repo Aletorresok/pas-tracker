@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { formatoFecha } from "./utils/formatters.js";
+import { fmtDate, fechaLocalISO } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
@@ -13,7 +13,6 @@ import SeccionHonorarios from "./components/caso/SeccionHonorarios.jsx";
 import ResultadoCaso from "./components/caso/ResultadoCaso.jsx";
 import SeccionFechas from "./components/caso/SeccionFechas.jsx";
 import SeccionTimeline from "./components/caso/SeccionTimeline.jsx";
-import CasoProximaAccion from "./components/caso/CasoProximaAccion.jsx";
 import ModalGenerarEscrito from "./components/caso/ModalGenerarEscrito.jsx";
 import { abrirEscritos } from "./utils/escritoAbierto.js";
 import { hayNovedadesCliente, avisoNovedad } from "./utils/novedadesCliente.js";
@@ -26,7 +25,6 @@ import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_A
 import DialogoEtapa from "./components/caso/DialogoEtapa.jsx";
 import { registrarAccion } from "./utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente } from "./utils/ofertas.js";
-import { fechaLocalISO } from "./utils/formatters.js";
 import { useMargenes } from "./utils/margenes.js";
 import { estadoHonorarios } from "./utils/metricas.js";
 import RecepcionCliente from "./components/caso/RecepcionCliente.jsx";
@@ -34,9 +32,9 @@ import AdjuntosPAS from "./components/caso/AdjuntosPAS.jsx";
 import { pendientesRecepcion, escucharRecepcion } from "./utils/subidasCliente.js";
 import ResumenCaso from "./components/caso/ResumenCaso.jsx";
 import Boton from "./components/ui/Boton.jsx";
-import Icono from "./components/ui/Icono.jsx";
 import { ESTADOS_CASO } from "./constants.js";
 import { COLUMNAS_SQL44, COLUMNAS_PREVIAS } from "./utils/datosSiniestro.js";
+import VentanaFicha from "./components/ui/VentanaFicha.jsx";
 
 const PAS_CASOS_COLS = new Set([
   "id","caso_id","asegurado","dni_asegurado","estado","nota","nro_siniestro",
@@ -357,124 +355,113 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 400 }} onClick={cerrar} />
-      <div ref={dialogoRef} className="modal-panel" role="dialog" aria-modal="true" aria-label={`Caso de ${formData.asegurado || "asegurado"}`}
-        style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 401, width: "100%", maxWidth: 1000, maxHeight: "92vh", overflow: "auto", padding: 16 }}>
-        <div style={{ background: Th.bg, border: `1px solid ${Th.border}`, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", minHeight: "60vh" }}>
-
+      <VentanaFicha etiqueta={`Caso de ${formData.asegurado || "asegurado"}`} onCerrar={cerrar} dialogoRef={dialogoRef} Th={Th}
+        encabezado={<>
           {/* Encabezado fijo: identidad, acciones, etapas y pestañas */}
-          <div className="modal-sticky" style={{ position: "sticky", background: Th.card, borderRadius: "var(--r-lg) var(--r-lg) 0 0", borderBottom: `1px solid ${Th.border}`, padding: "16px 20px 0", zIndex: 50 }}>
-            <button type="button" onClick={cerrar} aria-label="Cerrar" style={{ position: "absolute", top: 14, right: 16, background: Th.card2, border: `1px solid ${Th.border}`, borderRadius: "var(--r-sm)", color: Th.sub, width: 32, height: 32, display: "grid", placeItems: "center", cursor: "pointer" }}>
-              <Icono nombre="cerrar" size={16} />
-            </button>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
-              <div style={{ minWidth: 0, flex: "1 1 280px" }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: Th.text, letterSpacing: -0.3, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
-                <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
-                  {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
-                  {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
-                  {pasNombre && <span>PAS {pasNombre}</span>}
-                  {caso.fecha_derivacion && <span>derivado {formatoFecha(caso.fecha_derivacion)}</span>}
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                <span role="status" style={{ fontSize: 12, fontWeight: 600, color: COLOR_GUARDADO[estadoGuardado], marginRight: 4 }}>
-                  {estadoGuardado === "error"
-                    ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
-                    : TEXTO_GUARDADO[estadoGuardado]}
-                </span>
-                {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
-                <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
-                <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({
-                  caso: { ...caso, ...formData }, pasId, dirHandle: dirHandleRef.current,
-                  onDni: v => handleFormChange("dni_asegurado", v),
-                  onGuardadoEnCarpeta: () => setVersionCarpeta(v => v + 1),
-                  onReclamoViejo: () => setModalEscrito(true),
-                })}>Generar escrito</Boton>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
+            <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: Th.text, letterSpacing: -0.3, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
+              <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
+                {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
+                {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}
+                {pasNombre && <span>PAS {pasNombre}</span>}
+                {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
               </div>
             </div>
-
-            <div style={{ marginTop: 16 }}>
-              <EtapasCaso estado={formData.estado} onChange={cambiarEstado} />
-              {deshacer && (
-                <div role="status" style={{ marginTop: 10, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: "var(--r-sm)", padding: "6px 12px", fontSize: 13 }}>
-                  Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
-                  <button type="button" onClick={() => { handleFormChange("estado", deshacer.anterior); setDeshacer(null); }}
-                    style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
-                </div>
-              )}
-              {sugerencia && (
-                <div style={{ marginTop: 10 }}>
-                  <SugerenciaEstado key={sugerencia.estado} sugerencia={sugerencia} onCerrar={() => setSugerencia(null)}
-                    onUsarAccion={a => { handleFormChange("proxima_accion", a.texto); handleFormChange("proxima_accion_vence", a.vence); setSugerencia(s => (s?.avisar ? { ...s, accion: null } : null)); }}
-                    avisoWhatsApp={<AvisarWhatsApp key={sugerencia.estado} abiertoInicial caso={{ ...caso, ...formData }} pasNombre={pasNombre || ""} pasTelefono={pasTelefono}
-                      onTelefonoCliente={v => handleFormChange("telefono_asegurado", v)} onUsarComoMensaje={t => handleFormChange("mensaje_cliente", t)} />} />
-                </div>
-              )}
-            </div>
-
-            <div role="tablist" aria-label="Secciones del caso" style={{ display: "flex", gap: 20, marginTop: 14, overflowX: "auto" }}>
-              {PESTANAS.map(t => {
-                const activa = pestana === t.k;
-                return (
-                  <button key={t.k} type="button" role="tab" id={`tab-${t.k}`} aria-selected={activa} aria-controls={`panel-${t.k}`} onClick={() => setPestana(t.k)}
-                    style={{ flex: "none", background: "none", border: "none", borderBottom: `2px solid ${activa ? "var(--accent)" : "transparent"}`, padding: "8px 0 10px", cursor: "pointer", font: "inherit", fontSize: 14, fontWeight: activa ? 600 : 500, color: activa ? Th.text : Th.sub, whiteSpace: "nowrap" }}>
-                    {t.l}{t.n ? <span className="num" style={{ marginLeft: 6, fontSize: 12, color: Th.muted }}>{t.n}</span> : null}
-                  </button>
-                );
-              })}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span role="status" style={{ fontSize: 12, fontWeight: 600, color: COLOR_GUARDADO[estadoGuardado], marginRight: 4 }}>
+                {estadoGuardado === "error"
+                  ? <button type="button" onClick={() => guardarCasoRef.current?.()} style={{ background: "none", border: "none", color: "inherit", font: "inherit", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{TEXTO_GUARDADO.error}</button>
+                  : TEXTO_GUARDADO[estadoGuardado]}
+              </span>
+              {onEliminar && <Boton tamaño="sm" variante="peligro" onClick={eliminar}>Eliminar</Boton>}
+              <Boton tamaño="sm" icono="pdf" onClick={handleExportarPDF} disabled={exportandoPDF}>{exportandoPDF ? "Exportando…" : "PDF"}</Boton>
+              <Boton tamaño="sm" variante="primario" icono="escrito" onClick={() => abrirEscritos({
+                caso: { ...caso, ...formData }, pasId, dirHandle: dirHandleRef.current,
+                onDni: v => handleFormChange("dni_asegurado", v),
+                onGuardadoEnCarpeta: () => setVersionCarpeta(v => v + 1),
+                onReclamoViejo: () => setModalEscrito(true),
+              })}>Generar escrito</Boton>
             </div>
           </div>
 
-          <div style={{ padding: 20 }}>
-            {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
-            <div {...panel("resumen")}>
-              <ResumenCaso recepcionNuevos={recepcion.length} casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} onEditarAccion={a => { setPestana("bitacora"); setEditarAccionId(a.id); }} irA={setPestana} Th={Th} />
-            </div>
-            <div {...panel("datos")}>
-              <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
-              <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} plazoCompania={plazoCompania} />
-              {caso.id && <PlazosCaso caso={caso} setToast={setToast} />}
-            </div>
-            <div {...panel("montos")}>
-              {/* Arriba lo que corresponde a la etapa: en reclamo, montos y ofertas; con acuerdo, pagos, factura y resultado */}
-              {enCobro ? <>
-                <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
-                <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
-                <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
-                {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
-                <Plegable titulo="Ofertas de la compañía" Th={Th}>
-                  <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
-                </Plegable>
-              </> : <>
-                <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
-                <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
-                <Plegable titulo="Pagos, factura y resultado" Th={Th}>
-                  <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
-                  <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
-                  {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
-                </Plegable>
-              </>}
-            </div>
-            <div {...panel("documentos")}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentos</span>
+          <div style={{ marginTop: 16 }}>
+            <EtapasCaso estado={formData.estado} onChange={cambiarEstado} />
+            {deshacer && (
+              <div role="status" style={{ marginTop: 10, display: "inline-flex", gap: 12, alignItems: "center", background: "var(--text)", color: "var(--bg)", borderRadius: "var(--r-sm)", padding: "6px 12px", fontSize: 13 }}>
+                Estado cambiado a {ESTADOS_CASO.find(e => e.key === deshacer.nuevo)?.label}
+                <button type="button" onClick={() => { handleFormChange("estado", deshacer.anterior); setDeshacer(null); }}
+                  style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>Deshacer</button>
               </div>
-              <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
-              <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
-              <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
-            </div>
-            <div {...panel("bitacora")}>
-              <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} editarId={editarAccionId} onEditarAbierto={() => setEditarAccionId(null)} avisoPas Th={Th}
-                cambios={caso.id ? { tabla: "pas_casos", filaId: caso.id, version: versionAuditoria,
-                  // estado_honorarios y monto_honorarios los calcula el guardado: se restauran cambiando lo que los origina
-                  puedeRestaurar: k => k in formData && !["estado_honorarios", "monto_honorarios"].includes(k),
-                  valorActual: k => formData[k], onRestaurar: handleFormChange } : null}
-                cliente={novedades && caso.id ? { aviso: texto => avisoNovedad({ caso: { ...caso, ...formData }, texto }) } : null} />
-            </div>
+            )}
+            {sugerencia && (
+              <div style={{ marginTop: 10 }}>
+                <SugerenciaEstado key={sugerencia.estado} sugerencia={sugerencia} onCerrar={() => setSugerencia(null)}
+                  onUsarAccion={a => { handleFormChange("proxima_accion", a.texto); handleFormChange("proxima_accion_vence", a.vence); setSugerencia(s => (s?.avisar ? { ...s, accion: null } : null)); }}
+                  avisoWhatsApp={<AvisarWhatsApp key={sugerencia.estado} abiertoInicial caso={{ ...caso, ...formData }} pasNombre={pasNombre || ""} pasTelefono={pasTelefono}
+                    onTelefonoCliente={v => handleFormChange("telefono_asegurado", v)} onUsarComoMensaje={t => handleFormChange("mensaje_cliente", t)} />} />
+              </div>
+            )}
           </div>
+
+          <div role="tablist" aria-label="Secciones del caso" style={{ display: "flex", gap: 20, marginTop: 14, overflowX: "auto" }}>
+            {PESTANAS.map(t => {
+              const activa = pestana === t.k;
+              return (
+                <button key={t.k} type="button" role="tab" id={`tab-${t.k}`} aria-selected={activa} aria-controls={`panel-${t.k}`} onClick={() => setPestana(t.k)}
+                  style={{ flex: "none", background: "none", border: "none", borderBottom: `2px solid ${activa ? "var(--accent)" : "transparent"}`, padding: "8px 0 10px", cursor: "pointer", font: "inherit", fontSize: 14, fontWeight: activa ? 600 : 500, color: activa ? Th.text : Th.sub, whiteSpace: "nowrap" }}>
+                  {t.l}{t.n ? <span className="num" style={{ marginLeft: 6, fontSize: 12, color: Th.muted }}>{t.n}</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        </>}>
+        {/* Todas las pestañas quedan montadas (ocultas) para no perder la carpeta local vinculada */}
+        <div {...panel("resumen")}>
+          <ResumenCaso recepcionNuevos={recepcion.length} casoId={caso.id} nroSiniestro={caso.nro_siniestro} pasNombre={pasNombre} pasTelefono={pasTelefono} tercero_contacto={caso.tercero_contacto} formData={formData} onChange={handleFormChange} acciones={acciones} onCrearAccion={handleCrearAccion} onEditarAccion={a => { setPestana("bitacora"); setEditarAccionId(a.id); }} irA={setPestana} Th={Th} />
         </div>
-      </div>
+        <div {...panel("datos")}>
+          <SeccionInfo formData={formData} onChange={handleFormChange} darkMode={darkMode} Th={Th} companias={companias} onAgregarCompania={onAgregarCompania} />
+          <SeccionFechas formData={formData} onChange={handleFormChange} Th={Th} plazoCompania={plazoCompania} />
+          {caso.id && <PlazosCaso caso={caso} setToast={setToast} />}
+        </div>
+        <div {...panel("montos")}>
+          {/* Arriba lo que corresponde a la etapa: en reclamo, montos y ofertas; con acuerdo, pagos, factura y resultado */}
+          {enCobro ? <>
+            <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
+            <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
+            <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+            {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
+            <Plegable titulo="Ofertas de la compañía" Th={Th}>
+              <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
+            </Plegable>
+          </> : <>
+            <SeccionMontos formData={formData} onChange={handleFormChange} Th={Th} pctComision={pctComision} />
+            <HistorialOfertas key={versionOfertas} casoId={caso.id} formData={{ ...caso, ...formData }} onChange={handleFormChange} onBitacora={cargarAcciones} Th={Th} />
+            <Plegable titulo="Pagos, factura y resultado" Th={Th}>
+              <SeccionPagos formData={formData} onChange={handleFormChange} Th={Th} />
+              <SeccionHonorarios formData={formData} onChange={handleFormChange} Th={Th} />
+              {caso.id && <ResultadoCaso caso={caso} formData={formData} setToast={setToast} Th={Th} />}
+            </Plegable>
+          </>}
+        </div>
+        <div {...panel("documentos")}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: Th.text }}>Documentos</span>
+          </div>
+          <RecepcionCliente pendientes={recepcion} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+          <AdjuntosPAS pasId={caso.pas_id ?? pasId} casoId={caso.id} dirHandleRef={dirHandleRef} setToast={setToast} Th={Th} onGuardado={() => setVersionCarpeta(v => v + 1)} />
+          <CasoDocumentos versionCarpeta={versionCarpeta} Th={Th} caso={caso} setToast={setToast} setPreviewArchivo={setPreviewArchivo} dirHandleRef={dirHandleRef} />
+        </div>
+        <div {...panel("bitacora")}>
+          <SeccionTimeline acciones={acciones} loading={loadingAcciones} onCrear={handleCrearAccion} onActualizar={handleActualizarAccion} onEliminar={handleEliminarAccion} editarId={editarAccionId} onEditarAbierto={() => setEditarAccionId(null)} avisoPas Th={Th}
+            cambios={caso.id ? { tabla: "pas_casos", filaId: caso.id, version: versionAuditoria,
+              // estado_honorarios y monto_honorarios los calcula el guardado: se restauran cambiando lo que los origina
+              puedeRestaurar: k => k in formData && !["estado_honorarios", "monto_honorarios"].includes(k),
+              valorActual: k => formData[k], onRestaurar: handleFormChange } : null}
+            cliente={novedades && caso.id ? { aviso: texto => avisoNovedad({ caso: { ...caso, ...formData }, texto }) } : null} />
+        </div>
+      </VentanaFicha>
 
       {dialogoEtapa && <DialogoEtapa caso={formData} nuevo={dialogoEtapa} plazoCompania={plazoCompania}
         onCancelar={() => setDialogoEtapa(null)} onConfirmar={r => { const n = dialogoEtapa; setDialogoEtapa(null); aplicarEstado(n, r); }} />}

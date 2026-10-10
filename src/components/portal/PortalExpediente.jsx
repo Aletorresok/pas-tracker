@@ -3,7 +3,7 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { alpha } from "../../utils/theme.js";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
-import Logo from "../ui/Logo.jsx";
+import EncabezadoCliente from "./EncabezadoCliente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { Novedades, WHATSAPP, ABOGADO, HORARIO_ATENCION } from "./PortalCliente.jsx";
 import { consultarExpedienteCliente, ESTADO_EXPEDIENTE_CLIENTE } from "../../utils/novedadesCliente.js";
@@ -54,19 +54,7 @@ export default function PortalExpediente() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", display: "flex", flexDirection: "column" }}>
-      <header style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "12px 16px", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <Logo alto={26} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}>ATG Lex Solutions</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Seguimiento de tu expediente</div>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {exp && <Boton variante="fantasma" tamaño="sm" icono="salir" onClick={() => { setExp(null); setDni(""); }}>Salir</Boton>}
-          <Boton variante="fantasma" tamaño="sm" icono={darkMode ? "sol" : "luna"} onClick={toggleDarkMode} aria-label={darkMode ? "Modo claro" : "Modo oscuro"} />
-        </div>
-      </header>
+      <EncabezadoCliente subtitulo="Seguimiento de tu expediente" onSalir={exp && (() => { setExp(null); setDni(""); })} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
       <main style={{ flex: 1, width: "100%", maxWidth: exp ? 760 : 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
         {!exp ? (

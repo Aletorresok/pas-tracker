@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FRECUENCIAS, PRIORIDADES, ACCESOS, DIAS_SEMANA, prioridad, hhmm, guardarItem, borrarItem, cargarSugerida, guardarEscuela, borrarEscuela } from "../../utils/rutina.js";
 import { fmtDate, fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import BotoneraForm from "../ui/BotoneraForm.jsx";
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 4 };
 const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", font: "inherit", fontSize: 14 };
@@ -181,13 +182,7 @@ export default function EditorRutina({ items, escuela, onCambio, setToast }) {
                 {ACCESOS.map(a => <option key={a.k} value={a.k}>{a.l}</option>)}
               </select>
             </label>
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", gridColumn: "1 / -1", marginTop: 4 }}>
-              {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
-              <span style={{ display: "flex", gap: 8 }}>
-                <Boton variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
-                <Boton variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              </span>
-            </div>
+            <BotoneraForm onBorrar={form.id && borrar} onCancelar={() => setForm(null)} onGuardar={guardar} guardando={guardando} style={{ gridColumn: "1 / -1" }} />
           </div>
         </div>
       )}

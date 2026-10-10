@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PERIODOS, METRICAS, metrica, rangoPeriodo, nombrePeriodo, avanceObjetivo, formatoValor, guardarObjetivo, borrarObjetivo } from "../../utils/objetivos.js";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
+import BotoneraForm from "../ui/BotoneraForm.jsx";
 import Icono from "../ui/Icono.jsx";
 import AnilloObjetivo, { COLOR_NIVEL } from "./AnilloObjetivo.jsx";
 
@@ -112,13 +113,7 @@ export default function ObjetivosPanel({ objetivos, datos, onCambio, setToast })
                 <input type="number" inputMode="decimal" min="0" value={form.meta} onChange={e => setForm(f => ({ ...f, meta: e.target.value }))} style={campo} />
               </label>
             )}
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", flexWrap: "wrap", marginTop: 4 }}>
-              {form.id ? <Boton variante="peligro" onClick={borrar}>Borrar</Boton> : <span />}
-              <span style={{ display: "flex", gap: 8 }}>
-                <Boton variante="fantasma" onClick={() => setForm(null)}>Cancelar</Boton>
-                <Boton variante="primario" onClick={guardar} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Boton>
-              </span>
-            </div>
+            <BotoneraForm onBorrar={form.id && borrar} onCancelar={() => setForm(null)} onGuardar={guardar} guardando={guardando} />
           </div>
         </div>
       )}

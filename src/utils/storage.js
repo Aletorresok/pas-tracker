@@ -33,115 +33,47 @@ export async function insertHistorialEntry(pasId, entry) {
 // ── SAVE STORAGE ──────────────────────────────────────────────────────────────
 // Guarda casos, derivadores y descartados en Supabase
 
+// Columnas de pas_casos que se copian tal cual (vacío → null)
+const CAMPOS_CASO = [
+  "asegurado", "dni_asegurado", "estado", "nota", "compania_aseguradora", "nro_siniestro", "fecha_siniestro",
+  "ubicacion", "presupuesto", "tercero_nombre", "tercero_dni", "tercero_contacto", "vehiculo", "patente",
+  "motor", "chasis", "vehiculo_tercero", "dominio_tercero", "relato", "comentarios", "fecha_derivacion",
+  "fecha_contacto_asegurado", "fecha_inicio_reclamo", "fecha_ultimo_movimiento", "monto_ofrecimiento",
+  "monto_cobro_asegurado", "monto_cobro_yo", "monto_comision_pas", "carpeta_path", "primer_ofrecimiento",
+  "segundo_ofrecimiento", "fecha_carga", "fecha_reclamo", "fecha_ultimo_reclamo", "fecha_ofrecimiento",
+  "fecha_reconsideracion", "fecha_aceptacion", "fecha_firma", "fecha_pago", "fecha_cobro", "fecha_mediacion",
+  "fecha_inicio_juicio", "monto_acordado", "plazo_pago", "porcentaje_honorarios", "monto_honorarios",
+  "fecha_factura", "fecha_cobro_honorarios",
+];
+
 export async function saveStorage(tabla, data) {
   try {
-    if (tabla === "pas_historial") {
-      // Ignorado — usar insertHistorialEntry() para guardar entries individuales
-      return;
-
-    } else if (tabla === "pas_casos") {
+    let rows, onConflict = "pas_id";
+    if (tabla === "pas_casos") {
       // data = { [pas_id]: [{...caso}] }
-      const rows = [];
+      onConflict = "id";
+      rows = [];
       Object.entries(data).forEach(([pas_id, casosList]) => {
         const numPasId = parseInt(pas_id, 10);
         if (isNaN(numPasId)) { console.warn("[saveStorage] Skipping pas_id no numérico:", pas_id); return; }
         casosList.forEach(caso => {
-          const isUUID = typeof caso.id === 'string' && caso.id.includes('-');
-          const row = {
+          const isUUID = typeof caso.id === "string" && caso.id.includes("-");
+          rows.push({
+            ...Object.fromEntries(CAMPOS_CASO.map(k => [k, caso[k] || null])),
             id: isUUID ? caso.id : generateUUID(),
             caso_id: caso.caso_id || caso.id || generateCasoId(),
             pas_id: numPasId,
             estado_honorarios: caso.estado_honorarios || "NO_FACTURADO",
-            // Resto de campos
-            asegurado: caso.asegurado || null,
-            dni_asegurado: caso.dni_asegurado || null,
-            estado: caso.estado || null,
-            nota: caso.nota || null,
-            compania_aseguradora: caso.compania_aseguradora || null,
-            nro_siniestro: caso.nro_siniestro || null,
-            fecha_siniestro: caso.fecha_siniestro || null,
-            ubicacion: caso.ubicacion || null,
-            presupuesto: caso.presupuesto || null,
-            tercero_nombre: caso.tercero_nombre || null,
-            tercero_dni: caso.tercero_dni || null,
-            tercero_contacto: caso.tercero_contacto || null,
-            vehiculo: caso.vehiculo || null,
-            patente: caso.patente || null,
-            motor: caso.motor || null,
-            chasis: caso.chasis || null,
-            vehiculo_tercero: caso.vehiculo_tercero || null,
-            dominio_tercero: caso.dominio_tercero || null,
-            relato: caso.relato || null,
-            comentarios: caso.comentarios || null,
-            fecha_derivacion: caso.fecha_derivacion || null,
-            fecha_contacto_asegurado: caso.fecha_contacto_asegurado || null,
-            fecha_inicio_reclamo: caso.fecha_inicio_reclamo || null,
-            fecha_ultimo_movimiento: caso.fecha_ultimo_movimiento || null,
-            monto_ofrecimiento: caso.monto_ofrecimiento || null,
-            monto_cobro_asegurado: caso.monto_cobro_asegurado || null,
-            monto_cobro_yo: caso.monto_cobro_yo || null,
-            monto_comision_pas: caso.monto_comision_pas || null,
-            carpeta_path: caso.carpeta_path || null,
-            primer_ofrecimiento: caso.primer_ofrecimiento || null,
-            segundo_ofrecimiento: caso.segundo_ofrecimiento || null,
-            fecha_carga: caso.fecha_carga || null,
-            fecha_reclamo: caso.fecha_reclamo || null,
-            fecha_ultimo_reclamo: caso.fecha_ultimo_reclamo || null,
-            fecha_ofrecimiento: caso.fecha_ofrecimiento || null,
-            fecha_reconsideracion: caso.fecha_reconsideracion || null,
-            fecha_aceptacion: caso.fecha_aceptacion || null,
-            fecha_firma: caso.fecha_firma || null,
-            fecha_pago: caso.fecha_pago || null,
-            fecha_cobro: caso.fecha_cobro || null,
-            fecha_mediacion: caso.fecha_mediacion || null,
-            fecha_inicio_juicio: caso.fecha_inicio_juicio || null,
-            monto_acordado: caso.monto_acordado || null,
-            plazo_pago: caso.plazo_pago || null,
-            porcentaje_honorarios: caso.porcentaje_honorarios || null,
-            monto_honorarios: caso.monto_honorarios || null,
-            fecha_factura: caso.fecha_factura || null,
-            fecha_cobro_honorarios: caso.fecha_cobro_honorarios || null,
-          };
-          rows.push(row);
+          });
         });
       });
-
-      if (!rows.length) return;
-
-      const { error } = await supabase
-        .from("pas_casos")
-        .upsert(rows, { onConflict: "id" });
-      if (error) console.error("[saveStorage] pas_casos error:", error);
-
-    } else if (tabla === "pas_derivadores") {
+    } else if (tabla === "pas_derivadores" || tabla === "pas_descartados") {
       // data = { [pas_id]: true/false }
-      const rows = Object.entries(data).map(([pas_id, activo]) => ({
-        pas_id: parseInt(pas_id, 10),
-        activo: !!activo,
-      }));
-
-      if (!rows.length) return;
-
-      const { error } = await supabase
-        .from("pas_derivadores")
-        .upsert(rows, { onConflict: "pas_id" });
-      if (error) console.error("[saveStorage] pas_derivadores error:", error);
-
-    } else if (tabla === "pas_descartados") {
-      // data = { [pas_id]: true/false }
-      const rows = Object.entries(data).map(([pas_id, activo]) => ({
-        pas_id: parseInt(pas_id, 10),
-        activo: !!activo,
-      }));
-
-      if (!rows.length) return;
-
-      const { error } = await supabase
-        .from("pas_descartados")
-        .upsert(rows, { onConflict: "pas_id" });
-      if (error) console.error("[saveStorage] pas_descartados error:", error);
+      rows = Object.entries(data).map(([pas_id, activo]) => ({ pas_id: parseInt(pas_id, 10), activo: !!activo }));
     }
-
+    if (!rows?.length) return;
+    const { error } = await supabase.from(tabla).upsert(rows, { onConflict });
+    if (error) console.error(`[saveStorage] ${tabla} error:`, error);
   } catch (err) {
     console.error("[saveStorage] error:", err);
   }

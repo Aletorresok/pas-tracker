@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../supabase.js";
 import { ESTADOS_CASO } from "../../constants.js";
-import { fechaEnDias, diasHasta, fmtDate } from "../../utils/formatters.js";
+import { fechaEnDias, diasHasta, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
 import { alpha } from "../../utils/theme.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import PlazoChip from "../ui/PlazoChip.jsx";
@@ -13,7 +13,6 @@ import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_A
 import DialogoEtapa from "../caso/DialogoEtapa.jsx";
 import { registrarAccion } from "../../utils/storage.js";
 import { registrarCambioOfrecimiento, cargarCompania, cargarComisiones, comisionPara, aceptarUltimaPendiente, textoOferta } from "../../utils/ofertas.js";
-import { fechaLocalISO } from "../../utils/formatters.js";
 import { useMargenes } from "../../utils/margenes.js";
 
 // Campos que se editan desde la fila desplegada de la tabla

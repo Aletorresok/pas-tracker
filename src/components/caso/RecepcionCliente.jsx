@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { etiquetaDoc, descargarRecepcion, marcarGuardado } from "../../utils/subidasCliente.js";
-import { verificarPermiso } from "../../utils/formatters.js";
+import { verificarPermiso, bajarArchivo } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
 
 const extension = (s, blob) => {
@@ -18,13 +18,6 @@ async function siguienteNombre(dirHandle, tipo, ext) {
     if (m) max = Math.max(max, Number(m[1]));
   }
   return `${tipo}_${max + 1}${ext}`;
-}
-
-function bajarAlNavegador(blob, nombre) {
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement("a"), { href: url, download: nombre });
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 // Lo que mandó el cliente desde su vista y todavía está en la nube. Se guarda en la carpeta del caso y se borra de Supabase.
@@ -45,7 +38,7 @@ export default function RecepcionCliente({ pendientes, dirHandleRef, onGuardado,
       await w.write(blob);
       await w.close();
     } else {
-      bajarAlNavegador(blob, `${s.tipo}_cliente${ext}`);
+      bajarArchivo(blob, `${s.tipo}_cliente${ext}`);
     }
     return await marcarGuardado(s);
   };

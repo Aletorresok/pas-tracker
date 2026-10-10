@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import TablaAnalisis, { card, tono, Nota } from "./TablaAnalisis.jsx";
+import TablaAnalisis, { card, tono, Nota, Kpis } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import HonorariosPorMes from "./HonorariosPorMes.jsx";
 import { flujoCaja, DIAS_FACTURA, proyeccion } from "../../utils/analisis.js";
@@ -28,15 +28,7 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso, companias, comisio
 
   return (
     <>
-      <section className="kpis" style={{ ...card, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-        {kpis.map(x => (
-          <div key={x.l} style={{ padding: "12px 16px" }}>
-            <div style={{ fontSize: 12, color: "var(--sub)" }}>{x.l}</div>
-            <div className="num" style={{ fontSize: 22, fontWeight: 700, marginTop: 2, color: x.alerta ? "var(--bad)" : undefined }}>{x.v}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{x.s}</div>
-          </div>
-        ))}
-      </section>
+      <Kpis items={kpis} />
 
       <HonorariosPorMes allCasos={allCasos} onAbrirCaso={onAbrirCaso} />
 

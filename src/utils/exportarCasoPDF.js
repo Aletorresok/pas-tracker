@@ -1,29 +1,13 @@
 import { estadoHonorarios } from "./metricas.js";
 import { jsPDF } from "jspdf";
 import { dibujarPie } from "./pdfMembrete.js";
+import { fmtMoney as money, fechaLocalISO } from "./formatters.js";
+import { fechaCorta } from "./plantillas.js";
+import { estadoInfo } from "../constants.js";
 
-function fmt(iso) {
-  if (!iso) return "—";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function money(n) {
-  if (n === null || n === undefined || n === "") return "—";
-  return "$" + Number(n).toLocaleString("es-AR");
-}
-
-const ESTADO_LABEL = {
-  doc_pendiente: "Documentación pendiente",
-  iniciado: "Iniciado",
-  reclamado: "Reclamado",
-  con_ofrecimiento: "Con ofrecimiento",
-  en_mediacion: "En mediación",
-  en_juicio: "En juicio",
-  esperando_pago: "Esperando pago",
-  cobrado: "Cobrado",
-  desistido: "Desistido",
-};
+const fmt = iso => fechaCorta(iso) || "—";
+// En el PDF el estado va completo ("Doc. pendiente" es para las pastillas)
+const estadoLabel = k => (k === "doc_pendiente" ? "Documentación pendiente" : estadoInfo(k).label);
 
 export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSuccess, onError }) {
   try {
@@ -62,7 +46,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
 
     // Header
     addLine(18, "bold", "Resumen del caso");
-    addLine(10, "normal", `Generado el ${fmt(new Date().toISOString())}`, "#888888");
+    addLine(10, "normal", `Generado el ${fmt(fechaLocalISO())}`, "#888888");
     y += 3;
 
     // Datos principales
@@ -70,7 +54,7 @@ export async function exportarCasoPDF({ caso, pasNombre, acciones = [], onSucces
     y += 2;
     addRow("Asegurado", caso.asegurado);
     addRow("Compañía", caso.compania_aseguradora);
-    addRow("Estado", ESTADO_LABEL[caso.estado] || caso.estado);
+    addRow("Estado", estadoLabel(caso.estado));
     addRow("N° Siniestro", caso.nro_siniestro);
     addRow("PAS / Productor", pasNombre);
     addRow("DNI Asegurado", caso.dni_asegurado);

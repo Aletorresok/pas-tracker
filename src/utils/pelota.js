@@ -9,7 +9,6 @@ export const QUIEN = [
   { k: "compania", l: "Esperando a la compañía", corto: "Compañía" },
   { k: "terceros", l: "Mediación o juicio", corto: "Mediación / juicio" },
 ];
-export const quienLabel = k => QUIEN.find(q => q.k === k)?.l || "";
 
 export const QUIEN_POR_ESTADO = {
   doc_pendiente: "cliente",
