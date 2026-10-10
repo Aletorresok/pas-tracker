@@ -467,7 +467,7 @@ export default function PortalCliente() {
       <main style={{ flex: 1, width: "100%", maxWidth: casos ? 1000 : 560, margin: "0 auto", padding: "24px 16px 32px", boxSizing: "border-box" }}>
         {!casos ? (
           <>
-            <Ilustracion nombre="auto" size={96} style={{ margin: "0 0 4px -8px" }} />
+            <Ilustracion nombre="camino" size={96} style={{ margin: "0 0 4px -4px" }} />
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px", letterSpacing: -0.3 }}>¿Cómo va tu reclamo?</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 20px", lineHeight: 1.5 }}>Ingresá la patente de tu vehículo y los últimos 3 números de tu DNI.</p>
 

@@ -1,4 +1,5 @@
 // Ilustraciones de línea para pantallas vacías y la vista del cliente.
+// Cuadradas (120×120) salvo las que dicen otro `ancho`; `size` es el alto.
 // Trazo en el color del texto (se adapta a claro/oscuro) y un detalle en el color de acento.
 const DIBUJOS = {
   // Carpeta abierta y vacía
@@ -31,16 +32,23 @@ const DIBUJOS = {
     </>,
     acento: <path d="M86 20l6-6M88 30h8M82 12V4" />,
   },
-  // Auto con un escudo (el seguro)
-  auto: {
+  // Camino con vueltas y tres etapas; el auto llega a la bandera (el reclamo avanza hasta el cobro)
+  camino: {
+    ancho: 160,
     linea: <>
-      <path d="M20 84h-4a2 2 0 0 1-2-2v-10a6 6 0 0 1 4-6l14-4 12-12a8 8 0 0 1 6-2h28a8 8 0 0 1 6 3l12 13 10 2a6 6 0 0 1 5 6v10a2 2 0 0 1-2 2h-5" />
-      <circle cx="33" cy="84" r="8" />
-      <circle cx="89" cy="84" r="8" />
-      <path d="M41 84h40" />
-      <path d="M50 60l8-8h13v8zM77 52h9l8 8H77z" />
+      <path d="M4 108H112C140 107 140 67 112 66H52C44 66 44 51 52 50.5L156 45" />
+      <path d="M10 92H112C120 92 120 78 112 78H52C28 78 28 42 52 41.5L82 39.9M125 37.6L156 36" />
+      <circle cx="20" cy="100" r="3.5" />
+      <circle cx="82" cy="72" r="3.5" />
+      <circle cx="140" cy="41.3" r="3" />
+      <g transform="translate(94 44.3) rotate(-3)">
+        <path d="M-4.5 0H-8a2 2 0 0 1-2-2v-5a3 3 0 0 1 2.4-2.9L-1-11l5-5a3 3 0 0 1 2.1-.9H15a3 3 0 0 1 2.3 1.1l4.2 4.8 4.5 1a3 3 0 0 1 2.4 2.9V-2a2 2 0 0 1-2 2h-2.5M4.5 0h10" />
+        <circle cx="0" cy="0" r="4" />
+        <circle cx="19" cy="0" r="4" />
+        <path d="M1.5-11l4-4h9l4 4zM10.5-15v4" />
+      </g>
     </>,
-    acento: <path d="M62 64l7 3v5c0 5-3 8-7 9-4-1-7-4-7-9v-5z" />,
+    acento: <path d="M140 38.3V18l12 4-12 4.5" />,
   },
 };
 
@@ -48,7 +56,7 @@ export default function Ilustracion({ nombre, size = 96, style }) {
   const d = DIBUJOS[nombre];
   if (!d) return null;
   return (
-    <svg viewBox="0 0 120 120" width={size} height={size} aria-hidden="true" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+    <svg viewBox={`0 0 ${d.ancho || 120} 120`} width={size * (d.ancho || 120) / 120} height={size} aria-hidden="true" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
       style={{ display: "block", flex: "none", ...style }}>
       <g stroke="var(--sub)">{d.linea}</g>
       <g stroke="var(--accent)">{d.acento}</g>
