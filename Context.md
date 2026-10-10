@@ -146,6 +146,9 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-10 — Rediseño, tanda A: tokens v2 (claridad antes que efectos)
+*   Solo CSS global (`src/index.css`), sin tocar la lógica. **Contraste:** `--muted` #7D8392 → #646B7D (≈4,9:1 sobre el fondo; en oscuro #8A91A1) y `--accent` dorado #A6821F → #8F6F14 (texto blanco sobre botones ≈4,7:1; antes ≈3,6:1). **Radios:** 6 · 10 · 14 · 18 · 20 px (antes 8 · 12 · 18 · 24 · 28). **Superficies lisas:** sin vidrio ni `backdrop-filter` en paneles, menú lateral, barra inferior y menú contextual; sin degradados de fondo. **Elevación:** reposo = borde de 1 px (`--sh-1` apenas una línea), `--sh-2` solo al pasar el mouse, `--sh-3` para menús y ventanas. **Movimiento:** 140 ms con `--ease`; `--spring` ya no rebota; las tarjetas, chips y el menú lateral no se desplazan al hover (solo cambian de fondo o borde). **Nada escondido:** el botón de acción de las tarjetas de Hoy y el monto se ven siempre; las acciones de fila (`.solo-hover`) quedan visibles al 60 %.
+
 ### 2026-10-10 — Rediseño, paso 1: se saca el tablero y el arrastre
 *   Decisión del usuario: el **tablero** (Casos y Expedientes) y **arrastrar** (reordenar listas de Hoy) no se usaban. Se eliminaron `casos/TableroCasos.jsx`, `ui/TableroEtapas.jsx`, `ui/ListaOrdenable.jsx` (reemplazado por `ui/ListaTarjetas.jsx`, lista simple en el orden de vencimiento), el selector Tabla/Tablero de Casos y Expedientes, el asa de las tarjetas, el botón "Restablecer orden" y las dependencias `@dnd-kit/*`. Cambiar de etapa sigue con la ficha, la etiqueta de estado y "Mover a" (`casos/useMoverCaso.jsx`). `localStorage.pas_casos_vista` / `expedientes_vista` / `orden:*` quedan sin uso. Las entradas anteriores de este registro que hablan de tableros y arrastre son historia.
 

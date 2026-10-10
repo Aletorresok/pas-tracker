@@ -84,7 +84,7 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 
 ## Filosofía de interfaz (aplicar en todo lo nuevo)
 
-**Aspecto**: redondo, con aire, que responde al tacto. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (nunca números); elevación `--sh-1` (reposo) / `--sh-2` (hover) / `--sh-3` (levantado o ventana); movimiento `--ease` y `--spring`. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista).
+**Aspecto**: limpio, con aire, claro antes que vistoso. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (6·10·14·18·20 px, nunca números); superficies lisas con borde de 1 px (sin vidrio ni blur); elevación `--sh-1` (reposo, casi plana) / `--sh-2` (hover) / `--sh-3` (menús y ventanas); movimiento corto (140 ms) con `--ease`, sin rebote. Nada importante aparece solo al pasar el mouse: las acciones y los montos se ven siempre. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista).
 
 **Interacción** — las mismas reglas en todas las pantallas:
 1. **Tocar** un ítem lo abre (ficha o detalle).
