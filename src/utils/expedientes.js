@@ -118,7 +118,35 @@ export async function eliminarPlazo(id) {
   return true;
 }
 
+// ── Próxima acción desde Hoy ─────────────────────────────────────────────────
+// "Hecho": la acción va a la Bitácora y se carga la siguiente (o ninguna). Devuelve los campos guardados, o null si falló.
+export async function completarAccionExpediente(e, { nueva = "", vence = null } = {}) {
+  const hecha = e.proxima_accion?.trim();
+  if (hecha) {
+    const { error } = await supabase.from("acciones").insert({ caso_id: e.id, tipo: "nota", fecha: new Date().toISOString(), descripcion: `Hecho: ${hecha}` });
+    if (error) { console.error("[expedientes] bitácora:", error.message); return null; }
+  }
+  const texto = nueva.trim();
+  const cambios = { proxima_accion: texto || null, proxima_accion_vence: texto ? vence : null };
+  const { error } = await supabase.from("expedientes").update(cambios).eq("id", e.id);
+  if (error) { console.error("[expedientes] completar acción:", error.message); return null; }
+  return cambios;
+}
+
+export async function posponerAccionExpediente(e, vence) {
+  const cambios = { proxima_accion_vence: vence };
+  const { error } = await supabase.from("expedientes").update(cambios).eq("id", e.id);
+  if (error) { console.error("[expedientes] posponer acción:", error.message); return null; }
+  return cambios;
+}
+
 // ── Cálculos ──────────────────────────────────────────────────────────────────
+// Próximas acciones de los expedientes abiertos, como tareas de "Para hacer" (las de los casos PAS salen de metricas.js)
+export const tareasDeExpedientes = expedientes => (expedientes || [])
+  .filter(e => expedienteAbierto(e) && e.proxima_accion?.trim())
+  .map(e => ({ id: `accion-exp-${e.id}`, tipo: "accion", vence: e.proxima_accion_vence ? String(e.proxima_accion_vence).slice(0, 10) : null,
+    titulo: e.caratula || "Expediente sin carátula", detalle: e.proxima_accion.trim(), expediente: e }));
+
 // Fecha que importa de un pendiente: el vencimiento del plazo o la fecha objetivo del escrito
 export const fechaClave = p => (p.tipo === "escrito" ? p.fecha_objetivo : p.vence) || null;
 

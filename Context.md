@@ -146,6 +146,14 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-14 — Las próximas acciones de los expedientes llegan a Hoy y al resumen del celular
+*   Antes, "Para hacer" solo mostraba los plazos y escritos de los expedientes (tabla `plazos`, sin uso) y el resumen diario solo contaba los casos PAS: la próxima acción de un expediente no aparecía en ningún lado (5 vencidas el 14/10).
+*   `utils/expedientes.js`: `tareasDeExpedientes` (expedientes abiertos con próxima acción → tarea "Próxima acción"), `completarAccionExpediente` ("Hecho: …" en la Bitácora del expediente + la próxima) y `posponerAccionExpediente`.
+*   `TabDashboard.jsx` las suma a Para hacer (misma tarjeta que los plazos del expediente); `TarjetaCaso.jsx` muestra **Hecho** y **Posponer** también en la tarjeta de un expediente con próxima acción; `ParaHacer.jsx` usa `itemsExpediente` en el click derecho. Tocar la tarjeta abre la ficha del expediente, como antes.
+*   `supabase/functions/notificar/resumen.ts`: las tareas vencidas y de hoy cuentan también las de los expedientes abiertos (no finalizados ni archivados).
+*   Probado con Supabase simulado: Atrasadas / Hoy / sin plazo, el archivado no aparece, Hecho (nota en la bitácora + próxima acción), Posponer y abrir la ficha. El resumen no se pudo correr acá (sin Deno); la cuenta se verificó con una consulta sobre la base real.
+*   ⚠️ **Pendiente del usuario:** redesplegar la función `notificar` (cambió solo `resumen.ts`; en el panel, pestaña `resumen.ts`).
+
 ### 2026-10-10 — Arreglo: con la ficha lateral abierta, tocar otro caso lo muestra
 *   La ficha (`CasoUnificado`) toma el caso solo al abrirse; con el panel lateral la lista sigue a la vista y tocar otra tarjeta no cambiaba el caso. `CasoOverlay` le pone `key={caso.id}`: al cambiar de caso, la ficha se arma de nuevo.
 *   Lo que quedó sin guardar del caso anterior (antes de los 2,5 s del autoguardado) se guarda al cambiar (`CasoUnificado`, efecto al desmontarse que compara con `guardadoRef`).

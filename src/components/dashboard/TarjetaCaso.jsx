@@ -24,16 +24,18 @@ function ChipsPlazo({ valor, onElegir }) {
   );
 }
 
-// Un caso (o expediente) con todos sus pendientes. Con caso: "Hecho" (la acción va a la bitácora y se carga la próxima)
-// y "Posponer" (corre el plazo de la próxima acción). Tocar la tarjeta abre la ficha; click derecho, el menú del caso.
+// Un caso (o expediente) con todos sus pendientes. "Hecho" (la acción va a la bitácora y se carga la próxima)
+// y "Posponer" (corre el plazo de la próxima acción); con expediente, solo si tiene próxima acción. Tocar la tarjeta abre la ficha; click derecho, el menú del caso.
 export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [modo, setModo] = useState(null); // null | "hecho" | "posponer"
   const [nueva, setNueva] = useState("");
   const [vence, setVence] = useState(sumarDias(fechaLocalISO(), 7));
   const [guardando, setGuardando] = useState(false);
-  const { caso } = grupo;
+  const { caso, expediente } = grupo;
+  const sujeto = caso || expediente; // a quién se le guarda la próxima acción
+  const esExp = !caso && !!expediente;
   const p = grupo.vence ? describirPlazo(grupo.vence) : null;
-  const tieneAccion = !!caso?.proxima_accion?.trim();
+  const tieneAccion = !!sujeto?.proxima_accion?.trim();
   const quieto = grupo.tareas.some(t => t.tipo === "quieto");
   const monto = grupo.tareas.find(t => t.monto)?.monto;
   // Con avisos, "Hecho" pide una próxima acción con fecha: sin ella el aviso vuelve enseguida y la tarjeta no se va
@@ -41,7 +43,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const faltaFecha = conAvisos && (!vence || vence < fechaLocalISO());
 
   const correr = async fn => { setGuardando(true); const ok = await fn(); setGuardando(false); if (ok) setModo(null); };
-  const guardarHecho = sinNueva => correr(() => onHecho(caso, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }));
+  const guardarHecho = sinNueva => correr(() => onHecho(sujeto, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }, { expediente: esExp }));
 
   return (
     <div className="tc" style={{ "--nivel": p ? NIVEL[p.nivel] : "var(--muted)", alignItems: "start" }}
@@ -62,7 +64,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
           ))}
         </ul>
 
-        {caso && !modo && (
+        {(caso || (esExp && tieneAccion)) && !modo && (
           <div {...aislar} style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
             <Boton tamaño="sm" icono="check" onClick={() => { setNueva(""); setModo("hecho"); }}>{tieneAccion ? "Hecho" : "Cargar próxima acción"}</Boton>
             {tieneAccion && <Boton tamaño="sm" variante="fantasma" onClick={() => setModo("posponer")}>Posponer</Boton>}
@@ -72,7 +74,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
 
         {modo === "hecho" && (
           <div {...aislar} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-            {tieneAccion && <div style={{ fontSize: 12, color: "var(--muted)" }}>"{caso.proxima_accion.trim()}" queda en la bitácora como hecho.</div>}
+            {tieneAccion && <div style={{ fontSize: 12, color: "var(--muted)" }}>"{sujeto.proxima_accion.trim()}" queda en la bitácora como hecho.</div>}
             <input autoFocus value={nueva} onChange={e => setNueva(e.target.value)} placeholder="Próxima acción (ej.: Reiterar el reclamo)" aria-label="Próxima acción"
               onKeyDown={e => { e.stopPropagation(); if (e.key === "Enter" && nueva.trim() && !faltaFecha) guardarHecho(false); if (e.key === "Escape") setModo(null); }} style={campo} />
             <ChipsPlazo valor={vence} onElegir={setVence} />
@@ -87,8 +89,8 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
 
         {modo === "posponer" && (
           <div {...aislar} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Correr "{caso.proxima_accion.trim()}" a:</div>
-            <ChipsPlazo valor={null} onElegir={f => f && correr(() => onPosponer(caso, f))} />
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Correr "{sujeto.proxima_accion.trim()}" a:</div>
+            <ChipsPlazo valor={null} onElegir={f => f && correr(() => onPosponer(sujeto, f, { expediente: esExp }))} />
             <div><Boton tamaño="sm" variante="fantasma" onClick={() => setModo(null)}>Cancelar</Boton></div>
           </div>
         )}

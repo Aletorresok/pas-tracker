@@ -1,7 +1,7 @@
 import { plazosParaAvisar } from "./avisos.ts";
 import { sb, unaVez, enviar } from "./base.ts";
 
-// Resumen del día (9 hs): tareas vencidas y de hoy, pagos que ya deberían haber entrado, mediaciones y audiencias
+// Resumen del día (9 hs): tareas vencidas y de hoy (casos PAS y expedientes abiertos), pagos que ya deberían haber entrado, mediaciones y audiencias
 // de la semana, casos nuevos del portal sin abrir y comisiones que le debés a un PAS. Una vez por día (salvo `forzar`).
 export const agregar = (y: string, m: string, d: string, dias: number) => {
   const f = new Date(`${y}-${m}-${d}T12:00:00Z`);
@@ -14,7 +14,10 @@ export async function resumenDelDia(forzar = false) {
   const { data: casos } = await sb.from("pas_casos")
     .select("estado, proxima_accion, proxima_accion_vence, fecha_firma, fecha_aceptacion, plazo_pago, fecha_pago, origen, revisado_en, monto_cobro_yo, monto_comision_pas, fecha_cobro_honorarios, estado_honorarios, fecha_pago_comision");
   const activos = (casos || []).filter(c => !["cobrado", "desistido"].includes(c.estado));
-  const conAccion = activos.filter(c => (c.proxima_accion || "").trim() && c.proxima_accion_vence);
+  // Próximas acciones de los expedientes abiertos: cuentan como tareas, igual que las de los casos
+  const { data: exps } = await sb.from("expedientes").select("estado, proxima_accion, proxima_accion_vence");
+  const expAbiertos = (exps || []).filter(e => !["finalizado", "archivado"].includes(e.estado));
+  const conAccion = [...activos, ...expAbiertos].filter(c => (c.proxima_accion || "").trim() && c.proxima_accion_vence);
   const vencidas = conAccion.filter(c => String(c.proxima_accion_vence).slice(0, 10) < hoy).length;
   const deHoy = conAccion.filter(c => String(c.proxima_accion_vence).slice(0, 10) === hoy).length;
   const pagosVencidos = activos.filter(c => {

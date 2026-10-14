@@ -9,7 +9,7 @@ import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import MiDia from "./dashboard/MiDia.jsx";
 import ResumenHoy from "./dashboard/ResumenHoy.jsx";
-import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto } from "../utils/expedientes.js";
+import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto, tareasDeExpedientes, completarAccionExpediente, posponerAccionExpediente } from "../utils/expedientes.js";
 import { useCalendarioJudicial } from "../hooks/useCalendarioJudicial.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
 import Toast from "./caso/Toast.jsx";
@@ -48,10 +48,13 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     });
   }, [pendientes, allCasos]);
 
-  // Tareas de casos + plazos y escritos, por vencimiento (Para hacer las agrupa por caso)
+  // Próximas acciones de los expedientes abiertos
+  const tareasExpedientes = useMemo(() => tareasDeExpedientes(pendientes.expedientes), [pendientes.expedientes]);
+
+  // Tareas de casos + plazos y escritos + acciones de expedientes, por vencimiento (Para hacer las agrupa por caso o expediente)
   const tareasCasos = useMemo(() => tareasPendientes({ allCasos, margenes: margenes || {} }), [allCasos, margenes]);
-  const tareas = useMemo(() => [...tareasCasos, ...tareasPlazos]
-    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [tareasCasos, tareasPlazos]);
+  const tareas = useMemo(() => [...tareasCasos, ...tareasPlazos, ...tareasExpedientes]
+    .sort((a, b) => (a.vence || "9999-12-31").localeCompare(b.vence || "9999-12-31")), [tareasCasos, tareasPlazos, tareasExpedientes]);
   const cobros = useMemo(() => cobrosPendientes(allCasos), [allCasos]);
   const conteo = useMemo(() => contarParaRutina({ contactos: contactosDeHoy(historial), tareas: tareasCasos, allCasos }), [historial, tareasCasos, allCasos]);
   const nuevos = useMemo(() => allCasos
@@ -83,8 +86,20 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     setToast({ msg: ok, type: "success" });
     return true;
   };
-  const alHecho = async (c, nueva) => aplicar(c, await completarAccion(c, nueva), nueva.nueva?.trim() ? "Listo. Próxima acción cargada" : "Listo");
-  const alPosponer = async (c, vence) => aplicar(c, await posponerAccion(c, vence), "Pospuesta");
+  // Lo mismo con un expediente: se actualiza en la lista de Hoy
+  const aplicarExp = (e, cambios, ok) => {
+    if (!cambios) { setToast({ msg: "No se pudo guardar. Revisá la conexión.", type: "error" }); return false; }
+    setPendientes(p => ({ ...p, expedientes: p.expedientes.map(x => (x.id === e.id ? { ...x, ...cambios } : x)) }));
+    setToast({ msg: ok, type: "success" });
+    return true;
+  };
+  const textoHecho = nueva => (nueva.nueva?.trim() ? "Listo. Próxima acción cargada" : "Listo");
+  const alHecho = async (x, nueva, { expediente } = {}) => expediente
+    ? aplicarExp(x, await completarAccionExpediente(x, nueva), textoHecho(nueva))
+    : aplicar(x, await completarAccion(x, nueva), textoHecho(nueva));
+  const alPosponer = async (x, vence, { expediente } = {}) => expediente
+    ? aplicarExp(x, await posponerAccionExpediente(x, vence), "Pospuesta")
+    : aplicar(x, await posponerAccion(x, vence), "Pospuesta");
   const alReiterar = async c => aplicar(c, await registrarReiteracion(c), "Reiteración registrada");
 
   return (

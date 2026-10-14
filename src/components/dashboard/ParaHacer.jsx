@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import ListaTarjetas from "../ui/ListaTarjetas.jsx";
-import { itemsCaso } from "../../utils/menus.js";
+import { itemsCaso, itemsExpediente } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import TarjetaCaso from "./TarjetaCaso.jsx";
@@ -48,7 +48,8 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
     return (
       <TarjetaCaso grupo={g} tipos={TIPO} onAbrir={abrir}
         chip={plazo ? <ChipPendiente pendiente={plazo.plazo} cal={cal} jurisdiccion={plazo.jurisdiccion} /> : undefined}
-        menu={() => g.caso ? itemsCaso(g.caso, { abrir: () => abrir(g) }) : [{ label: "Abrir", onClick: () => abrir(g) }]}
+        menu={() => g.caso ? itemsCaso(g.caso, { abrir: () => abrir(g) })
+          : g.expediente ? itemsExpediente(g.expediente, { abrir: () => abrir(g) }) : [{ label: "Abrir", onClick: () => abrir(g) }]}
         onHecho={onHecho} onPosponer={onPosponer} onReiterar={onReiterar} />
     );
   };
