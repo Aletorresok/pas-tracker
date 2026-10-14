@@ -7,6 +7,7 @@ import {
   renombrarArchivoLocal,
   crearCarpetaCaso,
 } from "../utils/carpeta.js";
+import { recordarCarpeta, carpetaRecordada, olvidarCarpeta } from "../utils/carpetaRecordada.js";
 import ArchivoLocalRow from "./carpeta/ArchivoLocalRow.jsx";
 import GestorPDF from "./carpeta/GestorPDF.jsx";
 
@@ -16,10 +17,47 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
   const [cargando, setCargando]           = useState(false);
   const [nombreCarpeta, setNombreCarpeta] = useState("");
   const [gestorPdfAbierto, setGestorPdfAbierto] = useState(false);
+  const [sinPermiso, setSinPermiso]       = useState(false); // carpeta recordada, falta que Chrome dé el permiso (un toque)
 
   useEffect(() => { onDirHandleChange?.(dirHandle); }, [dirHandle, onDirHandleChange]);
 
   const soportado = !!window.showDirectoryPicker;
+
+  // Al abrir el caso, vuelve a vincular la carpeta que se usó la última vez en este navegador
+  useEffect(() => {
+    if (!soportado || !caso?.id) return;
+    let vivo = true;
+    (async () => {
+      const handle = await carpetaRecordada(caso.id);
+      if (!handle || !vivo) return;
+      const permiso = await handle.queryPermission({ mode: "readwrite" }).catch(() => "denied");
+      if (!vivo) return;
+      try {
+        const lista = permiso === "granted" ? await leerArchivosCarpeta(handle, getExtension) : [];
+        if (!vivo) return;
+        setDirHandle(handle);
+        setNombreCarpeta(handle.name);
+        setArchivos(lista);
+        setSinPermiso(permiso !== "granted");
+      } catch {
+        olvidarCarpeta(caso.id); // la carpeta se movió o se borró
+      }
+    })();
+    return () => { vivo = false; };
+  }, [caso?.id, soportado]);
+
+  // Chrome pide el permiso con un toque; el handle recordado queda vinculado y se relee la carpeta
+  const darPermiso = async () => {
+    setCargando(true);
+    try {
+      if (!(await verificarPermisoCarpeta(dirHandle))) { onToast({ msg: "Sin permiso para acceder a la carpeta", type: "error" }); setCargando(false); return; }
+      setArchivos(await leerArchivosCarpeta(dirHandle, getExtension));
+      setSinPermiso(false);
+    } catch (e) {
+      onToast({ msg: `Error: ${e.message}`, type: "error" });
+    }
+    setCargando(false);
+  };
 
   const vincularCarpeta = async () => {
     setCargando(true);
@@ -36,6 +74,8 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
 
       setDirHandle(handle);
       setNombreCarpeta(handle.name);
+      setSinPermiso(false);
+      recordarCarpeta(caso?.id, handle);
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
     } catch (e) {
@@ -57,6 +97,8 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       const { handle, nombre } = result;
       setDirHandle(handle);
       setNombreCarpeta(nombre);
+      setSinPermiso(false);
+      recordarCarpeta(caso?.id, handle);
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
       onToast({ msg: `Carpeta "${nombre}" creada y vinculada`, type: "success" });
@@ -81,6 +123,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       }
       const lista = await leerArchivosCarpeta(dirHandle, getExtension);
       setArchivos(lista);
+      setSinPermiso(false);
     } catch (e) {
       onToast({ msg: `Error: ${e.message}`, type: "error" });
     }
@@ -91,6 +134,8 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
   useEffect(() => { if (version) recargarCarpeta(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [version]);
 
   const desvincularCarpeta = () => {
+    olvidarCarpeta(caso?.id);
+    setSinPermiso(false);
     setDirHandle(null);
     setArchivos([]);
     setNombreCarpeta("");
@@ -199,7 +244,17 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
         </div>
       )}
 
-      {dirHandle && !cargando && archivos.length === 0 && (
+      {dirHandle && sinPermiso && (
+        <div style={{ textAlign: "center", padding: "14px 12px", color: Th.sub, fontSize: 12, background: Th.card2, borderRadius: "var(--r-sm)", border: `1px dashed ${Th.border}` }}>
+          <div style={{ marginBottom: 8 }}>Carpeta recordada de la última vez. Chrome pide un toque para volver a abrirla.</div>
+          <button onClick={darPermiso} disabled={cargando}
+            style={{ background: "var(--accent)", border: "none", borderRadius: "var(--r-xs)", color: "var(--on-accent)", padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, opacity: cargando ? 0.6 : 1 }}>
+            {cargando ? "Abriendo..." : "Abrir carpeta"}
+          </button>
+        </div>
+      )}
+
+      {dirHandle && !sinPermiso && !cargando && archivos.length === 0 && (
         <div style={{ textAlign: "center", padding: "14px 0", color: Th.muted, fontSize: 12 }}>
           La carpeta no tiene archivos
         </div>

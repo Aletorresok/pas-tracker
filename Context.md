@@ -146,6 +146,13 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-10-14 — La app recuerda la carpeta de cada caso
+*   Antes la carpeta vinculada se perdía al cerrar la ficha o la app: había que elegirla cada vez (y de ahí salían carpetas duplicadas o con nombres de relleno).
+*   `utils/carpetaRecordada.js`: guarda el handle de la carpeta por id de caso o expediente en IndexedDB (`atg-carpetas`) del navegador. **Es por navegador**: en otra PC, otro navegador o el celular hay que vincularla de nuevo.
+*   `CarpetaLocal.jsx`: al abrir la ficha vuelve a vincular la carpeta recordada. Si Chrome ya tiene el permiso, lista los archivos solo; si no, muestra "Abrir carpeta" (un toque). Si la carpeta se movió o se borró, se olvida sola. "Vincular carpeta" y "Crear carpeta" la recuerdan; "Desvincular" la olvida.
+*   Con la carpeta recordada pero sin permiso, "Guardar" de Documentación recibida pide el permiso en ese mismo toque (el handle ya está vinculado), así que ya no cae a Descargas.
+*   Probado en Chrome con Supabase simulado, usando una carpeta del navegador (OPFS) en lugar de una real: guardar, recargar la app, reabrir el caso (vincula sola y lista el archivo), Desvincular (olvida solo ese caso). **No probado con una carpeta real de disco**: el selector de Chrome no se puede automatizar; falta probar el permiso "Abrir carpeta" tras reiniciar Chrome.
+
 ### 2026-10-14 — Las próximas acciones de los expedientes llegan a Hoy y al resumen del celular
 *   Antes, "Para hacer" solo mostraba los plazos y escritos de los expedientes (tabla `plazos`, sin uso) y el resumen diario solo contaba los casos PAS: la próxima acción de un expediente no aparecía en ningún lado (5 vencidas el 14/10).
 *   `utils/expedientes.js`: `tareasDeExpedientes` (expedientes abiertos con próxima acción → tarea "Próxima acción"), `completarAccionExpediente` ("Hecho: …" en la Bitácora del expediente + la próxima) y `posponerAccionExpediente`.
