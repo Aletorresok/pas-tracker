@@ -14,15 +14,15 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso, companias, comisio
   const [filtro, setFiltro] = useState(null);
 
   const t = Object.fromEntries(tramos.map(x => [x.key, x]));
-  const a30 = t.d30, a60 = { neto: a30.neto + t.d60.neto, casos: a30.casos + t.d60.casos }, a90 = { neto: a60.neto + t.d90.neto, casos: a60.casos + t.d90.casos };
   const maxNeto = Math.max(...tramos.map(x => x.neto), 1);
   const visibles = filtro ? items.filter(i => i.tramo === filtro) : items;
 
   const casos = n => `${n} ${n === 1 ? "caso" : "casos"}`;
   const kpis = [
-    { l: "Próximos 30 días", v: fmtMoney(a30.neto), s: casos(a30.casos) },
-    { l: "Próximos 60 días", v: fmtMoney(a60.neto), s: `${casos(a60.casos)} · acumulado` },
-    { l: "Próximos 90 días", v: fmtMoney(a90.neto), s: `${casos(a90.casos)} · acumulado` },
+    // cada caso cuenta una sola vez: los tramos no se superponen (igual que el gráfico de abajo)
+    { l: "En los próximos 30 días", v: fmtMoney(t.d30.neto), s: casos(t.d30.casos) },
+    { l: "De 31 a 60 días", v: fmtMoney(t.d60.neto), s: casos(t.d60.casos) },
+    { l: "De 61 a 90 días", v: fmtMoney(t.d90.neto), s: casos(t.d90.casos) },
     { l: "Vencido sin cobrar", v: fmtMoney(t.vencido.neto), s: `${t.vencido.casos} ${t.vencido.casos === 1 ? "caso" : "casos"} para reclamar`, alerta: t.vencido.casos > 0 },
   ];
 
