@@ -1014,3 +1014,7 @@
     *   Acceso del cliente: **patente + últimos 3 dígitos del DNI** (`dni_asegurado`). Para que sea seguro de verdad hace falta una función en Supabase (RPC `security definer`) + RLS; se hace junto con la tarea de RLS.
     *   "Plazos por compañía" **se mantiene en el portal PAS** (sirve cuando el PAS no tuvo casos con esa compañía), pero sin mostrar cantidad de casos ni datos personales: solo promedios.
     *   Modo oscuro: sin preferencia → **por defecto sigue el tema del sistema**; el botón manual se mantiene y su elección queda guardada.
+
+## Impuestos ARBA (exenciones jubilados y discapacidad)
+
+*   Relevamiento de referencia en `docs/impuestos/arba-exenciones.md` (28/10/2026): jubilados (inmobiliario, art. 177 inc. ñ CF) y discapacidad (automotor, art. 243 inc. f CF). Datos de fuentes de búsqueda, no verificados en arba.gov.ar (sin acceso desde la sesión). Pendientes: topes de la Ley Impositiva vigente, exención inmobiliaria por discapacidad y tasas municipales.
