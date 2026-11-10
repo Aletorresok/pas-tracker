@@ -17,16 +17,9 @@ export default function CasoProximaAccion({ formData, onChange, Th }) {
 
 
   return (
-    <div style={{
-      background: Th.card,
-      border: `1px solid ${Th.border}`,
-      borderLeft: "4px solid var(--warn)",
-      borderRadius: "var(--r-md)",
-      padding: 16,
-      marginBottom: 16
-    }}>
-      <label htmlFor="proxima-accion" style={{ display: "block", fontSize: 14, fontWeight: 700, color: Th.text, marginBottom: 8 }}>
-        Próxima acción <span style={{ fontWeight: 500, color: Th.muted, fontSize: 12 }}>· solo la ves vos</span>
+    <div className="que-sigue">
+      <label htmlFor="proxima-accion" className="que-sigue-t">
+        Qué sigue <span style={{ fontWeight: 500, color: Th.muted, textTransform: "none", letterSpacing: 0 }}>· próxima acción, solo la ves vos</span>
       </label>
       <textarea
         id="proxima-accion"

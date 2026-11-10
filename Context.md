@@ -146,6 +146,12 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-10 — Rediseño, parte 2: Casos y "Qué sigue" en la ficha
+*   **Casos**: arriba va un **embudo** (`.embudo`) con el conteo de cada etapa; tocar una etapa filtra la lista y tocarla de nuevo la saca (reemplaza el desplegable "Etapa"). La tabla suma la columna **Qué sigue** (próxima acción, plazo en color y hace cuánto se movió) y ordena por ese vencimiento por defecto: lo más vencido arriba. La compañía y la patente pasan debajo del nombre; se sacaron las columnas Compañía y Últ. mov. (ya no se ordena por ellas; la compañía se encuentra con el buscador). En celular cada caso muestra también su próxima acción.
+*   **Ficha del caso**: la próxima acción es el bloque **Qué sigue** (`.que-sigue`), en azul suave, sin el borde lateral naranja.
+*   **Hoy**: las filas de Para hacer se acomodan según el ancho de la lista (`@container filas`), no el de la ventana: con la ficha abierta al costado ya no se rompen, y las dos columnas de Hoy pasan a una.
+*   Probado con Supabase simulado (1440 px y 390 px, claro y oscuro): Casos, ficha abierta sobre Hoy. **No probado contra la base real.**
+
 ### 2026-11-10 — Rediseño, parte 1: estilo general, menú y Hoy
 *   Alexis pidió rediseñar toda la app (su vista, el portal y la vista del cliente) y aprobó las maquetas del 10/11. Esta parte cambia la base que usa todo lo demás; Casos, ficha, portal, vista del cliente y la página de consultas van en las partes siguientes.
 *   **Colores** (`index.css`): fondo gris muy claro, texto azul noche y un solo azul fuerte como acento (`--accent`). El dorado queda solo en el logo (`--marca`). El verde de WhatsApp es `--wa`. El acento por defecto pasó de dorado a azul; "Dorado" sigue disponible en Apariencia y "Marino" se sacó (quedó casi igual al nuevo por defecto). Modo oscuro actualizado con la misma lógica.

@@ -375,7 +375,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             </button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
               <div style={{ minWidth: 0, flex: "1 1 280px" }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: Th.text, letterSpacing: -0.3, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
+                <div className="display" style={{ fontSize: 22, fontWeight: 700, color: Th.text, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
                 <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
                   {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
                   {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}

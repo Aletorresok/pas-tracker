@@ -1,5 +1,5 @@
 import { Fragment, useState, useMemo, useCallback, useEffect } from "react";
-import { fmtMoney, diasDesde } from "../utils/formatters.js";
+import { fmtMoney, diasDesde, describirPlazo } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { aplanarCasos, esActivo } from "../utils/metricas.js";
 import Papelera from "./casos/Papelera.jsx";
@@ -17,7 +17,7 @@ import Ilustracion from "./ui/Ilustracion.jsx";
 
 // Los filtros se recuerdan mientras la pestaña del navegador esté abierta (ir a otra sección y volver no los borra)
 const FILTROS_GUARDADOS = "pas_casos_filtros";
-const ORDEN_INICIAL = { k: "mov", desc: true };
+const ORDEN_INICIAL = { k: "sigue", desc: false }; // lo más vencido arriba
 const FILTROS_INICIALES = { busqueda: "", alcance: "activos", etapa: "", quien: "", faltan: false, orden: ORDEN_INICIAL };
 const leerFiltros = () => { try { return { ...FILTROS_INICIALES, ...JSON.parse(sessionStorage.getItem(FILTROS_GUARDADOS) || "{}") }; } catch { return FILTROS_INICIALES; } };
 
@@ -28,15 +28,35 @@ const montoCaso = c => Number(c.monto_acordado) || Number(c.monto_ofrecimiento) 
 const ultimoMov = c => c.fecha_ultimo_movimiento || c.fecha_derivacion || "";
 const ORDEN_ESTADO = Object.fromEntries(ESTADOS_CASO.map((e, i) => [e.key, i]));
 
+// Qué sigue: la próxima acción con plazo va primero (por vencimiento); después las que no tienen plazo y al final las que no tienen acción
+const tieneAccion = c => !!c.proxima_accion?.trim();
 const COLUMNAS = [
-  { k: "asegurado", l: "Asegurado", ancho: "34%", valor: c => (c.asegurado || "").toLowerCase() },
-  { k: "estado", l: "Estado", ancho: "19%", valor: c => ORDEN_ESTADO[c.estado] ?? 99 },
-  { k: "compania", l: "Compañía", ancho: "21%", valor: c => (c.compania_aseguradora || "").toLowerCase() },
-  { k: "mov", l: "Últ. mov.", ancho: "13%", valor: ultimoMov },
-  { k: "monto", l: "Monto", ancho: "13%", valor: montoCaso, derecha: true, ayuda: "Acordado; si no hay, el ofrecido; si no, el reclamado", alFinal: c => !montoCaso(c) },
+  { k: "asegurado", l: "Asegurado", ancho: "30%", valor: c => (c.asegurado || "").toLowerCase() },
+  { k: "estado", l: "Etapa", ancho: "17%", valor: c => ORDEN_ESTADO[c.estado] ?? 99 },
+  { k: "sigue", l: "Qué sigue", ancho: "39%", valor: c => c.proxima_accion_vence || "9999-12-31", alFinal: c => !esActivo(c) || !tieneAccion(c),
+    ayuda: "La próxima acción del caso y su plazo. Ordena por vencimiento" },
+  { k: "monto", l: "Monto", ancho: "14%", valor: montoCaso, derecha: true, ayuda: "Acordado; si no hay, el ofrecido; si no, el reclamado", alFinal: c => !montoCaso(c) },
 ];
+const TONO_PLAZO = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)", tranquilo: "var(--muted)" };
 
-function Movimiento({ caso }) {
+// Qué sigue en un caso: la próxima acción y, debajo, el plazo (o hace cuánto no se mueve)
+function QueSigue({ caso }) {
+  if (!esActivo(caso)) return <Movimiento caso={caso} />;
+  const p = tieneAccion(caso) && caso.proxima_accion_vence ? describirPlazo(caso.proxima_accion_vence) : null;
+  return (
+    <>
+      <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", color: tieneAccion(caso) ? "var(--text)" : "var(--muted)" }}>
+        {tieneAccion(caso) ? caso.proxima_accion.trim() : "Sin próxima acción"}
+      </span>
+      <span style={{ display: "block", fontSize: 12 }}>
+        {p && <span className="num" style={{ fontWeight: 600, color: TONO_PLAZO[p.nivel], marginRight: 8 }}>{p.texto}</span>}
+        <Movimiento caso={caso} conPrefijo />
+      </span>
+    </>
+  );
+}
+
+function Movimiento({ caso, conPrefijo }) {
   const iso = ultimoMov(caso);
   if (!iso) return <span style={{ color: "var(--muted)" }}>—</span>;
   const d = diasDesde(iso);
@@ -44,7 +64,7 @@ function Movimiento({ caso }) {
   return (
     <span className="num" title={quieto ? `Sin movimiento hace ${d} días` : undefined}
       style={{ color: quieto ? "var(--warn)" : "var(--sub)", fontWeight: quieto ? 600 : 400 }}>
-      {d <= 0 ? "hoy" : `hace ${d} d`}
+      {conPrefijo ? (quieto ? "sin movimiento " : "movió ") : ""}{d <= 0 ? "hoy" : `hace ${d} d`}
     </span>
   );
 }
@@ -122,7 +142,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
     const lista = allCasos.filter(c =>
       c.id === abiertoId || // la fila abierta no desaparece aunque le cambies el estado
       (pasaAlcance(c) && pasaQuien(c) && pasaFaltan(c) && pasaBusqueda(c)));
-    const col = COLUMNAS.find(x => x.k === orden.k);
+    const col = COLUMNAS.find(x => x.k === orden.k) || COLUMNAS.find(x => x.k === ORDEN_INICIAL.k); // un orden guardado de antes puede no existir más
     return [...lista].sort((a, b) => {
       // Los que no tienen el dato van siempre al final, en cualquier sentido
       const fa = !!col.alFinal?.(a), fb = !!col.alFinal?.(b);
@@ -133,7 +153,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
     });
   }, [allCasos, pasaAlcance, pasaQuien, pasaFaltan, pasaBusqueda, orden, abiertoId]);
 
-  const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k === "mov" || k === "monto" }));
+  const ordenarPor = k => setOrden(o => (o.k === k ? { k, desc: !o.desc } : { k, desc: k === "monto" }));
 
   const handleDelete = async (caso) => {
     if (await onEliminarCaso(caso, caso._pasId)) setAbiertoId(null);
@@ -171,7 +191,6 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
       {label} <b className="num" style={{ color: "var(--text)" }}>{n}</b>
     </button>
   );
-  const etapaInfo = ESTADOS_CASO.find(e => e.key === etapa);
   const faltantesDe = c => {
     const f = faltan ? datosFaltantes(c) : [];
     return f.length ? <span style={{ display: "block", fontSize: 12, color: "var(--warn)", fontWeight: 500, marginTop: 2 }}>Falta {f.join(" · ")}</span> : null;
@@ -191,7 +210,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Casos PAS</h1>
+        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700 }}>Casos PAS</h1>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 13, color: "var(--muted)" }}>{filtrados.length} de {base.n} {base.l}</span>
           <button type="button" onClick={() => setPapelera(true)} title="Casos eliminados en los últimos 30 días"
@@ -215,17 +234,20 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
         )}
       </div>
 
+      {/* Embudo: cuántos casos hay en cada etapa. Tocar una etapa filtra la lista; tocarla de nuevo, la saca */}
+      <div className="embudo" role="group" aria-label="Etapa">
+        {ESTADOS_CASO.filter(e => conteos[`hay_${e.key}`] && (esActivo({ estado: e.key }) || alcance === "todos" || etapa === e.key)).map(e => (
+          <button key={e.key} type="button" aria-pressed={etapa === e.key} disabled={!conteos[e.key] && etapa !== e.key}
+            onClick={() => setEtapa(v => (v === e.key ? "" : e.key))}>
+            <span className="embudo-n num">{conteos[e.key]}</span>
+            <span className="embudo-l"><span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: "50%", background: e.color, flex: "none" }} />{e.label}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="chips" style={{ alignItems: "center" }}>
         {chip("activos", "Activos", conteos.activos, !etapa && alcance === "activos", () => { setAlcance("activos"); setEtapa(""); })}
         {chip("todos", "Todos", conteos.todos, !etapa && alcance === "todos", () => { setAlcance("todos"); setEtapa(""); })}
-        <span className="chip" aria-pressed={!!etapa} style={{ padding: 0, position: "relative" }}>
-          {etapaInfo && <span aria-hidden="true" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 7, height: 7, borderRadius: "50%", background: etapaInfo.color }} />}
-          <select value={etapa} onChange={e => setEtapa(e.target.value)} aria-label="Etapa"
-            style={{ border: "none", background: "transparent", color: "inherit", font: "inherit", padding: `6px 8px 6px ${etapaInfo ? 24 : 14}px`, borderRadius: "var(--r-pill)", cursor: "pointer", boxShadow: "none", fieldSizing: "content" }}>
-            <option value="">Etapa: todas</option>
-            {ESTADOS_CASO.filter(e => conteos[`hay_${e.key}`]).map(e => <option key={e.key} value={e.key} disabled={!conteos[e.key] && etapa !== e.key}>{e.label} ({conteos[e.key]})</option>)}
-          </select>
-        </span>
         {conteos.hayFaltan && chip("faltan", "Datos faltantes", conteos.faltan, faltan, () => setFaltan(v => !v))}
         {cuantosFiltros > 0 && (
           <button type="button" onClick={restablecer} title="Volver a Activos, sin búsqueda ni filtros"
@@ -262,6 +284,12 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                   <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.compania_aseguradora || ""}</span>
                 </span>
                 <span style={{ fontSize: 12 }}><Movimiento caso={c} /></span>
+                {esActivo(c) && tieneAccion(c) && (
+                  <span style={{ gridColumn: "1 / -1", fontSize: 13, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.proxima_accion_vence && describirPlazo(c.proxima_accion_vence) && <b className="num" style={{ fontWeight: 600, color: TONO_PLAZO[describirPlazo(c.proxima_accion_vence).nivel], marginRight: 6 }}>{describirPlazo(c.proxima_accion_vence).texto}</b>}
+                    {c.proxima_accion.trim()}
+                  </span>
+                )}
                 {faltan && <span style={{ gridColumn: "1 / -1" }}>{faltantesDe(c)}</span>}
               </button>
               {abiertoId === c.id && <div style={{ background: "var(--card2)", borderTop: "1px solid var(--border)", paddingTop: 12 }}>{expandida(c)}</div>}
@@ -284,10 +312,10 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                     <tr onClick={() => alternar(c.id)} {...menuCaso(c)} style={{ cursor: "pointer" }} className="fila-caso">
                       <td style={celda}>
                         <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(c.id); }}
-                          style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          style={{ display: "block", background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {c.asegurado || "Sin nombre"}
                         </button>
-                        {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{c.patente}</span>}
+                        <span style={{ display: "block", fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis" }}>{[c.compania_aseguradora, c.patente].filter(Boolean).join(" · ") || "Sin compañía"}</span>
                         {faltantesDe(c)}
                       </td>
                       <td style={celda}>
@@ -296,9 +324,8 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                           <EstadoPill estado={c.estado} size="sm" /><span aria-hidden="true" style={{ fontSize: 10 }}>▾</span>
                         </button>
                       </td>
-                      <td style={{ ...celda, color: "var(--sub)" }}>{c.compania_aseguradora || "—"}</td>
-                      <td style={{ ...celda, fontSize: 13 }}><Movimiento caso={c} /></td>
-                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 500 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td style={celda}><QueSigue caso={c} /></td>
+                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
                     </tr>
                     {abierto && (
                       <tr>
