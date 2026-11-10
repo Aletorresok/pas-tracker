@@ -189,6 +189,32 @@ input:focus, select:focus, textarea:focus {
   .hide-mobile { display: none !important; }
 }
 
+/* ── PÁGINA DE CONSULTAS (/consulta) ── franjas a todo el ancho, una columna en el celular */
+.pc-ancho { max-width: 1120px; margin: 0 auto; }
+.pc-franja { padding: 64px 24px; }
+.pc-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 48px; align-items: center; }
+.pc-h1 { margin: 0; font-size: 52px; line-height: 1.05; letter-spacing: -1.2px; }
+.pc-h2 { margin: 0; font-size: 32px; line-height: 1.15; letter-spacing: -0.5px; }
+.pc-nav { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--sub); font-size: 14px; font-weight: 500; text-decoration: none; }
+.pc-nav:hover { color: var(--text); }
+.pc-botones { display: flex; gap: 10px; flex-wrap: wrap; }
+.pc-secundario { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; padding: 0 20px; border: 1px solid var(--border2); border-radius: var(--r-sm); background: var(--card); color: var(--text); font-weight: 600; text-decoration: none; }
+.pc-areas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pc-area { display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); text-decoration: none; }
+.pc-area:hover { border-color: var(--border2); }
+.pc-como { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; align-items: center; }
+.pc-previa { background: var(--bg); color: var(--text); border-radius: var(--r-xl); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 900px) {
+  .pc-franja { padding: 36px 16px; }
+  .pc-hero, .pc-como { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .pc-h1 { font-size: 34px; letter-spacing: -0.8px; }
+  .pc-h2 { font-size: 24px; }
+  .pc-botones { flex-direction: column; }
+  .pc-areas { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .pc-area { flex-direction: row; align-items: center; padding: 14px 16px; }
+  .pc-previa { display: none; }
+}
+
 /* ── PORTAL PAS ── */
 .fab-derivar { display: none; }
 @media (min-width: 901px) { .portal-resumen { order: 2; } } /* en compu, los casos a la izquierda y el resumen al costado */

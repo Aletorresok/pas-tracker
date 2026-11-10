@@ -146,6 +146,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-10 — Rediseño, parte 4: página para captar consultas (`/consulta`)
+- Nueva página pública `components/publico/PaginaConsulta.jsx` (ruta `/consulta`, acepta `?ref=` y `?tema=`): presentación, WhatsApp, formulario corto con tema (Choque, Alimentos, Divorcio, Sucesión, Consumo, Otro tema), áreas, "Cómo trabajo", "Quién soy" y preguntas. Sin costos ni promesas de resultado. Estilos `.pc-*` en `index.css`.
+- La matrícula, la foto y la presentación personal se cargan en la constante `ABOGADO` del archivo; lo que queda vacío no se muestra.
+- Usa la misma función `nueva_consulta` (SQL 47, sin SQL nuevo): el tema viaja al principio del relato ("Tema: Alimentos. ...") y `temaDeConsulta` (`utils/consultas.js`) lo separa. En Hoy → "Consultas de la web" se ve el tema y "Pasar a caso" solo aparece en los choques.
+
 ### 2026-11-10 — Rediseño, parte 3: vista del cliente y portal del productor
 - **Vista del cliente** (`PortalCliente.jsx`): arriba va un bloque de tinta (`.bloque-paso`, tokens `--tinta*`) con "Paso N de 5", un título de una línea (`tituloEtapaCliente` en `utils/vistaCliente.js`), la barra de 5 tramos, el texto de la etapa y la oferta si la hay. Debajo, un bloque verde "Vos no tenés que hacer nada por ahora" (ámbar con botón cuando falta documentación). "El camino de tu reclamo" pasó a ser una lista numerada compacta; Novedades son filas con fecha. El "Mensaje del estudio" ya no lleva borde de color.
 - WhatsApp queda fijo abajo (`.barra-wa`) mientras se ve el reclamo; el horario de atención pasó al pie.

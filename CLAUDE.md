@@ -19,6 +19,7 @@
 ### Rutas
 - `/` → App.jsx (PIN gate → 6 tabs: dashboard, casos, contactos, contactados, clientes, portal-usuarios)
 - `/portal/*` → Portal.jsx (login Supabase Auth → PortalHome para PAS)
+- `/reclamo` → PaginaReclamo.jsx (choques) y `/consulta` → PaginaConsulta.jsx (todos los temas): páginas públicas; lo que dejan llega a Hoy → "Consultas de la web"
 
 ### Estructura de archivos
 ```

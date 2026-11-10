@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { cargarConsultasAbiertas, marcarConsulta, pasarConsultaACaso } from "../../utils/consultas.js";
+import { cargarConsultasAbiertas, marcarConsulta, pasarConsultaACaso, temaDeConsulta } from "../../utils/consultas.js";
 import { linkWhatsApp } from "../../utils/mensajes.js";
 import { primerNombre, fmtDate, haceCuanto } from "../../utils/formatters.js";
 import { propsMenu } from "../ui/MenuContextual.jsx";
@@ -7,7 +7,9 @@ import { copiar } from "../../utils/menus.js";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 
-const mensaje = c => `Hola ${primerNombre(c.nombre)}, soy Alexis de ATG Lex. Recibimos tu consulta por el choque${c.patente ? ` (patente ${c.patente})` : ""}. Para arrancar, ¿me mandás fotos de los daños, la denuncia del siniestro y tu DNI?`;
+// Solo los choques se pasan a caso; el resto de los temas se sigue por WhatsApp
+const esChoque = c => ["", "Choque"].includes(temaDeConsulta(c).tema);
+const mensaje = c => !esChoque(c) ? `Hola ${primerNombre(c.nombre)}, soy Alexis de ATG Lex. Recibí tu consulta. Contame un poco más y vemos cómo seguir.` : `Hola ${primerNombre(c.nombre)}, soy Alexis de ATG Lex. Recibimos tu consulta por el choque${c.patente ? ` (patente ${c.patente})` : ""}. Para arrancar, ¿me mandás fotos de los daños, la denuncia del siniestro y tu DNI?`;
 const esSinPas = p => /^sin\s*pas$/i.test(String(p?.nombre || "").trim());
 
 // Hoy → lo que dejaron en la página pública /reclamo personas que todavía no son clientes (SQL 47).
@@ -52,15 +54,16 @@ export default function ConsultasWeb({ todosLosPas = [], onCasoLocal, onAbrir })
       <div style={{ maxHeight: 360, overflowY: "auto" }}>
         {lista.map((c, i) => {
           const wa = linkWhatsApp(c.telefono, mensaje(c));
-          const datos = [c.patente, c.compania_tercero || "compañía sin dato", c.fecha_siniestro && `choque ${fmtDate(c.fecha_siniestro)}`].filter(Boolean).join(" · ");
+          const { tema, relato } = temaDeConsulta(c);
+          const datos = tema && tema !== "Choque" ? `Consulta por: ${tema.toLowerCase()}` : [c.patente, c.compania_tercero || "compañía sin dato", c.fecha_siniestro && `choque ${fmtDate(c.fecha_siniestro)}`].filter(Boolean).join(" · ");
           return (
             <div key={c.id} className="tarea" {...propsMenu(() => [
               wa && { label: "WhatsApp", onClick: () => { window.open(wa, "_blank", "noopener"); contactada(c); } },
-              { label: "Pasar a caso", onClick: () => pasarACaso(c) },
+              esChoque(c) && { label: "Pasar a caso", onClick: () => pasarACaso(c) },
               c.estado === "nueva" && { label: "Ya la contacté", onClick: () => contactada(c) },
               { separador: true },
               { label: "Copiar teléfono", onClick: () => copiar(c.telefono) },
-              c.relato && { label: "Copiar lo que contó", onClick: () => copiar(c.relato) },
+              relato && { label: "Copiar lo que contó", onClick: () => copiar(relato) },
               { separador: true },
               { label: "Descartar", peligro: true, onClick: () => descartar(c) },
             ])} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
@@ -72,18 +75,18 @@ export default function ConsultasWeb({ todosLosPas = [], onCasoLocal, onAbrir })
                   <span style={{ fontSize: 12, color: "var(--muted)" }}>{haceCuanto(c.created_at)}{c.ref ? ` · llegó por ${c.ref}` : ""}</span>
                 </span>
                 <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>{datos}</span>
-                {c.relato && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>“{c.relato}”</span>}
+                {relato && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>“{relato}”</span>}
               </div>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 {wa && <a href={wa} target="_blank" rel="noreferrer" onClick={() => contactada(c)} className="btn-wa" aria-label={`Escribirle por WhatsApp a ${c.nombre}`} title="Escribirle por WhatsApp"><Icono nombre="mensaje" size={16} /></a>}
                 <Boton tamaño="sm" variante="fantasma" onClick={() => descartar(c)}>Descartar</Boton>
-                <Boton tamaño="sm" variante="primario" onClick={() => pasarACaso(c)} disabled={ocupada === c.id}>{ocupada === c.id ? "Creando…" : "Pasar a caso"}</Boton>
+                {esChoque(c) && <Boton tamaño="sm" variante="primario" onClick={() => pasarACaso(c)} disabled={ocupada === c.id}>{ocupada === c.id ? "Creando…" : "Pasar a caso"}</Boton>}
               </div>
             </div>
           );
         })}
       </div>
-      <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>Llegan desde la página pública <b>/reclamo</b>. "Pasar a caso" lo crea como caso directo (Sin Pas) y abre la ficha.</div>
+      <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>Llegan desde las páginas públicas <b>/reclamo</b> y <b>/consulta</b>. "Pasar a caso" lo crea como caso directo (Sin Pas) y abre la ficha.</div>
     </section>
   );
 }

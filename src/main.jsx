@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 const Portal = lazy(() => import('./Portal.jsx'))
+const PaginaConsulta = lazy(() => import('./components/publico/PaginaConsulta.jsx')) // página pública para captar consultas de todos los temas
 const PaginaReclamo = lazy(() => import('./components/publico/PaginaReclamo.jsx')) // página pública para quien no es cliente
 import { MenuHost } from './components/ui/MenuContextual.jsx'
 import AtrapaErrores from './components/ui/AtrapaErrores.jsx'
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <Routes>
             <Route path="/portal/*" element={<Suspense fallback={null}><Portal /></Suspense>} />
+            <Route path="/consulta" element={<Suspense fallback={null}><PaginaConsulta /></Suspense>} />
             <Route path="/reclamo" element={<Suspense fallback={null}><PaginaReclamo /></Suspense>} />
             <Route path="/*" element={<App />} />
           </Routes>
