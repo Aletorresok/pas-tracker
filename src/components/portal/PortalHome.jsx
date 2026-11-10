@@ -14,7 +14,7 @@ import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
-import { diaDeAccion, fechaLocalISO, fechaEnDias } from "../../utils/formatters.js";
+import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre } from "../../utils/formatters.js";
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
@@ -187,6 +187,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
     .filter(c => !q || (c.asegurado || "").toLowerCase().includes(q) || (c.patente || "").toLowerCase().includes(q) || (c.compania_aseguradora || "").toLowerCase().includes(q))
     .sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
   const esDemo = casos[0]?._demo;
+  // Casos donde el estudio espera documentación: es lo único que le pedimos al productor
+  const sinDocumentacion = enCurso.filter(c => c.estado === "doc_pendiente" && !c._demo);
+  const saludo = !demo && pasInfo?.nombre ? primerNombre(pasInfo.nombre) : "";
 
   if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos…</div>;
   if (error) return (
@@ -257,7 +260,30 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
         </div>
       )}
-      <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
+      {/* Saludo y lo único que le pedimos al productor: va antes que el resumen, también en el celular */}
+      <div className="portal-saludo" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 0", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 26, letterSpacing: -0.3 }}>{saludo ? `Hola, ${saludo}` : "Tus casos"}</h1>
+          <div style={{ fontSize: 15, color: T.sub }}>
+            {esDemo ? "Todavía no tenés casos derivados. Así se va a ver cada uno cuando derives el primero."
+              : enCurso.length === 0 ? "No tenés casos en curso."
+              : `Tenés ${enCurso.length === 1 ? "1 caso" : `${enCurso.length} casos`} en curso${pagosPendientes.length ? ` y ${pagosPendientes.length === 1 ? "1 esperando el pago" : `${pagosPendientes.length} esperando el pago`}` : ""}.`}
+          </div>
+        </div>
+
+        {sinDocumentacion.length > 0 && (
+          <section style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", background: "color-mix(in srgb, var(--warn) 12%, var(--card))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+            <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--warn)" }}>Necesitamos algo de vos</div>
+              <div style={{ fontSize: 14, lineHeight: 1.45 }}>
+                Falta documentación de {sinDocumentacion[0].asegurado}{sinDocumentacion.length > 1 ? ` y ${sinDocumentacion.length - 1} más` : ""}. La podés mandar desde el detalle del caso.
+              </div>
+            </div>
+            {estadoActivo !== "doc_pendiente" && <Boton tamaño="sm" onClick={() => { setPestana("curso"); setEstadoSel("doc_pendiente"); }}>{sinDocumentacion.length === 1 ? "Ver el caso" : "Ver esos casos"}</Boton>}
+          </section>
+        )}
+      </div>
+      <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 24, alignItems: "start" }}>
         {/* Resumen del PAS */}
         <aside className="portal-resumen" style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 84 }}>
           <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
@@ -265,12 +291,12 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
                 Los próximos cobros van en su propia tarjeta (abajo). */}
             {comisionTotal > 0 && <>
               <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
-              <div className="num" style={{ fontSize: 28, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: -0.5 }}>{fmtMoney(comisionTotal)}</div>
+              <div className="cifra">{fmtMoney(comisionTotal)}</div>
             </>}
             {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>{comisionTotal > 0 ? "Por pagarte" : "Tu comisión por pagarte"}: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
             <div className="stats-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", ...(comisionTotal > 0 || comisionPendiente > 0 ? { marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 10 } : {}) }}>
               {[["En curso", enCurso.length], ["Cobrados", casosCobrados.length], ["Total", casos.filter(c => !c._demo).length]].map(([l, n]) => (
-                <div key={l}><div className="num" style={{ fontSize: 20, fontWeight: 700 }}>{n}</div><div style={{ fontSize: 12, color: T.muted }}>{l}</div></div>
+                <div key={l}><div className="display" style={{ fontSize: 22, fontWeight: 700 }}>{n}</div><div style={{ fontSize: 13, color: T.muted }}>{l}</div></div>
               ))}
             </div>
             {totalCobrado > 0 && <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Tus asegurados cobraron <b className="num" style={{ color: T.text }}>{fmtMoney(totalCobrado)}</b></div>}
@@ -278,7 +304,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
 
           {pagosPendientes.length > 0 && (
             <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Próximos cobros</div>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Próximos cobros</div>
               {/* Usa el alto que queda en la pantalla (la columna es fija al bajar) */}
               <div style={{ maxHeight: "max(240px, calc(100vh - 400px))", overflowY: "auto" }}>
                 {pagosPendientes.map((p, i) => (
@@ -301,8 +327,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
 
         {/* Casos */}
         <main style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-          {esDemo && <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14 }}>Todavía no tenés casos derivados. Así se va a ver cada uno cuando derives el primero.</div>}
-
           <div role="tablist" aria-label="Mis casos" style={{ display: "flex", gap: 20, borderBottom: `1px solid ${T.border}`, overflowX: "auto" }}>
             {pestanaBtn("curso", "En curso", enCurso.length)}
             {/* Sin casos, la pestaña no aparece (salvo que sea la elegida) */}

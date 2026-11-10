@@ -146,6 +146,11 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-10 — Rediseño, parte 3: vista del cliente y portal del productor
+- **Vista del cliente** (`PortalCliente.jsx`): arriba va un bloque de tinta (`.bloque-paso`, tokens `--tinta*`) con "Paso N de 5", un título de una línea (`tituloEtapaCliente` en `utils/vistaCliente.js`), la barra de 5 tramos, el texto de la etapa y la oferta si la hay. Debajo, un bloque verde "Vos no tenés que hacer nada por ahora" (ámbar con botón cuando falta documentación). "El camino de tu reclamo" pasó a ser una lista numerada compacta; Novedades son filas con fecha. El "Mensaje del estudio" ya no lleva borde de color.
+- WhatsApp queda fijo abajo (`.barra-wa`) mientras se ve el reclamo; el horario de atención pasó al pie.
+- **Portal del productor** (`PortalHome.jsx`): saludo con el resumen en una frase, aviso "Necesitamos algo de vos" cuando hay casos con documentación pendiente (filtra esos casos), casos a la izquierda y resumen/cobros al costado en compu. En `PortalCasoCard.jsx`, nombre en `--display`, textos de 13 px como mínimo y "Enviarle el seguimiento".
+
 ### 2026-11-10 — Rediseño, parte 2: Casos y "Qué sigue" en la ficha
 *   **Casos**: arriba va un **embudo** (`.embudo`) con el conteo de cada etapa; tocar una etapa filtra la lista y tocarla de nuevo la saca (reemplaza el desplegable "Etapa"). La tabla suma la columna **Qué sigue** (próxima acción, plazo en color y hace cuánto se movió) y ordena por ese vencimiento por defecto: lo más vencido arriba. La compañía y la patente pasan debajo del nombre; se sacaron las columnas Compañía y Últ. mov. (ya no se ordena por ellas; la compañía se encuentra con el buscador). En celular cada caso muestra también su próxima acción.
 *   **Ficha del caso**: la próxima acción es el bloque **Qué sigue** (`.que-sigue`), en azul suave, sin el borde lateral naranja.

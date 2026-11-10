@@ -121,8 +121,8 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)", overflowWrap: "anywhere" }}>{caso.asegurado || "Sin nombre"}</h3>
-            <div style={{ fontSize: 12, color: "var(--sub)", marginTop: 2, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <h3 className="display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)", overflowWrap: "anywhere" }}>{caso.asegurado || "Sin nombre"}</h3>
+            <div style={{ fontSize: 13, color: "var(--sub)", marginTop: 2, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {caso.compania_aseguradora && <span>{caso.compania_aseguradora}</span>}
               {caso.patente && <span style={{ fontFamily: "var(--mono)" }}>{caso.patente}</span>}
               {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
@@ -149,8 +149,8 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
         )}
 
         {caso.mensaje_cliente && (
-          <div style={{ background: "color-mix(in srgb, var(--accent) 9%, var(--card))", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent-ink)", marginBottom: 3 }}>Mensaje para tu cliente</div>
+          <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--sub)", marginBottom: 2 }}>Mensaje para tu cliente</div>
             <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.45 }}>{caso.mensaje_cliente}</div>
           </div>
         )}
@@ -163,21 +163,21 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
-            style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
-            {open ? "Ocultar detalle" : "Detalle y documentación"}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent-ink)", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, minHeight: 36 }}>
+            {open ? "Ocultar detalle" : "Ver detalle y documentación"}
           </button>
           <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
             {linkCliente && (
               <a href={linkCliente} target="_blank" rel="noreferrer" title="Le manda por WhatsApp el link para que siga el caso solo"
-                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
-                <Icono nombre="mensaje" size={14} />Pasale el seguimiento al cliente
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: "var(--r-sm)", fontSize: 13, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                <Icono nombre="mensaje" size={14} />Enviarle el seguimiento
               </a>
             )}
             {conEscrito && <Boton tamaño="sm" icono="escrito" onClick={() => setEscrito(true)}>Generar escrito</Boton>}
             {/* En la demo no va: el acceso se pide arriba y al final */}
             {consulta && !caso._demo && !demo && (
               <a href={consulta} target="_blank" rel="noreferrer" title={demo ? "Te abre WhatsApp para pedir tu acceso" : "Te abre WhatsApp con el caso ya identificado"}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: "var(--r-sm)", fontSize: 12, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: "var(--r-sm)", fontSize: 13, fontWeight: 600, textDecoration: "none", color: "var(--text)", background: "var(--card)", border: "1px solid var(--border2)", whiteSpace: "nowrap" }}>
                 <Icono nombre={demo ? "mensaje" : "telefono"} size={14} />{demo ? "Quiero mi acceso" : "Consultar al estudio"}
               </a>
             )}

@@ -13,6 +13,8 @@
   --accent-ink: #1A36A8;
   --marca: #9C7A16; /* dorado del logo: el único lugar donde queda */
   --wa: #0E7A5F; /* WhatsApp */
+  /* Bloque de tinta: el paso actual en la vista del cliente y las franjas oscuras de la página de consultas */
+  --tinta: #0E1726; --tinta-texto: #FFFFFF; --tinta-sub: #C9D3E3; --tinta-acento: #8FA8FF; --tinta-vacio: #34425A;
   --on-accent: #FFFFFF;
   --ok: #146C43;
   --warn: #96590A;
@@ -51,6 +53,7 @@
   --on-accent: #0B1220;
   --marca: #D4AF37;
   --wa: #2FA98A;
+  --tinta: #1A2538; --tinta-vacio: #3A4A66;
   --ok: #4FA776;
   --warn: #D98E4F;
   --bad: #D0685A;
@@ -133,6 +136,14 @@ input:focus, select:focus, textarea:focus {
 @media (min-width: 900px) {
   .caso-cliente { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 }
+.bloque-paso { background: var(--tinta); color: var(--tinta-texto); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.bloque-paso-sub { font-size: 13px; color: var(--tinta-sub); }
+.bloque-paso-titulo { margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.3px; }
+.bloque-paso-barra { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.bloque-paso-barra span { height: 6px; border-radius: var(--r-xs); background: var(--tinta-vacio); }
+.bloque-paso-barra span.lleno { background: var(--tinta-acento); }
+.barra-wa { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: center; background: var(--card); border-top: 1px solid var(--border); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.barra-wa .btn-wa-grande { width: 100%; max-width: 480px; box-sizing: border-box; min-height: 52px; padding: 12px 10px; white-space: nowrap; }
 .pestanas-casos { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .pestanas-casos::-webkit-scrollbar { display: none; }
 
@@ -180,9 +191,11 @@ input:focus, select:focus, textarea:focus {
 
 /* ── PORTAL PAS ── */
 .fab-derivar { display: none; }
+@media (min-width: 901px) { .portal-resumen { order: 2; } } /* en compu, los casos a la izquierda y el resumen al costado */
 @media (max-width: 900px) {
   .portal-grid[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 12px 12px 96px !important; gap: 12px !important; }
   .portal-resumen[style] { position: static !important; }
+  .portal-saludo[style] { padding: 16px 12px 0 !important; }
   .stats-3[style] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   .stats-pas[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .checklist-docs[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
