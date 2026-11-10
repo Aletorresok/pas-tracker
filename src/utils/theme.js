@@ -18,10 +18,10 @@ export const COLORES = {
   info: "var(--info)",
 };
 
-// Temas de acento disponibles (el valor es el de data-accent; "" = dorado por defecto)
+// Temas de acento disponibles (el valor es el de data-accent; "" = azul por defecto)
 export const ACENTOS = [
-  { key: "", label: "Dorado", muestra: "#C9A227" },
-  { key: "marino", label: "Marino", muestra: "#2D4A7A" },
+  { key: "", label: "Azul", muestra: "#2447D6" },
+  { key: "dorado", label: "Dorado", muestra: "#C9A227" },
   { key: "borgona", label: "Borgoña", muestra: "#7D2E46" },
   { key: "grafito", label: "Grafito", muestra: "#3F4654" },
 ];

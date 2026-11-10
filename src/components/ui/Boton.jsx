@@ -9,7 +9,7 @@ const VARIANTES = {
 };
 
 export default function Boton({ variante = "secundario", icono, children, style, disabled, tamaño = "md", className, ...rest }) {
-  const pad = tamaño === "sm" ? "6px 14px" : "10px 20px";
+  const pad = tamaño === "sm" ? "6px 12px" : "10px 18px";
   return (
     <button
       type="button"
@@ -19,7 +19,7 @@ export default function Boton({ variante = "secundario", icono, children, style,
       style={{
         ...VARIANTES[variante],
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-        borderRadius: "var(--r-pill)", padding: pad, fontSize: tamaño === "sm" ? 12 : 14, fontWeight: 600,
+        borderRadius: "var(--r-sm)", padding: pad, fontSize: tamaño === "sm" ? 13 : 14, fontWeight: 600,
         cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1, whiteSpace: "nowrap",
         ...style,
       }}

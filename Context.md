@@ -3,7 +3,7 @@
 > Última revisión de estructura: 2026-09-29. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
 
 ## 🛠️ Stack
-*   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
+*   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Azul por defecto, Dorado, Borgoña, Grafito). Tipografía: Inter para el texto y Space Grotesk (`--display`) para títulos y cifras grandes. Sin colores hex en componentes: `var(--…)` y `alpha()`.
 *   **Backend:** Supabase (PostgreSQL con RLS en todas las tablas, Auth, Realtime, Storage). Credenciales por variables de entorno `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
 *   **Librerías:** framer-motion (animaciones), jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
@@ -27,7 +27,7 @@
 *   `components/BuscadorGlobal.jsx` — Ctrl/Cmd+K: casos (asegurado, patente, DNI, siniestro, compañía, PAS) y PAS (cargados + búsqueda en los 51 mil contactos).
 
 **Pestañas del estudio**
-*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, dos columnas: Para hacer (izquierda) · Cobros pendientes + Agenda (derecha), y abajo **Mi día** (rutina + prospección). Sin KPIs (están en Finanzas y Análisis).
+*   `TabDashboard.jsx` (**Hoy**) — título con lo que hay para hacer ("Tenés 9 tareas vencidas y 3 para hoy") y filtros Todo/Vencidas/Hoy, Documentación recibida, Nuevos del portal, dos columnas: Para hacer en lista compacta (izquierda) · Por cobrar + Agenda (derecha), y abajo **Mi día** (rutina + prospección). Sin KPIs (están en Finanzas y Análisis).
     *   `dashboard/RecepcionHoy.jsx` · `NuevosPortal.jsx` · `ParaHacer.jsx` (una tarjeta por caso con todos sus pendientes, `TarjetaCaso.jsx`; "Hoy" = vencido y de hoy, "Próximos días y sin plazo" plegado; acciones rápidas Hecho + nueva acción, Posponer, Reiteré hoy) · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `MiDia.jsx` (bloques del día con el de ahora resaltado; los ítems medibles se tildan solos: `utils/medidasRutina.js`).
 *   `TabCasos.jsx` (**Casos**) — tabla con chips (Activos, Todos, Sin DNI, por estado), orden, filas de dos líneas en celular. Botón **Papelera** (`casos/Papelera.jsx`: casos eliminados de los últimos 30 días con "Recuperar").
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
@@ -145,6 +145,16 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-11-10 — Rediseño, parte 1: estilo general, menú y Hoy
+*   Alexis pidió rediseñar toda la app (su vista, el portal y la vista del cliente) y aprobó las maquetas del 10/11. Esta parte cambia la base que usa todo lo demás; Casos, ficha, portal, vista del cliente y la página de consultas van en las partes siguientes.
+*   **Colores** (`index.css`): fondo gris muy claro, texto azul noche y un solo azul fuerte como acento (`--accent`). El dorado queda solo en el logo (`--marca`). El verde de WhatsApp es `--wa`. El acento por defecto pasó de dorado a azul; "Dorado" sigue disponible en Apariencia y "Marino" se sacó (quedó casi igual al nuevo por defecto). Modo oscuro actualizado con la misma lógica.
+*   **Tipografía**: Inter para el texto y Space Grotesk para títulos (`h1`, `h2`, `.display`) y cifras grandes (`.cifra`).
+*   **Botones** (`Boton.jsx`): esquinas de `--r-sm` en lugar de cápsula. Las cápsulas quedan para los filtros (`.chip`) y los plazos (`.plazo`).
+*   **Menú** (`SidebarNav.jsx`): pegado al borde izquierdo (ya no es una tarjeta flotante); la pestaña activa va en azul. En celular, la barra de abajo va pegada al borde y marca la pestaña activa con una línea.
+*   **Hoy**: se sacaron las cuatro tarjetas de números (`ResumenHoy.jsx`, borrado): el título ahora dice cuántas tareas hay vencidas y para hoy, con filtros Todo / Vencidas / Hoy al lado. **Para hacer** pasó de tarjetas a una lista compacta (`.lista-filas`, `.ft`): entran unas 10 filas donde antes entraban 3. Cada fila: tilde (Hecho), nombre con compañía y patente, qué hay que hacer, plazo, Posponer y WhatsApp al asegurado (si tiene teléfono). **Por cobrar** muestra mi neto pendiente en grande y los casos en filas.
+*   Se borraron `ListaTarjetas.jsx`, `TarjetaTarea.jsx` y los estilos `.tc*` y `.stat*`, que ya no se usan.
+*   Probado con Supabase simulado en Chrome (1440 px y 390 px, claro y oscuro): Hoy, Casos, portal de demostración, vista del cliente y /reclamo. **No probado contra la base real** ni guardando (Hecho, Posponer) de verdad.
 
 ### 2026-10-14 — La app recuerda la carpeta de cada caso
 *   Antes la carpeta vinculada se perdía al cerrar la ficha o la app: había que elegirla cada vez (y de ahí salían carpetas duplicadas o con nombres de relleno).

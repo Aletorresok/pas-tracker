@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { aplanarCasos, tareasPendientes, cobrosPendientes, netoYo } from "../utils/metricas.js";
+import { aplanarCasos, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
 import { fechaLocalISO } from "../utils/formatters.js";
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import ParaHacer, { agruparPorCaso } from "./dashboard/ParaHacer.jsx";
@@ -8,7 +8,6 @@ import ConsultasWeb from "./dashboard/ConsultasWeb.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import MiDia from "./dashboard/MiDia.jsx";
-import ResumenHoy from "./dashboard/ResumenHoy.jsx";
 import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto, tareasDeExpedientes, completarAccionExpediente, posponerAccionExpediente } from "../utils/expedientes.js";
 import { useCalendarioJudicial } from "../hooks/useCalendarioJudicial.js";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
@@ -62,13 +61,16 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
     .sort((a, b) => String(b.created_at || b.fecha_derivacion || "").localeCompare(String(a.created_at || a.fecha_derivacion || ""))), [allCasos]);
 
   const [abierto, setAbierto] = useState(null); // { caso, pasId }
-  const [foco, setFoco] = useState(null); // null | "atras" | "hoy": filtra Para hacer desde los números de arriba
+  const [foco, setFoco] = useState(null); // null | "atras" | "hoy": filtra Para hacer desde los filtros del encabezado
   const hoyISO = fechaLocalISO();
   const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
   const atrasadas = grupos.filter(g => g.vence && g.vence < hoyISO).length;
   const paraHoy = grupos.filter(g => g.vence === hoyISO).length;
-  const totalNeto = useMemo(() => cobros.reduce((a, c) => a + (c.faltaHonorarios ? netoYo(c) : 0), 0), [cobros]);
-  const irA = id => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // El título dice lo que hay para hacer: es lo primero que se lee al abrir la app
+  const plural = (n, uno, muchos) => `${n} ${n === 1 ? uno : muchos}`;
+  const titulo = atrasadas && paraHoy ? `Tenés ${plural(atrasadas, "tarea vencida", "tareas vencidas")} y ${paraHoy} para hoy`
+    : atrasadas ? `Tenés ${plural(atrasadas, "tarea vencida", "tareas vencidas")}`
+    : paraHoy ? `Tenés ${plural(paraHoy, "tarea", "tareas")} para hoy` : "Nada vencido ni para hoy";
 
   const fechaHoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
   const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
@@ -104,23 +106,30 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>Hoy</h1>
-        <span style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</span>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</div>
+          <h1 style={{ margin: "2px 0 0", fontSize: 28, fontWeight: 700, lineHeight: 1.2 }}>{titulo}</h1>
+        </div>
+        {atrasadas + paraHoy > 0 && (
+          <div className="chips" role="group" aria-label="Filtrar las tareas">
+            <button type="button" className="chip" aria-pressed={!foco} onClick={() => setFoco(null)}>Todo <b className="num">{atrasadas + paraHoy}</b></button>
+            {atrasadas > 0 && <button type="button" className="chip" aria-pressed={foco === "atras"} onClick={() => setFoco("atras")}>Vencidas <b className="num">{atrasadas}</b></button>}
+            {paraHoy > 0 && <button type="button" className="chip" aria-pressed={foco === "hoy"} onClick={() => setFoco("hoy")}>Hoy <b className="num">{paraHoy}</b></button>}
+          </div>
+        )}
       </header>
-
-      <ResumenHoy atrasadas={atrasadas} hoy={paraHoy} nuevos={nuevos.length} cobrar={totalNeto} foco={foco} onFoco={setFoco} onIrA={irA} />
 
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 
-      <div id="hoy-nuevos"><NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} /></div>
+      <div><NuevosPortal casos={nuevos} onCasoLocal={onCasoLocal} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} /></div>
       <ConsultasWeb todosLosPas={todosLosPas} onCasoLocal={onCasoLocal} onAbrir={(c, pasId) => setAbierto({ caso: c, pasId })} />
 
       {/* Lo que hay que hacer y, al lado, la plata que falta entrar y la agenda */}
-      <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
+      <div className="dash-cols" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.9fr) minmax(0, 1fr)", gap: 20, alignItems: "start" }}>
         <ParaHacer tareas={tareas} cal={cal} foco={foco} onQuitarFoco={() => setFoco(null)} onAbrir={abrirTarea} onHecho={alHecho} onPosponer={alPosponer} onReiterar={alReiterar} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          <div id="hoy-cobros"><CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} /></div>
+          <div><CobrosResumen cobros={cobros} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} onVerTodos={() => onIrA?.("analisis")} /></div>
           <AgendaHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId })} />
         </div>
       </div>
