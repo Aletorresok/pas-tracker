@@ -146,6 +146,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-11 — Carpeta local: paso a la vista al crear o vincular
+- `CarpetaLocal` muestra en qué paso está ("Elegí en la ventana de Windows…", "Pidiendo permiso…", "Creando…") y el resultado. Si un paso tarda más de 10 s avisa que Chrome espera una respuesta en otra ventana o pantalla. Cada paso queda en la consola como `[carpeta]`.
+- Motivo: en la app instalada de Alexis (desde pas-tracker20.vercel.app) crear o vincular no hacía nada ni avisaba; en una pestaña de Chrome sí funcionaba.
+
 ### 2026-11-11 — Carpeta local: errores claros al crear la carpeta del caso
 - `crearCarpetaCaso` (`utils/carpeta.js`) limpia el nombre (`nombreCarpetaSeguro`: sin caracteres prohibidos ni punto o espacio final), toma la fecha con o sin hora, no trata como error cancelar el selector y pide permiso de escritura antes de crear.
 - Si falla, `mensajeErrorCarpeta` explica el motivo (permiso de Chrome, nombre inválido, carpeta movida, carpeta de solo lectura) y deja el error original entre paréntesis; además queda en la consola como `[carpeta] crear:`.

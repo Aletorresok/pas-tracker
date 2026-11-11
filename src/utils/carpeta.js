@@ -105,7 +105,7 @@ export function mensajeErrorCarpeta(e) {
 }
 
 // Crea la carpeta del caso dentro de la que elija el usuario. null si cancela el selector.
-export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) {
+export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }, onPaso = () => {}) {
   const fecha = String(fechaSiniestro || "").slice(0, 10);
   const fechaFormateada = /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha.split("-").reverse().join("-") : "sin-fecha";
 
@@ -114,12 +114,15 @@ export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) 
     .filter(Boolean)
     .join(" - "));
 
+  onPaso("Elegí en la ventana de Windows dónde crear la carpeta");
   const padreHandle = await elegirCarpeta(); // cancelar no es un error
   if (!padreHandle) return null;
+  onPaso(`Pidiendo permiso para escribir en "${padreHandle.name}"`);
   if (!(await verificarPermisoCarpeta(padreHandle))) {
     const e = new Error("sin permiso de escritura"); e.name = "NotAllowedError"; throw e;
   }
 
+  onPaso(`Creando "${nombreCarpeta}" dentro de "${padreHandle.name}"`);
   const nuevaHandle = await padreHandle.getDirectoryHandle(nombreCarpeta, { create: true });
   return { handle: nuevaHandle, nombre: nombreCarpeta };
 }

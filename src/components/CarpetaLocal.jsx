@@ -19,6 +19,16 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
   const [nombreCarpeta, setNombreCarpeta] = useState("");
   const [gestorPdfAbierto, setGestorPdfAbierto] = useState(false);
   const [sinPermiso, setSinPermiso]       = useState(false); // carpeta recordada, falta que Chrome dé el permiso (un toque)
+  // Paso en curso al crear o vincular, a la vista: si algo se traba se sabe dónde (y a los 10 s se avisa)
+  const [paso, setPaso]                   = useState(null); // { texto, desde }
+  const [trabado, setTrabado]             = useState(false);
+  const [resultado, setResultado]         = useState(null); // { ok, texto }
+  const marcar = texto => { if (texto) console.info("[carpeta]", texto); setTrabado(false); setPaso(texto ? { texto, desde: Date.now() } : null); };
+  useEffect(() => {
+    if (!paso) return;
+    const t = setTimeout(() => setTrabado(true), 10000);
+    return () => clearTimeout(t);
+  }, [paso]);
 
   useEffect(() => { onDirHandleChange?.(dirHandle); }, [dirHandle, onDirHandleChange]);
 
@@ -61,17 +71,21 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
   };
 
   const vincularCarpeta = async () => {
-    setCargando(true);
+    setCargando(true); setResultado(null);
     try {
+      marcar("Elegí la carpeta en la ventana de Windows");
       const handle = await elegirCarpeta();
-      if (!handle) { setCargando(false); return; }
+      if (!handle) { marcar(null); setResultado({ ok: false, texto: "No se eligió ninguna carpeta (Chrome lo tomó como cancelado)." }); setCargando(false); return; }
 
+      marcar(`Pidiendo permiso para "${handle.name}"`);
       const permiso = await verificarPermisoCarpeta(handle);
       if (!permiso) {
+        marcar(null); setResultado({ ok: false, texto: "Chrome no dio permiso para esa carpeta." });
         onToast({ msg: "Sin permiso para acceder a la carpeta", type: "error" });
         setCargando(false);
         return;
       }
+      marcar(`Leyendo los archivos de "${handle.name}"`);
 
       setDirHandle(handle);
       setNombreCarpeta(handle.name);
@@ -79,21 +93,24 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       recordarCarpeta(caso?.id, handle);
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
+      marcar(null); setResultado({ ok: true, texto: `Carpeta "${handle.name}" vinculada.` });
     } catch (e) {
-      onToast({ msg: `Error: ${e.message}`, type: "error" });
+      console.error("[carpeta] vincular:", e);
+      marcar(null); setResultado({ ok: false, texto: mensajeErrorCarpeta(e) });
+      onToast({ msg: mensajeErrorCarpeta(e), type: "error" });
     }
     setCargando(false);
   };
 
   const crearYVincular = async () => {
-    setCargando(true);
+    setCargando(true); setResultado(null);
     try {
       const result = await crearCarpetaCaso({
         asegurado: caso?.asegurado,
         compania: caso?.compania_aseguradora,
         fechaSiniestro: caso?.fecha_siniestro,
-      });
-      if (!result) { setCargando(false); return; }
+      }, marcar);
+      if (!result) { marcar(null); setResultado({ ok: false, texto: "No se eligió ninguna carpeta (Chrome lo tomó como cancelado)." }); setCargando(false); return; }
 
       const { handle, nombre } = result;
       setDirHandle(handle);
@@ -103,8 +120,10 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       const lista = await leerArchivosCarpeta(handle, getExtension);
       setArchivos(lista);
       onToast({ msg: `Carpeta "${nombre}" creada y vinculada`, type: "success" });
+      marcar(null); setResultado({ ok: true, texto: `Carpeta "${nombre}" creada y vinculada.` });
     } catch (e) {
       console.error("[carpeta] crear:", e);
+      marcar(null); setResultado({ ok: false, texto: mensajeErrorCarpeta(e) });
       onToast({ msg: mensajeErrorCarpeta(e), type: "error" });
     }
     setCargando(false);
@@ -178,6 +197,14 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
 
   return (
     <div style={{ marginTop: 16, borderTop: `1px solid ${Th.border}`, paddingTop: 16 }}>
+      {(paso || resultado) && (
+        <div role="status" style={{ marginBottom: 12, padding: "10px 12px", borderRadius: "var(--r-sm)", fontSize: 13, lineHeight: 1.45,
+          background: paso ? (trabado ? "color-mix(in srgb, var(--warn) 12%, var(--card))" : Th.card2) : resultado.ok ? "color-mix(in srgb, var(--ok) 12%, var(--card))" : "color-mix(in srgb, var(--bad) 10%, var(--card))",
+          color: paso ? Th.text : resultado.ok ? "var(--ok)" : "var(--bad)" }}>
+          {paso ? paso.texto + "…" : resultado.texto}
+          {paso && trabado && <div style={{ marginTop: 4, color: "var(--warn)", fontWeight: 600 }}>Chrome está esperando una respuesta: fijate si hay una ventana o un cartel abierto en la otra pantalla o detrás de esta.</div>}
+        </div>
+      )}
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
