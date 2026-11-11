@@ -6,6 +6,7 @@ import {
   leerArchivosCarpeta,
   renombrarArchivoLocal,
   crearCarpetaCaso,
+  mensajeErrorCarpeta,
 } from "../utils/carpeta.js";
 import { recordarCarpeta, carpetaRecordada, olvidarCarpeta } from "../utils/carpetaRecordada.js";
 import ArchivoLocalRow from "./carpeta/ArchivoLocalRow.jsx";
@@ -103,7 +104,8 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
       setArchivos(lista);
       onToast({ msg: `Carpeta "${nombre}" creada y vinculada`, type: "success" });
     } catch (e) {
-      onToast({ msg: `Error: ${e.message}`, type: "error" });
+      console.error("[carpeta] crear:", e);
+      onToast({ msg: mensajeErrorCarpeta(e), type: "error" });
     }
     setCargando(false);
   };

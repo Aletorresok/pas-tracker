@@ -146,6 +146,10 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-11 — Carpeta local: errores claros al crear la carpeta del caso
+- `crearCarpetaCaso` (`utils/carpeta.js`) limpia el nombre (`nombreCarpetaSeguro`: sin caracteres prohibidos ni punto o espacio final), toma la fecha con o sin hora, no trata como error cancelar el selector y pide permiso de escritura antes de crear.
+- Si falla, `mensajeErrorCarpeta` explica el motivo (permiso de Chrome, nombre inválido, carpeta movida, carpeta de solo lectura) y deja el error original entre paréntesis; además queda en la consola como `[carpeta] crear:`.
+
 ### 2026-11-10 — Rediseño, parte 4: página para captar consultas (`/consulta`)
 - Nueva página pública `components/publico/PaginaConsulta.jsx` (ruta `/consulta`, acepta `?ref=` y `?tema=`): presentación, WhatsApp, formulario corto con tema (Choque, Alimentos, Divorcio, Sucesión, Consumo, Otro tema), áreas, "Cómo trabajo", "Quién soy" y preguntas. Sin costos ni promesas de resultado. Estilos `.pc-*` en `index.css`.
 - La matrícula, la foto y la presentación personal se cargan en la constante `ABOGADO` del archivo; lo que queda vacío no se muestra.
