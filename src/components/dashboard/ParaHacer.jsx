@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { fechaLocalISO } from "../../utils/formatters.js";
-import ListaTarjetas from "../ui/ListaTarjetas.jsx";
 import { itemsCaso, itemsExpediente } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
@@ -23,15 +22,15 @@ export function agruparPorCaso(tareas) {
   }).sort((a, b) => fecha(a).localeCompare(fecha(b)));
 }
 
-// Alto de la lista: se ven unas 3 tarjetas y el resto con scroll (como Cobros pendientes)
-const ALTO_LISTA = 470;
+// Alto de la lista: entran unas 12 filas y el resto con scroll
+const ALTO_LISTA = 720;
 
 const leer = () => { try { return localStorage.getItem("paraHacer:proximos") === "1"; } catch { return false; } };
 const guardar = v => { try { localStorage.setItem("paraHacer:proximos", v ? "1" : "0"); } catch { /* sin storage */ } };
 
-// Para hacer: Atrasadas y Hoy a la vista, cada una con su título; abajo, plegado, lo de los próximos días y lo que no tiene plazo.
-// foco ("atras" | "hoy") deja solo ese grupo (lo eligen los números de arriba de Hoy).
-// Tocar abre el caso o el expediente; las acciones rápidas (Hecho, Posponer) están en cada tarjeta.
+// Para hacer: una lista compacta con Vencidas y Para hoy a la vista, cada grupo con su banda; abajo, plegado, lo de los próximos días
+// y lo que no tiene plazo. foco ("atras" | "hoy") deja solo ese grupo (lo eligen los filtros del encabezado de Hoy).
+// Tocar una fila abre el caso o el expediente; el tilde (Hecho) y Posponer están en cada fila.
 export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [verProximos, setVerProximos] = useState(leer);
   const hoy = fechaLocalISO();
@@ -40,60 +39,51 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
   const proximos = grupos.filter(g => !g.vence || g.vence > hoy);
   const atrasadas = deHoy.filter(g => g.vence < hoy);
   const paraHoy = deHoy.filter(g => g.vence === hoy);
-  const vencidos = atrasadas.length;
 
   const abrir = g => onAbrir(g.tareas[0]);
-  const tarjeta = g => {
+  const fila = g => {
     const plazo = g.tareas.find(t => t.plazo && t.vence);
     return (
-      <TarjetaCaso grupo={g} tipos={TIPO} onAbrir={abrir}
+      <TarjetaCaso key={g.id} grupo={g} tipos={TIPO} onAbrir={abrir}
         chip={plazo ? <ChipPendiente pendiente={plazo.plazo} cal={cal} jurisdiccion={plazo.jurisdiccion} /> : undefined}
         menu={() => g.caso ? itemsCaso(g.caso, { abrir: () => abrir(g) })
           : g.expediente ? itemsExpediente(g.expediente, { abrir: () => abrir(g) }) : [{ label: "Abrir", onClick: () => abrir(g) }]}
         onHecho={onHecho} onPosponer={onPosponer} onReiterar={onReiterar} />
     );
   };
+  const bandas = [["Vencidas", atrasadas, "var(--bad)", "atras"], ["Para hoy", paraHoy, "var(--warn)", "hoy"]]
+    .filter(([, lista, , k]) => lista.length && (!foco || foco === k));
 
   return (
-    <section className="panel-vidrio">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 14, padding: "0 4px" }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Para hacer</h2>
-        <span style={{ fontSize: 12, color: "var(--muted)" }}>
-          {deHoy.length} para hoy{vencidos ? ` · ${vencidos} vencido${vencidos > 1 ? "s" : ""}` : ""}
-        </span>
-      </div>
-
+    <section className="lista-filas" aria-label="Para hacer">
       {deHoy.length === 0 && (
-        <div style={{ padding: "12px 0 20px", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
+        <div style={{ padding: "24px 16px", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
           <Ilustracion nombre="listo" size={72} style={{ margin: "0 auto 8px" }} />
           Nada vencido ni para hoy.
         </div>
       )}
       {deHoy.length > 0 && (
-        <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "0 -10px", padding: "0 10px 10px" }}>
-          {[["Atrasadas", atrasadas, "var(--bad)", "atras"], ["Hoy", paraHoy, "var(--warn)", "hoy"]]
-            .filter(([, lista, , k]) => lista.length && (!foco || foco === k))
-            .map(([titulo, lista, color]) => (
-              <div key={titulo}>
-                <div className="grupo-h"><span style={{ color }}>{titulo}</span><span className="num">{lista.length}</span></div>
-                <ListaTarjetas items={lista} render={tarjeta} />
-              </div>
-            ))}
-          {foco && onQuitarFoco && <button type="button" className="link-sutil" onClick={onQuitarFoco}>Ver todo</button>}
+        <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto" }}>
+          {bandas.map(([titulo, lista, color], i) => (
+            <div key={titulo} style={i ? { borderTop: "1px solid var(--border)" } : undefined}>
+              <div className="banda" style={{ "--tono": color }}><span>{titulo}</span><span className="num">{lista.length}</span></div>
+              {lista.map(fila)}
+            </div>
+          ))}
         </div>
       )}
 
+      {foco && onQuitarFoco && (
+        <div style={{ borderTop: "1px solid var(--border)", padding: "4px 14px" }}>
+          <button type="button" className="link-sutil" onClick={onQuitarFoco}>Ver todo</button>
+        </div>
+      )}
       {!foco && proximos.length > 0 && (
-        <div style={{ marginTop: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-          <button type="button" onClick={() => { setVerProximos(v => { guardar(!v); return !v; }); }} aria-expanded={verProximos}
-            style={{ background: "none", border: "none", padding: "4px", font: "inherit", fontSize: 14, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer" }}>
-            {verProximos ? "Ocultar" : "Ver"} próximos días y sin plazo ({proximos.length})
+        <div style={{ borderTop: "1px solid var(--border)" }}>
+          <button type="button" className="link-sutil" onClick={() => { setVerProximos(v => { guardar(!v); return !v; }); }} aria-expanded={verProximos} style={{ padding: "12px 18px" }}>
+            {verProximos ? "Ocultar" : "Ver"} los próximos días y sin plazo ({proximos.length})
           </button>
-          {verProximos && (
-            <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto", margin: "6px -10px 0", padding: "6px 10px 10px" }}>
-              <ListaTarjetas items={proximos} render={tarjeta} />
-            </div>
-          )}
+          {verProximos && <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto" }}>{proximos.map(fila)}</div>}
         </div>
       )}
     </section>

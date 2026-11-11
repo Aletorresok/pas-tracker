@@ -22,6 +22,12 @@ export async function enviarConsulta(c) {
   return { error: "No pudimos enviar la consulta. Probá de nuevo o escribinos por WhatsApp." };
 }
 
+// Las consultas de /consulta traen el tema al principio del relato ("Tema: Alimentos. ..."). Las de /reclamo no: son choques.
+export function temaDeConsulta(c) {
+  const m = String(c?.relato || "").match(/^Tema: ([^.]+)\.\s*/);
+  return m ? { tema: m[1], relato: String(c.relato).slice(m[0].length) } : { tema: "", relato: c?.relato || "" };
+}
+
 // Aviso por mail con la plantilla de derivaciones de EmailJS (si no está configurada, no hace nada: la consulta ya quedó en Hoy)
 function avisarPorMail(c) {
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) return;

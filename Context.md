@@ -3,7 +3,7 @@
 > Última revisión de estructura: 2026-09-29. Regla de trabajo: **cada cambio se registra acá** (sección "Registro de Cambios").
 
 ## 🛠️ Stack
-*   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Dorado, Marino, Borgoña, Grafito). Sin colores hex en componentes: `var(--…)` y `alpha()`.
+*   **Frontend:** React 18 + React Router 6 + Vite 5. Estilos inline + tokens CSS en `src/index.css` (claro/oscuro con `data-theme`, 4 acentos con `data-accent`: Azul por defecto, Dorado, Borgoña, Grafito). Tipografía: Inter para el texto y Space Grotesk (`--display`) para títulos y cifras grandes. Sin colores hex en componentes: `var(--…)` y `alpha()`.
 *   **Backend:** Supabase (PostgreSQL con RLS en todas las tablas, Auth, Realtime, Storage). Credenciales por variables de entorno `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 *   **Deploy:** Vercel, proyecto "pas-tracker2.0" conectado a `Aletorresok/pas-tracker` (producción `pas-tracker20.vercel.app`; preview por rama). El usuario usa la app desde Chrome (PC y celular).
 *   **Librerías:** framer-motion (animaciones), jsPDF (escritos y PDF del caso), XLSX (Excel), EmailJS (mails de derivación y de documentación del cliente; `VITE_EMAILJS_*`).
@@ -27,7 +27,7 @@
 *   `components/BuscadorGlobal.jsx` — Ctrl/Cmd+K: casos (asegurado, patente, DNI, siniestro, compañía, PAS) y PAS (cargados + búsqueda en los 51 mil contactos).
 
 **Pestañas del estudio**
-*   `TabDashboard.jsx` (**Hoy**) — Documentación recibida, Nuevos del portal, dos columnas: Para hacer (izquierda) · Cobros pendientes + Agenda (derecha), y abajo **Mi día** (rutina + prospección). Sin KPIs (están en Finanzas y Análisis).
+*   `TabDashboard.jsx` (**Hoy**) — título con lo que hay para hacer ("Tenés 9 tareas vencidas y 3 para hoy") y filtros Todo/Vencidas/Hoy, Documentación recibida, Nuevos del portal, dos columnas: Para hacer en lista compacta (izquierda) · Por cobrar + Agenda (derecha), y abajo **Mi día** (rutina + prospección). Sin KPIs (están en Finanzas y Análisis).
     *   `dashboard/RecepcionHoy.jsx` · `NuevosPortal.jsx` · `ParaHacer.jsx` (una tarjeta por caso con todos sus pendientes, `TarjetaCaso.jsx`; "Hoy" = vencido y de hoy, "Próximos días y sin plazo" plegado; acciones rápidas Hecho + nueva acción, Posponer, Reiteré hoy) · `CobrosResumen.jsx` · `AgendaHoy.jsx` (14 días) · `MiDia.jsx` (bloques del día con el de ahora resaltado; los ítems medibles se tildan solos: `utils/medidasRutina.js`).
 *   `TabCasos.jsx` (**Casos**) — tabla con chips (Activos, Todos, Sin DNI, por estado), orden, filas de dos líneas en celular. Botón **Papelera** (`casos/Papelera.jsx`: casos eliminados de los últimos 30 días con "Recuperar").
     *   `casos/FilaExpandida.jsx` — edición rápida con autoguardado (estado, próxima acción + plazo, DNI, mensaje al cliente, montos) + "Avisar por WhatsApp".
@@ -145,6 +145,36 @@
 - [ ] Faltan claves primarias/índices documentados en `schema.sql` (el export no los incluyó).
 
 ## 📝 Registro de Cambios
+
+### 2026-11-11 — Carpeta local: errores claros al crear la carpeta del caso
+- `crearCarpetaCaso` (`utils/carpeta.js`) limpia el nombre (`nombreCarpetaSeguro`: sin caracteres prohibidos ni punto o espacio final), toma la fecha con o sin hora, no trata como error cancelar el selector y pide permiso de escritura antes de crear.
+- Si falla, `mensajeErrorCarpeta` explica el motivo (permiso de Chrome, nombre inválido, carpeta movida, carpeta de solo lectura) y deja el error original entre paréntesis; además queda en la consola como `[carpeta] crear:`.
+
+### 2026-11-10 — Rediseño, parte 4: página para captar consultas (`/consulta`)
+- Nueva página pública `components/publico/PaginaConsulta.jsx` (ruta `/consulta`, acepta `?ref=` y `?tema=`): presentación, WhatsApp, formulario corto con tema (Choque, Alimentos, Divorcio, Sucesión, Consumo, Otro tema), áreas, "Cómo trabajo", "Quién soy" y preguntas. Sin costos ni promesas de resultado. Estilos `.pc-*` en `index.css`.
+- La matrícula, la foto y la presentación personal se cargan en la constante `ABOGADO` del archivo; lo que queda vacío no se muestra.
+- Usa la misma función `nueva_consulta` (SQL 47, sin SQL nuevo): el tema viaja al principio del relato ("Tema: Alimentos. ...") y `temaDeConsulta` (`utils/consultas.js`) lo separa. En Hoy → "Consultas de la web" se ve el tema y "Pasar a caso" solo aparece en los choques.
+
+### 2026-11-10 — Rediseño, parte 3: vista del cliente y portal del productor
+- **Vista del cliente** (`PortalCliente.jsx`): arriba va un bloque de tinta (`.bloque-paso`, tokens `--tinta*`) con "Paso N de 5", un título de una línea (`tituloEtapaCliente` en `utils/vistaCliente.js`), la barra de 5 tramos, el texto de la etapa y la oferta si la hay. Debajo, un bloque verde "Vos no tenés que hacer nada por ahora" (ámbar con botón cuando falta documentación). "El camino de tu reclamo" pasó a ser una lista numerada compacta; Novedades son filas con fecha. El "Mensaje del estudio" ya no lleva borde de color.
+- WhatsApp queda fijo abajo (`.barra-wa`) mientras se ve el reclamo; el horario de atención pasó al pie.
+- **Portal del productor** (`PortalHome.jsx`): saludo con el resumen en una frase, aviso "Necesitamos algo de vos" cuando hay casos con documentación pendiente (filtra esos casos), casos a la izquierda y resumen/cobros al costado en compu. En `PortalCasoCard.jsx`, nombre en `--display`, textos de 13 px como mínimo y "Enviarle el seguimiento".
+
+### 2026-11-10 — Rediseño, parte 2: Casos y "Qué sigue" en la ficha
+*   **Casos**: arriba va un **embudo** (`.embudo`) con el conteo de cada etapa; tocar una etapa filtra la lista y tocarla de nuevo la saca (reemplaza el desplegable "Etapa"). La tabla suma la columna **Qué sigue** (próxima acción, plazo en color y hace cuánto se movió) y ordena por ese vencimiento por defecto: lo más vencido arriba. La compañía y la patente pasan debajo del nombre; se sacaron las columnas Compañía y Últ. mov. (ya no se ordena por ellas; la compañía se encuentra con el buscador). En celular cada caso muestra también su próxima acción.
+*   **Ficha del caso**: la próxima acción es el bloque **Qué sigue** (`.que-sigue`), en azul suave, sin el borde lateral naranja.
+*   **Hoy**: las filas de Para hacer se acomodan según el ancho de la lista (`@container filas`), no el de la ventana: con la ficha abierta al costado ya no se rompen, y las dos columnas de Hoy pasan a una.
+*   Probado con Supabase simulado (1440 px y 390 px, claro y oscuro): Casos, ficha abierta sobre Hoy. **No probado contra la base real.**
+
+### 2026-11-10 — Rediseño, parte 1: estilo general, menú y Hoy
+*   Alexis pidió rediseñar toda la app (su vista, el portal y la vista del cliente) y aprobó las maquetas del 10/11. Esta parte cambia la base que usa todo lo demás; Casos, ficha, portal, vista del cliente y la página de consultas van en las partes siguientes.
+*   **Colores** (`index.css`): fondo gris muy claro, texto azul noche y un solo azul fuerte como acento (`--accent`). El dorado queda solo en el logo (`--marca`). El verde de WhatsApp es `--wa`. El acento por defecto pasó de dorado a azul; "Dorado" sigue disponible en Apariencia y "Marino" se sacó (quedó casi igual al nuevo por defecto). Modo oscuro actualizado con la misma lógica.
+*   **Tipografía**: Inter para el texto y Space Grotesk para títulos (`h1`, `h2`, `.display`) y cifras grandes (`.cifra`).
+*   **Botones** (`Boton.jsx`): esquinas de `--r-sm` en lugar de cápsula. Las cápsulas quedan para los filtros (`.chip`) y los plazos (`.plazo`).
+*   **Menú** (`SidebarNav.jsx`): pegado al borde izquierdo (ya no es una tarjeta flotante); la pestaña activa va en azul. En celular, la barra de abajo va pegada al borde y marca la pestaña activa con una línea.
+*   **Hoy**: se sacaron las cuatro tarjetas de números (`ResumenHoy.jsx`, borrado): el título ahora dice cuántas tareas hay vencidas y para hoy, con filtros Todo / Vencidas / Hoy al lado. **Para hacer** pasó de tarjetas a una lista compacta (`.lista-filas`, `.ft`): entran unas 10 filas donde antes entraban 3. Cada fila: tilde (Hecho), nombre con compañía y patente, qué hay que hacer, plazo, Posponer y WhatsApp al asegurado (si tiene teléfono). **Por cobrar** muestra mi neto pendiente en grande y los casos en filas.
+*   Se borraron `ListaTarjetas.jsx`, `TarjetaTarea.jsx` y los estilos `.tc*` y `.stat*`, que ya no se usan.
+*   Probado con Supabase simulado en Chrome (1440 px y 390 px, claro y oscuro): Hoy, Casos, portal de demostración, vista del cliente y /reclamo. **No probado contra la base real** ni guardando (Hecho, Posponer) de verdad.
 
 ### 2026-10-14 — La app recuerda la carpeta de cada caso
 *   Antes la carpeta vinculada se perdía al cerrar la ficha o la app: había que elegirla cada vez (y de ahí salían carpetas duplicadas o con nombres de relleno).

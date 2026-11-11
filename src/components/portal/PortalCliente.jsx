@@ -12,7 +12,7 @@ import Icono from "../ui/Icono.jsx";
 import Boton from "../ui/Boton.jsx";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
 import EncabezadoCliente from "./EncabezadoCliente.jsx";
-import { textoEtapaCliente, fechaPagoEstimada, queHacerCliente, referenciaPlazo } from "../../utils/vistaCliente.js";
+import { textoEtapaCliente, tituloEtapaCliente, fechaPagoEstimada, queHacerCliente, referenciaPlazo } from "../../utils/vistaCliente.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { novedadesDelCaso } from "../../utils/novedadesCliente.js";
@@ -59,39 +59,29 @@ function BotonWhatsApp({ patente, texto = "Escribinos por WhatsApp" }) {
   );
 }
 
-// Lo que pasa ahora se cuenta en "Qué sigue": acá cada paso lleva su descripción corta
+// El camino completo, compacto: pasos numerados con su fecha; solo el actual lleva la explicación
 function LineaDeTiempo({ caso }) {
   const paso = pasoDe(caso.estado);
-  const color = paso === 5 ? "var(--ok)" : "var(--accent)";
   return (
-    <ol style={{ listStyle: "none", margin: 0, padding: 0 }} aria-label="Avance del reclamo">
+    <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }} aria-label="Avance del reclamo">
       {PASOS_SIMPLES.map((nombre, i) => {
         const hecho = i < paso - 1 || paso === 5;
         const actual = i === paso - 1 && paso !== 5;
         const fecha = fechaPaso(caso, i);
-        const ultimo = i === PASOS_SIMPLES.length - 1;
         return (
-          <li key={nombre} aria-current={actual ? "step" : undefined} style={{ display: "grid", gridTemplateColumns: "24px 1fr", gap: 12 }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <span style={{
-                width: 24, height: 24, boxSizing: "border-box", borderRadius: "50%", flex: "none", display: "grid", placeItems: "center",
-                background: hecho ? color : "var(--card)",
-                border: `2px solid ${hecho || actual ? color : "var(--border2)"}`,
-                color: "var(--on-accent)",
-              }}>
-                {hecho ? <Icono nombre="check" size={13} /> : actual ? <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }} /> : null}
-              </span>
-              {!ultimo && <span style={{ width: 2, flex: 1, minHeight: 14, background: hecho ? color : "var(--border)" }} />}
-            </div>
-            <div style={{ paddingBottom: ultimo ? 0 : 16, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-                <span style={{ fontSize: 15, fontWeight: actual ? 700 : 600, color: hecho || actual ? "var(--text)" : "var(--muted)" }}>{nombre}</span>
-                {fecha && (hecho || actual) && <span className="num" style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}{i === 3 && !hecho ? " (estimada)" : ""}</span>}
-              </div>
-              {actual
-                ? <div style={{ marginTop: 6, background: alpha("var(--accent)", 10), borderRadius: "var(--r-sm)", padding: "10px 12px", fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>{PASOS_TEXTO[i]}</div>
-                : <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{PASOS_TEXTO[i]}</div>}
-            </div>
+          <li key={nombre} aria-current={actual ? "step" : undefined} style={{ display: "grid", gridTemplateColumns: "24px minmax(0, 1fr) auto", columnGap: 12, alignItems: "baseline", color: hecho || actual ? "var(--text)" : "var(--muted)" }}>
+            <span className="num" style={{
+              width: 24, height: 24, boxSizing: "border-box", borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 700,
+              background: hecho ? "var(--accent)" : actual ? "var(--card)" : "var(--card2)",
+              border: actual ? "2px solid var(--accent)" : "none",
+              color: hecho ? "var(--on-accent)" : actual ? "var(--accent-ink)" : "var(--muted)",
+            }}>{i + 1}</span>
+            <span style={{ fontSize: 15, fontWeight: actual ? 700 : 500 }}>{nombre}</span>
+            {actual
+              ? <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent-ink)" }}>Ahora</span>
+              : fecha && hecho ? <span className="num" style={{ fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)}</span>
+              : i === 3 && fecha ? <span className="num" style={{ fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(fecha)} (estimada)</span> : <span />}
+            {actual && <span style={{ gridColumn: "2 / -1", fontSize: 13, lineHeight: 1.45, color: "var(--sub)", marginTop: 2 }}>{PASOS_TEXTO[i]}</span>}
           </li>
         );
       })}
@@ -247,7 +237,8 @@ const docsFaltantes = extras => {
 let plazosCache = null;
 const plazosPublicos = () => (plazosCache ||= cargarPlazosPublicos());
 
-// Arriba de todo: qué pasa ahora, qué tiene que hacer el cliente y, mientras espera, una referencia de plazos
+// Arriba de todo: en qué paso está y qué pasa ahora, en grande; abajo, qué tiene que hacer el cliente
+const NADA = "Por ahora, nada. ";
 function QueSigue({ caso, extras, onDocumentacion }) {
   const [plazos, setPlazos] = useState([]);
   useEffect(() => { if (caso.estado === "reclamado") plazosPublicos().then(setPlazos); }, [caso.estado]);
@@ -255,32 +246,37 @@ function QueSigue({ caso, extras, onDocumentacion }) {
   const hacer = queHacerCliente(caso, { faltan, hayEvento: !!extras?.proximoEvento });
   const referencia = referenciaPlazo(caso, plazos, fechaLocalISO());
   const oferta = caso.estado === "con_ofrecimiento" && Number(caso.monto_ofrecimiento) > 0 ? Number(caso.monto_ofrecimiento) : 0;
+  const paso = pasoDe(caso.estado);
+  const nada = hacer.startsWith(NADA);
+  const tono = faltan.length ? "var(--warn)" : "var(--ok)";
   return (
-    <section aria-labelledby={`sigue-${caso.id}`} style={{ background: "var(--card)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
-      <div>
-        <div id={`sigue-${caso.id}`} style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--accent-ink)", marginBottom: 4 }}>Qué sigue</div>
-        <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, fontWeight: 600 }}>{ahora(caso)}</p>
-      </div>
-      {oferta > 0 && (
-        <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "10px 14px" }}>
-          <div style={{ fontSize: 13, color: "var(--sub)" }}>Oferta de {caso.compania_aseguradora || "la compañía"}</div>
-          <div className="num" style={{ fontSize: 24, fontWeight: 700 }}>{fmtMoney(oferta)}</div>
+    <>
+      <section className="bloque-paso" aria-labelledby={`sigue-${caso.id}`}>
+        <div className="bloque-paso-sub">Paso {paso} de 5 · {PASOS_SIMPLES[paso - 1]}</div>
+        <h2 id={`sigue-${caso.id}`} className="bloque-paso-titulo">{tituloEtapaCliente(caso)}</h2>
+        <div className="bloque-paso-barra" aria-hidden="true">
+          {PASOS_SIMPLES.map((p, i) => <span key={p} className={i < paso ? "lleno" : undefined} />)}
         </div>
-      )}
-      {hacer && (
-        <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 10, alignItems: "start" }}>
-          <span aria-hidden="true" style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", background: faltan.length ? "color-mix(in srgb, var(--warn) 16%, var(--card))" : "color-mix(in srgb, var(--ok) 14%, var(--card))", color: faltan.length ? "var(--warn)" : "var(--ok)" }}>
-            <Icono nombre={faltan.length ? "adjuntar" : "check"} size={15} />
-          </span>
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5 }}>{ahora(caso)}</p>
+        {oferta > 0 && (
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Qué tenés que hacer vos</div>
-            <div style={{ fontSize: 15, lineHeight: 1.5 }}>{hacer}</div>
-            {faltan.length > 0 && <div style={{ marginTop: 8 }}><Boton variante="primario" tamaño="sm" icono="adjuntar" onClick={onDocumentacion}>Mandar documentación</Boton></div>}
+            <div className="bloque-paso-sub">Oferta de {caso.compania_aseguradora || "la compañía"}</div>
+            <div className="cifra" style={{ color: "inherit" }}>{fmtMoney(oferta)}</div>
           </div>
-        </div>
+        )}
+        {referencia && <div className="bloque-paso-sub" style={{ lineHeight: 1.5 }}>{referencia}</div>}
+      </section>
+      {hacer && (
+        <section style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 12, alignItems: "start", background: `color-mix(in srgb, ${tono} 12%, var(--card))`, borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+          <span aria-hidden="true" style={{ color: tono, display: "inline-flex", marginTop: 2 }}><Icono nombre={faltan.length ? "adjuntar" : "check"} size={20} /></span>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: tono }}>{nada ? "Vos no tenés que hacer nada por ahora" : "Qué tenés que hacer vos"}</div>
+            <div style={{ fontSize: 14, lineHeight: 1.5 }}>{nada ? hacer.slice(NADA.length) : hacer}</div>
+            {faltan.length > 0 && <div style={{ marginTop: 10 }}><Boton variante="primario" tamaño="sm" icono="adjuntar" onClick={onDocumentacion}>Mandar documentación</Boton></div>}
+          </div>
+        </section>
       )}
-      {referencia && <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--sub)", borderTop: "1px solid var(--border)", paddingTop: 10 }}>{referencia}</div>}
-    </section>
+    </>
   );
 }
 
@@ -290,15 +286,12 @@ export function Novedades({ lista, caja, titulo = "Novedades de tu reclamo" }) {
   const visibles = todas ? lista : lista.slice(0, 5);
   return (
     <section style={caja}>
-      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{titulo}</div>
-      <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
+      <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{titulo}</div>
+      <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {visibles.map((n, i) => (
-          <li key={i} style={{ display: "grid", gridTemplateColumns: "10px minmax(0, 1fr)", gap: 10 }}>
-            <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", marginTop: 6, background: i === 0 ? "var(--accent)" : "var(--border2)" }} />
-            <span style={{ minWidth: 0 }}>
-              <span className="num" style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{new Date(`${diaDeAccion(n.fecha)}T12:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</span>
-              <span style={{ display: "block", fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{n.texto}</span>
-            </span>
+          <li key={i} style={{ padding: "8px 0", borderTop: i ? "1px solid var(--border)" : "none" }}>
+            <span className="num" style={{ display: "block", fontSize: 13, color: "var(--muted)" }}>{new Date(`${diaDeAccion(n.fecha)}T12:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</span>
+            <span style={{ display: "block", fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{n.texto}</span>
           </li>
         ))}
       </ol>
@@ -330,51 +323,43 @@ function TarjetaCaso({ caso, patente, dni, aviso }) {
   return (
     <article className="caso-cliente">
       <div>
-      {caso.estado !== "desistido" && <QueSigue caso={caso} extras={extras} onDocumentacion={irADocumentacion} />}
-      {mensaje && (
-        <section style={{ ...caja, borderLeft: "3px solid var(--accent)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
-            <span style={{ fontSize: 14, fontWeight: 700 }}>Mensaje del estudio</span>
-            {caso.mensaje_cliente && caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
-          </div>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{mensaje}</p>
-          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
+      {caso.estado === "desistido"
+        ? <section style={{ ...caja, fontSize: 15, lineHeight: 1.5 }}>{ahora(caso)}</section>
+        : <QueSigue caso={caso} extras={extras} onDocumentacion={irADocumentacion} />}
+      {evento && (
+        <section style={{ ...caja, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <span aria-hidden="true" style={{ color: "var(--info)", display: "inline-flex", marginTop: 2 }}><Icono nombre="calendario" size={20} /></span>
+          <span style={{ fontSize: 14, lineHeight: 1.45 }}>
+            <b>{evento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> {new Date(evento.inicio).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, {new Date(evento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs.
+            {evento.lugar && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>Lugar: {evento.lugar}</span>}
+            {evento.link && (
+              <a href={evento.link} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "9px 14px", borderRadius: "var(--r-sm)", background: "var(--accent)", color: "var(--on-accent)", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+                Entrar a la {evento.tipo === "audiencia" ? "audiencia" : "mediación"}
+              </a>
+            )}
+            <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 6 }}>Te confirmamos por WhatsApp si tenés que participar y qué necesitás.</span>
+          </span>
         </section>
       )}
-      <section style={caja}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 16 }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, color: "var(--sub)" }}>Reclamo ante</div>
-            <div style={{ fontSize: 19, fontWeight: 700 }}>{caso.compania_aseguradora || "la compañía"}</div>
+      {mensaje && (
+        <section style={caja}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", marginBottom: 6 }}>
+            <span style={{ fontSize: 15, fontWeight: 600 }}>Mensaje del estudio</span>
+            {caso.mensaje_cliente_fecha && <span className="num" style={{ fontSize: 13, color: "var(--muted)" }}>{new Date(caso.mensaje_cliente_fecha).toLocaleDateString("es-AR")}</span>}
           </div>
-          {caso.patente && <span style={{ flex: "none", fontFamily: "var(--mono)", fontWeight: 600, fontSize: 13, border: "1.5px solid var(--text)", borderRadius: "var(--r-xs)", padding: "1px 7px", letterSpacing: 0.5 }}>{caso.patente}</span>}
-        </div>
-
-        {caso.estado === "desistido"
-          ? <div style={{ background: "var(--card2)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 14, lineHeight: 1.5 }}>{ahora(caso)}</div>
-          : <LineaDeTiempo caso={caso} />}
-
-        {evento && (
-          <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "flex-start", background: "color-mix(in srgb, var(--info) 10%, var(--card))", border: "1px solid color-mix(in srgb, var(--info) 30%, transparent)", borderRadius: "var(--r-sm)", padding: "10px 12px" }}>
-            <Icono nombre="calendario" size={18} />
-            <span style={{ fontSize: 14, lineHeight: 1.45 }}>
-              <b>{evento.tipo === "audiencia" ? "Audiencia" : "Mediación"}:</b> {new Date(evento.inicio).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, {new Date(evento.inicio).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })} hs.
-              {evento.lugar && <span style={{ display: "block", fontSize: 13, color: "var(--sub)", marginTop: 2 }}>Lugar: {evento.lugar}</span>}
-              {evento.link && (
-                <a href={evento.link} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "7px 12px", borderRadius: "var(--r-sm)", background: "var(--info)", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
-                  Entrar a la {evento.tipo === "audiencia" ? "audiencia" : "mediación"}
-                </a>
-              )}
-              <span style={{ display: "block", fontSize: 12, color: "var(--sub)", marginTop: 6 }}>Te confirmamos por WhatsApp si tenés que participar y qué necesitás.</span>
-            </span>
-          </div>
-        )}
-
-      </section>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{mensaje}</p>
+          <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 8 }}>{ABOGADO}</div>
+        </section>
+      )}
       </div>
       <div>
-
+      {caso.estado !== "desistido" && (
+        <section style={caja}>
+          <h2 style={{ margin: "0 0 12px", fontFamily: "var(--font)", fontSize: 15, fontWeight: 600 }}>El camino de tu reclamo</h2>
+          <LineaDeTiempo caso={caso} />
+        </section>
+      )}
 
       {novedades?.length > 0 && <Novedades lista={novedades} caja={caja} />}
 
@@ -486,9 +471,9 @@ export default function PortalCliente() {
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: 24, fontWeight: 700, margin: "4px 0 4px", letterSpacing: -0.3 }}>Hola{nombre ? `, ${nombre}` : ""}</h1>
+            <h1 style={{ fontSize: 26, fontWeight: 700, margin: "4px 0 2px", letterSpacing: -0.3 }}>Hola{nombre ? `, ${nombre}` : ""}</h1>
             <p style={{ fontSize: 15, color: "var(--sub)", margin: "0 0 18px" }}>
-              {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : "Así va tu reclamo."}
+              {casos.length > 1 ? `Tenés ${casos.length} reclamos con esta patente.` : `Reclamo ante ${casos[0].compania_aseguradora || "la compañía"}${casos[0].patente ? ` · ${casos[0].patente}` : ""}`}
             </p>
             {casos.length > 1 && (
               <div role="tablist" aria-label="Tus reclamos" className="pestanas-casos" style={{ marginBottom: 14 }}>
@@ -517,9 +502,6 @@ export default function PortalCliente() {
                 )}
               </div>
             )}
-            <div style={{ marginTop: 24, textAlign: "center" }}>
-              <BotonWhatsApp patente={casos[0]?.patente} texto="Consultar por WhatsApp" />
-            </div>
             {app.puede && (
               <div style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: "var(--sub)" }}>
                 <p style={{ margin: "0 0 8px" }}>¿Querés tenerlo a mano? Instalalo en tu celular y entrás con un toque.</p>
@@ -530,9 +512,18 @@ export default function PortalCliente() {
         )}
       </main>
 
-      <footer style={{ textAlign: "center", fontSize: 12, color: "var(--muted)", padding: "16px 16px calc(16px + env(safe-area-inset-bottom, 0px))" }}>
-        ATG Lex Solutions · {ABOGADO}
+      <footer style={{ textAlign: "center", fontSize: 12, color: "var(--muted)", padding: "0 16px 16px" }}>
+        ATG Lex Solutions · {ABOGADO}{casos && HORARIO_ATENCION ? ` · Respondemos ${HORARIO_ATENCION}` : ""}
       </footer>
+
+      {/* Con el reclamo a la vista, WhatsApp queda siempre a mano abajo */}
+      {casos && (
+        <div className="barra-wa">
+          <a className="btn-wa-grande" href={linkWhatsApp(casos[casoSel]?.patente || casos[0]?.patente)} target="_blank" rel="noopener noreferrer">
+            <Icono nombre="mensaje" size={18} /> Tengo una duda, escribir por WhatsApp
+          </a>
+        </div>
+      )}
     </div>
   );
 }

@@ -41,6 +41,20 @@ export function textoEtapaCliente(caso) {
   }
 }
 
+// La misma etapa en una sola línea: es el título grande de la vista del cliente. Describe, no promete.
+export function tituloEtapaCliente(caso) {
+  return {
+    doc_pendiente: "Estamos juntando tu documentación",
+    iniciado: "Estamos preparando tu reclamo",
+    reclamado: "Presentamos tu reclamo y esperamos la respuesta",
+    con_ofrecimiento: "Estamos negociando con la compañía",
+    en_mediacion: "Tu caso está en mediación",
+    en_juicio: "Tu reclamo está en juicio",
+    esperando_pago: "Hay acuerdo y falta el pago de la compañía",
+    cobrado: "Tu reclamo está cobrado",
+  }[caso.estado] || "";
+}
+
 // Si las fechas cargadas muestran que el caso avanzó más que su estado, sugiere el estado que corresponde.
 // Sirve para que el cliente (que ve la etapa según el estado) no vea el caso atrasado.
 const ORDEN = Object.fromEntries(ESTADOS_CASO.map((e, i) => [e.key, i]));

@@ -37,7 +37,7 @@ function SelectorAcento() {
     <div role="group" aria-label="Color de acento" style={{ display: "flex", gap: 8, padding: "4px 12px" }}>
       {ACENTOS.map(a => (
         <button
-          key={a.key || "dorado"}
+          key={a.key || "azul"}
           type="button"
           onClick={() => setAcento(a.key)}
           title={a.label}
@@ -118,7 +118,7 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24, paddingLeft: 8 }}>
             <Logo alto={24} />
             <div>
-              <div className="nav-lbl" style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2, color: T.text }}>ATG Lex</div>
+              <div className="nav-lbl display" style={{ fontSize: 16, fontWeight: 700, color: T.text }}>ATG Lex</div>
               {pasCount > 0 && <div className="nav-lbl" style={{ fontSize: 12, color: T.muted }}>{pasCount.toLocaleString("es-AR")} contactos</div>}
             </div>
           </div>
@@ -145,12 +145,12 @@ export default function SidebarNav({ pasCount, mainTab, setMainTab, autobackupFe
                   aria-current={active ? "page" : undefined}
                   style={{
                     display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "9px 10px",
-                    borderRadius: "var(--r-sm)", border: "none", background: active ? T.card2 : "transparent",
-                    color: active ? T.text : T.sub, fontSize: 14, fontWeight: active ? 600 : 500,
+                    borderRadius: "var(--r-sm)", border: "none", background: "transparent",
+                    color: active ? T.accentInk : T.text, fontSize: 14, fontWeight: active ? 600 : 500,
                     cursor: "pointer", textAlign: "left",
                   }}
                 >
-                  <span style={{ color: active ? T.accentInk : "inherit", display: "flex" }}><Icono nombre={t.icon} /></span>
+                  <span style={{ color: active ? T.accentInk : T.muted, display: "flex" }}><Icono nombre={t.icon} /></span>
                   <span className="nav-lbl">{t.l}</span>
                 </button>
               );

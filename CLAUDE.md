@@ -19,6 +19,7 @@
 ### Rutas
 - `/` → App.jsx (PIN gate → 6 tabs: dashboard, casos, contactos, contactados, clientes, portal-usuarios)
 - `/portal/*` → Portal.jsx (login Supabase Auth → PortalHome para PAS)
+- `/reclamo` → PaginaReclamo.jsx (choques) y `/consulta` → PaginaConsulta.jsx (todos los temas): páginas públicas; lo que dejan llega a Hoy → "Consultas de la web"
 
 ### Estructura de archivos
 ```
@@ -84,7 +85,7 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 
 ## Filosofía de interfaz (aplicar en todo lo nuevo)
 
-**Aspecto**: limpio, con aire, claro antes que vistoso. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (6·10·14·18·20 px, nunca números); superficies lisas con borde de 1 px (sin vidrio ni blur); elevación `--sh-1` (reposo, casi plana) / `--sh-2` (hover) / `--sh-3` (menús y ventanas); movimiento corto (140 ms) con `--ease`, sin rebote. Nada importante aparece solo al pasar el mouse: las acciones y los montos se ven siempre. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista).
+**Aspecto**: limpio, con aire, claro antes que vistoso. Radios solo con tokens `var(--r-xs|sm|md|lg|xl|pill)` (6·10·14·18·20 px, nunca números); superficies lisas con borde de 1 px (sin vidrio ni blur); elevación `--sh-1` (reposo, casi plana) / `--sh-2` (hover) / `--sh-3` (menús y ventanas); movimiento corto (140 ms) con `--ease`, sin rebote. Nada importante aparece solo al pasar el mouse: las acciones y los montos se ven siempre. Clases comunes en `index.css`: `.tarjeta`, `.tarjeta-lift`, `.lift`, `.panel-vidrio`, `.chip` / `.chips` (filtros con conteo), `.segmentado` (cambiar de vista), `.lista-filas` + `.banda` + `.ft` (listas compactas en filas, como Para hacer), `.plazo` (chip de vencimiento), `.cifra` (número grande), `.bloque-paso` (bloque de tinta con el paso actual, vista del cliente; tokens `--tinta*`), `.barra-wa` (WhatsApp fijo abajo). Preferir filas en una sola superficie antes que tarjetas dentro de tarjetas. Botones con `--r-sm`; cápsula solo en chips.
 
 **Interacción** — las mismas reglas en todas las pantallas:
 1. **Tocar** un ítem lo abre (ficha o detalle).
@@ -97,7 +98,7 @@ doc_pendiente → iniciado → reclamado → con_ofrecimiento → en_mediacion �
 
 - Archivos JSX en español (nombres de variables, funciones, comentarios)
 - Textos públicos (página /reclamo, vista del cliente, portal y demo del PAS, mensajes y videos): **sin referencias a costos, honorarios ni gratuidad** y adaptados al Código de Ética de la abogacía (sin prometer resultados).
-- Colores: tokens en `src/index.css`; temas por `data-theme` (claro/oscuro) y `data-accent` (dorado/marino/borgona/grafito) en `<html>`
+- Colores: tokens en `src/index.css`; temas por `data-theme` (claro/oscuro) y `data-accent` (azul por defecto, dorado/borgona/grafito) en `<html>`. El dorado de la marca (`--marca`) es solo para el logo; `--wa` es el verde de WhatsApp. Títulos y cifras grandes en `var(--display)`
 - Componentes base en `src/components/ui/` (Icono, Boton, EstadoPill, BarraAvance). Sin emojis en la interfaz.
 - Modo oscuro y acento en `ThemeContext` (sigue al sistema si el usuario no eligió)
 - Estilos inline como objetos JS en cada componente
