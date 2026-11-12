@@ -13,6 +13,7 @@ import { adjuntosDelCaso } from "../../utils/adjuntosPas.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
 import { TEXTO_ACCESO } from "./demoPortal.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
+import { abrirComprobanteDePago } from "../../utils/comprobantes.js";
 
 // Último movimiento del caso: lo más nuevo entre la bitácora que ve el PAS y las fechas que se actualizan con lo interno
 // (reiteraciones, próxima acción), así un reclamo reiterado no figura como quieto
@@ -195,6 +196,12 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
                   <div className="num" style={{ fontSize: 16, fontWeight: 700, color: m.destacado ? "var(--accent-ink)" : "var(--text)" }}>{fmtMoney(caso[m.k])}</div>
                   {m.k === "monto_comision_pas" && caso.fecha_pago_comision !== undefined && (
                     <div className="num" style={{ fontSize: 12, color: caso.fecha_pago_comision ? "var(--ok)" : "var(--muted)" }}>{caso.fecha_pago_comision ? `Pagada el ${fmtDate(caso.fecha_pago_comision)}` : "Pendiente"}</div>
+                  )}
+                  {m.k === "monto_comision_pas" && caso.fecha_pago_comision && caso.pago_comision_id && (
+                    <button type="button" onClick={e => { e.stopPropagation(); abrirComprobanteDePago(caso.pago_comision_id); }}
+                      style={{ marginTop: 4, background: "none", border: "none", padding: 0, font: "inherit", fontSize: 12, fontWeight: 600, color: "var(--accent-ink)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Icono nombre="externo" size={12} /> Ver comprobante
+                    </button>
                   )}
                 </div>
               ))}

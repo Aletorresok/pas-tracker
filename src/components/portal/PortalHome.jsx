@@ -18,6 +18,7 @@ import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre } from "../../uti
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
+import { cargarPagos, abrirComprobante } from "../../utils/comprobantes.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -58,6 +59,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState(() => (demo ? plazosDemo() : []));
+  const [pagosComision, setPagosComision] = useState([]); // transferencias de comisión con comprobante (SQL 49)
   // Demo: si están las estadísticas reales del estudio (SQL 48), reemplazan a las inventadas
   const [estadisticasReales, setEstadisticasReales] = useState(false);
   useEffect(() => {
@@ -105,6 +107,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
       }
       const { data: casosData, error: casosErr } = await queryCasos;
       if (casosErr) throw casosErr;
+
+      // Si todavía no se corrió el SQL 49, simplemente no aparecen
+      cargarPagos(esAdmin === true ? null : link.pas_id).then(p => setPagosComision(p || []));
 
       if (casosData?.length) {
         const casoIds = casosData.map(c => c.id);
@@ -301,6 +306,26 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
             {totalCobrado > 0 && <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Tus asegurados cobraron <b className="num" style={{ color: T.text }}>{fmtMoney(totalCobrado)}</b></div>}
           </section>
+
+          {pagosComision.length > 0 && (
+            <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Tus pagos</div>
+              <div style={{ maxHeight: 280, overflowY: "auto" }}>
+                {pagosComision.map((p, i) => {
+                  const cubre = casos.filter(c => c.pago_comision_id === p.id).map(c => c.asegurado || "Sin nombre");
+                  return (
+                    <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
+                      <span style={{ minWidth: 0 }}>
+                        <span className="num" style={{ display: "block", fontWeight: 600 }}>{p.monto != null ? fmtMoney(p.monto) : "Transferencia"} <span style={{ color: T.muted, fontWeight: 400 }}>· {fmtDate(p.fecha)}</span></span>
+                        {(cubre.length > 0 || p.nota) && <span style={{ display: "block", color: T.muted, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[cubre.join(", "), p.nota].filter(Boolean).join(" · ")}</span>}
+                      </span>
+                      {p.archivo && <Boton tamaño="sm" icono="externo" onClick={() => abrirComprobante(p)} style={{ flex: "none" }}>Comprobante</Boton>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {pagosPendientes.length > 0 && (
             <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
