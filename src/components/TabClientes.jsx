@@ -5,6 +5,7 @@ import { fmtMoney, fmtDate, diasDesde, primerNombre, fechaLocalISO } from "../ut
 import { estadisticasPas, fechaLlegada } from "../utils/estadisticasPas.js";
 import { linkWhatsApp } from "../utils/mensajes.js";
 import ResumenMensual from "./clientes/ResumenMensual.jsx";
+import PagoComisiones from "./clientes/PagoComisiones.jsx";
 import { esActivo } from "../utils/metricas.js";
 import { useEsCelular } from "../hooks/useEsCelular.js";
 import { NuevoCasoModal, NuevoPASModal } from "./clientes/ModalesCliente.jsx";
@@ -93,9 +94,12 @@ function InfoDelPas({ est }) {
 }
 
 // Contacto y casos de un PAS, dentro de la fila desplegada
-function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso, comision, onCambioComision }) {
+function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tieneAcceso, onCambioAcceso, comision, onCambioComision, onCasoLocal }) {
   const casos = [...pas._casos].sort((a, b) => (esActivo(b) - esActivo(a)) || ultimoMov(b).localeCompare(ultimoMov(a)));
   const [resumen, setResumen] = useState(false);
+  const [pagos, setPagos] = useState(false);
+  // Los comprobantes de comisiones aparecen cuando ya se corrió el SQL 49 (columna pago_comision_id)
+  const conPagos = !directo && casos.some(c => "pago_comision_id" in c && Number(c.monto_comision_pas) > 0);
   return (
     <div style={{ padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontSize: 13, color: "var(--sub)" }}>
@@ -109,10 +113,12 @@ function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tien
         {comision !== undefined && <ComisionPas pas={pas} pct={comision} onGuardado={onCambioComision} />}
         {tieneAcceso !== null && <AccesoPortal pas={pas} tieneAcceso={tieneAcceso} onCambio={onCambioAcceso} />}
         {pas.manual && <Boton tamaño="sm" variante="fantasma" onClick={onEditar}>Editar PAS</Boton>}
+        {conPagos && <Boton tamaño="sm" icono="adjuntar" onClick={() => setPagos(v => !v)}>Pagos de comisiones</Boton>}
         {casos.length > 0 && !directo && <Boton tamaño="sm" icono="mensaje" onClick={() => setResumen(r => !r)}>Resumen del mes</Boton>}
         <Boton tamaño="sm" variante="primario" icono="agregar" onClick={onNuevo}>Nuevo caso</Boton>
       </div>
 
+      {pagos && <PagoComisiones pas={pas} casos={pas._casos} onCasoLocal={onCasoLocal} onCerrar={() => setPagos(false)} />}
       {resumen && <ResumenMensual pas={pas} casos={pas._casos} onCerrar={() => setResumen(false)} />}
       {!directo && <InfoDelPas est={pas._est} />}
 
@@ -243,7 +249,7 @@ export default function TabClientes({ foco, pas, casos, derivadores, onCasoLocal
   const desplegado = p => (
     <CasosDelPas pas={p} directo={p._directo} esCelular={esCelular}
       tieneAcceso={conPortal && !p._directo ? conPortal.has(String(p.id)) : null} onCambioAcceso={recargarPortal}
-      comision={comisiones === null || p._directo ? undefined : (comisiones[String(p.id)] ?? null)} onCambioComision={recargarComisiones}
+      comision={comisiones === null || p._directo ? undefined : (comisiones[String(p.id)] ?? null)} onCambioComision={recargarComisiones} onCasoLocal={onCasoLocal}
       onAbrir={c => setFicha({ caso: c, pasId: String(p.id) })}
       onNuevo={() => setNuevoCasoPara(p)}
       onEditar={() => setPasEditando(p)} />

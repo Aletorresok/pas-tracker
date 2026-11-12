@@ -1,6 +1,42 @@
 import { fmtMoney, fechaLocalISO } from "../../utils/formatters.js";
 import { indemnizacionPagada, honorariosCobrados, tieneHonorarios } from "../../utils/metricas.js";
 import Icono from "../ui/Icono.jsx";
+import { useRef, useState } from "react";
+import { registrarPago, abrirComprobanteDePago, ACEPTA } from "../../utils/comprobantes.js";
+
+// Comprobante de la transferencia al PAS (SQL 49): lo ve el PAS en su portal. Si un pago cubre varios casos,
+// conviene cargarlo desde Clientes → el PAS → "Pagos de comisiones".
+function ComprobanteComision({ formData, onChange, Th }) {
+  const input = useRef(null);
+  const [estado, setEstado] = useState(""); // "" | subiendo | error texto
+  const boton = { font: "inherit", fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: "var(--r-sm)", border: `1px solid ${Th.border}`, background: Th.card, color: Th.text, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 };
+
+  const ver = async () => {
+    setEstado("");
+    if (!(await abrirComprobanteDePago(formData.pago_comision_id))) setEstado("No se pudo abrir el comprobante.");
+  };
+  const subir = async archivo => {
+    if (!archivo) return;
+    setEstado("subiendo");
+    const fecha = formData.fecha_pago_comision || fechaLocalISO();
+    const r = await registrarPago({ pasId: formData.pas_id, fecha, monto: num(formData.monto_comision_pas), archivo, casos: [formData] });
+    if (r.casos?.length) { onChange("fecha_pago_comision", fecha); onChange("pago_comision_id", r.pago.id); }
+    setEstado(r.error || "");
+  };
+
+  return (
+    <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, paddingLeft: 30, flexWrap: "wrap" }}>
+      {formData.pago_comision_id
+        ? <button type="button" onClick={ver} style={boton}><Icono nombre="externo" size={13} /> Ver comprobante</button>
+        : <>
+            <button type="button" onClick={() => input.current?.click()} disabled={estado === "subiendo"} style={boton}><Icono nombre="adjuntar" size={13} /> {estado === "subiendo" ? "Subiendo…" : "Adjuntar comprobante"}</button>
+            <input ref={input} type="file" accept={ACEPTA} hidden onChange={e => { subir(e.target.files?.[0]); e.target.value = ""; }} />
+            <span style={{ fontSize: 12, color: Th.muted }}>El PAS lo va a ver en su portal</span>
+          </>}
+      {estado && estado !== "subiendo" && <span role="alert" style={{ fontSize: 12, color: "var(--bad)" }}>{estado}</span>}
+    </div>
+  );
+}
 
 const num = v => Number(v) || 0;
 
@@ -42,7 +78,11 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
   const comision = num(formData.monto_comision_pas);
   const conComision = "fecha_pago_comision" in formData && comision > 0;
   const comisionOk = Boolean(formData.fecha_pago_comision);
-  const tildarComision = () => onChange("fecha_pago_comision", comisionOk ? "" : fechaLocalISO());
+  const tildarComision = () => {
+    onChange("fecha_pago_comision", comisionOk ? "" : fechaLocalISO());
+    // Si se destilda, la comisión deja de estar vinculada a su comprobante (el pago queda en la lista del PAS)
+    if (comisionOk && formData.pago_comision_id) onChange("pago_comision_id", null);
+  };
 
   const filas = [
     { k: "indem", l: "Indemnización pagada al asegurado", monto: num(formData.monto_cobro_asegurado), ok: indem, fecha: "fecha_cobro", tildar: tildarIndemnizacion },
@@ -65,6 +105,7 @@ export default function SeccionPagos({ formData, onChange, Th, compacto = false 
       {f.ok
         ? <input type="date" value={formData[f.fecha] || ""} onChange={e => onChange(f.fecha, e.target.value)} aria-label={`Fecha: ${f.l}`} style={{ ...Th.input, width: 150, padding: "6px 8px", fontSize: 13 }} />
         : <span style={{ fontSize: 12, color: Th.muted }}>pendiente</span>}
+      {f.k === "com" && f.ok && "pago_comision_id" in formData && formData.pas_id && <ComprobanteComision formData={formData} onChange={onChange} Th={Th} />}
     </div>
   ));
 

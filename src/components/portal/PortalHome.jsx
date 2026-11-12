@@ -18,6 +18,7 @@ import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre } from "../../uti
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
+import { cargarPagos, abrirComprobante } from "../../utils/comprobantes.js";
 
 class GraficoBoundary extends Component {
   state = { error: false };
@@ -58,6 +59,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
   
   const [pasId,   setPasId]   = useState(null);
   const [todosLosCasos, setTodosLosCasos] = useState(() => (demo ? plazosDemo() : []));
+  const [pagosComision, setPagosComision] = useState([]); // transferencias de comisión con comprobante (SQL 49)
   // Demo: si están las estadísticas reales del estudio (SQL 48), reemplazan a las inventadas
   const [estadisticasReales, setEstadisticasReales] = useState(false);
   useEffect(() => {
@@ -105,6 +107,9 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
       }
       const { data: casosData, error: casosErr } = await queryCasos;
       if (casosErr) throw casosErr;
+
+      // Si todavía no se corrió el SQL 49, simplemente no aparecen
+      cargarPagos(esAdmin === true ? null : link.pas_id).then(p => setPagosComision(p || []));
 
       if (casosData?.length) {
         const casoIds = casosData.map(c => c.id);
@@ -188,7 +193,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
     .sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
   const esDemo = casos[0]?._demo;
   // Casos donde el estudio espera documentación: es lo único que le pedimos al productor
-  const sinDocumentacion = enCurso.filter(c => c.estado === "doc_pendiente" && !c._demo);
   const saludo = !demo && pasInfo?.nombre ? primerNombre(pasInfo.nombre) : "";
 
   if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos…</div>;
@@ -260,7 +264,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
         </div>
       )}
-      {/* Saludo y lo único que le pedimos al productor: va antes que el resumen, también en el celular */}
+      {/* Saludo: va antes que el resumen, también en el celular */}
       <div className="portal-saludo" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 0", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 26, letterSpacing: -0.3 }}>{saludo ? `Hola, ${saludo}` : "Tus casos"}</h1>
@@ -271,17 +275,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
           </div>
         </div>
 
-        {sinDocumentacion.length > 0 && (
-          <section style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", background: "color-mix(in srgb, var(--warn) 12%, var(--card))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--warn)" }}>Necesitamos algo de vos</div>
-              <div style={{ fontSize: 14, lineHeight: 1.45 }}>
-                Falta documentación de {sinDocumentacion[0].asegurado}{sinDocumentacion.length > 1 ? ` y ${sinDocumentacion.length - 1} más` : ""}. La podés mandar desde el detalle del caso.
-              </div>
-            </div>
-            {estadoActivo !== "doc_pendiente" && <Boton tamaño="sm" onClick={() => { setPestana("curso"); setEstadoSel("doc_pendiente"); }}>{sinDocumentacion.length === 1 ? "Ver el caso" : "Ver esos casos"}</Boton>}
-          </section>
-        )}
       </div>
       <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 24, alignItems: "start" }}>
         {/* Resumen del PAS */}
@@ -301,6 +294,26 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
             {totalCobrado > 0 && <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Tus asegurados cobraron <b className="num" style={{ color: T.text }}>{fmtMoney(totalCobrado)}</b></div>}
           </section>
+
+          {pagosComision.length > 0 && (
+            <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Tus pagos</div>
+              <div style={{ maxHeight: 280, overflowY: "auto" }}>
+                {pagosComision.map((p, i) => {
+                  const cubre = casos.filter(c => c.pago_comision_id === p.id).map(c => c.asegurado || "Sin nombre");
+                  return (
+                    <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
+                      <span style={{ minWidth: 0 }}>
+                        <span className="num" style={{ display: "block", fontWeight: 600 }}>{p.monto != null ? fmtMoney(p.monto) : "Transferencia"} <span style={{ color: T.muted, fontWeight: 400 }}>· {fmtDate(p.fecha)}</span></span>
+                        {(cubre.length > 0 || p.nota) && <span style={{ display: "block", color: T.muted, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[cubre.join(", "), p.nota].filter(Boolean).join(" · ")}</span>}
+                      </span>
+                      {p.archivo && <Boton tamaño="sm" icono="externo" onClick={() => abrirComprobante(p)} style={{ flex: "none" }}>Comprobante</Boton>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {pagosPendientes.length > 0 && (
             <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
