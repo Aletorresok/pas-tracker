@@ -151,6 +151,7 @@
 *   **Estudio**: Clientes → PAS → "Pagos de comisiones" (`clientes/PagoComisiones.jsx`): comisiones por pagar (tildadas) y pagadas sin comprobante, fecha, monto (suma lo tildado), nota y archivo. Al registrar, las comisiones quedan pagadas con la fecha de la transferencia y vinculadas al pago. Abajo, los pagos registrados con "Ver" y borrar. En la ficha del caso (Pagos), con la comisión tildada: "Adjuntar comprobante" o "Ver comprobante". Destildar la comisión la desvincula del pago.
 *   **Portal**: en la tarjeta del caso, "Ver comprobante" debajo de "Pagada el …"; en el resumen, la tarjeta "Tus pagos" (fecha, monto, casos que cubre y comprobante). Los links duran 10 minutos (`utils/comprobantes.js`). La demo no muestra nada de esto.
 *   Todo aparece recién cuando se corre el SQL 49 (se detecta por la columna `pago_comision_id`).
+*   **Portal**: se sacó el aviso "Necesitamos algo de vos" (documentación pendiente) del saludo; Alexis no lo va a usar por ahora.
 
 ### 2026-11-11 — Carpeta local: errores claros al crear la carpeta del caso
 - `crearCarpetaCaso` (`utils/carpeta.js`) limpia el nombre (`nombreCarpetaSeguro`: sin caracteres prohibidos ni punto o espacio final), toma la fecha con o sin hora, no trata como error cancelar el selector y pide permiso de escritura antes de crear.

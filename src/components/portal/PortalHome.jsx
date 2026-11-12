@@ -193,7 +193,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
     .sort((a, b) => (b.fecha_ultimo_movimiento || b.fecha_derivacion || "").localeCompare(a.fecha_ultimo_movimiento || a.fecha_derivacion || ""));
   const esDemo = casos[0]?._demo;
   // Casos donde el estudio espera documentación: es lo único que le pedimos al productor
-  const sinDocumentacion = enCurso.filter(c => c.estado === "doc_pendiente" && !c._demo);
   const saludo = !demo && pasInfo?.nombre ? primerNombre(pasInfo.nombre) : "";
 
   if (loading) return <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", color: T.muted }}>Cargando tus casos…</div>;
@@ -265,7 +264,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
         </div>
       )}
-      {/* Saludo y lo único que le pedimos al productor: va antes que el resumen, también en el celular */}
+      {/* Saludo: va antes que el resumen, también en el celular */}
       <div className="portal-saludo" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 0", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 26, letterSpacing: -0.3 }}>{saludo ? `Hola, ${saludo}` : "Tus casos"}</h1>
@@ -276,17 +275,6 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
           </div>
         </div>
 
-        {sinDocumentacion.length > 0 && (
-          <section style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", background: "color-mix(in srgb, var(--warn) 12%, var(--card))", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--warn)" }}>Necesitamos algo de vos</div>
-              <div style={{ fontSize: 14, lineHeight: 1.45 }}>
-                Falta documentación de {sinDocumentacion[0].asegurado}{sinDocumentacion.length > 1 ? ` y ${sinDocumentacion.length - 1} más` : ""}. La podés mandar desde el detalle del caso.
-              </div>
-            </div>
-            {estadoActivo !== "doc_pendiente" && <Boton tamaño="sm" onClick={() => { setPestana("curso"); setEstadoSel("doc_pendiente"); }}>{sinDocumentacion.length === 1 ? "Ver el caso" : "Ver esos casos"}</Boton>}
-          </section>
-        )}
       </div>
       <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 24, alignItems: "start" }}>
         {/* Resumen del PAS */}
