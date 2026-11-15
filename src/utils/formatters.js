@@ -30,10 +30,30 @@ export function cleanPhones(tel) {
 
 export function primerNombre(nombre) {
   if (!nombre) return "";
-  const parts = nombre.trim().split(/\s+/);
-  const raw = parts.length >= 2 ? parts[1] : parts[0];
+  const parts = nombre.trim().replace(/,/g, " ").split(/\s+/).filter(Boolean);
+  if (!parts.length) return "";
+  const llano = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  // Los nombres vienen como "APELLIDO(S) NOMBRE(S)": la primera palabra (después de la primera) que es un nombre de pila conocido
+  let i = parts.findIndex((p, k) => k > 0 && NOMBRES_PILA.has(llano(p)));
+  if (i < 0 && NOMBRES_PILA.has(llano(parts[0]))) i = 0; // cargado como "NOMBRE APELLIDO"
+  if (i < 0) {
+    // Sin coincidencia: se saltea el apellido (con partícula, "DELLA GIUSTINA", ocupa una palabra más; con 4 palabras, se asumen dos apellidos)
+    const apellido = (PARTICULAS.has(llano(parts[0])) ? 2 : 1) + (parts.length >= 4 ? 1 : 0);
+    i = Math.min(apellido, parts.length - 1);
+  }
+  const raw = parts[i];
   return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
+const PARTICULAS = new Set(["de", "del", "della", "dalla", "di", "da", "dos", "la", "las", "los", "san", "santa", "van", "von", "mc", "mac"]);
+const NOMBRES_PILA = new Set(("agustin agustina alan alberto alejandra alejandro alejo alexis alfredo alicia ana analia andrea andres angel angela antonella antonio ariel "
+  + "barbara beatriz belen benjamin brenda bruno camila carina carla carlos carolina cecilia cesar claudia claudio cristian cristina cynthia daiana damian daniel daniela dario david "
+  + "debora diego eduardo elena elias elisa elsa emanuel emilia emiliano emilio enrique erica ernesto esteban estela eugenia ezequiel fabian facundo federico felipe fernanda fernando "
+  + "florencia francisco franco gabriel gabriela gaston gerardo german gisela gladys gonzalo graciela guadalupe guillermina guillermo gustavo hector hernan horacio hugo ignacio ines irene "
+  + "ivan ivana javier jesica jessica joaquin joel jonatan jonathan jorge jose josefina juan juana julia julian juliana julieta julio karina laura lautaro leandro leonardo liliana lorena "
+  + "lourdes luca lucas lucia luciana luciano lucila luis luisa magali manuel marcela marcelo marcos maria mariana mariano mariel mariela marina mario marta martin martina matias mauricio "
+  + "mauro maximiliano melina melisa mercedes micaela miguel milagros mirta monica nadia nahuel nancy natalia nelson nestor nicolas noelia noemi nora norma olga omar oscar pablo paola "
+  + "patricia patricio paula pedro priscila rafael ramiro ramon raul ricardo roberto rocio rodolfo rodrigo romina roque rosa roxana ruben sabrina samanta sandra santiago sebastian sergio "
+  + "silvia silvina sofia soledad sonia stella susana tamara tomas valentin valentina valeria vanesa vanina veronica victor victoria virginia walter yamila yanina yesica").split(" "));
 
 export function waLink(phone, nombre) {
   if (!phone) return "#";

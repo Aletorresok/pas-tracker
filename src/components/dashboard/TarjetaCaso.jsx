@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { describirPlazo, fechaLocalISO, sumarDias, fmtMoney } from "../../utils/formatters.js";
+import { useRef, useState } from "react";
+import { describirPlazo, fechaLocalISO, sumarDias, fmtMoney, primerNombre } from "../../utils/formatters.js";
 import { propsMenu } from "../ui/MenuContextual.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
@@ -34,6 +34,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const [nueva, setNueva] = useState("");
   const [vence, setVence] = useState(sumarDias(fechaLocalISO(), 7));
   const [guardando, setGuardando] = useState(false);
+  const enCurso = useRef(false);
   const { caso, expediente } = grupo;
   const sujeto = caso || expediente; // a quién se le guarda la próxima acción
   const esExp = !caso && !!expediente;
@@ -47,9 +48,16 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const conAcciones = caso || (esExp && tieneAccion);
   const sub = caso ? [caso.compania_aseguradora, caso.patente].filter(Boolean).join(" · ")
     : expediente ? ["Expediente", expediente.numero].filter(Boolean).join(" · ") : "";
-  const wa = caso?.telefono_asegurado ? linkWhatsApp(caso.telefono_asegurado, `Hola ${String(caso.asegurado || "").trim().split(/\s+/)[0] || ""}, te escribo por tu reclamo.`) : null;
+  const wa = caso?.telefono_asegurado ? linkWhatsApp(caso.telefono_asegurado, `Hola ${primerNombre(caso.asegurado)}, te escribo por tu reclamo.`.replace("Hola , ", "Hola, ")) : null;
 
-  const correr = async fn => { setGuardando(true); const ok = await fn(); setGuardando(false); if (ok) setModo(null); };
+  // enCurso: un segundo Enter (o doble click) mientras guarda no repite la acción en la bitácora
+  const correr = async fn => {
+    if (enCurso.current) return;
+    enCurso.current = true; setGuardando(true);
+    let ok = false;
+    try { ok = await fn(); } finally { enCurso.current = false; setGuardando(false); }
+    if (ok) setModo(null);
+  };
   const guardarHecho = sinNueva => correr(() => onHecho(sujeto, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }, { expediente: esExp }));
   const abrirHecho = () => { setNueva(""); setModo("hecho"); };
 

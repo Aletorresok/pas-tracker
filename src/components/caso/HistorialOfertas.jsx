@@ -41,7 +41,7 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
 
   const agregar = async () => {
     const monto = Number(nueva.monto);
-    if (!monto) return;
+    if (!monto || guardando) return;
     setGuardando(true); setError("");
     const fila = { fecha: nueva.fecha || fechaLocalISO(), monto, respuesta: nueva.respuesta, contraoferta: nueva.respuesta === "contraoferta" ? Number(nueva.contraoferta) || null : null, nota: nueva.nota.trim() || null,
       ...(conInstancia ? { instancia: nueva.instancia || "administrativa" } : {}) };
@@ -147,7 +147,7 @@ export default function HistorialOfertas({ casoId, formData, onChange, onBitacor
           <input type="date" value={nueva.fecha} onChange={e => setNueva(n => ({ ...n, fecha: e.target.value }))} style={{ ...campo, marginTop: 4 }} />
         </label>
         <label style={{ fontSize: 12, color: Th.sub }}>Ofrecen ($)
-          <div style={{ marginTop: 4 }}><CampoMonto value={nueva.monto} onChange={v => setNueva(n => ({ ...n, monto: v }))} /></div>
+          <div style={{ marginTop: 4 }} onKeyDown={e => { if (e.key === "Enter") agregar(); }}><CampoMonto value={nueva.monto} onChange={v => setNueva(n => ({ ...n, monto: v }))} /></div>
         </label>
         <label style={{ fontSize: 12, color: Th.sub }}>Respuesta
           <select value={nueva.respuesta} onChange={e => setNueva(n => ({ ...n, respuesta: e.target.value }))} style={{ ...campo, marginTop: 4 }}>

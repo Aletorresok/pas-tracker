@@ -62,7 +62,8 @@ export function estadoSugerido(caso) {
   if (["cobrado", "desistido"].includes(caso.estado)) return null;
   const actual = ORDEN[caso.estado] ?? -1;
   const pistas = [
-    [caso.fecha_inicio_reclamo, "reclamado", "fecha de inicio del reclamo"],
+    // "Iniciado" ya carga la fecha de inicio del reclamo: lo que marca "Reclamado" es el primer pedido de respuesta
+    [caso.fecha_reclamo, "reclamado", "fecha del primer pedido de respuesta"],
     [caso.fecha_ofrecimiento, "con_ofrecimiento", "fecha de ofrecimiento"],
     [caso.fecha_inicio_juicio, "en_juicio", "fecha de inicio del juicio"],
     [caso.fecha_aceptacion || caso.fecha_firma, "esperando_pago", "fecha de aceptación o firma del acuerdo"],
