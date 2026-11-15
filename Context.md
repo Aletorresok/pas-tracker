@@ -146,6 +146,13 @@
 
 ## 📝 Registro de Cambios
 
+### 2026-11-14 — Arreglos de la revisión de uso (rama `arreglos-qol`)
+*   **Saludo de WhatsApp**: `primerNombre` (`utils/formatters.js`) busca el nombre de pila en una lista de nombres comunes (los casos vienen como "APELLIDO(S) NOMBRE(S)"; si la primera palabra es el único nombre conocido, la toma: "ALAN DIAZ"). Sin coincidencia, saltea el apellido (una palabra más si empieza con partícula, "DELLA GIUSTINA", o si son 4 palabras). Antes tomaba siempre la segunda palabra ("Hola Godoy", "Giustina, tu productor"). La tarjeta de Hoy (`TarjetaCaso.jsx`) usaba la primera palabra ("Hola Guzman") y ahora usa la misma función.
+*   **Aviso "sigue en Iniciado… lo ven atrasado"**: `estadoSugerido` (`utils/vistaCliente.js`) sugería "Reclamado" por la fecha de inicio del reclamo, que se carga sola al pasar a Iniciado; ahora mira `fecha_reclamo` (primer pedido de respuesta).
+*   **Caso nuevo**: `ModalesCliente.jsx` lo crea con `nro_factura`, `hilo_gmail`, `fecha_pago_comision`, `pago_comision_id`, `tipo_reclamo` e `instancia_ofrecimiento`; sin esas claves la ficha mostraba "falta correr el SQL 28" y escondía el tipo de reclamo hasta recargar.
+*   **Sin repetidos**: en Hoy, un segundo Enter mientras guarda "Hecho" ya no anota dos veces (`enCurso` en `TarjetaCaso.jsx`); lo mismo al agregar una oferta (`HistorialOfertas.jsx`), que además se agrega con Enter desde el monto.
+*   Probado: `npm run build` y `primerNombre` con nombres reales. ESLint no corrió (falta `@eslint/js` en `node_modules`). **No probado en el navegador.**
+
 ### 2026-11-12 — Comprobantes de pago de comisiones a los PAS (SQL 49)
 *   **Base** (`sql/2026-11-12_49_comprobantes_comision.sql`): tabla `pas_pagos_comision` (una transferencia: PAS, fecha, monto, nota y ruta del comprobante) y columna `pas_casos.pago_comision_id` (un pago puede cubrir varias comisiones). Carpeta privada `comprobantes` en Storage (`<pas_id>/<pago>/archivo`, 10 MB, PDF o imagen). El PAS solo lee sus pagos y su carpeta; no puede borrar ni cambiar nada.
 *   **Estudio**: Clientes → PAS → "Pagos de comisiones" (`clientes/PagoComisiones.jsx`): comisiones por pagar (tildadas) y pagadas sin comprobante, fecha, monto (suma lo tildado), nota y archivo. Al registrar, las comisiones quedan pagadas con la fecha de la transferencia y vinculadas al pago. Abajo, los pagos registrados con "Ver" y borrar. En la ficha del caso (Pagos), con la comisión tildada: "Adjuntar comprobante" o "Ver comprobante". Destildar la comisión la desvincula del pago.
