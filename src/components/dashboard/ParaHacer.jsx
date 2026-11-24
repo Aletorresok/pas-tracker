@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, sumarDias, DIAS_VENCIDO_GRAVE } from "../../utils/formatters.js";
 import { itemsCaso, itemsExpediente } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
@@ -52,7 +52,10 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
   const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
   const deHoy = grupos.filter(g => g.vence && g.vence <= hoy);
   const proximos = grupos.filter(g => !g.vence || g.vence > hoy);
-  const atrasadas = deHoy.filter(g => g.vence < hoy);
+  // Crítico: vencido hace 30 días o más, en su propia banda arriba de todo
+  const limiteGrave = sumarDias(hoy, -DIAS_VENCIDO_GRAVE);
+  const criticas = deHoy.filter(g => g.vence <= limiteGrave);
+  const atrasadas = deHoy.filter(g => g.vence < hoy && g.vence > limiteGrave);
   const paraHoy = deHoy.filter(g => g.vence === hoy);
 
   const abrir = g => onAbrir(g.tareas[0]);
@@ -66,7 +69,7 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
         onHecho={onHecho} onPosponer={onPosponer} onReiterar={onReiterar} />
     );
   };
-  const bandas = [["Vencidas", atrasadas, "var(--bad)", "atras"], ["Para hoy", paraHoy, "var(--warn)", "hoy"]]
+  const bandas = [["Crítico · más de 30 días", criticas, "var(--bad)", "atras", true], ["Vencidas", atrasadas, "var(--bad)", "atras"], ["Para hoy", paraHoy, "var(--warn)", "hoy"]]
     .filter(([, lista, , k]) => lista.length && (!foco || foco === k));
 
   return (
@@ -79,8 +82,8 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
       )}
       {deHoy.length > 0 && (
         <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto" }}>
-          {bandas.map(([titulo, lista, color], i) => (
-            <div key={titulo} style={i ? { borderTop: "1px solid var(--border)" } : undefined}>
+          {bandas.map(([titulo, lista, color, , critica], i) => (
+            <div key={titulo} className={critica ? "banda-critica" : undefined} style={i ? { borderTop: "1px solid var(--border)" } : undefined}>
               <div className="banda" style={{ "--tono": color }}><span>{titulo}</span><span className="num">{lista.length}</span></div>
               {lista.map(fila)}
             </div>

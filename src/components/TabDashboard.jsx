@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { aplanarCasos, tareasPendientes, cobrosPendientes } from "../utils/metricas.js";
-import { fechaLocalISO } from "../utils/formatters.js";
+import { fechaLocalISO, sumarDias, DIAS_VENCIDO_GRAVE } from "../utils/formatters.js";
 import CobrosResumen from "./dashboard/CobrosResumen.jsx";
 import ParaHacer, { agruparPorCaso } from "./dashboard/ParaHacer.jsx";
 import NuevosPortal from "./dashboard/NuevosPortal.jsx";
 import ConsultasWeb from "./dashboard/ConsultasWeb.jsx";
 import AgendaHoy from "./dashboard/AgendaHoy.jsx";
+import CintaSemana from "./dashboard/CintaSemana.jsx";
 import RecepcionHoy from "./dashboard/RecepcionHoy.jsx";
 import MiDia from "./dashboard/MiDia.jsx";
 import { cargarExpedientes, cargarPlazosPendientes, fechaClave, expedienteAbierto, tareasDeExpedientes, completarAccionExpediente, posponerAccionExpediente } from "../utils/expedientes.js";
@@ -66,11 +67,14 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
   const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
   const atrasadas = grupos.filter(g => g.vence && g.vence < hoyISO).length;
   const paraHoy = grupos.filter(g => g.vence === hoyISO).length;
+  const criticas = grupos.filter(g => g.vence && g.vence <= sumarDias(hoyISO, -DIAS_VENCIDO_GRAVE)).length;
   // El título dice lo que hay para hacer: es lo primero que se lee al abrir la app
   const plural = (n, uno, muchos) => `${n} ${n === 1 ? uno : muchos}`;
-  const titulo = atrasadas && paraHoy ? `Tenés ${plural(atrasadas, "tarea vencida", "tareas vencidas")} y ${paraHoy} para hoy`
-    : atrasadas ? `Tenés ${plural(atrasadas, "tarea vencida", "tareas vencidas")}`
-    : paraHoy ? `Tenés ${plural(paraHoy, "tarea", "tareas")} para hoy` : "Nada vencido ni para hoy";
+  // Lo vencido va en rojo: es lo que se lee primero
+  const vencidasTxt = atrasadas ? <span className="rojo">{plural(atrasadas, "vencida", "vencidas")}</span> : null;
+  const tituloGrande = atrasadas && paraHoy ? <>Tenés {vencidasTxt}<br />y {paraHoy} para hoy.</>
+    : atrasadas ? <>Tenés {vencidasTxt}.</>
+    : paraHoy ? <>Tenés {plural(paraHoy, "tarea", "tareas")} para hoy.</> : "Nada vencido ni para hoy.";
 
   const fechaHoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
   const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
@@ -106,19 +110,22 @@ export default function TabDashboard({ pas, casos, derivadores, descartados = {}
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13, color: "var(--muted)" }}>{hoy}</div>
-          <h1 style={{ margin: "2px 0 0", fontSize: 28, fontWeight: 700, lineHeight: 1.2 }}>{titulo}</h1>
+      {/* Tinta y oro: el título grande dice lo que hay para hacer; al lado, la semana en una cinta */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px 32px" }}>
+        <div style={{ minWidth: 0, flex: "1 1 420px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 14, color: "var(--muted)" }}>{hoy}</div>
+          <h1 className="titulo-hoy">{tituloGrande}</h1>
+          {criticas > 0 && <div style={{ fontSize: 14, color: "var(--sub)" }}>{criticas === 1 ? "Una pasó los 30 días." : `${criticas} pasaron los 30 días.`} Empezá por ahí.</div>}
         </div>
-        {atrasadas + paraHoy > 0 && (
-          <div className="chips" role="group" aria-label="Filtrar las tareas">
+        <CintaSemana grupos={grupos} />
+      </header>
+      {atrasadas + paraHoy > 0 && (
+          <div className="chips" role="group" aria-label="Filtrar las tareas" style={{ marginTop: -4 }}>
             <button type="button" className="chip" aria-pressed={!foco} onClick={() => setFoco(null)}>Todo <b className="num">{atrasadas + paraHoy}</b></button>
             {atrasadas > 0 && <button type="button" className="chip" aria-pressed={foco === "atras"} onClick={() => setFoco("atras")}>Vencidas <b className="num">{atrasadas}</b></button>}
             {paraHoy > 0 && <button type="button" className="chip" aria-pressed={foco === "hoy"} onClick={() => setFoco("hoy")}>Hoy <b className="num">{paraHoy}</b></button>}
           </div>
-        )}
-      </header>
+      )}
 
       <RecepcionHoy allCasos={allCasos} onAbrir={c => setAbierto({ caso: c, pasId: c._pasId, pestana: "documentos" })} />
 

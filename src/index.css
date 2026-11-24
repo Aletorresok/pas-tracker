@@ -11,7 +11,8 @@
   --muted: #5D6B7E;
   --accent: #2447D6;
   --accent-ink: #1A36A8;
-  --marca: #9C7A16; /* dorado del logo: el único lugar donde queda */
+  --marca: #9C7A16; /* dorado del logo */
+  --oro: var(--marca); /* "Tinta y oro": el hilo dorado marca la plata y los cierres (uno por pantalla) */
   --wa: #0E7A5F; /* WhatsApp */
   /* Bloque de tinta: el paso actual en la vista del cliente y las franjas oscuras de la página de consultas */
   --tinta: #0E1726; --tinta-texto: #FFFFFF; --tinta-sub: #C9D3E3; --tinta-acento: #8FA8FF; --tinta-vacio: #34425A;
@@ -435,8 +436,32 @@ h1, h2, .display { font-family: var(--display); letter-spacing: -.02em; }
 .ft-btn:hover { border-color: var(--muted); }
 .ft-btn.wa { width: 32px; padding: 0; justify-content: center; color: var(--wa); }
 .plazo { --tono: var(--info); display: inline-block; flex: none; font-size: 12px; font-weight: 600; white-space: nowrap; padding: 3px 10px; border-radius: var(--r-pill); color: var(--tono); background: color-mix(in srgb, var(--tono) 11%, transparent); }
-/* Vencido hace 30 días o más: lleno y con ícono, para distinguirlo de un vencido reciente */
-.plazo-grave { display: inline-flex; align-items: center; gap: 4px; color: var(--card); background: var(--tono); }
+/* Vencido hace 30 días o más: lleno, con ícono y un halo, para distinguirlo de un vencido reciente */
+.plazo-grave { display: inline-flex; align-items: center; gap: 4px; color: var(--card); background: var(--tono); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tono) 22%, transparent); }
+/* ── Tinta y oro (Hoy) ── */
+/* Banda "Crítico" de Para hacer: un tinte rojo muy suave detrás de las filas */
+.banda-critica { background: color-mix(in srgb, var(--bad) 5%, transparent); }
+.hilo-oro { display: block; width: 72px; height: 2px; border-radius: 2px; background: var(--oro); }
+.cifra-heroe { font-family: var(--display); font-size: 44px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
+.titulo-hoy { margin: 4px 0 0; font-family: var(--display); font-size: clamp(32px, 4.2vw, 52px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; }
+.titulo-hoy .rojo { color: var(--bad); }
+.cinta-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; min-width: 360px; flex: 0 1 460px; }
+.cinta-dia { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 9px 0; border-radius: var(--r-md); background: var(--card); border: 1px solid var(--border); }
+.cinta-dia.hoy { background: color-mix(in srgb, var(--accent) 12%, var(--card)); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.cinta-dia.finde { background: transparent; border-style: dashed; }
+.cinta-dia small { font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: capitalize; }
+.cinta-dia.hoy small { color: var(--accent-ink); }
+.cinta-dia b { font-family: var(--display); font-size: 20px; line-height: 1; }
+.cinta-dia.finde b { color: var(--muted); }
+.cinta-puntos { display: flex; gap: 3px; height: 6px; }
+.cinta-dia .cinta-mas { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: none; margin-top: -2px; }
+.cinta-puntos span { width: 6px; height: 6px; border-radius: 50%; background: var(--tono, var(--info)); }
+@media (max-width: 760px) { .cinta-semana { display: none; } }
+.linea-cobros { position: relative; height: 30px; margin: 10px 0 4px; }
+.linea-cobros::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 1.5px; background: var(--border2); }
+.linea-cobros span { position: absolute; top: 15px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--oro); }
+.linea-cobros span.vencido { background: var(--warn); }
+.linea-cobros-ejes { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
 .fila-cobro { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); cursor: pointer; }
 .fila-cobro:hover .ft-titulo { color: var(--accent-ink); }
 .cifra { font-family: var(--display); font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
