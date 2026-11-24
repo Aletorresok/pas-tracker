@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
-import { fmtDate, fechaLocalISO } from "./utils/formatters.js";
+import { fmtDate, fechaLocalISO, nombrePropio } from "./utils/formatters.js";
 import { THEME } from "./utils/theme.js";
 import { Toast, PreviewModal } from "./components/casoDetalleComponents.jsx";
 import { useRealtimeSync, useRealtimeAcciones } from "./hooks/useRealtimeSync.js";
@@ -49,7 +49,7 @@ const PAS_CASOS_COLS = new Set([
   "fecha_cobro_honorarios","compania_aseguradora","monto_reclamado","pas_id", "proxima_accion", "proxima_accion_vence",
   "patente", "mensaje_cliente", "telefono_asegurado", "documentacion", "fecha_pago_comision", "nro_factura", "hilo_gmail",
   "domicilio_asegurado", "cp_asegurado", "localidad_asegurado", "provincia_asegurado",
-  "instancia_ofrecimiento", "tipo_reclamo", "porcentaje_culpa",
+  "instancia_ofrecimiento", "tipo_reclamo", "porcentaje_culpa", "monto_a_definir",
   ...COLUMNAS_SQL44
 ]);
 
@@ -118,6 +118,8 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
     ...Object.fromEntries(COLUMNAS_PREVIAS.map(k => [k, casoProp[k] || ""])),
     ...("hora_siniestro" in casoProp ? Object.fromEntries(COLUMNAS_SQL44.map(k => [k, casoProp[k] || ""])) : {}),
     // Tipo de reclamo y % de culpa del tercero en concurrencia: solo si ya se corrió el SQL 45
+    // SQL 50: monto reclamado "A definir" (solo si la columna ya existe)
+    ...("monto_a_definir" in casoProp ? { monto_a_definir: !!casoProp.monto_a_definir } : {}),
     ...("tipo_reclamo" in casoProp ? { tipo_reclamo: casoProp.tipo_reclamo || "culpa_tercero", porcentaje_culpa: casoProp.porcentaje_culpa ?? "" } : {})
   });
 
@@ -227,6 +229,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
       if (!("documentacion" in casoProp) || fila.documentacion === undefined) delete fila.documentacion;
       if (!("fecha_pago_comision" in casoProp)) delete fila.fecha_pago_comision;
       if (!("nro_factura" in casoProp)) { delete fila.nro_factura; delete fila.hilo_gmail; }
+      if (!("monto_a_definir" in casoProp)) delete fila.monto_a_definir;
       if (!("tipo_reclamo" in casoProp)) { delete fila.tipo_reclamo; delete fila.porcentaje_culpa; delete fila.instancia_ofrecimiento; }
       const { error } = await supabase.from("pas_casos").upsert([fila]);
       if (!error) {
@@ -375,7 +378,7 @@ export default function CasoUnificado({ caso: casoProp, pasId, pasNombre, pasTel
             </button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", paddingRight: 44 }}>
               <div style={{ minWidth: 0, flex: "1 1 280px" }}>
-                <div className="display" style={{ fontSize: 22, fontWeight: 700, color: Th.text, overflowWrap: "anywhere" }}>{formData.asegurado || "Sin nombre"}</div>
+                <div className="display" style={{ fontSize: 22, fontWeight: 700, color: Th.text, overflowWrap: "anywhere" }}>{nombrePropio(formData.asegurado) || "Sin nombre"}</div>
                 <div style={{ fontSize: 13, color: Th.sub, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "4px 10px", alignItems: "center" }}>
                   {formData.patente && <span style={{ fontFamily: "var(--mono)", fontWeight: 600, fontSize: 12, border: `1.5px solid ${Th.text}`, color: Th.text, borderRadius: "var(--r-xs)", padding: "0 6px", letterSpacing: 0.5 }}>{formData.patente}</span>}
                   {formData.compania_aseguradora && <span>{formData.compania_aseguradora}</span>}

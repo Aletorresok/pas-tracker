@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { describirPlazo, fechaLocalISO, sumarDias, fmtMoney, primerNombre } from "../../utils/formatters.js";
+import { describirPlazo, fechaLocalISO, sumarDias, fmtMoney, primerNombre, nombrePropio } from "../../utils/formatters.js";
 import { propsMenu } from "../ui/MenuContextual.jsx";
 import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
@@ -61,9 +61,28 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
   const guardarHecho = sinNueva => correr(() => onHecho(sujeto, sinNueva ? {} : { nueva, vence: nueva.trim() ? vence : null }, { expediente: esExp }));
   const abrirHecho = () => { setNueva(""); setModo("hecho"); };
 
+  // Teclado con la fila enfocada: J/K o flechas para moverse, Enter abre, H hecho, P posponer, R reiteré hoy, W WhatsApp
+  const alTeclear = e => {
+    if (e.target !== e.currentTarget || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === "enter") { e.preventDefault(); onAbrir(grupo); return; }
+    if (["j", "k", "arrowdown", "arrowup"].includes(k)) {
+      e.preventDefault();
+      const filas = [...(e.currentTarget.closest(".lista-filas")?.querySelectorAll(".ft") || [])];
+      const i = filas.indexOf(e.currentTarget) + (k === "j" || k === "arrowdown" ? 1 : -1);
+      if (filas[i]) { filas[i].focus(); filas[i].scrollIntoView({ block: "nearest" }); }
+      return;
+    }
+    if (modo) return;
+    if (k === "h" && conAcciones) { e.preventDefault(); abrirHecho(); }
+    else if (k === "p" && conAcciones && tieneAccion) { e.preventDefault(); setModo("posponer"); }
+    else if (k === "r" && conAcciones && quieto && onReiterar) { e.preventDefault(); correr(() => onReiterar(caso)); }
+    else if (k === "w" && wa) { e.preventDefault(); window.open(wa, "_blank", "noreferrer"); }
+  };
+
   return (
     <div className="ft" tabIndex={0} onClick={() => !modo && onAbrir(grupo)} {...(menu ? propsMenu(menu) : {})}
-      onKeyDown={e => { if (e.key === "Enter" && e.target === e.currentTarget) onAbrir(grupo); }}>
+      onKeyDown={alTeclear}>
 
       <span {...aislar}>
         {conAcciones
@@ -84,7 +103,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
 
       <span style={{ display: "flex", alignItems: "center", gap: 8, justifySelf: "end" }}>
         {monto ? <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{fmtMoney(monto)}</span> : null}
-        {chip || <span className="plazo num" style={{ "--tono": p ? NIVEL[p.nivel] : "var(--muted)" }}>{p ? p.texto : "Sin plazo"}</span>}
+        {chip || <span className={`plazo num${p?.grave ? " plazo-grave" : ""}`} style={{ "--tono": p ? NIVEL[p.nivel] : "var(--muted)" }}>{p?.grave && <Icono nombre="alerta" size={12} stroke={2.2} />}{p ? p.texto : "Sin plazo"}</span>}
       </span>
 
       <span className="ft-acciones" {...aislar}>
@@ -92,7 +111,7 @@ export default function TarjetaCaso({ grupo, chip, tipos, menu, onAbrir, onHecho
           {tieneAccion && <button type="button" className="ft-btn" onClick={() => setModo("posponer")}>Posponer</button>}
           {quieto && onReiterar && <button type="button" className="ft-btn" disabled={guardando} onClick={() => correr(() => onReiterar(caso))}>{guardando ? "Guardando…" : "Reiteré hoy"}</button>}
         </>}
-        {wa && <a className="ft-btn wa" href={wa} target="_blank" rel="noreferrer" aria-label={`Escribir por WhatsApp a ${caso.asegurado}`} title="WhatsApp"><Icono nombre="mensaje" size={16} /></a>}
+        {wa && <a className="ft-btn wa" href={wa} target="_blank" rel="noreferrer" aria-label={`Escribir por WhatsApp a ${nombrePropio(caso.asegurado)}`} title="WhatsApp"><Icono nombre="mensaje" size={16} /></a>}
       </span>
 
       {modo === "hecho" && (

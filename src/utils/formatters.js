@@ -7,8 +7,32 @@ export function fmtDate(iso) {
 
 export function fmtMoney(n) {
   if (n === null || n === undefined || n === "") return "—";
+  // Montos de relleno ($1 cargado para que el campo no quede vacío) se muestran como sin dato.
+  // Ningún monto real del estudio es menor a $10, así que no tapa datos.
+  if (Number(n) > 0 && Number(n) < 10) return "—";
   return "$" + Number(n).toLocaleString("es-AR");
 }
+
+// Nombre para mostrar en listas: si vino todo en mayúsculas o todo en minúsculas ("ALAN DIAZ",
+// "tolentino godoy nicolas") lo pasa a nombre propio; si ya tiene mayúsculas y minúsculas mezcladas
+// se respeta como se cargó ("De la Fuente", "McDonald"). No toca el dato guardado ni los escritos.
+const MINUSCULAS_NOMBRE = new Set(["de", "del", "la", "las", "los", "y", "e", "da", "di", "do", "dos", "van", "von"]);
+const SIGLAS = /^(s\.?a\.?|s\.?r\.?l\.?|s\.?a\.?s\.?|s\.?a\.?u\.?|s\.?c\.?|s\.?h\.?|ii|iii|iv)$/i;
+export function nombrePropio(nombre) {
+  if (!nombre) return nombre;
+  const s = String(nombre).trim();
+  if (s !== s.toUpperCase() && s !== s.toLowerCase()) return s;
+  return s.toLowerCase().split(/(\s+)/).map((pal, i) => {
+    if (/^\s+$/.test(pal) || !pal) return pal;
+    if (SIGLAS.test(pal)) return pal.toUpperCase();
+    if (i > 0 && MINUSCULAS_NOMBRE.has(pal)) return pal;
+    // Mayúscula después de guion o apóstrofo: "Pérez-Gil", "D'Angelo"
+    return pal.replace(/(^|[-'’])(\p{L})/gu, (_, sep, l) => sep + l.toUpperCase());
+  }).join("");
+}
+
+// Patente para guardar: solo letras y números, en mayúsculas ("ab 123-cd" → "AB123CD")
+export const normalizarPatente = v => String(v || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
 
 // "hace 5 min", "hace 3 h", "ayer", "hace 4 días" (acepta ISO o Date)
 export function haceCuanto(fecha) {
@@ -180,11 +204,15 @@ export function diasHasta(iso) {
   return diasEntreFechas(fechaLocalISO(), String(iso).slice(0, 10));
 }
 
+// Desde cuántos días vencido un plazo pasa a "grave"
+export const DIAS_VENCIDO_GRAVE = 30;
+
 // Texto y severidad de un plazo: para chips de "vence en…"
 export function describirPlazo(iso) {
   const dias = diasHasta(iso);
   if (dias === null) return null;
-  if (dias < 0) return { dias, texto: `Vencido hace ${-dias} d`, nivel: "vencido" };
+  // grave: 30 días o más vencido (se muestra más fuerte que un vencido reciente)
+  if (dias < 0) return { dias, texto: `Vencido hace ${-dias} d`, nivel: "vencido", grave: dias <= -DIAS_VENCIDO_GRAVE };
   if (dias === 0) return { dias, texto: "Vence hoy", nivel: "hoy" };
   if (dias === 1) return { dias, texto: "Vence mañana", nivel: "pronto" };
   if (dias <= 3) return { dias, texto: `Vence en ${dias} d`, nivel: "pronto" };

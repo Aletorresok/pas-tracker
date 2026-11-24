@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../../supabase.js";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 import { fechasAlCambiarEstado, textoCambioEstado, accionSugerida, ESTADOS_CON_AVISO, pideDialogoEtapa } from "../../utils/flujoEstados.js";
 import { registrarAccion } from "../../utils/storage.js";
 import { cargarCompania, aceptarUltimaPendiente } from "../../utils/ofertas.js";
@@ -65,7 +65,7 @@ export function useMoverCaso({ todosLosPas, onCasoLocal }) {
             background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-3)", padding: 14 }}>
           {error && <div role="alert" style={{ color: "var(--bad)", fontSize: 13, marginBottom: sugerencia ? 8 : 0 }}>{error}</div>}
           {sugerencia && <>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{sugerencia.caso.asegurado || "Sin nombre"}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{nombrePropio(sugerencia.caso.asegurado) || "Sin nombre"}</div>
             <SugerenciaEstado key={sugerencia.caso.id + sugerencia.estado} sugerencia={sugerencia} onCerrar={() => setSugerencia(null)}
               onUsarAccion={async a => {
                 const act = await guardar(sugerencia.caso, { proxima_accion: a.texto, proxima_accion_vence: a.vence });

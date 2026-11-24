@@ -14,7 +14,7 @@ import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
-import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre } from "../../utils/formatters.js";
+import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre, nombrePropio } from "../../utils/formatters.js";
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
@@ -323,7 +323,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
                 {pagosPendientes.map((p, i) => (
                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
                     <span style={{ minWidth: 0 }}>
-                      <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.asegurado}</span>
+                      <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nombrePropio(p.asegurado)}</span>
                       <span style={{ color: T.muted, fontSize: 12 }}>{p._fechaPago ? fmtDate(p._fechaPago) : "Fecha a confirmar"}</span>
                     </span>
                     {/* Lo que cobra el cliente (acordado o, si no, el último ofrecimiento); debajo, la comisión si la hay */}

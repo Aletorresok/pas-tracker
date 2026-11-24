@@ -1,4 +1,4 @@
-import { fmtMoney, describirPlazo } from "../../utils/formatters.js";
+import { fmtMoney, describirPlazo, nombrePropio } from "../../utils/formatters.js";
 import { netoYo, textoFalta } from "../../utils/metricas.js";
 import { itemsCaso } from "../../utils/menus.js";
 import { propsMenu } from "../ui/MenuContextual.jsx";
@@ -27,7 +27,7 @@ export default function CobrosResumen({ cobros, onAbrir, onVerTodos }) {
             onKeyDown={e => { if (e.key === "Enter") onAbrir(c); }}
             {...propsMenu(() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ver cobros en Análisis", onClick: onVerTodos }] }))}>
             <div style={{ minWidth: 0 }}>
-              <div className="ft-titulo">{c.asegurado}</div>
+              <div className="ft-titulo">{nombrePropio(c.asegurado)}</div>
               <div className="ft-sub">{[c.compania_aseguradora || "Sin compañía", cuando(c), !(c.faltaIndemnizacion && c.faltaHonorarios) && textoFalta(c)].filter(Boolean).join(" · ")}</div>
             </div>
             <div className="num" style={{ fontSize: 14, fontWeight: 600, whiteSpace: "nowrap" }}>{netoPendiente(c) ? fmtMoney(netoPendiente(c)) : "—"}</div>

@@ -1,5 +1,5 @@
 // Textos de la vista del cliente, compartidos con la ficha del caso (para que veas lo mismo que ve el cliente).
-import { fmtDate, fmtMoney, sumarDias } from "./formatters.js";
+import { fmtDate, fmtMoney, sumarDias, fechaLocalISO } from "./formatters.js";
 import { ESTADOS_CASO, estadoInfo } from "../constants.js";
 
 const masDias = (iso, dias) => (Number(dias) ? sumarDias(String(iso).slice(0, 10), dias) : String(iso).slice(0, 10));
@@ -21,16 +21,16 @@ export function textoEtapaCliente(caso) {
   const cia = caso.compania_aseguradora || "la compañía";
   switch (caso.estado) {
     case "doc_pendiente": return "Estamos reuniendo la documentación de tu siniestro. Si te pedimos algo, mandalo cuanto antes así avanzamos.";
-    case "iniciado": return "Ya tenemos tu caso y estamos preparando el reclamo.";
-    case "reclamado": return `Presentamos el reclamo ante ${cia}. Ahora esperamos su respuesta.`;
-    case "con_ofrecimiento": return `${cia} hizo un ofrecimiento. Lo estamos analizando para conseguir el mejor monto posible.`;
-    case "en_mediacion": return `El caso está en mediación: una reunión formal para llegar a un acuerdo con ${cia}.`;
-    case "en_juicio": return "Iniciamos una demanda judicial para defender tu reclamo. Estos procesos llevan más tiempo; te vamos a ir contando.";
+    case "iniciado": return `Ya presentamos el reclamo ante ${cia}.`;
+    case "reclamado": return `Le pedimos a ${cia} que responda el reclamo. Esperamos su respuesta.`;
+    case "con_ofrecimiento": return `${cia} hizo un ofrecimiento. Te lo pasamos con nuestra sugerencia y la decisión es tuya.`;
+    case "en_mediacion": return `El caso está en mediación prejudicial: una reunión formal con ${cia} para intentar un acuerdo.${audienciaPendiente(caso) ? ` La audiencia es el ${fmtDate(caso.fecha_mediacion)}.` : ""}`;
+    case "en_juicio": return "Se inició la demanda judicial.";
     case "esperando_pago": {
       const f = fechaPagoEstimada(caso);
       return f
         ? `Hay acuerdo. Ahora ${cia} tiene que pagar (fecha estimada: ${fmtDate(f)}). Si pasada esa fecha no recibiste el pago, avisanos por WhatsApp así lo reclamamos.`
-        : `Hay acuerdo. Ahora ${cia} tiene que pagar.`;
+        : `Hay acuerdo. Ahora ${cia} tiene que pagar; la fecha de pago está a confirmar.`;
     }
     case "cobrado": {
       const monto = Number(caso.monto_cobro_asegurado) || 0;
@@ -41,13 +41,36 @@ export function textoEtapaCliente(caso) {
   }
 }
 
+// La audiencia de mediación todavía no se hizo (fecha cargada, hoy o más adelante)
+const audienciaPendiente = c => Boolean(c.fecha_mediacion) && String(c.fecha_mediacion).slice(0, 10) >= fechaLocalISO();
+
+// Qué está pasando en cada etapa, contado al PAS (explicación de la etiqueta de estado en el portal). Describe, no promete.
+// Iniciado = el reclamo ya se presentó; Reclamado = ya se pidió respuesta a la compañía (primer pedido de novedades).
+export function explicacionEtapaPas(caso) {
+  const estado = caso?.estado;
+  if (estado === "en_mediacion") return `El caso está en mediación prejudicial, para intentar un acuerdo.${audienciaPendiente(caso) ? ` La audiencia es el ${fmtDate(caso.fecha_mediacion)}.` : ""}`;
+  if (estado === "esperando_pago") {
+    const f = fechaPagoEstimada(caso);
+    return `Hay acuerdo y falta que la compañía pague. ${f ? `Fecha estimada de pago: ${fmtDate(f)}.` : "La fecha de pago está a confirmar."}`;
+  }
+  return {
+    doc_pendiente: "Falta documentación del asegurado para poder reclamar.",
+    iniciado: "El reclamo ya se presentó a la compañía.",
+    reclamado: "Ya se le pidió a la compañía que responda el reclamo; se espera su respuesta.",
+    con_ofrecimiento: "La compañía hizo un ofrecimiento. Se le pasa al asegurado, con la sugerencia del estudio, para que decida.",
+    en_juicio: "Se inició la demanda judicial.",
+    cobrado: "La compañía pagó y el caso está cerrado.",
+    desistido: "El reclamo se cerró sin avanzar.",
+  }[estado] || "";
+}
+
 // La misma etapa en una sola línea: es el título grande de la vista del cliente. Describe, no promete.
 export function tituloEtapaCliente(caso) {
   return {
     doc_pendiente: "Estamos juntando tu documentación",
-    iniciado: "Estamos preparando tu reclamo",
-    reclamado: "Presentamos tu reclamo y esperamos la respuesta",
-    con_ofrecimiento: "Estamos negociando con la compañía",
+    iniciado: "Presentamos tu reclamo",
+    reclamado: "Le pedimos respuesta a la compañía",
+    con_ofrecimiento: "La compañía hizo un ofrecimiento",
     en_mediacion: "Tu caso está en mediación",
     en_juicio: "Tu reclamo está en juicio",
     esperando_pago: "Hay acuerdo y falta el pago de la compañía",

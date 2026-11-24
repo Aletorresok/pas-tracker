@@ -35,7 +35,7 @@ const pasoDe = estado => {
 const PASOS_TEXTO = [
   "Juntamos las fotos, la denuncia y los papeles del siniestro.",
   "Presentamos el reclamo ante la compañía.",
-  "La compañía responde y negociamos el monto.",
+  "La compañía responde y, si hace un ofrecimiento, te lo pasamos con nuestra sugerencia.",
   "Con el acuerdo firmado, la compañía paga.",
   "Recibís tu dinero.",
 ];

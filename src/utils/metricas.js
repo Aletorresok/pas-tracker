@@ -227,7 +227,8 @@ export function tareasPendientes({ allCasos, hoy = new Date(), margenes = {} }) 
   });
 
   // Monto reclamado: tiene que estar desde que se inicia el reclamo
-  allCasos.filter(c => esActivo(c) && c.estado !== "doc_pendiente" && !(Number(c.monto_reclamado) > 0)).forEach(c => {
+  // (salvo que esté marcado "A definir", SQL 50)
+  allCasos.filter(c => esActivo(c) && c.estado !== "doc_pendiente" && !(Number(c.monto_reclamado) > 0) && !c.monto_a_definir).forEach(c => {
     tareas.push({ id: `monto-${c.id}`, tipo: "dato", vence: null, titulo: c.asegurado || "Sin nombre", caso: c, detalle: "Falta cargar el monto reclamado" });
   });
 

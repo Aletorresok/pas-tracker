@@ -3,6 +3,7 @@ import CompaniaSelector from "./CompaniaSelector.jsx";
 import Boton from "../ui/Boton.jsx";
 import LeerDocumentos from "./LeerDocumentos.jsx";
 import { GRUPOS_SINIESTRO, necesitaSql44, hayColumnasSql44, ciaNoCoincide, lineasReclamo, textoReclamo } from "../../utils/datosSiniestro.js";
+import { nombrePropio, normalizarPatente } from "../../utils/formatters.js";
 
 const copiar = async texto => {
   try { await navigator.clipboard.writeText(texto); return true; } catch { window.prompt("Copiá el texto:", texto); return false; }
@@ -49,7 +50,9 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
         <label>
           <span style={labelStyle}>Asegurado *</span>
-          <input type="text" value={formData.asegurado || ""} onChange={e => onChange("asegurado", e.target.value)} style={inputStyle} />
+          <input type="text" value={formData.asegurado || ""} onChange={e => onChange("asegurado", e.target.value)}
+            // Al salir del campo: si quedó todo en mayúsculas o minúsculas, pasa a nombre propio
+            onBlur={e => { const v = nombrePropio(e.target.value.trim()); if (v !== e.target.value) onChange("asegurado", v); }} style={inputStyle} />
         </label>
 
         <label>
@@ -61,6 +64,7 @@ export default function SeccionInfo({ formData, onChange, darkMode, Th, compania
               const val = e.target.value.toUpperCase();
               onChange("patente", val);
             }}
+            onBlur={e => { const v = normalizarPatente(e.target.value); if (v !== e.target.value) onChange("patente", v); }}
             placeholder="Ej: AB123CD"
             style={{ ...inputStyle, textTransform: "uppercase", textAlign: "center" }}
           />

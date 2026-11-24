@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fechaLocalISO } from "../../utils/formatters.js";
 import { itemsCaso, itemsExpediente } from "../../utils/menus.js";
 import ChipPendiente from "../expediente/ChipPendiente.jsx";
@@ -33,6 +33,21 @@ const guardar = v => { try { localStorage.setItem("paraHacer:proximos", v ? "1" 
 // Tocar una fila abre el caso o el expediente; el tilde (Hecho) y Posponer están en cada fila.
 export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAbrir, onHecho, onPosponer, onReiterar }) {
   const [verProximos, setVerProximos] = useState(leer);
+  const lista = useRef(null);
+
+  // J desde cualquier lugar de Hoy (sin estar escribiendo ni con una ficha o ventana abierta) enfoca la primera fila;
+  // de ahí siguen los atajos de cada fila (TarjetaCaso)
+  useEffect(() => {
+    const alTeclear = e => {
+      if (e.key.toLowerCase() !== "j" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t.closest?.("input, textarea, select, [contenteditable=true], .ft") || document.querySelector('[role="dialog"]')) return;
+      const primera = lista.current?.querySelector(".ft");
+      if (primera) { e.preventDefault(); primera.focus(); primera.scrollIntoView({ block: "nearest" }); }
+    };
+    window.addEventListener("keydown", alTeclear);
+    return () => window.removeEventListener("keydown", alTeclear);
+  }, []);
   const hoy = fechaLocalISO();
   const grupos = useMemo(() => agruparPorCaso(tareas), [tareas]);
   const deHoy = grupos.filter(g => g.vence && g.vence <= hoy);
@@ -55,7 +70,7 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
     .filter(([, lista, , k]) => lista.length && (!foco || foco === k));
 
   return (
-    <section className="lista-filas" aria-label="Para hacer">
+    <section ref={lista} className="lista-filas" aria-label="Para hacer">
       {deHoy.length === 0 && (
         <div style={{ padding: "24px 16px", textAlign: "center", color: "var(--sub)", fontSize: 14 }}>
           <Ilustracion nombre="listo" size={72} style={{ margin: "0 auto 8px" }} />
@@ -84,6 +99,11 @@ export default function ParaHacer({ tareas, cal, foco = null, onQuitarFoco, onAb
             {verProximos ? "Ocultar" : "Ver"} los próximos días y sin plazo ({proximos.length})
           </button>
           {verProximos && <div className="lista-scroll" style={{ maxHeight: ALTO_LISTA, overflowY: "auto" }}>{proximos.map(fila)}</div>}
+        </div>
+      )}
+      {grupos.length > 0 && (
+        <div className="atajos-ayuda" aria-hidden="true">
+          <kbd>J</kbd> <kbd>K</kbd> moverse · <kbd>Enter</kbd> abrir · <kbd>H</kbd> hecho · <kbd>P</kbd> posponer · <kbd>R</kbd> reiteré hoy · <kbd>W</kbd> WhatsApp
         </div>
       )}
     </section>

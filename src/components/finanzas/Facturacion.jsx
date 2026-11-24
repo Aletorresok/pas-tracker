@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fmtMoney, fmtDate, fechaLocalISO, diasDesde, normalizarFactura } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, fechaLocalISO, diasDesde, normalizarFactura, nombrePropio } from "../../utils/formatters.js";
 import { facturacion, guardarFactura, gastosPorCaso } from "../../utils/finanzas.js";
 import Boton from "../ui/Boton.jsx";
 
@@ -39,7 +39,7 @@ export default function Facturacion({ allCasos, gastos, conNumero, onCasoLocal, 
   );
   const nombre = c => (
     <button type="button" onClick={() => onAbrirCaso(c)} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", cursor: "pointer", textAlign: "left", minWidth: 0 }}>
-      <span style={{ display: "block", fontSize: 14, fontWeight: 600, overflowWrap: "anywhere" }}>{c.asegurado || "Sin nombre"}</span>
+      <span style={{ display: "block", fontSize: 14, fontWeight: 600, overflowWrap: "anywhere" }}>{nombrePropio(c.asegurado) || "Sin nombre"}</span>
       <span style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{[c.compania_aseguradora, c._pasNombre].filter(Boolean).join(" · ")}</span>
     </button>
   );

@@ -1,5 +1,5 @@
 import { Fragment, useState, useMemo, useCallback, useEffect } from "react";
-import { fmtMoney, diasDesde, describirPlazo } from "../utils/formatters.js";
+import { fmtMoney, diasDesde, describirPlazo, nombrePropio } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { aplanarCasos, esActivo } from "../utils/metricas.js";
 import Papelera from "./casos/Papelera.jsx";
@@ -277,7 +277,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
             <Fragment key={c.id}>
               <button type="button" onClick={() => alternar(c.id)} {...menuCaso(c)} aria-expanded={abiertoId === c.id}
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === c.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
-                <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.asegurado || "Sin nombre"}</span>
+                <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nombrePropio(c.asegurado) || "Sin nombre"}</span>
                 <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : ""}</span>
                 <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
                   <EstadoPill estado={c.estado} size="sm" />
@@ -313,7 +313,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                       <td style={celda}>
                         <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(c.id); }}
                           style={{ display: "block", background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {c.asegurado || "Sin nombre"}
+                          {nombrePropio(c.asegurado) || "Sin nombre"}
                         </button>
                         <span style={{ display: "block", fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis" }}>{[c.compania_aseguradora, c.patente].filter(Boolean).join(" · ") || "Sin compañía"}</span>
                         {faltantesDe(c)}
@@ -325,7 +325,7 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                         </button>
                       </td>
                       <td style={celda}><QueSigue caso={c} /></td>
-                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>{c.monto_a_definir ? "A definir" : "—"}</span>}</td>
                     </tr>
                     {abierto && (
                       <tr>

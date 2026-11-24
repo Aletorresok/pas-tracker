@@ -1,5 +1,6 @@
 import { describirPlazo } from "../../utils/formatters.js";
 import { alpha } from "../../utils/theme.js";
+import Icono from "./Icono.jsx";
 
 const COLOR = { vencido: "var(--bad)", hoy: "var(--warn)", pronto: "var(--warn)", tranquilo: "var(--info)" };
 
@@ -10,11 +11,12 @@ export default function PlazoChip({ vence }) {
   const c = COLOR[p.nivel];
   return (
     <span className="num" style={{
-      display: "inline-block", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
+      display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
       // Vencido va lleno (texto del color del fondo) para distinguirse de "Vence hoy / pronto" de un vistazo
       padding: "2px 8px", borderRadius: "var(--r-xs)", ...(p.nivel === "vencido" ? { color: "var(--bg)", background: c } : { color: c, background: alpha(c, 14) }),
     }}>
-      {p.texto}
+      {/* 30 días o más vencido: con ícono de alerta */}
+      {p.grave && <Icono nombre="alerta" size={12} stroke={2.2} />}{p.texto}
     </span>
   );
 }

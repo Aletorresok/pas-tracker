@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { fmtMoney, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 import { CATEGORIAS_GASTO, categoria, gastosDelMes, guardarGasto, borrarGasto, hayRecuperables, RECUPERAR_DE, recuperarDe } from "../../utils/finanzas.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
@@ -16,7 +16,7 @@ const FIJOS = [
   { categoria: "software", descripcion: "Suscripción a Claude" },
 ];
 
-const etiquetaCaso = c => `${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}`;
+const etiquetaCaso = c => `${nombrePropio(c.asegurado) || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}`;
 
 // Gastos del mes (los recurrentes aparecen todos los meses) con alta, edición y baja
 export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
@@ -85,7 +85,7 @@ export default function Gastos({ gastos, mes, allCasos, onCambio, setToast }) {
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: "block", fontSize: 14, fontWeight: 600, overflowWrap: "anywhere" }}>{g.descripcion || categoria(g.categoria).l}</span>
               <span style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>
-                {[categoria(g.categoria).l, g.recurrente ? `todos los meses${g.hasta ? ` hasta ${nombreMes(g.hasta.slice(0, 7)).toLowerCase()}` : ""}` : fmtDate(g.fecha), c && `caso ${c.asegurado || ""}`].filter(Boolean).join(" · ")}
+                {[categoria(g.categoria).l, g.recurrente ? `todos los meses${g.hasta ? ` hasta ${nombreMes(g.hasta.slice(0, 7)).toLowerCase()}` : ""}` : fmtDate(g.fecha), c && `caso ${nombrePropio(c.asegurado) || ""}`].filter(Boolean).join(" · ")}
               </span>
               {g.recuperable && (
                 <span style={{ display: "inline-block", marginTop: 3, fontSize: 11.5, fontWeight: 600, padding: "1px 8px", borderRadius: "var(--r-pill)", background: `color-mix(in srgb, ${g.recuperado_en ? "var(--ok)" : "var(--warn)"} 14%, transparent)`, color: g.recuperado_en ? "var(--ok)" : "var(--warn)" }}>

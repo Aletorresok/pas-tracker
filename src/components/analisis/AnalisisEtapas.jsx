@@ -4,6 +4,7 @@ import EstadoPill from "../ui/EstadoPill.jsx";
 import { embudo, tiempoEnEstado, mediana, pct, ETAPAS, duracionPorEstado, diasEntre, fechaAcuerdo } from "../../utils/analisis.js";
 import { QUIEN, quienTiene, tiempoPorQuien } from "../../utils/pelota.js";
 import { ESTADOS_CASO } from "../../constants.js";
+import { nombrePropio } from "../../utils/formatters.js";
 
 // Análisis → Etapas: cuántos casos llegan a cada etapa, cuánto tardan entre una y otra y dónde se traban
 export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) {
@@ -96,7 +97,7 @@ export default function AnalisisEtapas({ allCasos, onAbrirCaso, cambios = {} }) 
         <section>
           <h2 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700 }}>Los más demorados</h2>
           <TablaAnalisis clave={f => f.caso.id} filas={demorados} ordenInicial={{ k: "dias", desc: true }} minWidth={620} onFila={f => onAbrirCaso(f.caso)} columnas={[
-            { k: "asegurado", l: "Asegurado", ancho: "30%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.caso.asegurado || "Sin nombre"}</b> },
+            { k: "asegurado", l: "Asegurado", ancho: "30%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{nombrePropio(f.caso.asegurado) || "Sin nombre"}</b> },
             { k: "compania", l: "Compañía", ancho: "22%", valor: f => (f.caso.compania_aseguradora || "").toLowerCase(), celda: f => f.caso.compania_aseguradora || "—" },
             { k: "estado", l: "Estado", ancho: "26%", valor: f => ESTADOS_CASO.findIndex(e => e.key === f.caso.estado), celda: f => <EstadoPill estado={f.caso.estado} /> },
             { k: "dias", l: "Días", ancho: "22%", derecha: true, celda: f => <><span className="num">{f.dias} d</span><Barrita valor={f.dias} max={maxDemora} color="var(--warn)" /></> },
