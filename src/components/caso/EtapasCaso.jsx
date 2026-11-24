@@ -11,7 +11,9 @@ const PASOS = ESTADOS_CASO.filter(e => e.key !== "desistido");
 const OPCIONALES = { en_mediacion: ["en_mediacion", "en_juicio"], en_juicio: ["en_juicio"] };
 
 // Línea de etapas del caso: clic en una etapa cambia el estado. "Desistido" va aparte.
-export default function EtapasCaso({ estado, onChange }) {
+// fechas: { estado: "AAAA-MM-DD" } con la fecha en que el caso llegó a cada etapa (se muestra debajo, dd/mm)
+const diaMes = iso => (iso ? `${String(iso).slice(8, 10)}/${String(iso).slice(5, 7)}` : "");
+export default function EtapasCaso({ estado, onChange, fechas = {} }) {
   const [verTodas, setVerTodas] = useState(false);
   const pasos = PASOS.filter(p => !OPCIONALES[p.key] || verTodas || OPCIONALES[p.key].includes(estado));
   const ocultos = PASOS.length - pasos.length;
@@ -36,6 +38,7 @@ export default function EtapasCaso({ estado, onChange }) {
                   boxShadow: actual ? `0 0 0 4px color-mix(in srgb, ${p.color} 22%, transparent)` : "none",
                 }} />
                 <span style={{ fontSize: 11, lineHeight: 1.2, color: actual ? "var(--text)" : "var(--muted)", fontWeight: actual ? 700 : 500, whiteSpace: "nowrap" }}>{CORTO[p.key]}</span>
+                {(hecho || actual) && fechas[p.key] && <span className="num" style={{ fontFamily: "var(--mono)", fontSize: 10.5, lineHeight: 1, color: "var(--muted)", marginTop: -2 }}>{diaMes(fechas[p.key])}</span>}
               </button>
             </li>
           );

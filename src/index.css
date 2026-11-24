@@ -380,8 +380,9 @@ input:hover:not(:focus):not(:disabled), select:hover:not(:focus):not(:disabled),
 .nav-grupo:first-child { padding-top: 0; }
 
 /* La ficha del caso es un panel al costado; la pantalla de atrás sigue a la vista y se puede usar */
-html { --ficha-w: 520px; }
-html[data-ficha="amplia"] { --ficha-w: 760px; }
+/* El ancho se adapta a la pantalla para que a la lista de atrás siempre le quede lugar */
+html { --ficha-w: clamp(440px, 42vw, 560px); }
+html[data-ficha="amplia"] { --ficha-w: clamp(540px, 56vw, 820px); }
 .ficha-lateral {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 401; width: min(var(--ficha-w), 100%);
   overflow: auto; background: var(--bg); border-left: 1px solid var(--border2); box-shadow: var(--sh-3);
@@ -390,8 +391,8 @@ html[data-ficha="amplia"] { --ficha-w: 760px; }
 @keyframes fichaIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 .ficha-lateral .modal-sticky { border-radius: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .ficha-lateral { animation: none; } }
-/* Con la ficha abierta en pantalla ancha: la lista se corre y el menú se achica a íconos */
-@media (min-width: 1201px) {
+/* Con la ficha abierta (desde 961 px): la lista se corre y el menú se achica a íconos; en el celular la ficha ocupa todo */
+@media (min-width: 961px) {
   html[data-ficha] .app-main { margin-right: var(--ficha-w); }
   html[data-ficha] .app-content { padding-left: 20px; padding-right: 20px; }
   html[data-ficha] .app-main { margin-left: 68px; }
@@ -441,6 +442,8 @@ h1, h2, .display { font-family: var(--display); letter-spacing: -.02em; }
 /* ── Tinta y oro (Hoy) ── */
 /* Banda "Crítico" de Para hacer: un tinte rojo muy suave detrás de las filas */
 .banda-critica { background: color-mix(in srgb, var(--bad) 5%, transparent); }
+/* Patente en formato placa (ficha del caso) */
+.placa { font-family: var(--mono); font-weight: 600; font-size: 12.5px; letter-spacing: .04em; padding: 1px 8px; border-radius: var(--r-xs); border: 1px solid var(--border2); background: var(--card2); color: var(--text); }
 .hilo-oro { display: block; width: 72px; height: 2px; border-radius: 2px; background: var(--oro); }
 .cifra-heroe { font-family: var(--display); font-size: 44px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
 .titulo-hoy { margin: 4px 0 0; font-family: var(--display); font-size: clamp(32px, 4.2vw, 52px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; }
@@ -474,7 +477,7 @@ h1, h2, .display { font-family: var(--display); letter-spacing: -.02em; }
   .ft-btn { height: 40px; } .ft-btn.wa { width: 40px; }
   .ft-form { padding-left: 0; }
 }
-@media (min-width: 1201px) { html[data-ficha] .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (min-width: 961px) { html[data-ficha] .dash-cols[style] { grid-template-columns: minmax(0, 1fr) !important; } }
 
 /* Embudo de Casos: una tira con el conteo de cada etapa; la elegida queda marcada */
 .embudo { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-md); overflow-x: auto; scrollbar-width: none; }

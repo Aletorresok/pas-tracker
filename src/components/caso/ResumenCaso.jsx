@@ -3,6 +3,7 @@ import { clientePuedeEntrar } from "../../utils/mensajes.js";
 import { estadoHonorarios } from "../../utils/metricas.js";
 import { fmtMoney, fmtDate, fechaLocalISO, diaDeAccion } from "../../utils/formatters.js";
 import CasoProximaAccion from "./CasoProximaAccion.jsx";
+import NegociacionCaso from "./NegociacionCaso.jsx";
 import AvisarWhatsApp from "./AvisarWhatsApp.jsx";
 import AgendaCaso from "./AgendaCaso.jsx";
 import ContactoCompania from "./ContactoCompania.jsx";
@@ -78,6 +79,7 @@ export default function ResumenCaso({ recepcionNuevos = 0, casoId, nroSiniestro,
         <AvisoPrescripcion caso={formData} />
         <AvisoEstadoCliente caso={formData} onCambiar={e => onChange("estado", e)} />
         <CasoProximaAccion formData={formData} onChange={onChange} Th={Th} />
+        {casoId && <NegociacionCaso casoId={casoId} formData={formData} irA={irA} Th={Th} />}
 
         <div style={caja}>
           <label htmlFor="mensaje-cliente" style={{ display: "block", fontSize: 14, fontWeight: 700, color: Th.text, marginBottom: 8 }}>
