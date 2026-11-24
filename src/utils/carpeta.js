@@ -104,6 +104,11 @@ export function mensajeErrorCarpeta(e) {
   }
 }
 
+// Chrome contesta "cancelado" tanto si el usuario cierra el selector como si el sitio tiene bloqueada la edición de archivos
+// (en ese caso no pregunta nada): se avisa siempre para que no parezca que el botón no hace nada.
+export const AVISO_SELECTOR_CANCELADO =
+  "No se eligió ninguna carpeta. Si la elegiste y aceptaste, Chrome no dio permiso: tocá el candado de la barra de direcciones → Configuración del sitio → \"Edición de archivos\" y poné Preguntar o Permitir.";
+
 // Crea la carpeta del caso dentro de la que elija el usuario. null si cancela el selector.
 export async function crearCarpetaCaso({ asegurado, compania, fechaSiniestro }) {
   const fecha = String(fechaSiniestro || "").slice(0, 10);
