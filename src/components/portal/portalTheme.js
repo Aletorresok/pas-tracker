@@ -10,10 +10,8 @@ export const fmtDate = iso => {
   } catch { return "—"; }
 };
 
-export const fmtMoney = n => {
-  if (n === null || n === undefined || n === "") return "—";
-  return "$" + Number(n).toLocaleString("es-AR");
-};
+// El mismo formato que la app (incluye ocultar montos de relleno como $1)
+export { fmtMoney } from "../../utils/formatters.js";
 
 // Mismo sistema visual que la app (tokens en src/index.css)
 export const theme = () => THEME();

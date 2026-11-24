@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { listarPapelera } from "../../utils/storage.js";
 import Icono from "../ui/Icono.jsx";
+import { nombrePropio } from "../../utils/formatters.js";
 
 const DIAS = 30;
 const diasDesde = iso => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -56,7 +57,7 @@ export default function Papelera({ todosLosPas, onRestaurar, onClose }) {
               <div key={it.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderTop: i ? "1px solid var(--border)" : "none" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {it.asegurado || "Sin nombre"}
+                    {nombrePropio(it.asegurado) || "Sin nombre"}
                     {it.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 400, color: "var(--muted)" }}>{it.patente}</span>}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

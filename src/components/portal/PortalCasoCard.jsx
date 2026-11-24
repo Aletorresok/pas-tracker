@@ -7,12 +7,12 @@ import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import ModalGenerarEscrito from "../caso/ModalGenerarEscrito.jsx";
 import { THEME } from "../../utils/theme.js";
-import { diasDesde, primerNombre } from "../../utils/formatters.js";
+import { diasDesde, primerNombre, nombrePropio } from "../../utils/formatters.js";
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { adjuntosDelCaso } from "../../utils/adjuntosPas.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
 import { TEXTO_ACCESO } from "./demoPortal.js";
-import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
+import { fechaPagoEstimada, explicacionEtapaPas } from "../../utils/vistaCliente.js";
 import { abrirComprobanteDePago } from "../../utils/comprobantes.js";
 
 // Último movimiento del caso: lo más nuevo entre la bitácora que ve el PAS y las fechas que se actualizan con lo interno
@@ -118,18 +118,18 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   };
 
   return (
-    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
+    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)" }}>
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
-            <h3 className="display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)", overflowWrap: "anywhere" }}>{caso.asegurado || "Sin nombre"}</h3>
-            <div style={{ fontSize: 13, color: "var(--sub)", marginTop: 2, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <h3 className="display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)", overflowWrap: "anywhere" }}>{nombrePropio(caso.asegurado) || "Sin nombre"}</h3>
+            <div style={{ fontSize: 13, color: "var(--sub)", marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               {caso.compania_aseguradora && <span>{caso.compania_aseguradora}</span>}
-              {caso.patente && <span style={{ fontFamily: "var(--mono)" }}>{caso.patente}</span>}
+              {caso.patente && <span className="placa" style={{ fontSize: 11.5 }}>{caso.patente}</span>}
               {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
             </div>
           </div>
-          <EstadoPill estado={caso.estado} size="sm" />
+          <EstadoPill estado={caso.estado} size="sm" ayuda={explicacionEtapaPas(caso)} />
         </div>
 
         <BarraAvance estado={caso.estado} conPill={false} conEtiquetas />

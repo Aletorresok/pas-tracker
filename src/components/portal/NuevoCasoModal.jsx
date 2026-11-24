@@ -3,7 +3,7 @@ import { supabase } from "../../supabase.js";
 import { subirArchivosYNotificar } from "../../utils/portalStorageUtils.js";
 import { listaCompanias } from "../../utils/companias.js";
 import { linkWhatsApp, linkVistaCliente, clientePuedeEntrar, FIRMA } from "../../utils/mensajes.js";
-import { primerNombre, fechaLocalISO } from "../../utils/formatters.js";
+import { primerNombre, fechaLocalISO, nombrePropio, normalizarPatente } from "../../utils/formatters.js";
 import { estadoInfo } from "../../constants.js";
 import SelectorArchivos from "./SelectorArchivos.jsx";
 import Boton from "../ui/Boton.jsx";
@@ -14,7 +14,7 @@ const BORRADOR = "draft_nuevo_caso";
 const leerBorrador = () => { try { return { ...VACIO, ...JSON.parse(sessionStorage.getItem(BORRADOR) || "{}") }; } catch { return VACIO; } };
 const guardarBorrador = v => { try { sessionStorage.setItem(BORRADOR, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
 const borrarBorrador = () => { try { sessionStorage.removeItem(BORRADOR); sessionStorage.removeItem("draft_otra_compania"); } catch { /* sin almacenamiento */ } };
-const soloPatente = v => String(v || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+const soloPatente = normalizarPatente;
 
 const etiqueta = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 6 };
 const opcional = { fontWeight: 500, color: "var(--muted)" };
@@ -59,7 +59,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
 
     const nuevoCaso = {
       pas_id: pasId,
-      asegurado: form.asegurado.trim(),
+      asegurado: nombrePropio(form.asegurado.trim()),
       telefono_asegurado: form.telefono.trim(),
       origen: "portal",
       patente: soloPatente(form.patente),
@@ -125,7 +125,7 @@ export default function NuevoCasoModal({ pasId, pasNombre, onClose, onCasoCreado
               </label>
             </div>
             {repetido
-              ? <div role="status" style={{ fontSize: 13, color: "var(--warn)", marginTop: -6 }}>Ya derivaste un caso con esta patente: <b>{repetido.asegurado}</b> ({estadoInfo(repetido.estado).label}). Si es otro siniestro, seguí igual.</div>
+              ? <div role="status" style={{ fontSize: 13, color: "var(--warn)", marginTop: -6 }}>Ya derivaste un caso con esta patente: <b>{nombrePropio(repetido.asegurado)}</b> ({estadoInfo(repetido.estado).label}). Si es otro siniestro, seguí igual.</div>
               : <span style={{ ...ayuda, marginTop: -8, color: faltaSeguimiento ? "var(--warn)" : "var(--muted)" }}>
                   {faltaSeguimiento ? "Sin patente y DNI el titular no puede seguir su caso online ni mandar la documentación por el link." : "Con la patente y el DNI el titular sigue su caso online y manda la documentación por el link."}
                 </span>}
@@ -165,7 +165,7 @@ function Confirmacion({ caso, fallidos, pasNombre, onOtro, onListo }) {
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         <span style={{ flex: "none", width: 36, height: 36, borderRadius: "50%", background: "color-mix(in srgb, var(--ok) 15%, var(--card))", color: "var(--ok)", display: "grid", placeItems: "center" }}><Icono nombre="check" size={20} /></span>
         <div style={{ fontSize: 14, color: "var(--sub)", lineHeight: 1.5 }}>
-          <b style={{ color: "var(--text)" }}>{caso.asegurado}</b> ya está en el estudio. Lo ves en "En curso"; cuando lo tomemos, la tarjeta lo muestra.
+          <b style={{ color: "var(--text)" }}>{nombrePropio(caso.asegurado)}</b> ya está en el estudio. Lo ves en "En curso"; cuando lo tomemos, la tarjeta lo muestra.
         </div>
       </div>
       {fallidos.length > 0 && (

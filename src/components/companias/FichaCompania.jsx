@@ -13,6 +13,7 @@ import Icono from "../ui/Icono.jsx";
 import { abrirCompania, cerrarCompania, suscribirCompania, companiaAbierta } from "../../utils/companiaAbierta.js";
 import { haySql45 } from "../../utils/ofertas.js";
 import { INSTANCIAS } from "../../constants.js";
+import { nombrePropio } from "../../utils/formatters.js";
 
 
 // Se monta una vez en App (necesita los casos para listar los de la compañía y poder abrirlos)
@@ -252,7 +253,7 @@ export default function FichaCompania({ nombre, allCasos = [], onClose, onAbrirC
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {casos.slice(0, 50).map(c => (
                     <button key={c.id} type="button" className="fila-simple" onClick={() => onAbrirCaso?.(c)}>
-                      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>{c.asegurado || "Sin nombre"}</span>
+                      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>{nombrePropio(c.asegurado) || "Sin nombre"}</span>
                       <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--mono)" }}>{c.patente || ""}</span>
                       <EstadoPill estado={c.estado} size="sm" />
                     </button>

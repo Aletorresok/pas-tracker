@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fmtMoney, fmtDate } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, nombrePropio } from "../../utils/formatters.js";
 import { honorariosPorMes, netoYo } from "../../utils/metricas.js";
 import GraficoBarraMensual from "../dashboard/GraficoBarraMensual.jsx";
 
@@ -28,7 +28,7 @@ export default function HonorariosPorMes({ allCasos, onAbrirCaso }) {
             <button key={c.id} type="button" onClick={() => onAbrirCaso(c)}
               style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 0", background: "none", border: "none", borderBottom: "1px solid var(--border)", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.asegurado}</span>
+                <span style={{ display: "block", fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nombrePropio(c.asegurado)}</span>
                 <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>{c.compania_aseguradora || "—"} · {fmtDate(c.fecha_cobro_honorarios)}</span>
               </span>
               <span className="num" style={{ fontSize: 13, fontWeight: 600 }}>{fmtMoney(netoYo(c))}</span>

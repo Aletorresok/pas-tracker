@@ -3,7 +3,7 @@ import TablaAnalisis, { card, tono, Nota, Kpis } from "./TablaAnalisis.jsx";
 import EstadoPill from "../ui/EstadoPill.jsx";
 import HonorariosPorMes from "./HonorariosPorMes.jsx";
 import { flujoCaja, DIAS_FACTURA, proyeccion } from "../../utils/analisis.js";
-import { fmtMoney, fmtDate } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, nombrePropio } from "../../utils/formatters.js";
 import { ESTADOS_CASO } from "../../constants.js";
 
 const COLOR_TRAMO = { vencido: "var(--bad)", d30: tono(95), d60: tono(75), d90: tono(55), mas: tono(35), sin_fecha: "var(--border2)" };
@@ -65,7 +65,7 @@ export default function AnalisisCaja({ allCasos, onAbrirCaso, companias, comisio
         </div>
         <TablaAnalisis clave={f => f.caso.id} filas={visibles} ordenInicial={{ k: "fecha", desc: false }} minWidth={860} onFila={f => onAbrirCaso(f.caso)}
           vacio="No hay honorarios pendientes en este tramo." columnas={[
-            { k: "asegurado", l: "Asegurado", ancho: "17%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.caso.asegurado || "Sin nombre"}</b> },
+            { k: "asegurado", l: "Asegurado", ancho: "17%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{nombrePropio(f.caso.asegurado) || "Sin nombre"}</b> },
             { k: "compania", l: "Compañía", ancho: "14%", valor: f => (f.caso.compania_aseguradora || "").toLowerCase(), celda: f => f.caso.compania_aseguradora || "—" },
             { k: "estado", l: "Estado", ancho: "16%", valor: f => ESTADOS_CASO.findIndex(e => e.key === f.caso.estado), celda: f => <EstadoPill estado={f.caso.estado} size="sm" /> },
             { k: "fecha", l: "Estimado", ancho: "20%", celda: f => f.fecha
@@ -117,7 +117,7 @@ function Proyeccion({ allCasos, companias, comisiones, onAbrirCaso }) {
       {ver && (
         <div style={{ marginTop: 8 }}>
           <TablaAnalisis clave={f => f.caso.id} filas={p.items} ordenInicial={{ k: "fecha", desc: false }} minWidth={900} onFila={f => onAbrirCaso(f.caso)} columnas={[
-            { k: "asegurado", l: "Asegurado", ancho: "18%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.caso.asegurado || "Sin nombre"}</b> },
+            { k: "asegurado", l: "Asegurado", ancho: "18%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{nombrePropio(f.caso.asegurado) || "Sin nombre"}</b> },
             { k: "compania", l: "Compañía", ancho: "13%", valor: f => (f.caso.compania_aseguradora || "").toLowerCase(), celda: f => f.caso.compania_aseguradora || "—" },
             { k: "indem", l: "Indemnización", ancho: "17%", derecha: true, celda: f => <span className="num">{fmtMoney(f.indem)} <span style={{ fontSize: 11, color: "var(--muted)", display: "block" }}>{f.baseTxt}</span></span> },
             { k: "honor", l: "Honorarios", ancho: "14%", derecha: true, celda: f => <span className="num">{fmtMoney(f.honor)} <span style={{ fontSize: 11, color: "var(--muted)", display: "block" }}>{f.honTxt}</span></span> },

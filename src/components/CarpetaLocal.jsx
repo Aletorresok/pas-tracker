@@ -7,6 +7,7 @@ import {
   renombrarArchivoLocal,
   crearCarpetaCaso,
   mensajeErrorCarpeta,
+  AVISO_SELECTOR_CANCELADO,
 } from "../utils/carpeta.js";
 import { recordarCarpeta, carpetaRecordada, olvidarCarpeta } from "../utils/carpetaRecordada.js";
 import ArchivoLocalRow from "./carpeta/ArchivoLocalRow.jsx";
@@ -64,7 +65,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
     setCargando(true);
     try {
       const handle = await elegirCarpeta();
-      if (!handle) { setCargando(false); return; }
+      if (!handle) { onToast({ msg: AVISO_SELECTOR_CANCELADO, type: "warn" }); setCargando(false); return; }
 
       const permiso = await verificarPermisoCarpeta(handle);
       if (!permiso) {
@@ -93,7 +94,7 @@ export function CarpetaLocal({ Th, onToast, onPreview, caso, onDirHandleChange, 
         compania: caso?.compania_aseguradora,
         fechaSiniestro: caso?.fecha_siniestro,
       });
-      if (!result) { setCargando(false); return; }
+      if (!result) { onToast({ msg: AVISO_SELECTOR_CANCELADO, type: "warn" }); setCargando(false); return; }
 
       const { handle, nombre } = result;
       setDirHandle(handle);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import EstadoSelector from "../caso/EstadoSelector.jsx";
 import CompaniaSelector from "../caso/CompaniaSelector.jsx";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, nombrePropio, normalizarPatente } from "../../utils/formatters.js";
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -39,15 +39,18 @@ export function NuevoCasoModal({ pasNombre, darkMode, onClose, onSave, companias
     onSave({
       id: generateUUID(),
       caso_id: Date.now(),
-      asegurado: asegurado.trim(),
+      asegurado: nombrePropio(asegurado.trim()),
       compania_aseguradora: compania.trim() || null,
-      patente: patente.trim().toUpperCase() || null,
+      patente: normalizarPatente(patente) || null,
       dni_asegurado: dni.trim() || null,
       telefono_asegurado: telefono.trim() || null,
       fecha_siniestro: fechaSiniestro || null,
       fecha_derivacion: fechaDerivacion || null,
       estado,
       estado_honorarios: "NO_FACTURADO",
+      // Columnas que la ficha busca en el caso para mostrar sus bloques (hilo con la compañía, factura, tipo de reclamo, comisión)
+      nro_factura: null, hilo_gmail: null, fecha_pago_comision: null, pago_comision_id: null,
+      tipo_reclamo: "culpa_tercero", instancia_ofrecimiento: "administrativa",
     });
   };
 

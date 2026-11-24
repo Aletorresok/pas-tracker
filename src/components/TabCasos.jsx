@@ -1,5 +1,5 @@
 import { Fragment, useState, useMemo, useCallback, useEffect } from "react";
-import { fmtMoney, diasDesde, describirPlazo } from "../utils/formatters.js";
+import { fmtMoney, diasDesde, describirPlazo, nombrePropio } from "../utils/formatters.js";
 import { ESTADOS_CASO } from "../constants.js";
 import { aplanarCasos, esActivo } from "../utils/metricas.js";
 import Papelera from "./casos/Papelera.jsx";
@@ -7,7 +7,6 @@ import { useEsCelular } from "../hooks/useEsCelular.js";
 import EstadoPill from "./ui/EstadoPill.jsx";
 import Icono from "./ui/Icono.jsx";
 import CasoOverlay from "./caso/CasoOverlay.jsx";
-import FilaExpandida from "./casos/FilaExpandida.jsx";
 import { QUIEN, quienTiene } from "../utils/pelota.js";
 import { propsMenu, abrirMenu } from "./ui/MenuContextual.jsx";
 import { itemsCaso } from "../utils/menus.js";
@@ -168,21 +167,17 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
   const accionesCaso = { abrir: c => setFicha({ caso: c, pasId: c._pasId }), eliminar: handleDelete };
   const menuCaso = c => propsMenu(() => itemsCaso(c, {
     ...accionesCaso,
-    resumen: { label: abiertoId === c.id ? "Cerrar resumen" : "Ver resumen", onClick: () => alternar(c.id) },
     mover: { estados: ESTADOS_CASO, onMover: moverDesdeTabla },
   }));
 
-  // Guarda en memoria el caso editado desde la fila (ya se guardó en Supabase)
-  const casoEditado = useCallback((pasId) => (actualizado) => {
-    const { _pasId, _pasNombre, ...limpio } = actualizado;
-    onCasoLocal(pasId, limpio);
-  }, [onCasoLocal]);
-
-  // Con "Datos faltantes", tocar el caso abre la ficha directo en Datos (o en Montos, si solo falta el monto)
+  // Tocar un caso abre la ficha completa al costado (la lista se corre y la fila queda marcada).
+  // Con "Datos faltantes", la abre directo en Datos (o en Montos, si solo falta el monto).
   const alternar = id => {
-    const c = faltan && allCasos.find(x => x.id === id);
-    if (c) { setFicha({ caso: c, pasId: c._pasId, pestana: datosFaltantes(c).some(f => f !== "monto reclamado") ? "datos" : "montos" }); return; }
-    setAbiertoId(a => (a === id ? null : id));
+    const c = allCasos.find(x => x.id === id);
+    if (!c) return;
+    setAbiertoId(id);
+    const pestana = faltan ? (datosFaltantes(c).some(f => f !== "monto reclamado") ? "datos" : "montos") : undefined;
+    setFicha({ caso: c, pasId: c._pasId, ...(pestana ? { pestana } : {}) });
   };
 
   // Un chip que daría 0 resultados se atenúa (salvo que ya esté puesto: así se puede sacar)
@@ -196,16 +191,6 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
     return f.length ? <span style={{ display: "block", fontSize: 12, color: "var(--warn)", fontWeight: 500, marginTop: 2 }}>Falta {f.join(" · ")}</span> : null;
   };
 
-  const expandida = c => (
-    <FilaExpandida
-      key={`exp-${c.id}`}
-      caso={c}
-      pas={todosLosPas.find(p => String(p.id) === String(c._pasId))}
-      onCasoLocal={casoEditado(c._pasId)}
-      onAbrirFicha={() => setFicha({ caso: c, pasId: c._pasId })}
-      onEliminar={() => handleDelete(c)}
-    />
-  );
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -275,9 +260,9 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
           {filtrados.map((c, i) => (
             <Fragment key={c.id}>
-              <button type="button" onClick={() => alternar(c.id)} {...menuCaso(c)} aria-expanded={abiertoId === c.id}
+              <button type="button" onClick={() => alternar(c.id)} {...menuCaso(c)} aria-haspopup="dialog"
                 style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "4px 10px", padding: "11px 14px", background: abiertoId === c.id ? "var(--card2)" : "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
-                <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.asegurado || "Sin nombre"}</span>
+                <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nombrePropio(c.asegurado) || "Sin nombre"}</span>
                 <span className="num" style={{ fontSize: 14, fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : ""}</span>
                 <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
                   <EstadoPill estado={c.estado} size="sm" />
@@ -292,7 +277,6 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                 )}
                 {faltan && <span style={{ gridColumn: "1 / -1" }}>{faltantesDe(c)}</span>}
               </button>
-              {abiertoId === c.id && <div style={{ background: "var(--card2)", borderTop: "1px solid var(--border)", paddingTop: 12 }}>{expandida(c)}</div>}
             </Fragment>
           ))}
         </div>
@@ -311,9 +295,9 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                   <Fragment key={c.id}>
                     <tr onClick={() => alternar(c.id)} {...menuCaso(c)} style={{ cursor: "pointer" }} className="fila-caso">
                       <td style={celda}>
-                        <button type="button" aria-expanded={abierto} onClick={e => { e.stopPropagation(); alternar(c.id); }}
+                        <button type="button" aria-haspopup="dialog" onClick={e => { e.stopPropagation(); alternar(c.id); }}
                           style={{ display: "block", background: "none", border: "none", padding: 0, font: "inherit", color: "var(--text)", fontWeight: 600, cursor: "pointer", textAlign: "left", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {c.asegurado || "Sin nombre"}
+                          {nombrePropio(c.asegurado) || "Sin nombre"}
                         </button>
                         <span style={{ display: "block", fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis" }}>{[c.compania_aseguradora, c.patente].filter(Boolean).join(" · ") || "Sin compañía"}</span>
                         {faltantesDe(c)}
@@ -325,15 +309,8 @@ export default function TabCasos({ pas, casos, onEliminarCaso, onRestaurarCaso, 
                         </button>
                       </td>
                       <td style={celda}><QueSigue caso={c} /></td>
-                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td className="num" style={{ ...celda, textAlign: "right", fontWeight: 600 }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>{c.monto_a_definir ? "A definir" : "—"}</span>}</td>
                     </tr>
-                    {abierto && (
-                      <tr>
-                        <td colSpan={COLUMNAS.length} style={{ padding: 0, background: "var(--card2)", borderBottom: "1px solid var(--border)" }}>
-                          {expandida(c)}
-                        </td>
-                      </tr>
-                    )}
                   </Fragment>
                 );
               })}

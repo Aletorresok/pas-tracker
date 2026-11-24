@@ -1,6 +1,8 @@
 import CampoMonto from "../ui/CampoMonto.jsx";
 import { TIPOS_RECLAMO, CULPA_CONCURRENCIA } from "../../constants.js";
 
+const Envoltorio = ({ f, children }) => f.k === "monto_reclamado" ? <div>{children}</div> : <label>{children}</label>;
+
 export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: Th.text, marginBottom: 6 };
   const inputStyle = Th.input;
@@ -15,10 +17,22 @@ export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
           { k: "monto_cobro_yo", l: "Mis honorarios ($)" },
           { k: "monto_comision_pas", l: "Comisión PAS ($)" },
         ].map(f => (
-          <label key={f.k}>
+          // El reclamado va en un div: adentro tiene su propia casilla "A definir" con su label
+          <Envoltorio key={f.k} f={f}>
             <span style={labelStyle}>{f.l}</span>
-            <CampoMonto value={formData[f.k]} onChange={v => onChange(f.k, v)} />
-            {f.k === "monto_reclamado" && !(Number(formData.monto_reclamado) > 0) && formData.estado !== "doc_pendiente" && (
+            <CampoMonto aria-label={f.l} value={formData[f.k]} onChange={v => {
+              onChange(f.k, v);
+              // Al cargar un monto real deja de estar "A definir"
+              if (f.k === "monto_reclamado" && Number(v) > 0 && formData.monto_a_definir) onChange("monto_a_definir", false);
+            }} />
+            {/* SQL 50: "A definir" calla el aviso de monto faltante sin cargar un número de relleno */}
+            {f.k === "monto_reclamado" && "monto_a_definir" in formData && !(Number(formData.monto_reclamado) > 0) && (
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: Th.sub, marginTop: 6, cursor: "pointer" }}>
+                <input type="checkbox" checked={!!formData.monto_a_definir} onChange={e => onChange("monto_a_definir", e.target.checked)} />
+                A definir (todavía no hay presupuesto)
+              </label>
+            )}
+            {f.k === "monto_reclamado" && !(Number(formData.monto_reclamado) > 0) && !formData.monto_a_definir && formData.estado !== "doc_pendiente" && (
               <span style={{ display: "block", fontSize: 12, color: "var(--warn)", fontWeight: 600, marginTop: 4 }}>Falta cargarlo: se usa para comparar con el ofrecimiento.</span>
             )}
             {f.k === "monto_comision_pas" && (
@@ -26,7 +40,7 @@ export default function SeccionMontos({ formData, onChange, Th, pctComision }) {
                 {pctComision ? `${pctComision}% de tus honorarios: se calcula sola al cargarlos` : pctComision === 0 ? "Este PAS no cobra comisión" : "El % del PAS se carga en Clientes"}
               </span>
             )}
-          </label>
+          </Envoltorio>
         ))}
       </div>
       {/* Tipo de reclamo (SQL 45): Análisis mide la concurrencia sobre la parte del tercero y deja la franquicia fuera de los % */}

@@ -1,7 +1,7 @@
 import { Fragment, useState, useMemo, useEffect } from "react";
 import { supabase } from "../supabase.js";
 import { useCompanias } from "./caso/CompaniaSelector.jsx";
-import { fmtMoney, fmtDate, diasDesde, primerNombre, fechaLocalISO } from "../utils/formatters.js";
+import { fmtMoney, fmtDate, diasDesde, primerNombre, fechaLocalISO, nombrePropio } from "../utils/formatters.js";
 import { estadisticasPas, fechaLlegada } from "../utils/estadisticasPas.js";
 import { linkWhatsApp } from "../utils/mensajes.js";
 import ResumenMensual from "./clientes/ResumenMensual.jsx";
@@ -130,7 +130,7 @@ function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tien
               <button key={c.id} type="button" onClick={() => onAbrir(c)} {...propsMenu(() => itemsCaso(c, { abrir: onAbrir }))} className="fila-caso"
                 style={{ width: "100%", display: "grid", gridTemplateColumns: esCelular ? "minmax(0, 1fr) auto" : "minmax(0, 2fr) 150px minmax(0, 1.2fr) 90px 110px", gap: esCelular ? "4px 10px" : 12, alignItems: "center", padding: "9px 12px", background: "none", border: "none", borderTop: i ? "1px solid var(--border)" : "none", textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit", fontSize: 14 }}>
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600 }}>
-                  {c.asegurado || "Sin nombre"}
+                  {nombrePropio(c.asegurado) || "Sin nombre"}
                   {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
                 </span>
                 {esCelular
@@ -143,7 +143,7 @@ function CasosDelPas({ pas, directo, onAbrir, onNuevo, onEditar, esCelular, tien
                       <span><EstadoPill estado={c.estado} size="sm" /></span>
                       <span style={{ color: "var(--sub)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.compania_aseguradora || "—"}</span>
                       <span className="num" style={{ color: "var(--sub)", fontSize: 13 }}>{hace(ultimoMov(c))}</span>
-                      <span className="num" style={{ textAlign: "right" }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>—</span>}</span>
+                      <span className="num" style={{ textAlign: "right" }}>{montoCaso(c) ? fmtMoney(montoCaso(c)) : <span style={{ color: "var(--muted)" }}>{c.monto_a_definir ? "A definir" : "—"}</span>}</span>
                     </>}
               </button>
             ))}

@@ -14,7 +14,7 @@ import Logo from "../ui/Logo.jsx";
 import Ilustracion from "../ui/Ilustracion.jsx";
 import { plazosRespuesta, comisionPagada, comisionPorPagar } from "../../utils/metricas.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
-import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre } from "../../utils/formatters.js";
+import { diaDeAccion, fechaLocalISO, fechaEnDias, primerNombre, nombrePropio } from "../../utils/formatters.js";
 import { linkWhatsApp, TELEFONO_ESTUDIO } from "../../utils/mensajes.js";
 import { PAS_DEMO, TEXTO_ACCESO, casosDemo, eventosDemo, plazosDemo, filasDesdePlazos } from "./demoPortal.js";
 import { cargarPlazosPublicos } from "../../utils/consultas.js";
@@ -264,36 +264,43 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
             </div>
         </div>
       )}
-      {/* Saludo: va antes que el resumen, también en el celular */}
-      <div className="portal-saludo" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 0", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 26, letterSpacing: -0.3 }}>{saludo ? `Hola, ${saludo}` : "Tus casos"}</h1>
-          <div style={{ fontSize: 15, color: T.sub }}>
-            {esDemo ? "Todavía no tenés casos derivados. Así se va a ver cada uno cuando derives el primero."
-              : enCurso.length === 0 ? "No tenés casos en curso."
-              : `Tenés ${enCurso.length === 1 ? "1 caso" : `${enCurso.length} casos`} en curso${pagosPendientes.length ? ` y ${pagosPendientes.length === 1 ? "1 esperando el pago" : `${pagosPendientes.length} esperando el pago`}` : ""}.`}
+      {/* Tinta y oro: banda oscura con el saludo, el título grande y los números de la cartera (también en el celular) */}
+      <section className="portal-banda" aria-label="Tu cartera">
+        <div className="portal-banda-in">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 360px", minWidth: 0 }}>
+            <span style={{ fontSize: 15, color: "var(--tinta-sub)" }}>{saludo ? `Hola, ${saludo}` : "Tus casos"}</span>
+            <h1 className="portal-banda-titulo">
+              {esDemo ? "Así vas a seguir tus casos."
+                : enCurso.length === 0 ? "No tenés casos en curso."
+                : `${enCurso.length === 1 ? "1 caso" : `${enCurso.length} casos`} en curso.`}
+            </h1>
+            <span style={{ fontSize: 15, color: "var(--tinta-sub)", lineHeight: 1.5 }}>
+              {esDemo ? "Todavía no derivaste casos. Así se va a ver cada uno cuando derives el primero."
+                : pagosPendientes.length ? `${pagosPendientes.length === 1 ? "1 está esperando el pago" : `${pagosPendientes.length} están esperando el pago`}. Tocá una etiqueta para ver qué significa cada etapa.`
+                : "Tocá una etiqueta para ver qué significa cada etapa."}
+            </span>
           </div>
+          {!esDemo && (
+            <div className="portal-banda-numeros">
+              <div><b className="display num">{casosCobrados.length}</b><span>cobrados</span></div>
+              <div><b className="display num">{casos.filter(c => !c._demo).length}</b><span>derivados</span></div>
+              {totalCobrado > 0 && <div><b className="display num">{fmtMoney(totalCobrado)}</b><span>cobraron tus asegurados</span><i className="hilo-oro" style={{ width: "100%" }} /></div>}
+            </div>
+          )}
         </div>
-
-      </div>
+      </section>
       <div className="portal-grid" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 24px 96px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 24, alignItems: "start" }}>
         {/* Resumen del PAS */}
         <aside className="portal-resumen" style={{ display: "flex", flexDirection: "column", gap: 12, position: "sticky", top: 84 }}>
-          <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
+          {(comisionTotal > 0 || comisionPendiente > 0) && <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "14px 16px" }}>
             {/* La comisión solo aparece cuando hay algo: cobrada o por pagarle. Un PAS sin comisión no ve ninguna referencia.
-                Los próximos cobros van en su propia tarjeta (abajo). */}
+                Los números de la cartera pasaron a la banda de arriba; los próximos cobros van en su propia tarjeta (abajo). */}
             {comisionTotal > 0 && <>
               <div style={{ fontSize: 12, color: T.sub }}>Tu comisión cobrada</div>
               <div className="cifra">{fmtMoney(comisionTotal)}</div>
             </>}
             {comisionPendiente > 0 && <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>{comisionTotal > 0 ? "Por pagarte" : "Tu comisión por pagarte"}: <b className="num" style={{ color: T.text }}>{fmtMoney(comisionPendiente)}</b></div>}
-            <div className="stats-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", ...(comisionTotal > 0 || comisionPendiente > 0 ? { marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 10 } : {}) }}>
-              {[["En curso", enCurso.length], ["Cobrados", casosCobrados.length], ["Total", casos.filter(c => !c._demo).length]].map(([l, n]) => (
-                <div key={l}><div className="display" style={{ fontSize: 22, fontWeight: 700 }}>{n}</div><div style={{ fontSize: 13, color: T.muted }}>{l}</div></div>
-              ))}
-            </div>
-            {totalCobrado > 0 && <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>Tus asegurados cobraron <b className="num" style={{ color: T.text }}>{fmtMoney(totalCobrado)}</b></div>}
-          </section>
+          </section>}
 
           {pagosComision.length > 0 && (
             <section style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", padding: "12px 16px" }}>
@@ -323,7 +330,7 @@ export default function PortalHome({ session, onLogout, dark, onToggleDark, demo
                 {pagosPendientes.map((p, i) => (
                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 0", borderTop: i ? `1px solid ${T.border}` : "none", fontSize: 13 }}>
                     <span style={{ minWidth: 0 }}>
-                      <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.asegurado}</span>
+                      <span style={{ display: "block", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nombrePropio(p.asegurado)}</span>
                       <span style={{ color: T.muted, fontSize: 12 }}>{p._fechaPago ? fmtDate(p._fechaPago) : "Fecha a confirmar"}</span>
                     </span>
                     {/* Lo que cobra el cliente (acordado o, si no, el último ofrecimiento); debajo, la comisión si la hay */}

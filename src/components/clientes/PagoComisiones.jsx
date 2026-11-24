@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { fmtMoney, fmtDate, fechaLocalISO } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 import { comisionPorPagar, comisionPagada } from "../../utils/metricas.js";
 import { registrarPago, cargarPagos, abrirComprobante, borrarPago, validarArchivo, ACEPTA } from "../../utils/comprobantes.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
@@ -65,7 +65,7 @@ export default function PagoComisiones({ pas, casos, onCasoLocal, onCerrar }) {
     <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderTop: "1px solid var(--border)", cursor: "pointer", fontSize: 14 }}>
       <input type="checkbox" checked={tildados.has(c.id)} onChange={() => alternar(c.id)} />
       <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {c.asegurado || "Sin nombre"}
+        {nombrePropio(c.asegurado) || "Sin nombre"}
         {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{c.patente}</span>}
         {c.fecha_pago_comision && <span style={{ marginLeft: 8, fontSize: 12, color: "var(--muted)" }}>marcada pagada el {fmtDate(c.fecha_pago_comision)}</span>}
       </span>

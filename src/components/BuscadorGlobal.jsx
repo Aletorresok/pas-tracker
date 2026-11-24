@@ -3,6 +3,7 @@ import { supabase } from "../supabase.js";
 import { normalizarContacto } from "../hooks/usePASData.js";
 import EstadoPill from "./ui/EstadoPill.jsx";
 import Icono from "./ui/Icono.jsx";
+import { nombrePropio } from "../utils/formatters.js";
 
 // Minúsculas y sin tildes, para comparar
 const norm = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -149,7 +150,7 @@ export default function BuscadorGlobal({ abierto, onCerrar, allCasos, pas, pasMa
           {casos.map(c => { i++; return fila(items[i], i, <>
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: "block", fontWeight: 600, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {c.asegurado || "Sin nombre"}{c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
+                {nombrePropio(c.asegurado) || "Sin nombre"}{c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
               </span>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[c.compania_aseguradora, c._pasNombre].filter(Boolean).join(" · ")}</span>
             </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { proximosEventos, escucharCambios, describirCuando, tipoEvento, linkGoogleCalendar, fechaDe } from "../../utils/agenda.js";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 
 const DIAS = 14;
 
@@ -43,7 +43,7 @@ export default function AgendaHoy({ allCasos, onAbrir }) {
               <button type="button" onClick={() => c.id && onAbrir(c)} {...(c.id ? propsMenu(() => itemsCaso(c, { abrir: onAbrir })) : {})} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ minWidth: 0, fontSize: 14 }}>
                   <b style={{ fontWeight: 600 }}>{tipoEvento(e.tipo)}</b>
-                  <span style={{ color: "var(--sub)" }}> · {c.asegurado || "caso"}</span>
+                  <span style={{ color: "var(--sub)" }}> · {nombrePropio(c.asegurado) || "caso"}</span>
                 </span>
                 <span className="num" style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", color: esHoy ? "var(--warn)" : "var(--text)" }}>{describirCuando(e.inicio)}</span>
               </button>

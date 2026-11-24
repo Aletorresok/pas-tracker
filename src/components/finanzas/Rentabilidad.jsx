@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import TablaAnalisis from "../analisis/TablaAnalisis.jsx";
-import { fmtMoney, fmtDate } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, nombrePropio } from "../../utils/formatters.js";
 import { resultadoDeCaso, categoria, recuperarDe } from "../../utils/finanzas.js";
 import { honorariosCobrados } from "../../utils/metricas.js";
 
@@ -74,7 +74,7 @@ export default function Rentabilidad({ allCasos, gastos, onAbrirCaso }) {
           <button key={g.id} type="button" onClick={() => caso && onAbrirCaso(caso, "montos")} disabled={!caso}
             style={{ display: "flex", width: "100%", gap: 10, alignItems: "center", padding: "10px 0", background: "none", border: "none", borderTop: "1px solid var(--border)", font: "inherit", color: "var(--text)", cursor: caso ? "pointer" : "default", textAlign: "left" }}>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 14, fontWeight: 600, overflowWrap: "anywhere" }}>{g.descripcion || categoria(g.categoria).l}{caso ? ` · ${caso.asegurado || "Sin nombre"}` : ""}</span>
+              <span style={{ display: "block", fontSize: 14, fontWeight: 600, overflowWrap: "anywhere" }}>{g.descripcion || categoria(g.categoria).l}{caso ? ` · ${nombrePropio(caso.asegurado) || "Sin nombre"}` : ""}</span>
               <span style={{ display: "block", fontSize: 12, color: "var(--muted)" }}>{fmtDate(g.fecha)} · {recuperarDe(g.recuperar_de).toLowerCase() || "a recuperar"}</span>
             </span>
             <b className="num" style={{ fontSize: 14, whiteSpace: "nowrap" }}>{fmtMoney(Number(g.monto))}</b>

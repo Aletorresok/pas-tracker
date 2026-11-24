@@ -5,6 +5,7 @@ import Boton from "../ui/Boton.jsx";
 // Documentación que mandaron los clientes desde su vista y todavía no guardaste en la PC
 import { propsMenu } from "../ui/MenuContextual.jsx";
 import { itemsCaso } from "../../utils/menus.js";
+import { nombrePropio } from "../../utils/formatters.js";
 
 export default function RecepcionHoy({ allCasos, onAbrir }) {
   const [pendientes, setPendientes] = useState([]);
@@ -34,7 +35,7 @@ export default function RecepcionHoy({ allCasos, onAbrir }) {
         return (
           <div key={caso.id} {...propsMenu(() => itemsCaso(caso, { abrir: onAbrir }))} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
             <span style={{ flex: 1, minWidth: 180 }}>
-              <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>{caso.asegurado || "Sin nombre"}</span>
+              <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>{nombrePropio(caso.asegurado) || "Sin nombre"}</span>
               <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>{tipos.join(", ")} · {new Date(lista[0].creado).toLocaleDateString("es-AR")}</span>
             </span>
             <Boton tamaño="sm" variante="primario" onClick={() => onAbrir(caso)}>Guardar en el caso</Boton>

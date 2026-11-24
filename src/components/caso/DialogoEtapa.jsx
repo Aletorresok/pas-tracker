@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { estadoInfo } from "../../constants.js";
 import { fechasAlCambiarEstado, datosQueSobran } from "../../utils/flujoEstados.js";
 import { fechaPagoEstimada } from "../../utils/vistaCliente.js";
-import { fechaLocalISO, fmtDate, fmtMoney, diasEntreFechas } from "../../utils/formatters.js";
+import { fechaLocalISO, fmtDate, fmtMoney, diasEntreFechas, nombrePropio } from "../../utils/formatters.js";
 import CampoMonto from "../ui/CampoMonto.jsx";
 import Boton from "../ui/Boton.jsx";
 
@@ -69,7 +69,7 @@ export default function DialogoEtapa({ caso, nuevo, plazoCompania = null, onConf
       <div ref={dialogo} role="dialog" aria-modal="true" aria-labelledby="titulo-etapa" onClick={e => e.stopPropagation()} onKeyDown={tecla} className="slide-up"
         style={{ width: "100%", maxWidth: 460, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-3)", padding: 22, display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
-          <div style={{ fontSize: 12, color: "var(--muted)" }}>{caso.asegurado || "Sin nombre"}</div>
+          <div style={{ fontSize: 12, color: "var(--muted)" }}>{nombrePropio(caso.asegurado) || "Sin nombre"}</div>
           <h2 id="titulo-etapa" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{titulo}</h2>
         </div>
 

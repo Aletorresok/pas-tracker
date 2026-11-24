@@ -5,6 +5,7 @@ import { Hoja } from "../escritos/ModalEscritos.jsx";
 import { cargarModelos, guardarModelo, borrarModelo, CATEGORIAS_MODELO, categoriaModelo, AMBITOS, FIRMAS, DOCUMENTAL_FIJA } from "../../utils/modelos.js";
 import { CATALOGO_VARIABLES, variablesDe, completar } from "../../utils/plantillas.js";
 import { cargarEstudio } from "../../utils/estudio.js";
+import { nombrePropio } from "../../utils/formatters.js";
 
 const etiqueta = { display: "block", fontSize: 12, color: "var(--sub)", marginBottom: 4 };
 const campo = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", font: "inherit", fontSize: 14 };
@@ -157,7 +158,7 @@ export default function Modelos({ allCasos = [] }) {
               <label htmlFor="modelo-ejemplo"><span style={etiqueta}>Ver con un caso</span>
                 <select id="modelo-ejemplo" value={casoEjemplo} onChange={e => setCasoEjemplo(e.target.value)} style={campo}>
                   <option value="">Sin caso (se ven las variables)</option>
-                  {allCasos.slice().sort((a, b) => String(a.asegurado || "").localeCompare(String(b.asegurado || ""))).map(c => <option key={c.id} value={c.id}>{c.asegurado || "Sin nombre"}{c.patente ? ` · ${c.patente}` : ""}</option>)}
+                  {allCasos.slice().sort((a, b) => String(a.asegurado || "").localeCompare(String(b.asegurado || ""))).map(c => <option key={c.id} value={c.id}>{nombrePropio(c.asegurado) || "Sin nombre"}{c.patente ? ` · ${c.patente}` : ""}</option>)}
                 </select>
               </label>
               <Hoja texto={previa} />

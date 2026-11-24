@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import { METODOS } from "../../utils/intereses.js";
 import { SERIES, cargarSerie, guardarSerie, borrarDato, leerPegado, leerNumero, actualizarDesdeInternet } from "../../utils/indices.js";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 import { useEsCelular } from "../../hooks/useEsCelular.js";
 import Boton from "../ui/Boton.jsx";
 import { guardarLiquidacion } from "../../utils/finanzas.js";
@@ -38,7 +38,7 @@ function GuardarEnCaso({ resultados, capital, desde, hasta, allCasos }) {
   useEffect(() => { if (!validos.some(x => x.m.k === metodo) && validos[0]) setMetodo(validos[0].m.k); }, [validos, metodo]);
 
   const opciones = useMemo(() => [
-    ...allCasos.map(c => ({ tipo: "caso", id: c.id, l: `Caso: ${c.asegurado || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}` })),
+    ...allCasos.map(c => ({ tipo: "caso", id: c.id, l: `Caso: ${nombrePropio(c.asegurado) || "Sin nombre"}${c.patente ? ` · ${c.patente}` : ""}` })),
     ...expedientes.map(e => ({ tipo: "expediente", id: e.id, l: `Expediente: ${e.caratula}` })),
   ].sort((a, b) => a.l.localeCompare(b.l)), [allCasos, expedientes]);
   const elegido = opciones.find(o => o.l === texto);

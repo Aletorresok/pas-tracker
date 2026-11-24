@@ -5,7 +5,7 @@ import Boton from "../ui/Boton.jsx";
 import Icono from "../ui/Icono.jsx";
 import { propsMenu } from "../ui/MenuContextual.jsx";
 import { itemsCaso } from "../../utils/menus.js";
-import { haceCuanto } from "../../utils/formatters.js";
+import { haceCuanto, nombrePropio } from "../../utils/formatters.js";
 
 // created_at viene sin zona horaria (es UTC)
 const aFecha = c => {
@@ -44,7 +44,7 @@ export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
             <div key={c.id} className="tarea" {...propsMenu(() => itemsCaso(c, { abrir: onAbrir, extra: [{ label: "Ya lo contacté", onClick: () => contactado(c) }] }))} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid var(--border)" : "none", flexWrap: "wrap" }}>
               <button type="button" onClick={() => onAbrir(c)} style={{ flex: 1, minWidth: 180, background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: "var(--text)", font: "inherit" }}>
                 <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>
-                  {c.asegurado || "Sin nombre"}
+                  {nombrePropio(c.asegurado) || "Sin nombre"}
                   {c.patente && <span style={{ marginLeft: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{c.patente}</span>}
                 </span>
                 <span style={{ display: "block", fontSize: 12, color: "var(--sub)" }}>
@@ -52,7 +52,7 @@ export default function NuevosPortal({ casos, onAbrir, onCasoLocal }) {
                 </span>
               </button>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                {wa && <a href={wa} target="_blank" rel="noreferrer" className="btn-wa" aria-label={`Escribirle por WhatsApp a ${c.asegurado}`} title="Primer contacto por WhatsApp"><Icono nombre="mensaje" size={16} /></a>}
+                {wa && <a href={wa} target="_blank" rel="noreferrer" className="btn-wa" aria-label={`Escribirle por WhatsApp a ${nombrePropio(c.asegurado)}`} title="Primer contacto por WhatsApp"><Icono nombre="mensaje" size={16} /></a>}
                 <Boton tamaño="sm" onClick={() => contactado(c)} disabled={marcando === c.id}>{marcando === c.id ? "Guardando…" : "Ya lo contacté"}</Boton>
                 <Boton tamaño="sm" variante="primario" onClick={() => onAbrir(c)}>Abrir</Boton>
               </div>

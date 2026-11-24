@@ -3,7 +3,7 @@ import { supabase } from "../../supabase.js";
 import { generarCarta, fechaCarta, completarModelo, MODELOS_BASE, LINEAS_MAXIMAS } from "../../utils/cartaDocumento.js";
 import { abrirPdf, dibujarPagina, canvasABlob } from "../../utils/pdfjs.js";
 import { elegirDestino, escribirEn, puedeElegirDestino } from "../../utils/pdfEditor.js";
-import { fechaLocalISO } from "../../utils/formatters.js";
+import { fechaLocalISO, nombrePropio } from "../../utils/formatters.js";
 import Boton from "../ui/Boton.jsx";
 import { useDirectorio, guardarCompania, nombreLegal, domicilioDe } from "../../utils/companias.js";
 import { abrirCompania } from "../../utils/companiaAbierta.js";
@@ -214,7 +214,7 @@ export default function CartaDocumento({ allCasos = [] }) {
           <div style={titulo}>Caso (opcional)</div>
           {caso ? (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}><b>{caso.asegurado}</b>{caso.patente ? ` · ${caso.patente}` : ""}{caso.compania_aseguradora ? ` · ${caso.compania_aseguradora}` : ""}</span>
+              <span style={{ fontSize: 14 }}><b>{nombrePropio(caso.asegurado)}</b>{caso.patente ? ` · ${caso.patente}` : ""}{caso.compania_aseguradora ? ` · ${caso.compania_aseguradora}` : ""}</span>
               <Boton tamaño="sm" variante="fantasma" onClick={() => setCaso(null)}>Quitar</Boton>
             </div>
           ) : (
@@ -224,7 +224,7 @@ export default function CartaDocumento({ allCasos = [] }) {
                 <div style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 20, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", boxShadow: "var(--shadow)", marginTop: 4, overflow: "hidden" }}>
                   {coincidencias.map(c => (
                     <button key={c.id} type="button" onClick={() => elegirCaso(c)} style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 10px", background: "none", border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer", font: "inherit", fontSize: 13, color: "var(--text)" }}>
-                      <b>{c.asegurado || "Sin nombre"}</b> <span style={{ color: "var(--muted)" }}>{[c.patente, c.compania_aseguradora].filter(Boolean).join(" · ")}</span>
+                      <b>{nombrePropio(c.asegurado) || "Sin nombre"}</b> <span style={{ color: "var(--muted)" }}>{[c.patente, c.compania_aseguradora].filter(Boolean).join(" · ")}</span>
                     </button>
                   ))}
                 </div>

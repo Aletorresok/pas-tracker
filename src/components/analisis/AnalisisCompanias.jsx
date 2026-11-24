@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import TablaAnalisis, { ConMuestra, Barrita, Nota, Kpis } from "./TablaAnalisis.jsx";
 import { statsCompanias, pct, incumplimientos, comparativaMediacion } from "../../utils/analisis.js";
 import CondicionesCompanias from "./CondicionesCompanias.jsx";
-import { fmtMoney, fmtDate } from "../../utils/formatters.js";
+import { fmtMoney, fmtDate, nombrePropio } from "../../utils/formatters.js";
 import GraficoCompanias from "../GraficoCompanias.jsx";
 import { INSTANCIAS } from "../../constants.js";
 
@@ -120,7 +120,7 @@ function Incumplimientos({ allCasos, general, onAbrirCaso }) {
       </p>
       <TablaAnalisis clave={f => f.caso.id} filas={filas} ordenInicial={{ k: "atraso", desc: true }} minWidth={760} onFila={onAbrirCaso ? f => onAbrirCaso(f.caso) : undefined}
         vacio="Ninguna compañía pagó tarde, por ahora." columnas={[
-          { k: "asegurado", l: "Asegurado", ancho: "22%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{f.caso.asegurado || "Sin nombre"}</b> },
+          { k: "asegurado", l: "Asegurado", ancho: "22%", valor: f => (f.caso.asegurado || "").toLowerCase(), celda: f => <b style={{ fontWeight: 600 }}>{nombrePropio(f.caso.asegurado) || "Sin nombre"}</b> },
           { k: "compania", l: "Compañía", ancho: "18%", valor: f => (f.caso.compania_aseguradora || "").toLowerCase(), celda: f => f.caso.compania_aseguradora || "—" },
           { k: "debia", l: "Tenía que pagar", ancho: "22%", celda: f => <span className="num">{fmtDate(f.debia)} <span style={{ fontSize: 12, color: "var(--muted)" }}>{f.segun}</span></span> },
           { k: "pago", l: "Pagó", ancho: "16%", valor: f => f.pago || "9999", celda: f => f.pago ? <span className="num">{fmtDate(f.pago)}</span> : <b style={{ color: "var(--bad)" }}>Sin pagar</b> },
