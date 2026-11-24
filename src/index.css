@@ -222,8 +222,6 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 900px) {
   .portal-grid[style] { grid-template-columns: minmax(0, 1fr) !important; padding: 12px 12px 96px !important; gap: 12px !important; }
   .portal-resumen[style] { position: static !important; }
-  .portal-saludo[style] { padding: 16px 12px 0 !important; }
-  .stats-3[style] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   .stats-pas[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .checklist-docs[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .fab-derivar {
@@ -444,6 +442,16 @@ h1, h2, .display { font-family: var(--display); letter-spacing: -.02em; }
 .banda-critica { background: color-mix(in srgb, var(--bad) 5%, transparent); }
 /* Patente en formato placa (ficha del caso) */
 .placa { font-family: var(--mono); font-weight: 600; font-size: 12.5px; letter-spacing: .04em; padding: 1px 8px; border-radius: var(--r-xs); border: 1px solid var(--border2); background: var(--card2); color: var(--text); }
+/* Portal del productor: banda de tinta con el saludo y los números de la cartera */
+.portal-banda { --oro: #D4AF37; background: var(--tinta); color: var(--tinta-texto); } /* sobre tinta, el dorado claro */
+.portal-banda-in { max-width: 1120px; margin: 0 auto; padding: 28px 24px 32px; box-sizing: border-box; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 40px; }
+.portal-banda-titulo { margin: 0; font-family: var(--display); font-size: clamp(30px, 4.4vw, 50px); font-weight: 700; line-height: 1.04; letter-spacing: -.03em; color: var(--tinta-texto); }
+.portal-banda-numeros { display: flex; flex-wrap: wrap; gap: 16px 36px; }
+.portal-banda-numeros > div { display: flex; flex-direction: column; gap: 2px; }
+.portal-banda-numeros b { font-size: 38px; font-weight: 700; line-height: 1.05; letter-spacing: -.02em; color: var(--tinta-texto); }
+.portal-banda-numeros span { font-size: 13px; color: var(--tinta-sub); }
+.portal-banda-numeros .hilo-oro { margin-top: 6px; }
+@media (max-width: 640px) { .portal-banda-in { padding: 22px 16px 24px; } .portal-banda-numeros b { font-size: 28px; } }
 .hilo-oro { display: block; width: 72px; height: 2px; border-radius: 2px; background: var(--oro); }
 .cifra-heroe { font-family: var(--display); font-size: 44px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
 .titulo-hoy { margin: 4px 0 0; font-family: var(--display); font-size: clamp(32px, 4.2vw, 52px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; }

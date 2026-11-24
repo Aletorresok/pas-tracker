@@ -118,14 +118,14 @@ export default function PortalCasoCard({ caso, pasNombre, proximoEvento, plazoCi
   };
 
   return (
-    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-1)", overflow: "hidden" }}>
+    <article style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-1)" }}>
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
             <h3 className="display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)", overflowWrap: "anywhere" }}>{nombrePropio(caso.asegurado) || "Sin nombre"}</h3>
-            <div style={{ fontSize: 13, color: "var(--sub)", marginTop: 2, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, color: "var(--sub)", marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               {caso.compania_aseguradora && <span>{caso.compania_aseguradora}</span>}
-              {caso.patente && <span style={{ fontFamily: "var(--mono)" }}>{caso.patente}</span>}
+              {caso.patente && <span className="placa" style={{ fontSize: 11.5 }}>{caso.patente}</span>}
               {caso.fecha_derivacion && <span>derivado {fmtDate(caso.fecha_derivacion)}</span>}
             </div>
           </div>
