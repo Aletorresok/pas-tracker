@@ -75,7 +75,7 @@ function LineaDeTiempo({ caso }) {
               background: hecho ? "var(--accent)" : actual ? "var(--card)" : "var(--card2)",
               border: actual ? "2px solid var(--accent)" : "none",
               color: hecho ? "var(--on-accent)" : actual ? "var(--accent-ink)" : "var(--muted)",
-            }}>{i + 1}</span>
+            }}>{hecho ? <Icono nombre="check" size={13} stroke={2.6} /> : i + 1}</span>
             <span style={{ fontSize: 15, fontWeight: actual ? 700 : 500 }}>{nombre}</span>
             {actual
               ? <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent-ink)" }}>Ahora</span>
@@ -252,16 +252,17 @@ function QueSigue({ caso, extras, onDocumentacion }) {
   return (
     <>
       <section className="bloque-paso" aria-labelledby={`sigue-${caso.id}`}>
-        <div className="bloque-paso-sub">Paso {paso} de 5 · {PASOS_SIMPLES[paso - 1]}</div>
+        <div className="bloque-paso-paso">Paso {paso} de 5 · {PASOS_SIMPLES[paso - 1]}</div>
         <h2 id={`sigue-${caso.id}`} className="bloque-paso-titulo">{tituloEtapaCliente(caso)}</h2>
         <div className="bloque-paso-barra" aria-hidden="true">
-          {PASOS_SIMPLES.map((p, i) => <span key={p} className={i < paso ? "lleno" : undefined} />)}
+          {PASOS_SIMPLES.map((p, i) => <span key={p} className={i === paso - 1 ? "actual" : i < paso ? "lleno" : undefined} />)}
         </div>
         <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5 }}>{ahora(caso)}</p>
         {oferta > 0 && (
-          <div>
+          <div className="bloque-paso-oferta">
             <div className="bloque-paso-sub">Oferta de {caso.compania_aseguradora || "la compañía"}</div>
-            <div className="cifra" style={{ color: "inherit" }}>{fmtMoney(oferta)}</div>
+            <div className="cifra-heroe num">{fmtMoney(oferta)}</div>
+            <span className="hilo-oro" />
           </div>
         )}
         {referencia && <div className="bloque-paso-sub" style={{ lineHeight: 1.5 }}>{referencia}</div>}

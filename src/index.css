@@ -137,12 +137,18 @@ input:focus, select:focus, textarea:focus {
 @media (min-width: 900px) {
   .caso-cliente { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 }
-.bloque-paso { background: var(--tinta); color: var(--tinta-texto); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.bloque-paso { --oro: #D4AF37; background: var(--tinta); color: var(--tinta-texto); border-radius: var(--r-lg); padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; }
 .bloque-paso-sub { font-size: 13px; color: var(--tinta-sub); }
-.bloque-paso-titulo { margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.3px; }
+/* Tinta y oro: "Paso N de 5" en mono, título en display grande, el paso actual de la barra con un brillo suave */
+.bloque-paso-paso { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-acento); }
+.bloque-paso-titulo { margin: 0; font-family: var(--display); font-size: clamp(28px, 7vw, 34px); font-weight: 700; line-height: 1.06; letter-spacing: -.025em; }
 .bloque-paso-barra { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 .bloque-paso-barra span { height: 6px; border-radius: var(--r-xs); background: var(--tinta-vacio); }
-.bloque-paso-barra span.lleno { background: var(--tinta-acento); }
+.bloque-paso-barra span.lleno { background: color-mix(in srgb, var(--tinta-acento) 60%, var(--tinta-vacio)); }
+.bloque-paso-barra span.actual { background: var(--tinta-acento); box-shadow: 0 0 12px color-mix(in srgb, var(--tinta-acento) 60%, transparent); }
+.bloque-paso-oferta { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: var(--r-md); background: color-mix(in srgb, var(--tinta-texto) 6%, transparent); border: 1px solid var(--tinta-vacio); }
+.bloque-paso-oferta .cifra-heroe { color: var(--tinta-texto); font-size: 40px; }
+.bloque-paso-oferta .hilo-oro { width: 64px; margin-top: 6px; }
 .barra-wa { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: center; background: var(--card); border-top: 1px solid var(--border); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
 .barra-wa .btn-wa-grande { width: 100%; max-width: 480px; box-sizing: border-box; min-height: 52px; padding: 12px 10px; white-space: nowrap; }
 .pestanas-casos { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
